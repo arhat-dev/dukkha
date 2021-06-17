@@ -4,6 +4,6 @@ ARG ARCH=amd64
 # copy it to debian
 FROM arhatdev/builder-go:alpine as builder
 FROM arhatdev/go:debian-${ARCH}
-ARG APP=template-application-go
+ARG APP=dukkha
 
-ENTRYPOINT [ "/template-application-go" ]
+ENTRYPOINT [ "/dukkha" ]

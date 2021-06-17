@@ -1,4 +1,4 @@
-module arhat.dev/template-application-go
+module arhat.dev/dukkha
 
 go 1.16
 
