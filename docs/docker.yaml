@@ -1,0 +1,91 @@
+# support for docker {build, push, manifest}
+
+tools:
+  docker:
+  - id: default
+    env:
+    - DOCKER_BUILDKIT=0
+    # path: /path/to/docker
+    # args: []
+    config: {}
+
+# build and tag image
+docker:build:
+- name: <name the build>
+  # matrix values will be assigned to environment variable MATRIX_<matrix name>
+  matrix:
+    include:
+    - os:
+      - windows
+      arch:
+      - amd64
+      - armv7
+    exclude:
+    - os:
+      - linux
+      arch:
+      - mips64le
+    # built-in matrix os, defaults to [linux]
+    os:
+    - linux
+    # built-in matrix arch, defaults to [ $HOST_ARCH ]
+    arch:
+    - amd64
+    - arm64
+    - armv5
+    - armv6
+    - armv7
+    - s390x
+    - ppc64le
+    - mips64le
+    # built-in matrix repo, defaults to []
+    #
+    # NOTE: it will build the same image multiple times for different repos
+    repo:
+    - docker.io/org-name
+    - ghcr.io/org-name
+    # you can add custom matrix names
+    custom:
+    - foo
+    - bar
+
+  # value for docker build --tag
+  # it is evaluated for each .matrix.repo value
+  image_name@template: |-
+    {{- .MATRIX_REPO -}}/{{- .NAME -}}:
+    {{- if and .GIT_WORKSPACE_CLEAN .GIT_ON_DEFAULT_BRANCH -}}
+      latest-{{- .MATRIX_ARCH -}}
+    {{- else -}}
+      dev
+    {{- end -}}
+
+  # value for docker build --file
+  dockerfile@shell: |-
+    case ${MATRIX_ARCH} in
+      amd64, armv6, armv7, arm64)
+        printf "main.dockerfile"
+        ;;
+      *)
+        printf "other.dockerfile"
+        ;;
+    esac
+
+  # value for docker manifest
+  manifest_name@template: |-
+    {{- .MATRIX_REPO -}}/{{- .NAME -}}:
+    {{- if .GIT_WORKSPACE_CLEAN -}}
+      {{- if .GIT_TAG -}}
+        {{- .GIT_TAG -}}
+      {{- else -}}
+        {{- .GIT_BRANCH -}}{{- .GIT_COMMIT -}}
+      {{- end -}}
+    {{- else -}}
+      {{- .GIT_BRANCH | replace "/" "-" | kebabcase -}}-dev
+    {{- end -}}
+
+  args:
+  - --build-arg="ARCH=${MATRIX_ARCH}"
+
+# push image
+docker:push:
+- name: <same name of a build task>
