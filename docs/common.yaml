@@ -1,3 +1,6 @@
+bootstrap:
+  shell: ${SHELL}
+
 # shell command to provision a shell to execute your scripts
 shell:
 # fist shell will become the default shell, you can reference it using `shell`,

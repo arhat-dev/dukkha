@@ -1,3 +1,5 @@
+// +build darwin dragonfly linux openbsd freebsd solaris
+
 /*
 Copyright 2020 The arhat.dev Authors.
 
@@ -14,27 +16,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package conf
+package exechelper
 
 import (
-	"arhat.dev/pkg/log"
-	"github.com/spf13/pflag"
+	"io"
+	"os/exec"
+
+	"github.com/creack/pty"
 )
 
-type Config struct {
-	App AppConfig `json:"app" yaml:"app"`
-}
+func startCmdWithTty(
+	cmd *exec.Cmd,
+) (
+	doResize resizeFunc,
+	close func(),
+	stdin io.WriteCloser,
+	stdout io.ReadCloser,
+	err error,
+) {
+	f, err := pty.Start(cmd)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
 
-type AppConfig struct {
-	Log log.ConfigSet `json:"log" yaml:"log"`
+	doResize = func(cols, rows uint32) error {
+		return pty.Setsize(f, &pty.Winsize{
+			Cols: uint16(cols), Rows: uint16(rows),
+		})
+	}
 
-	Foo string `json:"foo" yaml:"foo"`
-}
+	close = func() { _ = f.Close() }
 
-func FlagsForAppConfig(prefix string, config *AppConfig) *pflag.FlagSet {
-	fs := pflag.NewFlagSet("app", pflag.ExitOnError)
+	stdin = f
+	stdout = f
 
-	fs.StringVar(&config.Foo, prefix+"foo", "bar", "set value of foo")
-
-	return fs
+	return
 }

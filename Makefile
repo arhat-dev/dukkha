@@ -48,9 +48,6 @@ image.push.linux.all: \
 image.push.windows.all: \
 	image.push.dukkha.windows.all
 
-# manifest gen
-include scripts/gen/manifests.mk
-
 # packaging
 include scripts/package/dukkha.mk
 

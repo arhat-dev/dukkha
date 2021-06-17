@@ -66,29 +66,8 @@ func ReadConfig(
 		}
 	}
 
-	if len(config.App.Log) > 0 {
-		if flags.Changed("log.format") {
-			config.App.Log[0].Format = cliLogConfig.Format
-		}
-
-		if flags.Changed("log.level") {
-			config.App.Log[0].Level = cliLogConfig.Level
-		}
-
-		if flags.Changed("log.file") {
-			config.App.Log[0].File = cliLogConfig.File
-		}
-	} else {
-		config.App.Log = append(config.App.Log, *cliLogConfig)
-	}
-
 	if err = cmd.ParseFlags(os.Args); err != nil {
 		return nil, err
-	}
-
-	err = log.SetDefaultLogger(config.App.Log)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set default logger: %w", err)
 	}
 
 	appCtx, exit := context.WithCancel(context.WithValue(context.Background(), constant.ContextKeyConfig, config))
