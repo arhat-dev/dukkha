@@ -1,5 +1,5 @@
 tools:
-  go:
+  golang:
   - env:
     - GO111MODULE=on
     - GO_PROXY=direct

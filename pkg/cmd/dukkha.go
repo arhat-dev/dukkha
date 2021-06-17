@@ -18,19 +18,26 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 
 	"arhat.dev/pkg/log"
+	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+
+	_ "embed" // go:embed to embed default config file
 )
 
 func NewRootCmd() *cobra.Command {
 	var (
-		appCtx       context.Context
-		configFile   string
-		config       = new(conf.Config)
-		cliLogConfig = new(log.Config)
+		appCtx      context.Context
+		configPaths []string
+		config      = new(conf.Config)
 	)
 
 	rootCmd := &cobra.Command{
@@ -42,10 +49,20 @@ func NewRootCmd() *cobra.Command {
 				return nil
 			}
 
-			var err error
-			appCtx, err = conf.ReadConfig(cmd, &configFile, cliLogConfig, config)
+			err := log.SetDefaultLogger(log.ConfigSet{config.Log})
 			if err != nil {
 				return err
+			}
+
+			mergedConfig, err := readConfig(configPaths, cmd.PersistentFlags().Changed("config"))
+			if err != nil {
+				return fmt.Errorf("failed to read config: %w", err)
+			}
+
+			appCtx = context.Background()
+			appCtx, err = config.Resolve(appCtx, mergedConfig)
+			if err != nil {
+				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
 			return nil
@@ -55,12 +72,107 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
+	globalFlags := rootCmd.PersistentFlags()
+
+	globalFlags.StringSliceVarP(&configPaths, "config", "c", []string{".dukkha", ".dukkha.yaml"}, "")
+
+	// logging
+	globalFlags.StringVarP(&config.Log.Level, "log.level", "v", "info",
+		"log level, one of [verbose, debug, info, error, silent]")
+	globalFlags.StringVar(&config.Log.Format, "log.format", "console",
+		"log output format, one of [console, json]")
+	globalFlags.StringVar(&config.Log.File, "log.file", "stderr",
+		"log output to this file")
+
 	return rootCmd
 }
 
 func run(appCtx context.Context, config *conf.Config) error {
 	logger := log.Log.WithName("app")
 
-	_ = logger
+	logger.I("application configured",
+		log.Any("bootstrap", config.Bootstrap),
+		// log.Any("tools", config.Tools),
+	)
+
+	_ = appCtx
 	return nil
+}
+
+//go:embed default.yaml
+var defaultConfigBytes []byte
+
+func readConfig(configPaths []string, failOnFileNotFoundError bool) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+
+	err := yaml.Unmarshal(defaultConfigBytes, result)
+	if err != nil {
+		return nil, fmt.Errorf("invalid default config: %w", err)
+	}
+
+	readAndMergeConfigFile := func(path string) error {
+		configBytes, err2 := os.ReadFile(path)
+		if err2 != nil {
+			return fmt.Errorf("failed to read config file %q: %w", path, err2)
+		}
+
+		current := make(map[string]interface{})
+		err2 = yaml.Unmarshal(configBytes, &current)
+		if err2 != nil {
+			return fmt.Errorf("failed to unmarshal config file %q: %w", path, err2)
+		}
+
+		err2 = mergo.Merge(&result, current, mergo.WithOverride)
+		if err2 != nil {
+			return fmt.Errorf("failed to merge config file %q: %w", path, err2)
+		}
+
+		return err2
+	}
+
+	for _, path := range configPaths {
+		info, err := os.Stat(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				if !failOnFileNotFoundError {
+					continue
+				}
+			}
+
+			return nil, err
+		}
+
+		if !info.IsDir() {
+			err = readAndMergeConfigFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			continue
+		}
+
+		err = fs.WalkDir(os.DirFS(path), ".", func(pathInDir string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			switch filepath.Ext(pathInDir) {
+			case ".yml", ".yaml":
+			default:
+				return nil
+			}
+
+			return readAndMergeConfigFile(filepath.Join(path, pathInDir))
+		})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return result, nil
 }

@@ -22,6 +22,10 @@ import (
 	"io"
 	"strings"
 
+	"arhat.dev/pkg/log"
+	"go.uber.org/multierr"
+	"gopkg.in/yaml.v3"
+
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
@@ -29,17 +33,15 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/renderer/template_file"
 	"arhat.dev/dukkha/pkg/tools"
-	"go.uber.org/multierr"
-	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Bootstrap BootstrapConfig `yaml:"-"`
-	Shell     ShellConfigList `yaml:"-"`
+	Log log.Config
 
-	Tools ToolsConfig `yaml:"-"`
-
-	Tasks TasksConfig `yaml:"-"`
+	Bootstrap BootstrapConfig
+	Shell     ShellConfigList
+	Tools     ToolsConfig
+	Tasks     TasksConfig
 }
 
 const (
@@ -54,9 +56,9 @@ func Unmarshal(r io.Reader, out interface{}) error {
 	return dec.Decode(out)
 }
 
-func (c *Config) Decode(ctx context.Context, mergedConfig map[string]interface{}) error {
+func (c *Config) Resolve(ctx context.Context, mergedConfig map[string]interface{}) (context.Context, error) {
 	if mergedConfig == nil {
-		return nil
+		return nil, nil
 	}
 
 	if c.Tools == nil {
@@ -70,11 +72,11 @@ func (c *Config) Decode(ctx context.Context, mergedConfig map[string]interface{}
 	// resolve bootstrap config first
 	err := c.Bootstrap.Resolve(ctx, mergedConfig[topLevelFieldBootstrap])
 	if err != nil {
-		return fmt.Errorf("conf: bootstrap config not resolved: %w", err)
+		return nil, fmt.Errorf("conf: bootstrap config not resolved: %w", err)
 	}
 
 	if c.Bootstrap.Shell == "" {
-		return fmt.Errorf("conf: unable to get a shell name, please set bootstrap.shell manually")
+		return nil, fmt.Errorf("conf: unable to get a shell name, please set bootstrap.shell manually")
 	}
 
 	// create a renderer manager with essential renderers
@@ -84,11 +86,15 @@ func (c *Config) Decode(ctx context.Context, mergedConfig map[string]interface{}
 	err = multierr.Append(err, mgr.Add(&template.Config{}, template.DefaultName))
 	err = multierr.Append(err, mgr.Add(&template_file.Config{}, template_file.DefaultName))
 	err = multierr.Append(err, mgr.Add(&file.Config{}, file.DefaultName))
+	if err != nil {
+		return nil, fmt.Errorf("conf: failed to create essential renderers: %w", err)
+	}
+
 	ctx = renderer.WithManager(ctx, mgr)
 
 	err = c.Shell.resolve(ctx, mergedConfig[topLevelFieldShell])
 	if err != nil {
-		return fmt.Errorf("conf: unable to resolve shell config: %w", err)
+		return nil, fmt.Errorf("conf: unable to resolve shell config: %w", err)
 	}
 
 	//
@@ -98,7 +104,7 @@ func (c *Config) Decode(ctx context.Context, mergedConfig map[string]interface{}
 	// resolve tools config
 	err = c.Tools.resolve(ctx, mergedConfig[topLevelFieldTools])
 	if err != nil {
-		return fmt.Errorf("conf: unable to resovle tools config: %w", err)
+		return nil, fmt.Errorf("conf: unable to resolve tools config: %w", err)
 	}
 
 	// resolve tasks
@@ -121,11 +127,11 @@ func (c *Config) Decode(ctx context.Context, mergedConfig map[string]interface{}
 
 		err = c.resolveTasks(f, v)
 		if err != nil {
-			return fmt.Errorf("conf: invalid config: %w", err)
+			return nil, fmt.Errorf("conf: invalid config: %w", err)
 		}
 	}
 
-	return nil
+	return ctx, nil
 }
 
 func (c *Config) resolveTasks(taskField *Field, data interface{}) error {

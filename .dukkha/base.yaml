@@ -1,3 +1,9 @@
+bootstrap:
+  shell: bash
+  shell_args:
+  - -x
+  - -c
+
 shell:
 - name: bash
   # path: /bin/bash

@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// nolint:revive
 type (
 	factoryKey struct {
 		configTypeString string

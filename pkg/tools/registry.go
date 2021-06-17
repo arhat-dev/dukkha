@@ -9,12 +9,14 @@ type (
 	ToolFactoryFunc       func(ctx context.Context, config interface{}) (Interface, error)
 	ToolConfigFactoryFunc func() interface{}
 
+	// nolint:structcheck,unused
 	toolFactory struct {
 		createTool ToolFactoryFunc
 		newConfig  ToolConfigFactoryFunc
 	}
 )
 
+// nolint:deadcode,unused,varcheck
 var (
 	supportedTools = make(map[ToolKey]toolFactory)
 )

@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/conf"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/conf"
 )
 
 func TestConfigUnmarshal(t *testing.T) {
