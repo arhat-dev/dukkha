@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/conf"
-	"arhat.dev/dukkha/pkg/constant"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -55,12 +54,6 @@ func NewRootCmd() *cobra.Command {
 			return run(appCtx, config)
 		},
 	}
-
-	flags := rootCmd.PersistentFlags()
-
-	flags.StringVarP(&configFile, "config", "c", constant.DefaultConfigFile,
-		"path to the config file")
-	flags.AddFlagSet(conf.FlagsForAppConfig("", &config.App))
 
 	return rootCmd
 }

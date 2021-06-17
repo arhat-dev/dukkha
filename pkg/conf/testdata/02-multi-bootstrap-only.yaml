@@ -1,0 +1,6 @@
+---
+bootstrap:
+  shell: /bin/sh
+---
+bootstrap:
+  shell: /bin/bash
