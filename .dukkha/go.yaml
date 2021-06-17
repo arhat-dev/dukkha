@@ -1,0 +1,8 @@
+tools:
+  go:
+  - env:
+    - GO111MODULE=on
+    - GO_PROXY=direct
+    - GO_SUMDB=off
+    # path: /path/to/your/go
+    args: []
