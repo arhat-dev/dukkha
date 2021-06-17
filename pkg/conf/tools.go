@@ -8,6 +8,6 @@ import (
 
 type ToolsConfig map[tools.ToolKey]tools.ToolConfig
 
-func (c *ToolsConfig) resolve(ctx context.Context, data interface{}) error {
+func (c ToolsConfig) resolve(ctx context.Context, data interface{}) error {
 	return nil
 }

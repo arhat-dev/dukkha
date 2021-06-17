@@ -1,0 +1,23 @@
+bootstrap:
+  env: []
+  shell: sh
+  shell_args:
+  - -c
+
+shell:
+- name: sh
+
+tools:
+  golang:
+  - id: ""
+  docker:
+  - id: ""
+
+golang:test: []
+golang:build: []
+golang:release: []
+golang:profile: []
+golang:coverage: []
+
+docker:build: []
+docker:push: []

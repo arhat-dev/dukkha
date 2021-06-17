@@ -94,6 +94,12 @@ func (c *BootstrapConfig) Resolve(ctx context.Context, data interface{}) error {
 				break
 			}
 
+			_, err = exec.LookPath("powershell")
+			if err == nil {
+				c.Shell = "powershell"
+				break
+			}
+
 			c.Shell = "cmd"
 		default:
 			c.Shell = "sh"
@@ -107,7 +113,8 @@ func (c *BootstrapConfig) Resolve(ctx context.Context, data interface{}) error {
 
 func getDefaultShellArgs(shell string) []string {
 	switch {
-	case strings.HasSuffix(shell, "sh"):
+	case strings.HasSuffix(shell, "sh"),
+		shell == "powershell":
 		// sh, bash, zsh, pwsh
 		return []string{"-c"}
 	case shell == "cmd":

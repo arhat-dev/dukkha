@@ -22,7 +22,7 @@ func (d *Driver) Name() string {
 }
 
 func (d *Driver) Render(ctx context.Context, path string) (string, error) {
-	script, err := os.ReadFile(string(path))
+	script, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to read script: %w", DefaultName, err)
 	}

@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.5.6
+	github.com/imdario/mergo v0.3.12
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.6.0
