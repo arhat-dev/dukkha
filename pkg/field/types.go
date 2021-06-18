@@ -109,6 +109,7 @@ func (f *BaseField) addUnresolvedField(
 	}
 }
 
+// UnmarshalYAML handles renderer suffix
 // nolint:gocyclo
 func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
