@@ -20,9 +20,7 @@ type Driver struct {
 	doExec ExecFunc
 }
 
-func (d *Driver) Name() string {
-	return DefaultName
-}
+func (d *Driver) Name() string { return DefaultName }
 
 func (d *Driver) Render(ctx context.Context, rawValue string) (string, error) {
 	stdout := &bytes.Buffer{}
@@ -40,7 +38,7 @@ func (d *Driver) Render(ctx context.Context, rawValue string) (string, error) {
 		Stderr:  os.Stderr,
 	})
 	if err != nil {
-		return "", fmt.Errorf("renderer.shell: exit code %d: %w", code, err)
+		return "", fmt.Errorf("renderer.%s: exit code %d: %w", DefaultName, code, err)
 	}
 
 	return stdout.String(), nil
