@@ -19,6 +19,7 @@ package conf
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"arhat.dev/pkg/log"
 	"go.uber.org/multierr"
@@ -33,22 +34,28 @@ import (
 )
 
 func NewConfig() *Config {
-	return &Config{
+	return field.New(&Config{
 		Shell: field.New(&ShellConfigList{}).(*ShellConfigList),
 		Tools: field.New(&ToolsConfig{}).(*ToolsConfig),
 		Tasks: field.New(&TasksConfig{}).(*TasksConfig),
-	}
+	}).(*Config)
 }
 
 type Config struct {
+	field.BaseField
+
 	Log       log.Config      `yaml:"log"`
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
 	Shell *ShellConfigList `yaml:"shell"`
 	Tools *ToolsConfig     `yaml:"tools"`
 
-	// use inline so it will get notified with all yaml nodes
-	Tasks *TasksConfig `yaml:",inline"`
+	// use inline for all tasks so it will get notified with all yaml nodes
+	Tasks *TasksConfig `yaml:",inline" dukkha:"other"`
+}
+
+func (c *Config) Type() reflect.Type {
+	return reflect.TypeOf(c)
 }
 
 func (c *Config) Resolve(ctx context.Context) (context.Context, error) {

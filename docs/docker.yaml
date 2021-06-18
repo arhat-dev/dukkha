@@ -52,9 +52,9 @@ docker:build:
   # value for docker build --tag
   # it is evaluated for each .matrix.repo value
   image_name@template: |-
-    {{- .MATRIX_REPO -}}/{{- .NAME -}}:
-    {{- if and .GIT_WORKSPACE_CLEAN .GIT_ON_DEFAULT_BRANCH -}}
-      latest-{{- .MATRIX_ARCH -}}
+    {{- .Env.MATRIX_REPO -}}/{{- .Env.NAME -}}:
+    {{- if and .Env.GIT_WORKSPACE_CLEAN .Env.GIT_ON_DEFAULT_BRANCH -}}
+      latest-{{- .Env.MATRIX_ARCH -}}
     {{- else -}}
       dev
     {{- end -}}
@@ -72,15 +72,15 @@ docker:build:
 
   # value for docker manifest
   manifest_name@template: |-
-    {{- .MATRIX_REPO -}}/{{- .NAME -}}:
-    {{- if .GIT_WORKSPACE_CLEAN -}}
-      {{- if .GIT_TAG -}}
-        {{- .GIT_TAG -}}
+    {{- .Env.MATRIX_REPO -}}/{{- .Env.NAME -}}:
+    {{- if .Env.GIT_WORKSPACE_CLEAN -}}
+      {{- if .Env.GIT_TAG -}}
+        {{- .Env.GIT_TAG -}}
       {{- else -}}
-        {{- .GIT_BRANCH -}}{{- .GIT_COMMIT -}}
+        {{- .Env.GIT_BRANCH -}}{{- .Env.GIT_COMMIT -}}
       {{- end -}}
     {{- else -}}
-      {{- .GIT_BRANCH | replace "/" "-" | kebabcase -}}-dev
+      {{- .Env.GIT_BRANCH | replace "/" "-" | kebabcase -}}-dev
     {{- end -}}
 
   args:

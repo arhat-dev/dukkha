@@ -2,12 +2,10 @@ package field
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"arhat.dev/dukkha/pkg/utils"
+	"gopkg.in/yaml.v3"
 )
 
 var _ Interface = (*testFieldStruct)(nil)
@@ -39,7 +37,6 @@ func TestNewField(t *testing.T) {
 		targetType Interface
 		willPanic  bool
 
-		getBaseFieldParentType  func(in Interface) reflect.Type
 		getBaseFieldParentValue func(in Interface) reflect.Value
 
 		setDirectFoo          func(in Interface, v string)
@@ -48,9 +45,6 @@ func TestNewField(t *testing.T) {
 		{
 			name:       "struct",
 			targetType: &testFieldStruct{},
-			getBaseFieldParentType: func(in Interface) reflect.Type {
-				return in.(*testFieldStruct).BaseField._parentType
-			},
 			getBaseFieldParentValue: func(in Interface) reflect.Value {
 				return in.(*testFieldStruct).BaseField._parentValue
 			},
@@ -83,7 +77,7 @@ func TestNewField(t *testing.T) {
 
 			foo := New(test.targetType)
 
-			assert.Equal(t, test.targetType.Type(), test.getBaseFieldParentType(foo))
+			assert.Equal(t, test.targetType.Type(), test.getBaseFieldParentValue(foo).Type().Elem())
 
 			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue(foo).Interface()) {
 				return
@@ -102,22 +96,50 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 		expected interface{}
 	}{
 		{
-			name:     "basic",
-			yaml:     `foo: bar`,
-			expected: &testFieldStruct{Foo: "bar"},
+			name: "basic",
+			yaml: `foo: bar`,
+			expected: &testFieldStruct{
+				BaseField: BaseField{
+					unresolvedFields: nil,
+				},
+				// TODO: add back after supported
+				// Foo: "bar",
+			},
+		},
+		{
+			name: "basic+renderer",
+			yaml: `foo@hi: echo bar`,
+			expected: &testFieldStruct{
+				BaseField: BaseField{
+					unresolvedFields: map[unresolvedFieldKey]*unresolvedFieldValue{
+						{
+							fieldName: "Foo",
+						}: {
+							fieldValue: reflect.Value{},
+							renderer:   "hi",
+							rawData:    "echo bar",
+						},
+					},
+				},
+				Foo: "",
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			out := New(&testFieldStruct{}).(*testFieldStruct)
+			assert.EqualValues(t, 1, out._initialized)
 
-			if !assert.NoError(t, utils.UnmarshalStrict(strings.NewReader(test.yaml), out)) {
+			if !assert.NoError(t, yaml.Unmarshal([]byte(test.yaml), out)) {
 				return
 			}
 
-			out._parentType = nil
+			out._initialized = 0
 			out._parentValue = reflect.Value{}
+			for k := range out.unresolvedFields {
+				out.unresolvedFields[k].fieldValue = reflect.Value{}
+			}
 
 			assert.EqualValues(t, test.expected, out)
 		})
