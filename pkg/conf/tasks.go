@@ -11,7 +11,7 @@ import (
 type TasksConfig struct {
 	field.BaseField
 
-	Tasks map[tools.TaskTypeKey][]tools.TaskConfig `yaml:",inline"`
+	Tasks []tools.TaskConfig `yaml:"" dukkha:"other"`
 }
 
 func (c *TasksConfig) Type() reflect.Type {

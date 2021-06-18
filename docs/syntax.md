@@ -29,9 +29,4 @@ Supported suffixes are:
 - `@template_file` is similar to `@template`, but will read the local file as the template
 - `@file` will use local file content as value
 
-for `@xxx_url`:
-
-- `file://./path/to/some/file`
-- `https://example.com/remote/file`
-
 __NOTE:__ you have to solve character (un)escaping on your on own

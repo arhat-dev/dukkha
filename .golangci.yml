@@ -95,6 +95,11 @@ issues:
   - text: "commentFormatting: put a space between `//` and comment text"
     linters:
     - gocritic
+
   - text: "var-naming: don't use an underscore in package name"
     linters:
     - revive
+
+  - text: 'shadow: declaration of "logger" shadows declaration'
+    linters:
+    - govet

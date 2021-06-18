@@ -11,8 +11,6 @@ import (
 	"arhat.dev/pkg/exechelper"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type bootstrapPureConfig struct {
@@ -56,7 +54,7 @@ func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 			return fmt.Errorf("conf.bootstrap: config expansion failed: %w", err)
 		}
 
-		err = utils.UnmarshalStrict(strings.NewReader(preparedDataStr), &c.bootstrapPureConfig)
+		err = yaml.Unmarshal([]byte(preparedDataStr), &c.bootstrapPureConfig)
 		if err != nil {
 			return fmt.Errorf("conf.bootstrap: failed to unmarshal config: %w", err)
 		}

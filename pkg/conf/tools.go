@@ -12,7 +12,7 @@ type ToolsConfig struct {
 	field.BaseField
 
 	// map[tools.ToolKey]tools.ToolConfig
-	Tools []tools.ToolConfig `yaml:",inline"`
+	Tools []tools.ToolConfig `yaml:",inline" dukkha:"other"`
 }
 
 func (c *ToolsConfig) Type() reflect.Type {
