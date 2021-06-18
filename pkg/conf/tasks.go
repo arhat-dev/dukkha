@@ -1,8 +1,6 @@
 package conf
 
 import (
-	"reflect"
-
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -11,10 +9,6 @@ type TasksConfig struct {
 	field.BaseField
 
 	Tasks []tools.TaskConfig `yaml:"" dukkha:"other"`
-}
-
-func (c *TasksConfig) Type() reflect.Type {
-	return reflect.TypeOf(c)
 }
 
 // func (c *TasksConfig) Resolve(ctx context.Context) error {

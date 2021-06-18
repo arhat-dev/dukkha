@@ -1,8 +1,6 @@
 package conf
 
 import (
-	"reflect"
-
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -20,8 +18,4 @@ type ShellConfigList struct {
 	field.BaseField `yaml:"-"`
 
 	ShellConfigs []ShellConfig `yaml:",inline"`
-}
-
-func (c *ShellConfigList) Type() reflect.Type {
-	return reflect.TypeOf(c)
 }

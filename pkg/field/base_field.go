@@ -15,12 +15,13 @@ import (
 type (
 	unresolvedFieldKey struct {
 		fieldName string
+		renderer  string
 	}
 
 	unresolvedFieldValue struct {
-		fieldValue reflect.Value
-		renderer   string
-		rawData    string
+		fieldValue    reflect.Value
+		yamlFieldName string
+		rawData       []string
 	}
 )
 
@@ -37,18 +38,27 @@ type BaseField struct {
 func (f *BaseField) addUnresolvedField(
 	fieldName string,
 	fieldValue reflect.Value,
+	yamlFieldName string,
 	renderer, rawData string,
 ) {
 	if f.unresolvedFields == nil {
 		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
 	}
 
-	f.unresolvedFields[unresolvedFieldKey{
+	key := unresolvedFieldKey{
 		fieldName: fieldName,
-	}] = &unresolvedFieldValue{
-		fieldValue: fieldValue,
-		renderer:   renderer,
-		rawData:    rawData,
+		renderer:  renderer,
+	}
+
+	if old, exists := f.unresolvedFields[key]; exists {
+		f.unresolvedFields[key].rawData = append(old.rawData, rawData)
+		return
+	}
+
+	f.unresolvedFields[key] = &unresolvedFieldValue{
+		fieldValue:    fieldValue,
+		yamlFieldName: yamlFieldName,
+		rawData:       []string{rawData},
 	}
 }
 
@@ -61,19 +71,21 @@ func (f *BaseField) Resolve(ctx context.Context, render RenderingFunc, depth int
 
 		logger.V("rendering")
 
-		resolvedValue, err := render(ctx, v.renderer, v.rawData)
-		if err != nil {
-			return fmt.Errorf("field: failed to render value of this base field: %w", err)
-		}
-
 		out := v.fieldValue.Interface()
 
-		err = yaml.Unmarshal([]byte(resolvedValue), out)
-		if err != nil {
-			return fmt.Errorf("field: failed to unmarshal resolved value: %w", err)
-		}
+		for _, rawData := range v.rawData {
+			resolvedValue, err := render(ctx, k.renderer, rawData)
+			if err != nil {
+				return fmt.Errorf("field: failed to render value of this base field: %w", err)
+			}
 
-		toRemove = append(toRemove, k)
+			err = yaml.Unmarshal([]byte(resolvedValue), out)
+			if err != nil {
+				return fmt.Errorf("field: failed to unmarshal resolved value: %w", err)
+			}
+
+			toRemove = append(toRemove, k)
+		}
 	}
 
 	for _, k := range toRemove {
@@ -247,11 +259,11 @@ fieldLoop:
 				fSpec = catchOtherField
 			}
 
-			// TODO: initialize struct using BaseField with field.New()
-
 			logger := logger.WithFields(log.String("field", fSpec.fieldName))
 
 			logger.V("working on plain field")
+
+			initializeBaseField(logger, fSpec.fieldValue)
 
 			continue
 		}
@@ -272,10 +284,6 @@ fieldLoop:
 			)
 		}
 
-		handledYamlValues[yamlKey] = struct{}{}
-		// don't forget the raw name with rendering suffix
-		handledYamlValues[k] = struct{}{}
-
 		rawData, ok := v.(string)
 		if !ok {
 			return fmt.Errorf(
@@ -293,12 +301,28 @@ fieldLoop:
 			fSpec = catchOtherField
 		}
 
-		logger.V("found field to be rendered",
-			log.String("field", fSpec.fieldName),
-		)
-
 		// TODO: initialize struct with field.New()
-		f.addUnresolvedField(fSpec.fieldName, fSpec.fieldValue, renderer, rawData)
+
+		logger = logger.WithFields(log.String("field", fSpec.fieldName))
+		if fSpec.fieldValue.CanInterface() {
+			fVal, hasBaseField := fSpec.fieldValue.Interface().(Interface)
+			if hasBaseField {
+				logger.V("initializing field with rendering suffix")
+				_ = New(fVal)
+			}
+		}
+
+		handledYamlValues[yamlKey] = struct{}{}
+		// don't forget the raw name with rendering suffix
+		handledYamlValues[k] = struct{}{}
+
+		logger.V("found field to be rendered")
+
+		f.addUnresolvedField(
+			fSpec.fieldName, fSpec.fieldValue,
+			yamlKey,
+			renderer, rawData,
+		)
 	}
 
 	for k := range handledYamlValues {
@@ -328,4 +352,30 @@ fieldLoop:
 	}
 
 	return nil
+}
+
+func initializeBaseField(logger log.Interface, f reflect.Value) {
+	if !f.CanInterface() {
+		return
+	}
+
+	fVal, hasBaseField := f.Interface().(Interface)
+	if !hasBaseField {
+		return
+	}
+
+	logger.V("initializing field using BaseField",
+		log.Any("kind", f.Kind()),
+		log.Any("elem", f.Elem()),
+	)
+
+	switch f.Kind() {
+	case reflect.Struct:
+	case reflect.Ptr:
+		f.Set(reflect.New(f.Type().Elem()))
+	default:
+		panic(fmt.Sprintf("unexpected type: %q", f.Kind()))
+	}
+
+	_ = New(fVal)
 }

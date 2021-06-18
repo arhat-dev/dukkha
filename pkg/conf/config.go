@@ -17,8 +17,6 @@ limitations under the License.
 package conf
 
 import (
-	"reflect"
-
 	"arhat.dev/pkg/log"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -39,8 +37,4 @@ type Config struct {
 
 	// use inline for all tasks so it will get notified with all yaml nodes
 	Tasks *TasksConfig `yaml:",inline" dukkha:"other"`
-}
-
-func (c *Config) Type() reflect.Type {
-	return reflect.TypeOf(c)
 }
