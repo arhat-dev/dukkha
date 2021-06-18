@@ -2,10 +2,12 @@ package field
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 var _ Interface = (*testFieldStruct)(nil)
@@ -110,7 +112,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			out := New(&testFieldStruct{}).(*testFieldStruct)
 
-			if !assert.NoError(t, yaml.Unmarshal([]byte(test.yaml), out)) {
+			if !assert.NoError(t, utils.UnmarshalStrict(strings.NewReader(test.yaml), out)) {
 				return
 			}
 

@@ -1,14 +1,15 @@
 package conf_test
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 func TestConfigUnmarshal(t *testing.T) {
@@ -41,7 +42,7 @@ func TestConfigUnmarshal(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			config := &conf.Config{}
 
-			err := yaml.Unmarshal(test.configData, config)
+			err := utils.UnmarshalStrict(bytes.NewReader(test.configData), config)
 
 			assert.NoError(t, err)
 		})

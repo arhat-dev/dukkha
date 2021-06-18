@@ -1,6 +1,10 @@
 package tools
 
-import "fmt"
+import (
+	"fmt"
+
+	"arhat.dev/dukkha/pkg/field"
+)
 
 type Interface interface {
 	Name() string
@@ -31,6 +35,8 @@ func (k ToolKey) String() string {
 }
 
 type ToolConfig interface {
+	field.Interface
+
 	Name() string
 	ID() string
 }
@@ -66,9 +72,9 @@ func CreateTaskTypeKey(toolName, toolID, taskType string) (*TaskTypeKey, error) 
 }
 
 type TaskConfig interface {
-	Name() string
+	field.Interface
 
-	StringValue() string
+	Name() string
 }
 
 func NewTaskBase(name string) *TaskBase {

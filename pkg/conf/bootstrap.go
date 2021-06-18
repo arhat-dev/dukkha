@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,65 +9,54 @@ import (
 
 	"arhat.dev/pkg/envhelper"
 	"arhat.dev/pkg/exechelper"
+	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
-type BootstrapConfig struct {
+type bootstrapPureConfig struct {
 	Env       []string `yaml:"env"`
 	Shell     string   `yaml:"shell"`
 	ShellArgs []string `yaml:"shell_args"`
 }
 
-func (c *BootstrapConfig) Exec(script string, spec *exechelper.Spec) (int, error) {
-	spec.Command = append(append([]string{c.Shell}, c.ShellArgs...), script)
-
-	cmd, err := exechelper.Do(*spec)
-	if err != nil {
-		return 128, fmt.Errorf("conf.Bootstrap.exec: %w", err)
-	}
-
-	exitCode, err := cmd.Wait()
-	if err != nil {
-		return exitCode, fmt.Errorf("conf.Bootstrap.exec: %w", err)
-	}
-
-	return 0, nil
+type BootstrapConfig struct {
+	bootstrapPureConfig `yaml:"-"`
 }
 
-func (c *BootstrapConfig) Resolve(ctx context.Context, data interface{}) error {
-	var (
-		configBytes []byte
-		err         error
-	)
-
-	switch t := data.(type) {
-	case nil: // use default config
-	case string:
-		configBytes = []byte(t)
-	case []byte:
-		configBytes = t
-	default:
-		configBytes, err = yaml.Marshal(data)
-		if err != nil {
-			return fmt.Errorf("conf.bootstrap: unable to marshal: %w", err)
-		}
+func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
+	configBytes, err := yaml.Marshal(n)
+	if err != nil {
+		return fmt.Errorf("bootstrap: marshal back failed: %w", err)
 	}
 
 	if len(configBytes) != 0 {
 		preparedDataStr := envhelper.Expand(string(configBytes), func(varName, origin string) string {
+			if strings.HasPrefix(origin, "$(") {
+				err = multierr.Append(
+					err,
+					fmt.Errorf("conf.bootstrap: shell evaluation %q is not allowed", origin),
+				)
+				return ""
+			}
+
 			val, ok := os.LookupEnv(varName)
 			if !ok {
-				err = fmt.Errorf("conf.bootstrap: environment variable %q not found", val)
+				err = multierr.Append(
+					err,
+					fmt.Errorf("conf.bootstrap: environment variable %q not found", val),
+				)
 				return ""
 			}
 
 			return val
 		})
 		if err != nil {
-			return fmt.Errorf("conf.bootstrap: expansion failed: %w", err)
+			return fmt.Errorf("conf.bootstrap: config expansion failed: %w", err)
 		}
 
-		err = Unmarshal(strings.NewReader(preparedDataStr), c)
+		err = utils.UnmarshalStrict(strings.NewReader(preparedDataStr), &c.bootstrapPureConfig)
 		if err != nil {
 			return fmt.Errorf("conf.bootstrap: failed to unmarshal config: %w", err)
 		}
@@ -109,6 +97,22 @@ func (c *BootstrapConfig) Resolve(ctx context.Context, data interface{}) error {
 	}
 
 	return nil
+}
+
+func (c *BootstrapConfig) Exec(script string, spec *exechelper.Spec) (int, error) {
+	spec.Command = append(append([]string{c.Shell}, c.ShellArgs...), script)
+
+	cmd, err := exechelper.Do(*spec)
+	if err != nil {
+		return 128, fmt.Errorf("conf.Bootstrap.exec: %w", err)
+	}
+
+	exitCode, err := cmd.Wait()
+	if err != nil {
+		return exitCode, fmt.Errorf("conf.Bootstrap.exec: %w", err)
+	}
+
+	return 0, nil
 }
 
 func getDefaultShellArgs(shell string) []string {

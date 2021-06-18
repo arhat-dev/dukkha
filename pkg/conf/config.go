@@ -19,65 +19,45 @@ package conf
 import (
 	"context"
 	"fmt"
-	"io"
-	"strings"
 
 	"arhat.dev/pkg/log"
 	"go.uber.org/multierr"
-	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/renderer/shell_file"
 	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/renderer/template_file"
-	"arhat.dev/dukkha/pkg/tools"
 )
+
+func NewConfig() *Config {
+	return &Config{
+		Shell: field.New(&ShellConfigList{}).(*ShellConfigList),
+		Tools: field.New(&ToolsConfig{}).(*ToolsConfig),
+		Tasks: field.New(&TasksConfig{}).(*TasksConfig),
+	}
+}
 
 type Config struct {
-	Log log.Config
+	Log       log.Config      `yaml:"log"`
+	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
-	Bootstrap BootstrapConfig
-	Shell     ShellConfigList
-	Tools     ToolsConfig
-	Tasks     TasksConfig
+	Shell *ShellConfigList `yaml:"shell"`
+	Tools *ToolsConfig     `yaml:"tools"`
+
+	// use inline so it will get notified with all yaml nodes
+	Tasks *TasksConfig `yaml:",inline"`
 }
 
-const (
-	topLevelFieldBootstrap = "bootstrap"
-	topLevelFieldShell     = "shell"
-	topLevelFieldTools     = "tools"
-)
-
-func Unmarshal(r io.Reader, out interface{}) error {
-	dec := yaml.NewDecoder(r)
-	dec.KnownFields(true)
-	return dec.Decode(out)
-}
-
-func (c *Config) Resolve(ctx context.Context, mergedConfig map[string]interface{}) (context.Context, error) {
-	if mergedConfig == nil {
-		return nil, nil
-	}
-
-	if c.Tools == nil {
-		c.Tools = make(map[tools.ToolKey]tools.ToolConfig)
-	}
-
-	if c.Tasks == nil {
-		c.Tasks = make(map[tools.TaskTypeKey][]tools.TaskConfig)
-	}
-
-	// resolve bootstrap config first
-	err := c.Bootstrap.Resolve(ctx, mergedConfig[topLevelFieldBootstrap])
-	if err != nil {
-		return nil, fmt.Errorf("conf: bootstrap config not resolved: %w", err)
-	}
-
+func (c *Config) Resolve(ctx context.Context) (context.Context, error) {
+	// bootstrap config was resolved when unmarshaling
 	if c.Bootstrap.Shell == "" {
 		return nil, fmt.Errorf("conf: unable to get a shell name, please set bootstrap.shell manually")
 	}
+
+	var err error
 
 	// create a renderer manager with essential renderers
 	mgr := renderer.NewManager()
@@ -92,7 +72,8 @@ func (c *Config) Resolve(ctx context.Context, mergedConfig map[string]interface{
 
 	ctx = renderer.WithManager(ctx, mgr)
 
-	err = c.Shell.resolve(ctx, mergedConfig[topLevelFieldShell])
+	// resolve shells to add shell renderers
+	err = c.Shell.Resolve(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("conf: unable to resolve shell config: %w", err)
 	}
@@ -102,89 +83,16 @@ func (c *Config) Resolve(ctx context.Context, mergedConfig map[string]interface{
 	//
 
 	// resolve tools config
-	err = c.Tools.resolve(ctx, mergedConfig[topLevelFieldTools])
+	err = c.Tools.Resolve(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("conf: unable to resolve tools config: %w", err)
 	}
 
-	// resolve tasks
-	for k, v := range mergedConfig {
-		parts := strings.SplitN(k, "@", 2)
-
-		f := &Field{
-			Name: parts[0],
-		}
-		if len(parts) == 2 {
-			// has rendering suffix
-			f.Renderer = parts[1]
-		}
-
-		var err error
-		switch f.Name {
-		case topLevelFieldBootstrap, topLevelFieldShell, topLevelFieldTools:
-			continue
-		}
-
-		err = c.resolveTasks(f, v)
-		if err != nil {
-			return nil, fmt.Errorf("conf: invalid config: %w", err)
-		}
+	// resolve tasks at last
+	err = c.Tasks.Resolve(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("conf: unable to resolve tasks: %w", err)
 	}
 
 	return ctx, nil
-}
-
-func (c *Config) resolveTasks(taskField *Field, data interface{}) error {
-	taskParts := strings.Split(taskField.Name, ":")
-
-	var (
-		toolName = taskParts[0]
-		toolID   string
-		taskType string
-	)
-
-	switch len(taskParts) {
-	case 2:
-		taskType = taskParts[1]
-	case 3:
-		toolID, taskType = taskParts[1], taskParts[2]
-	default:
-		return fmt.Errorf(
-			"task: invalid task field %q, expecting 1 or 2 colon, got %d",
-			taskField.Name, len(taskParts),
-		)
-	}
-
-	key, err := tools.CreateTaskTypeKey(toolName, toolID, taskType)
-	if err != nil {
-		return fmt.Errorf("task: invalid task field: %w", err)
-	}
-
-	c.Tasks[*key] = nil
-	if len(taskField.Renderer) != 0 {
-		// requires extra rendering
-		strVal, ok := data.(string)
-		if !ok {
-			return fmt.Errorf("task.%s: unexpected non string value", key.String())
-		}
-
-		// TODO: mark to be processed later
-		_ = strVal
-	} else {
-		// can unmarshal childs directly
-		tasksBytes, err := yaml.Marshal(data)
-		if err != nil {
-			return fmt.Errorf("task.%s: marhsal: %w", key.String(), err)
-		}
-
-		taskConfigType, err := tools.GetTaskConfigType(toolName, taskType)
-		if err != nil {
-			return fmt.Errorf("task.%s", key.String())
-		}
-
-		_ = tasksBytes
-		_ = taskConfigType
-	}
-
-	return nil
 }
