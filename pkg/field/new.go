@@ -3,52 +3,71 @@ package field
 import (
 	"reflect"
 	"sync/atomic"
-	"unsafe"
 )
 
 var (
-	baseFieldStructType = reflect.TypeOf(BaseField{})
+	baseFieldPtrType    = reflect.TypeOf(&BaseField{})
+	baseFieldStructType = baseFieldPtrType.Elem()
 )
 
-func New(f Interface) Interface {
-	v := reflect.ValueOf(f)
-	for v.Kind() == reflect.Ptr {
+// Init the BaseField embedded in your struct, the BaseField must be the first field
+//
+// 		type Foo struct {
+// 			BaseField // or *BaseField
+// 		}
+//
+// if the arg `in` doesn't contain BaseField or the BaseField is not the first element
+// it does nothing and will return `in` as is.
+func Init(in Interface) Interface {
+	v := reflect.ValueOf(in)
+	switch v.Kind() {
+	case reflect.Struct:
+	case reflect.Ptr:
+		// no pointer to pointer support
 		v = v.Elem()
+
+		if v.Kind() != reflect.Struct {
+			// the target is not a struct, not using BaseField
+			return in
+		}
+	default:
+		return in
+	}
+
+	if !v.CanAddr() {
+		panic("invalid non addressable value")
 	}
 
 	if v.NumField() == 0 {
-		panic("invalid empty field, BaseField is required")
+		// empty struct, no BaseField
+		return in
 	}
 
 	firstField := v.Field(0)
 
+	var baseField *BaseField
 	switch firstField.Type() {
 	case baseFieldStructType:
-	default:
-		panic("invalid BaseField usage, must be first embedded struct")
-	}
-
-	var baseField *BaseField
-	switch firstField.Kind() {
-	case reflect.Struct:
 		baseField = firstField.Addr().Interface().(*BaseField)
+	case baseFieldPtrType:
+		// using *BaseField
+		if firstField.IsZero() {
+			// not initialized
+			baseField = new(BaseField)
+			firstField.Set(reflect.ValueOf(baseField))
+		} else {
+			baseField = firstField.Interface().(*BaseField)
+		}
 	default:
-		panic("unexpected non struct")
+		return in
 	}
 
 	if !atomic.CompareAndSwapUint32(&baseField._initialized, 0, 1) {
-		return f
+		// already initialized
+		return in
 	}
 
-	structType := v.Type()
-	for structType.Kind() != reflect.Struct {
-		structType = structType.Elem()
-	}
+	baseField._parentValue = v.Addr()
 
-	baseField._parentValue = reflect.NewAt(
-		structType,
-		unsafe.Pointer(firstField.UnsafeAddr()),
-	)
-
-	return f
+	return in
 }

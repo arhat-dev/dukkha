@@ -33,57 +33,76 @@ type testFieldPtr struct {
 }
 
 func TestNewField(t *testing.T) {
+
+	fStruct := &testFieldStruct{}
+	fPtr1 := testFieldPtr{}
+	fPtr2 := &testFieldPtr{}
+
 	tests := []struct {
-		name       string
-		targetType Interface
-		willPanic  bool
+		name        string
+		targetType  Interface
+		panicOnInit bool
 
-		getBaseFieldParentValue func(in Interface) reflect.Value
+		getBaseFieldParentValue func() reflect.Value
 
-		setDirectFoo          func(in Interface, v string)
-		getBaseFieldParentFoo func(in Interface) string
+		setDirectFoo          func(v string)
+		getBaseFieldParentFoo func() string
 	}{
 		{
-			name:       "struct",
-			targetType: &testFieldStruct{},
-			getBaseFieldParentValue: func(in Interface) reflect.Value {
-				return in.(*testFieldStruct).BaseField._parentValue
+			name:       "Ptr BaseField",
+			targetType: fStruct,
+			getBaseFieldParentValue: func() reflect.Value {
+				return fStruct.BaseField._parentValue
 			},
-			setDirectFoo: func(in Interface, v string) {
-				in.(*testFieldStruct).Foo = v
+			setDirectFoo: func(v string) {
+				fStruct.Foo = v
 			},
-			getBaseFieldParentFoo: func(in Interface) string {
-				return in.(*testFieldStruct).BaseField._parentValue.Interface().(*testFieldStruct).Foo
+			getBaseFieldParentFoo: func() string {
+				return fStruct.BaseField._parentValue.Interface().(*testFieldStruct).Foo
 			},
 		},
 		{
-			name:       "pointer",
-			targetType: testFieldPtr{},
-			willPanic:  true,
+			name:        "Struct *BaseField",
+			targetType:  fPtr1,
+			panicOnInit: true,
 		},
 		{
-			name:       "pointer2",
-			targetType: &testFieldPtr{},
-			willPanic:  true,
+			name:       "Ptr *BaseField",
+			targetType: fPtr2,
+			getBaseFieldParentValue: func() reflect.Value {
+				return fPtr2.BaseField._parentValue
+			},
+			setDirectFoo: func(v string) {
+				fPtr2.Foo = v
+			},
+			getBaseFieldParentFoo: func() string {
+				return fPtr2.BaseField._parentValue.Interface().(*testFieldPtr).Foo
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if test.willPanic {
-				defer func() {
-					assert.NotNil(t, recover())
+			if test.panicOnInit {
+				func() {
+					defer func() {
+						assert.NotNil(t, recover())
+					}()
+
+					_ = Init(test.targetType)
 				}()
+
+				return
+			} else {
+				_ = Init(test.targetType)
 			}
 
-			foo := New(test.targetType)
-
-			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue(foo).Interface()) {
+			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue().Interface()) {
 				return
 			}
 
-			test.setDirectFoo(foo, "newValue")
-			assert.Equal(t, "newValue", test.getBaseFieldParentFoo(foo))
+			test.setDirectFoo("newValue")
+			assert.Equal(t, "newValue", test.getBaseFieldParentFoo())
 		})
 	}
 }
