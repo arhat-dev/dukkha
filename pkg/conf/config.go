@@ -23,7 +23,7 @@ import (
 )
 
 func NewConfig() *Config {
-	return field.New(&Config{}).(*Config)
+	return field.Init(&Config{}).(*Config)
 }
 
 type Config struct {

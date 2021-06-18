@@ -74,7 +74,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			out := New(&testFieldStruct{}).(*testFieldStruct)
+			out := Init(&testFieldStruct{}).(*testFieldStruct)
 			assert.EqualValues(t, 1, out._initialized)
 
 			if !assert.NoError(t, yaml.Unmarshal([]byte(test.yaml), out)) {

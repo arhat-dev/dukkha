@@ -263,7 +263,7 @@ fieldLoop:
 
 			logger.V("working on plain field")
 
-			initializeBaseField(logger, fSpec.fieldValue)
+			tryInit(fSpec.fieldValue)
 
 			continue
 		}
@@ -308,9 +308,11 @@ fieldLoop:
 			fVal, hasBaseField := fSpec.fieldValue.Interface().(Interface)
 			if hasBaseField {
 				logger.V("initializing field with rendering suffix")
-				_ = New(fVal)
+				_ = Init(fVal)
 			}
 		}
+
+		tryInit(fSpec.fieldValue)
 
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
@@ -354,28 +356,15 @@ fieldLoop:
 	return nil
 }
 
-func initializeBaseField(logger log.Interface, f reflect.Value) {
+func tryInit(f reflect.Value) {
 	if !f.CanInterface() {
 		return
 	}
 
-	fVal, hasBaseField := f.Interface().(Interface)
-	if !hasBaseField {
+	fVal, canCallInit := f.Interface().(Interface)
+	if !canCallInit {
 		return
 	}
 
-	logger.V("initializing field using BaseField",
-		log.Any("kind", f.Kind()),
-		log.Any("elem", f.Elem()),
-	)
-
-	switch f.Kind() {
-	case reflect.Struct:
-	case reflect.Ptr:
-		f.Set(reflect.New(f.Type().Elem()))
-	default:
-		panic(fmt.Sprintf("unexpected type: %q", f.Kind()))
-	}
-
-	_ = New(fVal)
+	_ = Init(fVal)
 }
