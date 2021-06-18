@@ -100,6 +100,7 @@ issues:
     linters:
     - revive
 
+  # yamllint disable-line rule:quoted-strings
   - text: 'shadow: declaration of "logger" shadows declaration'
     linters:
     - govet
