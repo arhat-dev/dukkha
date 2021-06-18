@@ -9,14 +9,20 @@ import (
 
 var _ Interface = (*testFieldStruct)(nil)
 
+type testInnerFieldStruct struct {
+	BaseField
+
+	Bar string `yaml:"bar"`
+}
+
 type testFieldStruct struct {
 	BaseField
 
-	Foo string `yaml:"foo"`
-}
+	Foo   string   `yaml:"foo"`
+	Other []string `yaml:"" dukkha:"other"`
 
-func (f *testFieldStruct) Type() reflect.Type {
-	return reflect.TypeOf(*f)
+	InnerStruct testInnerFieldStruct  `yaml:"innerStruct"`
+	InnerPtr    *testInnerFieldStruct `yaml:"innerPtr"`
 }
 
 // should always panic when passed to New()
@@ -24,10 +30,6 @@ type testFieldPtr struct {
 	*BaseField
 
 	Foo string `yaml:"foo"`
-}
-
-func (f testFieldPtr) Type() reflect.Type {
-	return reflect.TypeOf(f)
 }
 
 func TestNewField(t *testing.T) {
@@ -75,8 +77,6 @@ func TestNewField(t *testing.T) {
 			}
 
 			foo := New(test.targetType)
-
-			assert.Equal(t, test.targetType.Type(), test.getBaseFieldParentValue(foo).Type().Elem())
 
 			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue(foo).Interface()) {
 				return

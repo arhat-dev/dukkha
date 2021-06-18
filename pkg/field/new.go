@@ -36,7 +36,11 @@ func New(f Interface) Interface {
 		panic("unexpected non struct")
 	}
 
-	structType := f.Type()
+	if !atomic.CompareAndSwapUint32(&baseField._initialized, 0, 1) {
+		return f
+	}
+
+	structType := v.Type()
 	for structType.Kind() != reflect.Struct {
 		structType = structType.Elem()
 	}
@@ -45,8 +49,6 @@ func New(f Interface) Interface {
 		structType,
 		unsafe.Pointer(firstField.UnsafeAddr()),
 	)
-
-	atomic.StoreUint32(&baseField._initialized, 1)
 
 	return f
 }
