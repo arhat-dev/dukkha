@@ -2,12 +2,23 @@ package conf
 
 import (
 	"context"
+	"reflect"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-type ToolsConfig map[tools.ToolKey]tools.ToolConfig
+type ToolsConfig struct {
+	field.BaseField
 
-func (c ToolsConfig) resolve(ctx context.Context, data interface{}) error {
+	// map[tools.ToolKey]tools.ToolConfig
+	Tools []tools.ToolConfig `yaml:",inline"`
+}
+
+func (c *ToolsConfig) Type() reflect.Type {
+	return reflect.TypeOf(c)
+}
+
+func (c *ToolsConfig) Resolve(ctx context.Context) error {
 	return nil
 }

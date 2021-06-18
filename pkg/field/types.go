@@ -1,10 +1,14 @@
 package field
 
 import (
+	"bytes"
 	"reflect"
 	"unsafe"
 
+	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 type _private struct{}
@@ -18,14 +22,18 @@ type Interface interface {
 }
 
 func New(f Interface) Interface {
-	v := reflect.ValueOf(f)
+	structType := f.Type()
+	for structType.Kind() == reflect.Ptr {
+		structType = structType.Elem()
+	}
 
+	v := reflect.ValueOf(f)
 	for v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
 
 	if v.NumField() == 0 {
-		return nil
+		panic("invalid empty field, BaseField is required")
 	}
 
 	firstField := v.Field(0)
@@ -33,7 +41,7 @@ func New(f Interface) Interface {
 	switch firstField.Type() {
 	case baseFieldStructType:
 	default:
-		panic("invalid BaseField usage, must be first struct")
+		panic("invalid BaseField usage, must be first embedded struct")
 	}
 
 	var baseField *BaseField
@@ -44,7 +52,7 @@ func New(f Interface) Interface {
 		panic("unexpected non struct")
 	}
 
-	baseField._parentType = f.Type()
+	baseField._parentType = structType
 	baseField._parentValue = reflect.NewAt(
 		baseField._parentType,
 		unsafe.Pointer(firstField.UnsafeAddr()),
@@ -70,9 +78,14 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		return err
 	}
 
+	log.Log.V("BaseField.UnmarshalYAML",
+		log.String("type", f._parentType.String()),
+		log.Any("node", n),
+	)
+
 	// TODO
 	m := make(map[string]interface{})
-	_ = yaml.Unmarshal(dataBytes, &m)
+	_ = utils.UnmarshalStrict(bytes.NewReader(dataBytes), &m)
 
 	return nil
 }

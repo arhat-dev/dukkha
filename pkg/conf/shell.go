@@ -1,17 +1,32 @@
 package conf
 
-import "context"
+import (
+	"context"
+	"reflect"
+
+	"arhat.dev/dukkha/pkg/field"
+)
 
 type ShellConfig struct {
-	Name    Field `dukkha:"name,string"`
-	Path    Field `dukkha:"path,string"`
-	Env     Field `dukkha:"env,[]string"`
-	Command Field `dukkha:"command,[]string"`
-	Args    Field `dukkha:"args,[]string"`
+	field.BaseField
+
+	Name    string   `yaml:"name"`
+	Path    string   `yaml:"path"`
+	Env     []string `yaml:"env"`
+	Command []string `yaml:"command"`
+	Args    []string `yaml:"args"`
 }
 
-type ShellConfigList []ShellConfig
+type ShellConfigList struct {
+	field.BaseField `yaml:"-"`
 
-func (c *ShellConfigList) resolve(ctx context.Context, data interface{}) error {
+	ShellConfigs []ShellConfig `yaml:",inline"`
+}
+
+func (c *ShellConfigList) Type() reflect.Type {
+	return reflect.TypeOf(c)
+}
+
+func (c *ShellConfigList) Resolve(ctx context.Context) error {
 	return nil
 }

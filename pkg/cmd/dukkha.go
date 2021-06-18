@@ -24,7 +24,6 @@ import (
 	"path/filepath"
 
 	"arhat.dev/pkg/log"
-	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
@@ -37,7 +36,7 @@ func NewRootCmd() *cobra.Command {
 	var (
 		appCtx      context.Context
 		configPaths []string
-		config      = new(conf.Config)
+		config      = conf.NewConfig()
 	)
 
 	rootCmd := &cobra.Command{
@@ -54,13 +53,16 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			mergedConfig, err := readConfig(configPaths, cmd.PersistentFlags().Changed("config"))
+			err = readConfig(
+				configPaths, cmd.PersistentFlags().Changed("config"),
+				config,
+			)
 			if err != nil {
 				return fmt.Errorf("failed to read config: %w", err)
 			}
 
 			appCtx = context.Background()
-			appCtx, err = config.Resolve(appCtx, mergedConfig)
+			appCtx, err = config.Resolve(appCtx)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
@@ -102,12 +104,11 @@ func run(appCtx context.Context, config *conf.Config) error {
 //go:embed default.yaml
 var defaultConfigBytes []byte
 
-func readConfig(configPaths []string, failOnFileNotFoundError bool) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
-
-	err := yaml.Unmarshal(defaultConfigBytes, result)
+// do not use strict unmarshal when reading config, tasks are dynamic
+func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig *conf.Config) error {
+	err := yaml.Unmarshal(defaultConfigBytes, mergedConfig)
 	if err != nil {
-		return nil, fmt.Errorf("invalid default config: %w", err)
+		return fmt.Errorf("invalid default config: %w", err)
 	}
 
 	readAndMergeConfigFile := func(path string) error {
@@ -116,16 +117,16 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool) (map[string]
 			return fmt.Errorf("failed to read config file %q: %w", path, err2)
 		}
 
-		current := make(map[string]interface{})
+		current := conf.NewConfig()
 		err2 = yaml.Unmarshal(configBytes, &current)
 		if err2 != nil {
 			return fmt.Errorf("failed to unmarshal config file %q: %w", path, err2)
 		}
 
-		err2 = mergo.Merge(&result, current, mergo.WithOverride)
-		if err2 != nil {
-			return fmt.Errorf("failed to merge config file %q: %w", path, err2)
-		}
+		// err2 = mergo.Merge(&mergedConfig, current, mergo.WithOverride)
+		// if err2 != nil {
+		// 	return fmt.Errorf("failed to merge config file %q: %w", path, err2)
+		// }
 
 		return err2
 	}
@@ -139,13 +140,13 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool) (map[string]
 				}
 			}
 
-			return nil, err
+			return err
 		}
 
 		if !info.IsDir() {
 			err = readAndMergeConfigFile(path)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			continue
@@ -170,9 +171,9 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool) (map[string]
 		})
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return result, nil
+	return nil
 }
