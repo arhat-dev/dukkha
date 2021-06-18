@@ -46,7 +46,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 		},
 		{
 			name: "catchAll+renderer",
-			yaml: `{other_field_1@a: foo, other_field_2@b: bar}`,
+			yaml: `{other_field_1@a: foo, other_field_2@b: bar }`,
 			expected: &testFieldStruct{
 				BaseField: BaseField{
 					unresolvedFields: map[unresolvedFieldKey]*unresolvedFieldValue{

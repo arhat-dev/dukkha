@@ -131,7 +131,7 @@ func NewRootCmd() *cobra.Command {
 				return fmt.Errorf("unable to resolve tasks: %w", err)
 			}
 
-			// ensure all basic config resolved
+			// ensure all top-level config resolved
 			err = config.Resolve(appCtx, mgr.Render, 1)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
