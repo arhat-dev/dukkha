@@ -21,13 +21,13 @@ func (d *Driver) Name() string { return DefaultName }
 func (d *Driver) Render(ctx context.Context, rawValue string) (string, error) {
 	tpl, err := template.New("").Parse(rawValue)
 	if err != nil {
-		return "", fmt.Errorf("renderer.template: failed to parse template: %w", err)
+		return "", fmt.Errorf("renderer.%s: failed to parse template: %w", DefaultName, err)
 	}
 
 	buf := &bytes.Buffer{}
 	err = tpl.Execute(buf, ctx.Value(constant.ContextKeyEnvironment))
 	if err != nil {
-		return "", fmt.Errorf("renderer.template: failed to execute template: %w", err)
+		return "", fmt.Errorf("renderer.%s: failed to execute template: %w", DefaultName, err)
 	}
 
 	return buf.String(), nil
