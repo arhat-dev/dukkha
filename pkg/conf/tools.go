@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"context"
 	"reflect"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -17,8 +16,4 @@ type ToolsConfig struct {
 
 func (c *ToolsConfig) Type() reflect.Type {
 	return reflect.TypeOf(c)
-}
-
-func (c *ToolsConfig) Resolve(ctx context.Context) error {
-	return nil
 }

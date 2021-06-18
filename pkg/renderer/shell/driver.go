@@ -8,7 +8,6 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -22,18 +21,12 @@ type Driver struct {
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx context.Context, rawValue string) (string, error) {
+func (d *Driver) Render(ctx context.Context, rawValue string, v *renderer.RenderingValues) (string, error) {
 	stdout := &bytes.Buffer{}
-
-	var env map[string]string
-	environment, ok := ctx.Value(constant.ContextKeyEnvironment).(constant.Environment)
-	if ok {
-		env = environment.Env
-	}
 
 	code, err := d.doExec(rawValue, &exechelper.Spec{
 		Context: ctx,
-		Env:     env,
+		Env:     v.Env,
 		Stdout:  stdout,
 		Stderr:  os.Stderr,
 	})

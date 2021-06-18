@@ -19,7 +19,7 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx context.Context, rawValue string) (string, error) {
+func (d *Driver) Render(ctx context.Context, rawValue string, v *renderer.RenderingValues) (string, error) {
 	data, err := os.ReadFile(rawValue)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
