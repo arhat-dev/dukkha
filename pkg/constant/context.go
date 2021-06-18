@@ -21,11 +21,4 @@ type ContextKey string
 // nolint:revive
 const (
 	ContextKeyConfig ContextKey = "config"
-
-	// environment variables for
-	ContextKeyEnvironment ContextKey = "env"
 )
-
-type Environment struct {
-	Env map[string]string
-}

@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"context"
 	"reflect"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -25,8 +24,4 @@ type ShellConfigList struct {
 
 func (c *ShellConfigList) Type() reflect.Type {
 	return reflect.TypeOf(c)
-}
-
-func (c *ShellConfigList) Resolve(ctx context.Context) error {
-	return nil
 }

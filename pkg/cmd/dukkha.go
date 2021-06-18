@@ -25,9 +25,16 @@ import (
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
+	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/renderer/shell"
+	"arhat.dev/dukkha/pkg/renderer/shell_file"
+	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/template_file"
 
 	_ "embed" // go:embed to embed default config file
 )
@@ -62,7 +69,70 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			appCtx = context.Background()
-			appCtx, err = config.Resolve(appCtx)
+
+			// bootstrap config was resolved when unmarshaling
+			if config.Bootstrap.Shell == "" {
+				return fmt.Errorf("unable to get a shell name, please set bootstrap.shell manually")
+			}
+
+			// create a renderer manager with essential renderers
+			mgr := renderer.NewManager()
+			err = multierr.Append(
+				err,
+				mgr.Add(
+					&shell.Config{ExecFunc: config.Bootstrap.Exec},
+					shell.DefaultName,
+				),
+			)
+			err = multierr.Append(
+				err,
+				mgr.Add(
+					&shell_file.Config{ExecFunc: config.Bootstrap.Exec},
+					shell_file.DefaultName,
+				),
+			)
+			err = multierr.Append(
+				err,
+				mgr.Add(&template.Config{}, template.DefaultName),
+			)
+			err = multierr.Append(
+				err,
+				mgr.Add(&template_file.Config{}, template_file.DefaultName),
+			)
+			err = multierr.Append(
+				err,
+				mgr.Add(&file.Config{}, file.DefaultName),
+			)
+			if err != nil {
+				return fmt.Errorf("failed to create essential renderers: %w", err)
+			}
+
+			appCtx = renderer.WithManager(appCtx, mgr)
+
+			// resolve shells to add shell renderers
+			err = config.Shell.Resolve(appCtx, mgr.Render, -1)
+			if err != nil {
+				return fmt.Errorf("unable to resolve shell config: %w", err)
+			}
+
+			//
+			// resolve other configs using fully configured renderers
+			//
+
+			// resolve tools config
+			err = config.Tools.Resolve(appCtx, mgr.Render, -1)
+			if err != nil {
+				return fmt.Errorf("unable to resolve tools config: %w", err)
+			}
+
+			// resolve tasks at last
+			err = config.Tasks.Resolve(appCtx, mgr.Render, 1)
+			if err != nil {
+				return fmt.Errorf("unable to resolve tasks: %w", err)
+			}
+
+			// ensure all basic config resolved
+			err = config.Resolve(appCtx, mgr.Render, 1)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
