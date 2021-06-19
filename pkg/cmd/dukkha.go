@@ -115,28 +115,6 @@ func NewRootCmd() *cobra.Command {
 
 			appCtx = renderer.WithManager(appCtx, mgr)
 
-			// resolve shells to add shell renderers
-			// err = config.Shell.Resolve(appCtx, mgr.Render, -1)
-			// if err != nil {
-			// 	return fmt.Errorf("unable to resolve shell config: %w", err)
-			// }
-
-			//
-			// resolve other configs using fully configured renderers
-			//
-
-			// resolve tools config
-			// err = config.Tools.Resolve(appCtx, mgr.Render, -1)
-			// if err != nil {
-			// 	return fmt.Errorf("unable to resolve tools config: %w", err)
-			// }
-
-			// resolve tasks at last
-			// err = config.Tasks.Resolve(appCtx, mgr.Render, 1)
-			// if err != nil {
-			// 	return fmt.Errorf("unable to resolve tasks: %w", err)
-			// }
-
 			// ensure all top-level config resolved
 			err = config.Resolve(appCtx, mgr.Render, 1)
 			if err != nil {
@@ -191,7 +169,7 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig
 			return fmt.Errorf("failed to unmarshal config file %q: %w", path, err2)
 		}
 
-		log.Log.I("current", log.Any("config", current.Tasks))
+		log.Log.V("config unmarshaled", log.String("file", path), log.Any("config", current))
 
 		// TODO: merge into mergedConfig
 		_ = mergedConfig
