@@ -1,16 +1,94 @@
 package tools
 
-import "strings"
+import (
+	"runtime"
+	"sort"
+)
 
-func joinReplaceEmpty(sep string, defaults []string, s ...string) string {
-	var v []string
-	for i, str := range s {
-		if len(str) == 0 {
-			v = append(v, defaults[i])
-		}
+func GetHostOS() string {
+	return runtime.GOOS
+}
 
-		v = append(v, str)
+func GetHostArch() string {
+	// TODO: set correct host arch (e.g. armv7 instead of arm)
+	return runtime.GOARCH
+}
+
+func CartesianProduct(m map[string][]string) []map[string]string {
+	names := make([]string, 0)
+	mat := make([][]string, 0)
+	for k, v := range m {
+		names = append(names, k)
+		mat = append(mat, v)
 	}
 
-	return strings.Join(v, sep)
+	sort.Slice(names, func(i, j int) bool {
+		ok := names[i] < names[j]
+		if ok {
+			mat[i], mat[j] = mat[j], mat[i]
+		}
+		return ok
+	})
+
+	listCart := cartNext(mat)
+
+	result := make([]map[string]string, 0)
+	for _, list := range listCart {
+		vMap := make(map[string]string)
+		for i, v := range list {
+			vMap[names[i]] = v
+		}
+		result = append(result, vMap)
+	}
+
+	return result
+}
+
+func cartNext(mat [][]string) [][]string {
+	if len(mat) == 0 {
+		return nil
+	}
+
+	tupleCount := 1
+	for _, list := range mat {
+		if len(list) == 0 {
+			// ignore empty list
+			continue
+		}
+
+		tupleCount *= len(list)
+	}
+
+	result := make([][]string, tupleCount)
+
+	buf := make([]string, tupleCount*len(mat))
+	indexPerList := make([]int, len(mat))
+
+	start := 0
+	for i := range result {
+		end := start + len(mat)
+
+		tuple := buf[start:end]
+		result[i] = tuple
+
+		start = end
+
+		for j, idx := range indexPerList {
+			// mat[j] is the list
+
+			tuple[j] = mat[j][idx]
+		}
+
+		for j := len(indexPerList) - 1; j >= 0; j-- {
+			indexPerList[j]++
+			if indexPerList[j] < len(mat[j]) {
+				break
+			}
+
+			// reset for next tuple
+			indexPerList[j] = 0
+		}
+	}
+
+	return result
 }

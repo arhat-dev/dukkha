@@ -33,10 +33,8 @@ type Config struct {
 	Log       log.Config      `yaml:"log"`
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
-	Shell []ShellConfig `yaml:"shell"`
+	Shell []tools.BaseTool `yaml:"shell"`
 
-	Tools map[string][]tools.ToolConfig `yaml:"tools"`
-
-	// use inline for all tasks so it will get notified with all yaml nodes
-	Tasks map[string][]tools.TaskConfig `yaml:"" dukkha:"other"`
+	Tools map[string][]tools.Tool `yaml:"tools"`
+	Tasks map[string][]tools.Task `dukkha:"other"`
 }
