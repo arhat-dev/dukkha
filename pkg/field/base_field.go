@@ -30,7 +30,7 @@ type BaseField struct {
 
 	// _parentValue is always a pointer type with .Elem() to the struct
 	// when initialized
-	_parentValue reflect.Value `yaml:"-"`
+	_parentValue reflect.Value
 
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
 }
@@ -51,7 +51,7 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	if old, exists := f.unresolvedFields[key]; exists {
-		f.unresolvedFields[key].rawData = append(old.rawData, rawData)
+		old.rawData = append(old.rawData, rawData)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (f *BaseField) Resolve(ctx context.Context, render RenderingFunc, depth int
 // nolint:gocyclo
 func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
-		return fmt.Errorf("field: struct not intialized with field.New()")
+		return fmt.Errorf("field: struct not intialized with Init()")
 	}
 
 	type fieldKey struct {
@@ -150,6 +150,7 @@ fieldLoop:
 		field := pt.Field(i)
 		yTags := strings.Split(field.Tag.Get("yaml"), ",")
 
+		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
 			if !addField(yamlKey, pt.Field(i).Name, f._parentValue.Elem().Field(i)) {
@@ -160,13 +161,13 @@ fieldLoop:
 			}
 		}
 
+		// process yaml tag flags
 		for _, t := range yTags[1:] {
-			if t == "-" {
+			switch t {
+			case "-":
 				ignoreField(yamlKey)
 				continue fieldLoop
-			}
-
-			if t == "inline" {
+			case "inline":
 				kind := field.Type.Kind()
 				switch {
 				case kind == reflect.Struct:
@@ -179,9 +180,28 @@ fieldLoop:
 					)
 				}
 
-				// TODO: add inner fields
 				logger.V("inspecting inline fields", log.String("field", field.Name))
-				f._parentValue.Elem().Field(i)
+
+				inlineFv := f._parentValue.Elem().Field(i)
+				inlineFt := f._parentValue.Type().Elem().Field(i).Type
+
+				for j := 0; j < inlineFv.NumField(); j++ {
+					innerFv := inlineFv.Field(j)
+					innerFt := inlineFt.Field(j)
+
+					innerYamlKey := strings.Split(innerFt.Tag.Get("yaml"), ",")[0]
+					if len(innerYamlKey) == 0 {
+						// already in a inline field, do not check inline anymore
+						continue
+					}
+
+					if !addField(innerYamlKey, innerFt.Name, innerFv) {
+						return fmt.Errorf(
+							"field: duplicate yaml key %q in inline field %s",
+							innerYamlKey, pt.String(),
+						)
+					}
+				}
 			}
 		}
 
@@ -208,18 +228,15 @@ fieldLoop:
 		}
 	}
 
-	dataBytes, err := yaml.Marshal(n)
-	if err != nil {
-		return fmt.Errorf("field: data marshal back failed for %s: %w", pt.String(), err)
-	}
-
-	switch n.Tag {
-	case "!!seq":
-		// TODO
-		return nil
+	switch n.ShortTag() {
 	case "!!map":
 	default:
 		return fmt.Errorf("field: unsupported yaml tag %q when handling %s", n.Tag, pt.String())
+	}
+
+	dataBytes, err := yaml.Marshal(n)
+	if err != nil {
+		return fmt.Errorf("field: data marshal back failed for %s: %w", pt.String(), err)
 	}
 
 	m := make(map[string]interface{})
@@ -230,14 +247,14 @@ fieldLoop:
 
 	handledYamlValues := make(map[string]struct{})
 	// handle rendering suffix
-	for k, v := range m {
-		yamlKey := k
+	for rawYamlKey, v := range m {
+		yamlKey := rawYamlKey
 
-		logger := logger.WithFields(log.String("yaml_field", yamlKey))
+		logger := logger.WithFields(log.String("raw_yaml_field", rawYamlKey))
 
 		logger.V("inspecting yaml field")
 
-		parts := strings.SplitN(k, "@", 2)
+		parts := strings.SplitN(rawYamlKey, "@", 2)
 		if len(parts) == 1 {
 			if _, ok := handledYamlValues[yamlKey]; ok {
 				return fmt.Errorf(
@@ -257,13 +274,19 @@ fieldLoop:
 				}
 
 				fSpec = catchOtherField
+				v = map[string]interface{}{
+					yamlKey: v,
+				}
 			}
 
 			logger := logger.WithFields(log.String("field", fSpec.fieldName))
 
 			logger.V("working on plain field")
 
-			tryInit(fSpec.fieldValue)
+			err = unmarshal(yamlKey, v, fSpec.fieldValue)
+			if err != nil {
+				panic(err)
+			}
 
 			continue
 		}
@@ -287,8 +310,8 @@ fieldLoop:
 		rawData, ok := v.(string)
 		if !ok {
 			return fmt.Errorf(
-				"field: expecting string value for field %q using rendering suffix, got %T",
-				k, v,
+				"field: expecting string value for field %q (using rendering suffix), got %T",
+				rawYamlKey, v,
 			)
 		}
 
@@ -298,25 +321,24 @@ fieldLoop:
 				return fmt.Errorf("field: unknown yaml field %q for %s", yamlKey, pt.String())
 			}
 
+			// TODO: handle catch all
 			fSpec = catchOtherField
+			v = map[string]interface{}{
+				yamlKey: v,
+			}
+			_ = v
 		}
-
-		// TODO: initialize struct with field.New()
 
 		logger = logger.WithFields(log.String("field", fSpec.fieldName))
-		if fSpec.fieldValue.CanInterface() {
-			fVal, hasBaseField := fSpec.fieldValue.Interface().(Interface)
-			if hasBaseField {
-				logger.V("initializing field with rendering suffix")
-				_ = Init(fVal)
-			}
-		}
 
-		tryInit(fSpec.fieldValue)
+		// do not unmarshal now, we need to evaluate value and unmarshal
+		//
+		// 		err = unmarshal(v, fSpec.fieldValue)
+		//
 
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
-		handledYamlValues[k] = struct{}{}
+		handledYamlValues[rawYamlKey] = struct{}{}
 
 		logger.V("found field to be rendered")
 
@@ -332,6 +354,7 @@ fieldLoop:
 	}
 
 	if len(m) == 0 {
+		// all values consumed
 		return nil
 	}
 
@@ -356,15 +379,99 @@ fieldLoop:
 	return nil
 }
 
-func tryInit(f reflect.Value) {
-	if !f.CanInterface() {
-		return
+func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
+	oe := outField
+
+fieldLoop:
+	for {
+		switch oe.Kind() {
+		case reflect.Slice:
+			inSlice := in.([]interface{})
+			size := len(inSlice)
+
+			sliceVal := reflect.MakeSlice(oe.Type(), size, size)
+
+			for i := 0; i < size; i++ {
+				itemVal := sliceVal.Index(i)
+
+				err := unmarshal(yamlKey, inSlice[i], itemVal)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
+				}
+			}
+
+			if oe.IsZero() {
+				oe.Set(sliceVal)
+			} else {
+				oe.Set(reflect.AppendSlice(oe, sliceVal))
+			}
+
+			return nil
+		case reflect.Map:
+			inMap := reflect.ValueOf(in)
+
+			mapVal := reflect.MakeMap(oe.Type())
+			if oe.IsZero() {
+				oe.Set(mapVal)
+			}
+
+			valType := oe.Type().Elem()
+
+			iter := inMap.MapRange()
+			for iter.Next() {
+				valVal := reflect.New(valType)
+				err := unmarshal(iter.Key().String(), iter.Value().Interface(), valVal)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal map value %s: %w", valType.String(), err)
+				}
+
+				oe.SetMapIndex(iter.Key(), valVal.Elem())
+			}
+
+			return nil
+		case reflect.Interface:
+			fVal, err := CreateInterfaceField(oe.Type(), yamlKey)
+			if err != nil {
+				return fmt.Errorf("failed to create interface field: %w", err)
+			}
+
+			outField.Set(reflect.ValueOf(fVal))
+
+			return unmarshal(yamlKey, in, reflect.ValueOf(fVal))
+		case reflect.Ptr:
+			// process later
+		default:
+			// scalar types or struct/array/func/chan/unsafe.Pointer
+			break fieldLoop
+		}
+
+		if oe.Kind() != reflect.Ptr {
+			break
+		}
+
+		if oe.IsZero() {
+			oe.Set(reflect.New(oe.Type().Elem()))
+		}
+
+		oe = oe.Elem()
 	}
 
-	fVal, canCallInit := f.Interface().(Interface)
-	if !canCallInit {
-		return
+	var outPtr reflect.Value
+	if outField.Kind() != reflect.Ptr {
+		outPtr = outField.Addr()
+	} else {
+		outPtr = outField
 	}
 
-	_ = Init(fVal)
+	fVal, canCallInit := outPtr.Interface().(Interface)
+	if canCallInit {
+		_ = Init(fVal)
+	}
+
+	dataBytes, err := yaml.Marshal(in)
+	if err != nil {
+		return fmt.Errorf("field: failed to marshal back for plain field: %w", err)
+	}
+
+	return yaml.Unmarshal(dataBytes, outPtr.Interface())
 }

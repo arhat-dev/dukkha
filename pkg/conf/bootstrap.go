@@ -23,6 +23,51 @@ type BootstrapConfig struct {
 	bootstrapPureConfig `yaml:"-"`
 }
 
+func (c *BootstrapConfig) Resolve() error {
+	if len(c.Shell) != 0 {
+		return nil
+	}
+
+	// to make it consistent among all platforms, always try to find `sh` first
+	switch runtime.GOOS {
+	case "windows":
+		_, err := exec.LookPath("sh")
+		if err == nil {
+			c.Shell = "sh"
+			break
+		}
+
+		_, err = exec.LookPath("pwsh")
+		if err == nil {
+			c.Shell = "pwsh"
+			break
+		}
+
+		_, err = exec.LookPath("powershell")
+		if err == nil {
+			c.Shell = "powershell"
+			break
+		}
+
+		c.Shell = "cmd"
+	default:
+		c.Shell = "sh"
+	}
+
+	_, err := exec.LookPath(c.Shell)
+	if err == nil {
+		c.ShellArgs = getDefaultShellArgs(c.Shell)
+		return nil
+	}
+
+	// defaults to local shell at last
+
+	c.Shell = os.Getenv("SHELL")
+	c.ShellArgs = getDefaultShellArgs(c.Shell)
+
+	return nil
+}
+
 func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 	configBytes, err := yaml.Marshal(n)
 	if err != nil {
@@ -58,40 +103,6 @@ func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 		if err != nil {
 			return fmt.Errorf("conf.bootstrap: failed to unmarshal config: %w", err)
 		}
-	}
-
-	if len(c.Shell) == 0 {
-		c.Shell = os.Getenv("SHELL")
-		c.ShellArgs = getDefaultShellArgs(c.Shell)
-	}
-
-	if len(c.Shell) == 0 {
-		switch runtime.GOOS {
-		case "windows":
-			_, err := exec.LookPath("sh")
-			if err == nil {
-				c.Shell = "sh"
-				break
-			}
-
-			_, err = exec.LookPath("pwsh")
-			if err == nil {
-				c.Shell = "pwsh"
-				break
-			}
-
-			_, err = exec.LookPath("powershell")
-			if err == nil {
-				c.Shell = "powershell"
-				break
-			}
-
-			c.Shell = "cmd"
-		default:
-			c.Shell = "sh"
-		}
-
-		c.ShellArgs = getDefaultShellArgs(c.Shell)
 	}
 
 	return nil

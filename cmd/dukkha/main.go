@@ -24,6 +24,10 @@ import (
 
 	"arhat.dev/dukkha/pkg/cmd"
 	"arhat.dev/dukkha/pkg/version"
+
+	// Add tools
+	_ "arhat.dev/dukkha/pkg/tools/docker"
+	_ "arhat.dev/dukkha/pkg/tools/golang"
 )
 
 func main() {

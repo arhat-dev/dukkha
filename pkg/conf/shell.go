@@ -13,9 +13,3 @@ type ShellConfig struct {
 	Command []string `yaml:"command"`
 	Args    []string `yaml:"args"`
 }
-
-type ShellConfigList struct {
-	field.BaseField `yaml:"-"`
-
-	ShellConfigs []ShellConfig `yaml:",inline"`
-}

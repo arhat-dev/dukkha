@@ -20,6 +20,7 @@ import (
 	"arhat.dev/pkg/log"
 
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/tools"
 )
 
 func NewConfig() *Config {
@@ -32,9 +33,10 @@ type Config struct {
 	Log       log.Config      `yaml:"log"`
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
-	Shell *ShellConfigList `yaml:"shell"`
-	Tools *ToolsConfig     `yaml:"tools"`
+	Shell []ShellConfig `yaml:"shell"`
+
+	Tools map[string][]tools.ToolConfig `yaml:"tools"`
 
 	// use inline for all tasks so it will get notified with all yaml nodes
-	Tasks *TasksConfig `yaml:",inline" dukkha:"other"`
+	Tasks map[string][]tools.TaskConfig `yaml:"" dukkha:"other"`
 }
