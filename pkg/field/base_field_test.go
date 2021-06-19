@@ -21,8 +21,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 				BaseField: BaseField{
 					unresolvedFields: nil,
 				},
-				// TODO: add back after supported
-				// Foo: "bar",
+				Foo: "bar",
 			},
 		},
 		{

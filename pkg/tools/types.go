@@ -2,8 +2,6 @@ package tools
 
 import (
 	"fmt"
-
-	"arhat.dev/dukkha/pkg/field"
 )
 
 type Interface interface {
@@ -34,13 +32,6 @@ func (k ToolKey) String() string {
 	)
 }
 
-type ToolConfig interface {
-	field.Interface
-
-	Name() string
-	ID() string
-}
-
 type TaskTypeKey struct {
 	tool ToolKey
 
@@ -69,18 +60,6 @@ func CreateTaskTypeKey(toolName, toolID, taskType string) (*TaskTypeKey, error) 
 		tool:     *toolKey,
 		taskType: taskType,
 	}, nil
-}
-
-type TaskConfig interface {
-	field.Interface
-
-	Name() string
-}
-
-func NewTaskBase(name string) *TaskBase {
-	return &TaskBase{
-		name: name,
-	}
 }
 
 type TaskBase struct {

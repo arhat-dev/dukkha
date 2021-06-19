@@ -93,9 +93,9 @@ func TestNewField(t *testing.T) {
 				}()
 
 				return
-			} else {
-				_ = Init(test.targetType)
 			}
+
+			_ = Init(test.targetType)
 
 			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue().Interface()) {
 				return

@@ -61,14 +61,20 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			err = readConfig(
-				configPaths, cmd.PersistentFlags().Changed("config"),
-				config,
+				configPaths,
+				cmd.PersistentFlags().Changed("config"),
+				&config,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to read config: %w", err)
 			}
 
 			appCtx = context.Background()
+
+			err = config.Bootstrap.Resolve()
+			if err != nil {
+				return fmt.Errorf("failed to resolve bootstrap config: %w", err)
+			}
 
 			// bootstrap config was resolved when unmarshaling
 			if config.Bootstrap.Shell == "" {
@@ -110,26 +116,26 @@ func NewRootCmd() *cobra.Command {
 			appCtx = renderer.WithManager(appCtx, mgr)
 
 			// resolve shells to add shell renderers
-			err = config.Shell.Resolve(appCtx, mgr.Render, -1)
-			if err != nil {
-				return fmt.Errorf("unable to resolve shell config: %w", err)
-			}
+			// err = config.Shell.Resolve(appCtx, mgr.Render, -1)
+			// if err != nil {
+			// 	return fmt.Errorf("unable to resolve shell config: %w", err)
+			// }
 
 			//
 			// resolve other configs using fully configured renderers
 			//
 
 			// resolve tools config
-			err = config.Tools.Resolve(appCtx, mgr.Render, -1)
-			if err != nil {
-				return fmt.Errorf("unable to resolve tools config: %w", err)
-			}
+			// err = config.Tools.Resolve(appCtx, mgr.Render, -1)
+			// if err != nil {
+			// 	return fmt.Errorf("unable to resolve tools config: %w", err)
+			// }
 
 			// resolve tasks at last
-			err = config.Tasks.Resolve(appCtx, mgr.Render, 1)
-			if err != nil {
-				return fmt.Errorf("unable to resolve tasks: %w", err)
-			}
+			// err = config.Tasks.Resolve(appCtx, mgr.Render, 1)
+			// if err != nil {
+			// 	return fmt.Errorf("unable to resolve tasks: %w", err)
+			// }
 
 			// ensure all top-level config resolved
 			err = config.Resolve(appCtx, mgr.Render, 1)
@@ -164,23 +170,15 @@ func run(appCtx context.Context, config *conf.Config) error {
 
 	logger.I("application configured",
 		log.Any("bootstrap", config.Bootstrap),
-		// log.Any("tools", config.Tools),
+		log.Any("shell", config.Shell),
 	)
 
 	_ = appCtx
 	return nil
 }
 
-//go:embed default.yaml
-var defaultConfigBytes []byte
-
 // do not use strict unmarshal when reading config, tasks are dynamic
-func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig *conf.Config) error {
-	err := yaml.Unmarshal(defaultConfigBytes, mergedConfig)
-	if err != nil {
-		return fmt.Errorf("invalid default config: %w", err)
-	}
-
+func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig **conf.Config) error {
 	readAndMergeConfigFile := func(path string) error {
 		configBytes, err2 := os.ReadFile(path)
 		if err2 != nil {
@@ -193,10 +191,10 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig
 			return fmt.Errorf("failed to unmarshal config file %q: %w", path, err2)
 		}
 
-		// err2 = mergo.Merge(&mergedConfig, current, mergo.WithOverride)
-		// if err2 != nil {
-		// 	return fmt.Errorf("failed to merge config file %q: %w", path, err2)
-		// }
+		log.Log.I("current", log.Any("config", current.Tasks))
+
+		// TODO: merge into mergedConfig
+		_ = mergedConfig
 
 		return err2
 	}
