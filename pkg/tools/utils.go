@@ -1,18 +1,8 @@
 package tools
 
 import (
-	"runtime"
 	"sort"
 )
-
-func GetHostOS() string {
-	return runtime.GOOS
-}
-
-func GetHostArch() string {
-	// TODO: set correct host arch (e.g. armv7 instead of arm)
-	return runtime.GOARCH
-}
 
 func CartesianProduct(m map[string][]string) []map[string]string {
 	names := make([]string, 0)

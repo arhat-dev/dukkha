@@ -1,9 +1,11 @@
 package tools
 
 import (
+	"os"
 	"sort"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -24,8 +26,8 @@ func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
 	if mc == nil {
 		return []MatrixSpec{
 			{
-				"os":   GetHostOS(),
-				"arch": GetHostArch(),
+				"os":   os.Getenv(constant.EnvHOST_OS),
+				"arch": os.Getenv(constant.EnvHOST_ARCH),
 			},
 		}
 	}
@@ -35,13 +37,13 @@ func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
 	osList := mc.OS
 	if len(osList) == 0 {
 		// add default host arch
-		osList = []string{GetHostOS()}
+		osList = []string{os.Getenv(constant.EnvHOST_OS)}
 	}
 	all["os"] = osList
 
 	archList := mc.Arch
 	if len(archList) == 0 {
-		archList = []string{GetHostArch()}
+		archList = []string{os.Getenv(constant.EnvHOST_ARCH)}
 	}
 	all["arch"] = archList
 
