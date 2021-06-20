@@ -35,15 +35,28 @@ type BaseField struct {
 }
 
 func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error {
+	if depth == 0 {
+		return nil
+	}
+
 	logger := log.Log.WithName("BaseField").WithFields(log.String("func", "Render"))
 
-	var toRemove []unresolvedFieldKey
 	for k, v := range f.unresolvedFields {
-		logger := logger.WithFields(log.String("field", k.fieldName))
+		logger := logger.WithFields(
+			log.String("field", k.fieldName),
+			log.String("type", v.fieldValue.Type().String()),
+			log.String("yaml_field", v.yamlFieldName),
+		)
 
-		logger.V("rendering")
+		logger.V("resolving", log.Any("values", ctx.Values()))
 
-		out := v.fieldValue.Interface()
+		var target interface{}
+		switch v.fieldValue.Kind() {
+		case reflect.Ptr:
+			target = v.fieldValue.Interface()
+		default:
+			target = v.fieldValue.Addr().Interface()
+		}
 
 		for _, rawData := range v.rawData {
 			resolvedValue, err := render(ctx, k.renderer, rawData)
@@ -51,17 +64,25 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, d
 				return fmt.Errorf("field: failed to render value of this base field: %w", err)
 			}
 
-			err = yaml.Unmarshal([]byte(resolvedValue), out)
+			err = yaml.Unmarshal([]byte(resolvedValue), target)
 			if err != nil {
 				return fmt.Errorf("field: failed to unmarshal resolved value: %w", err)
 			}
 
-			toRemove = append(toRemove, k)
+			logger.V("resolved field", log.Any("value", target))
 		}
-	}
 
-	for _, k := range toRemove {
-		delete(f.unresolvedFields, k)
+		if depth > 1 || depth < 0 {
+			innerF, canCallResolve := target.(Interface)
+			if !canCallResolve {
+				continue
+			}
+
+			err := innerF.ResolveFields(ctx, render, depth-1)
+			if err != nil {
+				return fmt.Errorf("failed to resolve inner field: %w", err)
+			}
+		}
 	}
 
 	return nil
@@ -291,8 +312,8 @@ fieldLoop:
 			err = unmarshal(yamlKey, v, fSpec.fieldValue)
 			if err != nil {
 				return fmt.Errorf(
-					"field: failed to unmarshal yaml field %q to struct field %q",
-					yamlKey, fSpec.fieldName,
+					"field: failed to unmarshal yaml field %q to struct field %q: %w",
+					yamlKey, fSpec.fieldName, err,
 				)
 			}
 
