@@ -1,0 +1,17 @@
+tools:
+  docker:
+  # first tool in this kind will be the default tool
+  - name: default-docker
+    env:
+    - DOCKER_BUILDKIT=0
+
+docker:build:
+- name: dukkha
+  matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
+  image_names@template_file: .dukkha/scripts/get-image-name.yml
+  dockerfile@shell_file: .dukkha/scripts/select-dockerfile.sh
+  extraArgs:
+  - --build-arg="ARCH=${MATRIX_ARCH}"
+
+docker:push:
+- name: dukkha

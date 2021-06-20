@@ -1,0 +1,24 @@
+{{- if eq .Env.HOST_OS "windows" -}}
+os:
+- windows
+arch:
+- amd64
+- armv7
+{{- else -}}
+exclude:
+- os:
+  - linux
+  arch:
+  - mips64le
+os:
+- linux
+arch:
+- amd64
+- arm64
+- armv5
+- armv6
+- armv7
+- s390x
+- ppc64le
+- mips64le
+{{- end -}}
