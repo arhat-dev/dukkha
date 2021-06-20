@@ -30,11 +30,46 @@ func NewConfig() *Config {
 type Config struct {
 	field.BaseField
 
-	Log       log.Config      `yaml:"log"`
+	// no rendering suffix support
+	Log       *log.Config     `yaml:"log"`
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
-	Shell []tools.BaseTool `yaml:"shell"`
+	// Shells for rendering and command execution
+	Shells []tools.BaseTool `yaml:"shells"`
 
+	// Language or tool specific tools
 	Tools map[string][]tools.Tool `yaml:"tools"`
 	Tasks map[string][]tools.Task `dukkha:"other"`
+}
+
+func (c *Config) Merge(a *Config) {
+	if a.Log != nil {
+		c.Log = a.Log
+	}
+
+	if len(a.Bootstrap.Shell) != 0 {
+		c.Bootstrap = a.Bootstrap
+	}
+
+	c.Shells = append(c.Shells, a.Shells...)
+
+	if len(a.Tools) != 0 {
+		if c.Tools == nil {
+			c.Tools = a.Tools
+		} else {
+			for k := range a.Tools {
+				c.Tools[k] = a.Tools[k]
+			}
+		}
+	}
+
+	if len(a.Tasks) != 0 {
+		if c.Tasks == nil {
+			c.Tasks = a.Tasks
+		} else {
+			for k := range a.Tasks {
+				c.Tasks[k] = a.Tasks[k]
+			}
+		}
+	}
 }

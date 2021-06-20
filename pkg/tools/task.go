@@ -12,8 +12,16 @@ var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
 type Task interface {
 	field.Interface
 
-	// Kind of the task, prefixed with tool kind, e.g. golang:build
-	Kind() string
+	// Kind of the tool managing this task (e.g. docker)
+	ToolKind() string
+
+	// Kind of the task (e.g. build)
+	TaskKind() string
+
+	// Name of the task
+	TaskName() string
+
+	GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error)
 }
 
 type BaseTask struct {
@@ -21,4 +29,16 @@ type BaseTask struct {
 
 	Name   string        `yaml:"name"`
 	Matrix *MatrixConfig `yaml:"matrix"`
+}
+
+func (t *BaseTask) TaskName() string { return t.Name }
+
+func (t *BaseTask) GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
+	// resolve matrix config first
+	err := t.Matrix.ResolveFields(ctx, rf, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	return t.Matrix.GetSpecs(), nil
 }

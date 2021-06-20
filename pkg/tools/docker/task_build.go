@@ -7,7 +7,7 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const TaskKindBuild = "docker:build"
+const TaskKindBuild = "build"
 
 func init() {
 	field.RegisterInterfaceField(
@@ -30,4 +30,5 @@ type TaskBuild struct {
 	ExtraArgs    []string `yaml:"extraArgs"`
 }
 
-func (c *TaskBuild) Kind() string { return TaskKindBuild }
+func (c *TaskBuild) ToolKind() string { return ToolKind }
+func (c *TaskBuild) TaskKind() string { return TaskKindBuild }

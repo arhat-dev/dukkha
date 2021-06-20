@@ -2,12 +2,12 @@ package shell
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 
 	"arhat.dev/pkg/exechelper"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -21,12 +21,12 @@ type Driver struct {
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx context.Context, rawValue string, v *renderer.RenderingValues) (string, error) {
+func (d *Driver) Render(ctx *field.RenderingContext, script string) (string, error) {
 	stdout := &bytes.Buffer{}
 
-	code, err := d.doExec(rawValue, &exechelper.Spec{
-		Context: ctx,
-		Env:     v.Env,
+	code, err := d.doExec(script, &exechelper.Spec{
+		Context: ctx.Context(),
+		Env:     ctx.Values().Env,
 		Stdout:  stdout,
 		Stderr:  os.Stderr,
 	})

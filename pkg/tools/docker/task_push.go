@@ -7,7 +7,7 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const TaskKindPush = "docker:push"
+const TaskKindPush = "push"
 
 func init() {
 	field.RegisterInterfaceField(
@@ -29,7 +29,8 @@ type TaskPush struct {
 	ExtraArgs    []string `yaml:"extraArgs"`
 }
 
-func (c *TaskPush) Kind() string { return TaskKindPush }
+func (c *TaskPush) ToolKind() string { return ToolKind }
+func (c *TaskPush) TaskKind() string { return TaskKindPush }
 
 func (c *TaskPush) Inherit(bc *TaskBuild) {
 	if bc == nil {

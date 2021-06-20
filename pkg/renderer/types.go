@@ -1,22 +1,13 @@
 package renderer
 
-import "context"
-
-type contextKey string
-
-const (
-	contextKeyManager contextKey = "renderer.manager"
+import (
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type Interface interface {
 	Name() string
 
-	Render(ctx context.Context, rawValue string, v *RenderingValues) (result string, err error)
+	Render(ctx *field.RenderingContext, rawValue string) (result string, err error)
 }
 
 type Config interface{}
-
-type RenderingValues struct {
-	// resolved environment variables
-	Env map[string]string
-}

@@ -7,7 +7,7 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const TaskKindBuild = "golang:build"
+const TaskKindBuild = "build"
 
 func init() {
 	field.RegisterInterfaceField(
@@ -25,4 +25,5 @@ type TaskBuild struct {
 	tools.BaseTask `yaml:",inline"`
 }
 
-func (c *TaskBuild) Kind() string { return TaskKindBuild }
+func (c *TaskBuild) ToolKind() string { return ToolKind }
+func (c *TaskBuild) TaskKind() string { return TaskKindBuild }

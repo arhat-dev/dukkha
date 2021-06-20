@@ -1,7 +1,6 @@
 package field
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"sort"
@@ -35,34 +34,7 @@ type BaseField struct {
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
 }
 
-func (f *BaseField) addUnresolvedField(
-	fieldName string,
-	fieldValue reflect.Value,
-	yamlFieldName string,
-	renderer, rawData string,
-) {
-	if f.unresolvedFields == nil {
-		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
-	}
-
-	key := unresolvedFieldKey{
-		fieldName: fieldName,
-		renderer:  renderer,
-	}
-
-	if old, exists := f.unresolvedFields[key]; exists {
-		old.rawData = append(old.rawData, rawData)
-		return
-	}
-
-	f.unresolvedFields[key] = &unresolvedFieldValue{
-		fieldValue:    fieldValue,
-		yamlFieldName: yamlFieldName,
-		rawData:       []string{rawData},
-	}
-}
-
-func (f *BaseField) Resolve(ctx context.Context, render RenderingFunc, depth int) error {
+func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error {
 	logger := log.Log.WithName("BaseField").WithFields(log.String("func", "Render"))
 
 	var toRemove []unresolvedFieldKey
@@ -93,6 +65,33 @@ func (f *BaseField) Resolve(ctx context.Context, render RenderingFunc, depth int
 	}
 
 	return nil
+}
+
+func (f *BaseField) addUnresolvedField(
+	fieldName string,
+	fieldValue reflect.Value,
+	yamlFieldName string,
+	renderer, rawData string,
+) {
+	if f.unresolvedFields == nil {
+		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
+	}
+
+	key := unresolvedFieldKey{
+		fieldName: fieldName,
+		renderer:  renderer,
+	}
+
+	if old, exists := f.unresolvedFields[key]; exists {
+		old.rawData = append(old.rawData, rawData)
+		return
+	}
+
+	f.unresolvedFields[key] = &unresolvedFieldValue{
+		fieldValue:    fieldValue,
+		yamlFieldName: yamlFieldName,
+		rawData:       []string{rawData},
+	}
 }
 
 // UnmarshalYAML handles renderer suffix
@@ -176,7 +175,6 @@ fieldLoop:
 				kind := fieldType.Type.Kind()
 				switch {
 				case kind == reflect.Struct:
-				case kind == reflect.Slice:
 				case kind == reflect.Ptr && fieldType.Type.Elem().Kind() == reflect.Struct:
 				default:
 					return fmt.Errorf(
