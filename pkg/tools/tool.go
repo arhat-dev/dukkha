@@ -58,7 +58,7 @@ func (t *BaseTool) RunTask(ctx context.Context, task Task) error {
 	}
 
 	for _, s := range specs {
-		fmt.Println(task.TaskKind(), "using matrix:", s.String())
+		fmt.Println(task.TaskKind(), "using matrix {", s.String(), "}")
 
 		var env []string
 		for k, v := range s {

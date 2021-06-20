@@ -103,7 +103,7 @@ func (m MatrixSpec) String() string {
 
 	var pairs []string
 	for _, k := range keys {
-		pairs = append(pairs, k+"="+m[k])
+		pairs = append(pairs, k+": "+m[k])
 	}
 
 	return strings.Join(pairs, ", ")

@@ -45,7 +45,7 @@ func (t *BaseTask) GetMatrixSpec(ctx *field.RenderingContext, rf field.Rendering
 	// resolve matrix config first
 	err := t.ResolveFields(ctx, rf, 1)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve basic task fields: %w", err)
+		return nil, fmt.Errorf("failed to resolve base task fields: %w", err)
 	}
 
 	err = t.Matrix.ResolveFields(ctx, rf, -1)
