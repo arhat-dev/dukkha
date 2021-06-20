@@ -5,9 +5,15 @@ import (
 	"os"
 	"strings"
 
-	"arhat.dev/pkg/envhelper"
 	"gopkg.in/yaml.v3"
 )
+
+type Interface interface {
+	yaml.Unmarshaler
+
+	// ResolveFields resolves struct fields with rendering suffix
+	ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error
+}
 
 type (
 	RenderingFunc func(ctx *RenderingContext, renderer, rawData string) (string, error)
@@ -23,46 +29,35 @@ type (
 )
 
 func WithRenderingValues(ctx context.Context, env []string) *RenderingContext {
-	osEnv := os.Environ()
-
-	envMap := make(map[string]string)
-
-	for _, e := range osEnv {
-		parts := strings.SplitN(e, "=", 2)
-		key, value := parts[0], ""
-		if len(parts) == 2 {
-			value = parts[1]
-		}
-
-		envMap[key] = value
-	}
-
-	for _, e := range env {
-		envhelper.Expand(e, func(varName, origin string) string {
-
-			return ""
-		})
-	}
-
-	return &RenderingContext{
+	ret := &RenderingContext{
 		ctx: ctx,
 		values: &RenderingValues{
-			Env: envMap,
+			Env: make(map[string]string),
 		},
 	}
+
+	for _, e := range append(os.Environ(), env...) {
+		ret.SetEnv(e)
+	}
+
+	return ret
 }
 
 func (c *RenderingContext) Context() context.Context {
 	return c.ctx
 }
 
-func (c *RenderingContext) Values() *RenderingValues {
-	return c.values
+func (c *RenderingContext) SetEnv(entry string) {
+	parts := strings.SplitN(entry, "=", 2)
+	key, value := parts[0], ""
+	if len(parts) == 2 {
+		value = parts[1]
+	}
+
+	// do not expand environment variables here
+	c.values.Env[key] = value
 }
 
-type Interface interface {
-	yaml.Unmarshaler
-
-	// ResolveFields resolves struct fields with rendering suffix
-	ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error
+func (c *RenderingContext) Values() *RenderingValues {
+	return c.values
 }
