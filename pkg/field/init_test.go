@@ -9,20 +9,11 @@ import (
 
 var _ Interface = (*testFieldStruct)(nil)
 
-type testInnerFieldStruct struct {
-	BaseField
-
-	Bar string `yaml:"bar"`
-}
-
 type testFieldStruct struct {
 	BaseField
 
 	Foo   string   `yaml:"foo"`
 	Other []string `yaml:"" dukkha:"other"`
-
-	InnerStruct testInnerFieldStruct  `yaml:"innerStruct"`
-	InnerPtr    *testInnerFieldStruct `yaml:"innerPtr"`
 }
 
 // should always panic when passed to New()
@@ -32,8 +23,7 @@ type testFieldPtr struct {
 	Foo string `yaml:"foo"`
 }
 
-func TestNewField(t *testing.T) {
-
+func TestInit(t *testing.T) {
 	fStruct := &testFieldStruct{}
 	fPtr1 := testFieldPtr{}
 	fPtr2 := &testFieldPtr{}
