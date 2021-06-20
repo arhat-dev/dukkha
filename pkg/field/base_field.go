@@ -147,13 +147,13 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	// get expected fields first, the first field (myself)
 fieldLoop:
 	for i := 1; i < pt.NumField(); i++ {
-		field := pt.Field(i)
-		yTags := strings.Split(field.Tag.Get("yaml"), ",")
+		fieldType := pt.Field(i)
+		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
 		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
-			if !addField(yamlKey, pt.Field(i).Name, f._parentValue.Elem().Field(i)) {
+			if !addField(yamlKey, fieldType.Name, f._parentValue.Elem().Field(i)) {
 				return fmt.Errorf(
 					"field: duplicate yaml key %q in %s",
 					yamlKey, pt.String(),
@@ -168,19 +168,19 @@ fieldLoop:
 				ignoreField(yamlKey)
 				continue fieldLoop
 			case "inline":
-				kind := field.Type.Kind()
+				kind := fieldType.Type.Kind()
 				switch {
 				case kind == reflect.Struct:
 				case kind == reflect.Slice:
-				case kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct:
+				case kind == reflect.Ptr && fieldType.Type.Elem().Kind() == reflect.Struct:
 				default:
 					return fmt.Errorf(
 						"field: non struct nor struct pointer field %s.%s has inline tag",
-						pt.String(), field.Name,
+						pt.String(), fieldType.Name,
 					)
 				}
 
-				logger.V("inspecting inline fields", log.String("field", field.Name))
+				logger.V("inspecting inline fields", log.String("field", fieldType.Name))
 
 				inlineFv := f._parentValue.Elem().Field(i)
 				inlineFt := f._parentValue.Type().Elem().Field(i).Type
@@ -206,7 +206,7 @@ fieldLoop:
 		}
 
 		// dukkha tag is used to extend yaml tag
-		dTags := strings.Split(field.Tag.Get("dukkha"), ",")
+		dTags := strings.Split(fieldType.Tag.Get("dukkha"), ",")
 		for _, t := range dTags {
 			// nolint:gocritic
 			switch t {
@@ -219,9 +219,9 @@ fieldLoop:
 					)
 				}
 
-				logger.V("found catch other field", log.String("field", field.Name))
+				logger.V("found catch other field", log.String("field", fieldType.Name))
 				catchOtherField = &fieldSpec{
-					fieldName:  pt.Field(i).Name,
+					fieldName:  fieldType.Name,
 					fieldValue: f._parentValue.Elem().Field(i),
 				}
 			}
