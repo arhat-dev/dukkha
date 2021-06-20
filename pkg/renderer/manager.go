@@ -22,7 +22,6 @@ func (m *Manager) Add(config Config, names ...string) error {
 	}
 
 	for _, name := range names {
-		// TODO: create renderers according to config
 		m.renderers.Store(name, renderer)
 	}
 
