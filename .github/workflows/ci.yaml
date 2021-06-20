@@ -66,11 +66,7 @@ jobs:
 
     - name: Test Packages
       run: |
-        # test will try to find default remote branch
-        # prepare required information for git here
-
-        git remote rename origin upstream || true
-        git remote add origin https://github.com/arhat-dev/dukkha.git
+        git fetch --all
 
         make test.pkg
 
