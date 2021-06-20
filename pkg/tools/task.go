@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"fmt"
 	"reflect"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -42,9 +43,14 @@ func (t *BaseTask) TaskName() string        { return t.Name }
 
 func (t *BaseTask) GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
 	// resolve matrix config first
-	err := t.Matrix.ResolveFields(ctx, rf, -1)
+	err := t.ResolveFields(ctx, rf, 1)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to resolve basic task fields: %w", err)
+	}
+
+	err = t.Matrix.ResolveFields(ctx, rf, -1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
 
 	return t.Matrix.GetSpecs(), nil
