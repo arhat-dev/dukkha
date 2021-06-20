@@ -1,6 +1,9 @@
 package tools
 
 import (
+	"sort"
+	"strings"
+
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -87,6 +90,22 @@ loop:
 }
 
 type MatrixSpec map[string]string
+
+func (m MatrixSpec) String() string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var pairs []string
+	for _, k := range keys {
+		pairs = append(pairs, k+"="+m[k])
+	}
+
+	return strings.Join(pairs, ", ")
+}
 
 func (m MatrixSpec) Match(a map[string]string) bool {
 	if len(a) == 0 {
