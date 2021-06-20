@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -14,7 +15,7 @@ func init() {
 	field.RegisterInterfaceField(
 		tools.ToolType,
 		regexp.MustCompile("^golang$"),
-		func() interface{} { return &Config{} },
+		func([]string) interface{} { return &Config{} },
 	)
 }
 
@@ -29,5 +30,9 @@ type Config struct {
 func (c *Config) ToolKind() string { return ToolKind }
 
 func (c *Config) ResolveTasks(tasks []tools.Task) error {
+	return fmt.Errorf("unimplemented")
+}
+
+func (c *Config) Run(ctx context.Context, taskKind, taskName string) error {
 	return fmt.Errorf("unimplemented")
 }

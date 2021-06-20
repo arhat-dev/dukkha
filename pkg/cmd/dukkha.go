@@ -51,9 +51,13 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	rootCmd := &cobra.Command{
-		Use:           "dukkha",
+		Use: "dukkha <tool-kind> {tool-name} <task-kind> <task-name>",
+		Example: `dukkha docker build my-image
+dukkha docker non-default-tool build my-image`,
+
 		SilenceErrors: true,
 		SilenceUsage:  true,
+		Args:          cobra.RangeArgs(3, 4),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Use == "version" {
 				return nil
@@ -109,13 +113,17 @@ func NewRootCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(appCtx, renderingMgr, config)
+			return run(appCtx, renderingMgr, config, args)
 		},
 	}
 
 	globalFlags := rootCmd.PersistentFlags()
 
-	globalFlags.StringSliceVarP(&configPaths, "config", "c", []string{".dukkha", ".dukkha.yaml"}, "")
+	globalFlags.StringSliceVarP(
+		&configPaths, "config", "c",
+		[]string{".dukkha", ".dukkha.yaml"},
+		"path to your config files",
+	)
 
 	// logging
 	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",
@@ -128,8 +136,15 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func run(appCtx context.Context, renderingMgr *renderer.Manager, config *conf.Config) error {
+func run(
+	appCtx context.Context,
+	renderingMgr *renderer.Manager,
+	config *conf.Config,
+	args []string,
+) error {
 	logger := log.Log.WithName("app")
+
+	// TODO: set basic environment variables
 
 	// ensure all top-level config resolved using basic renderers
 	logger.V("resolving top-level config")
@@ -172,19 +187,31 @@ func run(appCtx context.Context, renderingMgr *renderer.Manager, config *conf.Co
 	}
 
 	// gather tasks for tools
-	toolSpecificTasks := make(map[string][]tools.Task)
+	type toolKey struct {
+		toolKind string
+		toolName string
+	}
+
+	toolSpecificTasks := make(map[toolKey][]tools.Task)
+
+	// Always initialize all tasks in case task dependencies
 
 	for _, tasks := range config.Tasks {
 		if len(tasks) == 0 {
 			continue
 		}
 
-		toolKind := tasks[0].ToolKind()
+		key := toolKey{
+			toolKind: tasks[0].ToolKind(),
+			toolName: tasks[0].ToolName(),
+		}
 
-		toolSpecificTasks[toolKind] = append(
-			toolSpecificTasks[toolKind], tasks...,
+		toolSpecificTasks[key] = append(
+			toolSpecificTasks[key], tasks...,
 		)
 	}
+
+	allTools := make(map[toolKey]tools.Tool)
 
 	for _, tools := range config.Tools {
 		for i, t := range tools {
@@ -220,19 +247,69 @@ func run(appCtx context.Context, renderingMgr *renderer.Manager, config *conf.Co
 
 			logger.V("resolving tool tasks")
 
-			err = t.ResolveTasks(toolSpecificTasks[t.ToolKind()])
+			key := toolKey{
+				toolKind: t.ToolKind(),
+				toolName: t.ToolName(),
+			}
+
+			err = t.ResolveTasks(toolSpecificTasks[key])
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tasks for tool %q: %w",
 					toolID, err,
 				)
 			}
+
+			allTools[key] = t
+
+			if i == 0 && len(key.toolName) != 0 {
+				// is default tool for this kind but using name before
+				key = toolKey{
+					toolKind: t.ToolKind(),
+					toolName: "",
+				}
+
+				allTools[key] = t
+
+				err = t.ResolveTasks(toolSpecificTasks[key])
+				if err != nil {
+					return fmt.Errorf(
+						"failed to resolve tasks for default tool %q: %w",
+						toolID, err,
+					)
+				}
+			}
 		}
 	}
 
 	logger.D("application configured", log.Any("config", config))
 
-	return nil
+	type taskKey struct {
+		taskKind string
+		taskName string
+	}
+
+	var (
+		targetTool toolKey
+		targetTask taskKey
+	)
+	switch n := len(args); n {
+	case 3:
+		targetTool.toolKind, targetTool.toolName = args[0], ""
+		targetTask.taskKind, targetTask.taskName = args[1], args[2]
+	case 4:
+		targetTool.toolKind, targetTool.toolName = args[0], args[1]
+		targetTask.taskKind, targetTask.taskName = args[2], args[3]
+	default:
+		return fmt.Errorf("expecting 3 or 4 args, got %d", n)
+	}
+
+	tool, ok := allTools[targetTool]
+	if !ok {
+		return fmt.Errorf("tool %q with name %q not found", targetTool.toolKind, targetTool.toolName)
+	}
+
+	return tool.Run(appCtx, targetTask.taskKind, targetTask.taskName)
 }
 
 func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig *conf.Config) error {
@@ -286,7 +363,8 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig
 			}
 
 			switch filepath.Ext(pathInDir) {
-			case ".yml", ".yaml":
+			case ".yaml":
+				// leave .yml for customization
 			default:
 				return nil
 			}

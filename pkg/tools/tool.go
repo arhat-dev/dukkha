@@ -26,6 +26,8 @@ type Tool interface {
 	Init(rf field.RenderingFunc) error
 
 	ResolveTasks(tasks []Task) error
+
+	Run(ctx context.Context, taskKind, taskName string) error
 }
 
 type BaseTool struct {
@@ -47,25 +49,31 @@ func (t *BaseTool) Init(rf field.RenderingFunc) error {
 
 func (t *BaseTool) ToolName() string { return t.Name }
 
-func (t *BaseTool) DoTask(ctx context.Context, task Task) error {
-	specs, err := task.GetMatrixSpec(field.WithRenderingValues(ctx, nil), t.RenderingFunc)
+func (t *BaseTool) RunTask(ctx context.Context, task Task) error {
+	specs, err := task.GetMatrixSpec(
+		field.WithRenderingValues(ctx, t.Env), t.RenderingFunc,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}
 
 	for _, s := range specs {
-		// context.WithValue(ctx)
+		fmt.Println(task.TaskKind(), "using matrix:", s.String())
+
 		var env []string
 		for k, v := range s {
 			env = append(env, "MATRIX_"+strings.ToUpper(k)+"="+v)
 		}
 
-		err = task.ResolveFields(field.WithRenderingValues(ctx, env), t.RenderingFunc, -1)
+		err = task.ResolveFields(
+			field.WithRenderingValues(ctx, append(env, t.Env...)),
+			t.RenderingFunc, -1,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to resolve task fields: %w", err)
 		}
 
-		// TODO: execute tasks
+		// TODO: execute task
 	}
 
 	return nil
