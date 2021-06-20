@@ -42,7 +42,7 @@ import (
 
 func NewRootCmd() *cobra.Command {
 	var (
-		appCtx      context.Context
+		appCtx      = context.Background()
 		configPaths []string
 		logConfig   = new(log.Config)
 		config      = conf.NewConfig()
@@ -62,6 +62,8 @@ dukkha docker non-default-tool build my-image`,
 			if cmd.Use == "version" {
 				return nil
 			}
+
+			populateGlobalEnv(appCtx)
 
 			config.Log = logConfig
 
@@ -143,8 +145,6 @@ func run(
 	args []string,
 ) error {
 	logger := log.Log.WithName("app")
-
-	// TODO: set basic environment variables
 
 	// ensure all top-level config resolved using basic renderers
 	logger.V("resolving top-level config")
