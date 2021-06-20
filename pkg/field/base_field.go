@@ -161,12 +161,17 @@ fieldLoop:
 			}
 		}
 
+		// check if ignored
+		for _, t := range yTags[1:] {
+			if t == "-" {
+				ignoreField(yamlKey)
+				continue fieldLoop
+			}
+		}
+
 		// process yaml tag flags
 		for _, t := range yTags[1:] {
 			switch t {
-			case "-":
-				ignoreField(yamlKey)
-				continue fieldLoop
 			case "inline":
 				kind := fieldType.Type.Kind()
 				switch {
