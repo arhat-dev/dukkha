@@ -60,7 +60,7 @@ func populateGlobalEnv(ctx context.Context) {
 			command: []string{
 				"git", "symbolic-ref", "refs/remotes/origin/HEAD",
 			},
-			onError: func() string { return "false" },
+			onError: func() string { return "" },
 			onSuccess: func(result string) string {
 				return strings.TrimSpace(
 					strings.TrimPrefix(result, "refs/remotes/origin/"),
