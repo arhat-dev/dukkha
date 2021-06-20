@@ -8,7 +8,7 @@ import (
 
 // nolint:revive
 type (
-	FieldFactoryFunc func() interface{}
+	FieldFactoryFunc func(params []string) interface{}
 
 	interfaceFieldFactoryKey struct {
 		typ reflect.Type
@@ -66,7 +66,11 @@ func CreateInterfaceField(interfaceType reflect.Type, yamlKey string) (interface
 
 	for _, impl := range v.factories {
 		if impl.exp.MatchString(yamlKey) {
-			return impl.createField(), nil
+			if impl.exp.NumSubexp() == 0 {
+				return impl.createField(nil), nil
+			}
+
+			return impl.createField(impl.exp.FindStringSubmatch(yamlKey)[1:]), nil
 		}
 	}
 
