@@ -35,11 +35,23 @@ type BaseField struct {
 }
 
 func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error {
+	if atomic.LoadUint32(&f._initialized) == 0 {
+		return fmt.Errorf("field resolve: struct not intialized with Init()")
+	}
+
 	if depth == 0 {
 		return nil
 	}
 
-	logger := log.Log.WithName("BaseField").WithFields(log.String("func", "Render"))
+	logger := log.Log.WithName("BaseField").
+		WithFields(
+			log.String("func", "Render"),
+			log.String("struct", f._parentValue.Type().String()),
+		)
+
+	logger.D("resolving",
+		log.Int("unresolved_fields", len(f.unresolvedFields)),
+	)
 
 	for k, v := range f.unresolvedFields {
 		logger := logger.WithFields(
@@ -91,9 +103,9 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, d
 func (f *BaseField) addUnresolvedField(
 	fieldName string,
 	fieldValue reflect.Value,
-	yamlFieldName string,
+	yamlKey string,
 	renderer, rawData string,
-) {
+) error {
 	if f.unresolvedFields == nil {
 		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
 	}
@@ -103,23 +115,70 @@ func (f *BaseField) addUnresolvedField(
 		renderer:  renderer,
 	}
 
+	oe := fieldValue
+	for {
+		switch oe.Kind() {
+		case reflect.Slice:
+			oe.Set(reflect.MakeSlice(oe.Type(), 0, 0))
+		case reflect.Map:
+			oe.Set(reflect.MakeMap(oe.Type()))
+		case reflect.Interface:
+			fVal, err := CreateInterfaceField(oe.Type(), yamlKey)
+			if err != nil {
+				return fmt.Errorf("failed to create interface field: %w", err)
+			}
+
+			oe.Set(reflect.ValueOf(fVal))
+		case reflect.Ptr:
+			// process later
+		default:
+			// scalar types or struct/array/func/chan/unsafe.Pointer
+			// hand it to go-yaml
+		}
+
+		if oe.Kind() != reflect.Ptr {
+			break
+		}
+
+		if oe.IsZero() {
+			oe.Set(reflect.New(oe.Type().Elem()))
+		}
+
+		oe = oe.Elem()
+	}
+
+	var iface interface{}
+	switch fieldValue.Kind() {
+	case reflect.Ptr:
+		iface = fieldValue.Interface()
+	default:
+		iface = fieldValue.Addr().Interface()
+	}
+
+	fVal, canCallInit := iface.(Interface)
+	if canCallInit {
+		_ = Init(fVal)
+	}
+
 	if old, exists := f.unresolvedFields[key]; exists {
 		old.rawData = append(old.rawData, rawData)
-		return
+		return nil
 	}
 
 	f.unresolvedFields[key] = &unresolvedFieldValue{
 		fieldValue:    fieldValue,
-		yamlFieldName: yamlFieldName,
+		yamlFieldName: yamlKey,
 		rawData:       []string{rawData},
 	}
+
+	return nil
 }
 
 // UnmarshalYAML handles renderer suffix
 // nolint:gocyclo
-func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
-	if atomic.LoadUint32(&f._initialized) == 0 {
-		return fmt.Errorf("field: struct not intialized with Init()")
+func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
+	if atomic.LoadUint32(&self._initialized) == 0 {
+		return fmt.Errorf("field unmarshal: struct not intialized with Init()")
 	}
 
 	type fieldKey struct {
@@ -129,12 +188,17 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	type fieldSpec struct {
 		fieldName  string
 		fieldValue reflect.Value
+		base       *BaseField
 	}
 
 	fields := make(map[fieldKey]*fieldSpec)
-	pt := f._parentValue.Type().Elem()
+	pt := self._parentValue.Type().Elem()
 
-	addField := func(yamlKey, fieldName string, fieldValue reflect.Value) bool {
+	addField := func(
+		yamlKey, fieldName string,
+		fieldValue reflect.Value,
+		base *BaseField,
+	) bool {
 		key := fieldKey{yamlKey: yamlKey}
 		if _, exists := fields[key]; exists {
 			return false
@@ -143,13 +207,9 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		fields[fieldKey{yamlKey: yamlKey}] = &fieldSpec{
 			fieldName:  fieldName,
 			fieldValue: fieldValue,
+			base:       base,
 		}
 		return true
-	}
-
-	ignoreField := func(yamlKey string) {
-		key := fieldKey{yamlKey: yamlKey}
-		delete(fields, key)
 	}
 
 	getField := func(yamlKey string) *fieldSpec {
@@ -170,22 +230,21 @@ fieldLoop:
 		fieldType := pt.Field(i)
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
+		// check if ignored
+		for _, t := range yTags[1:] {
+			if t == "-" {
+				continue fieldLoop
+			}
+		}
+
 		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
-			if !addField(yamlKey, fieldType.Name, f._parentValue.Elem().Field(i)) {
+			if !addField(yamlKey, fieldType.Name, self._parentValue.Elem().Field(i), self) {
 				return fmt.Errorf(
 					"field: duplicate yaml key %q in %s",
 					yamlKey, pt.String(),
 				)
-			}
-		}
-
-		// check if ignored
-		for _, t := range yTags[1:] {
-			if t == "-" {
-				ignoreField(yamlKey)
-				continue fieldLoop
 			}
 		}
 
@@ -206,8 +265,32 @@ fieldLoop:
 
 				logger.V("inspecting inline fields", log.String("field", fieldType.Name))
 
-				inlineFv := f._parentValue.Elem().Field(i)
-				inlineFt := f._parentValue.Type().Elem().Field(i).Type
+				inlineFv := self._parentValue.Elem().Field(i)
+				inlineFt := self._parentValue.Type().Elem().Field(i).Type
+
+				var iface interface{}
+				switch inlineFv.Kind() {
+				case reflect.Ptr:
+					iface = inlineFv.Interface()
+				default:
+					iface = inlineFv.Addr().Interface()
+				}
+
+				base := self
+				fVal, canCallInit := iface.(Interface)
+				if canCallInit {
+					innerBaseF := reflect.ValueOf(Init(fVal)).Elem().Field(0)
+
+					if innerBaseF.Kind() == reflect.Struct {
+						if innerBaseF.Addr().Type() == baseFieldPtrType {
+							base = innerBaseF.Addr().Interface().(*BaseField)
+						}
+					} else {
+						if innerBaseF.Type() == baseFieldPtrType {
+							base = innerBaseF.Interface().(*BaseField)
+						}
+					}
+				}
 
 				for j := 0; j < inlineFv.NumField(); j++ {
 					innerFv := inlineFv.Field(j)
@@ -219,7 +302,7 @@ fieldLoop:
 						continue
 					}
 
-					if !addField(innerYamlKey, innerFt.Name, innerFv) {
+					if !addField(innerYamlKey, innerFt.Name, innerFv, base) {
 						return fmt.Errorf(
 							"field: duplicate yaml key %q in inline field %s",
 							innerYamlKey, pt.String(),
@@ -237,10 +320,12 @@ fieldLoop:
 			// nolint:gocritic
 			switch t {
 			case "other":
-				// match unhandled values
+				// other is used to match unhandled values
+				// only supports map[string]Any
+
 				if catchOtherField != nil {
 					return fmt.Errorf(
-						"field: bad field tags in %s: only one struct field can have `dukkha:\"other\"` tag",
+						"field: bad field tags in %s: only one map in a struct can have `dukkha:\"other\"` tag",
 						pt.String(),
 					)
 				}
@@ -248,8 +333,12 @@ fieldLoop:
 				logger.V("found catch other field", log.String("field", fieldType.Name))
 				catchOtherField = &fieldSpec{
 					fieldName:  fieldType.Name,
-					fieldValue: f._parentValue.Elem().Field(i),
+					fieldValue: self._parentValue.Elem().Field(i),
+					base:       self,
 				}
+			case "":
+			default:
+				return fmt.Errorf("field: unknown dukkha tag value %q", t)
 			}
 		}
 	}
@@ -366,11 +455,14 @@ fieldLoop:
 
 		logger.V("found field to be rendered")
 
-		f.addUnresolvedField(
+		err = fSpec.base.addUnresolvedField(
 			fSpec.fieldName, fSpec.fieldValue,
 			yamlKey,
 			renderer, rawData,
 		)
+		if err != nil {
+			return fmt.Errorf("field: failed to add unresolved field: %w", err)
+		}
 	}
 
 	for k := range handledYamlValues {
