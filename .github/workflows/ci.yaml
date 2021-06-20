@@ -63,14 +63,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    # - name: Install Extra Packages (for cgo deps)
-    #   run: |
-    #     apt update
-    #     apt install -y \
-    #       python3-distutils=3.7.3-1 python3-lib2to3=3.7.3-1 python3=3.7.3-1
 
     - name: Test Packages
       run: |
+        # test will try to find default remote branch
+        # prepare required information for git here
+
+        git remote rename origin upstream || true
+        git remote add origin https://github.com/arhat-dev/dukkha.git
+
         make test.pkg
 
     - name: Test Commands
