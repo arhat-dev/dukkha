@@ -78,60 +78,6 @@ jobs:
         name: build-on-linux
         path: build
 
-  # build-on-linux-cgo:
-  #   if: contains(github.head_ref, 'deps/') == false
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: arhatdev/builder-go:debian
-  #   steps:
-  #   - name: Install docker-cli in Container
-  #     run: |
-  #       apt update
-  #       apt install -y apt-transport-https ca-certificates curl software-properties-common lsb-release
-  #       curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-  #       add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-
-  #       apt update
-  #       apt install -y docker-ce-cli
-  #       docker -v
-
-  #   - name: Run in Host
-  #     uses: arhat-dev/actions-hostrun@main
-  #     with:
-  #       run: |
-  #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  #         sudo apt update
-  #         sudo apt install -y qemu-user-static
-
-  #   - uses: actions/checkout@v2
-  #   - name: Install Extra Packages
-  #     run: |
-  #       apt update
-  #       apt install -y python3-distutils=3.7.3-1 python3-lib2to3=3.7.3-1 python3=3.7.3-1
-
-  #   - name: Build
-  #     run: |
-  #       # may need to install some packages during build process, do not run in parallel
-  #       CGO_ENABLED=1 make dukkha.linux.all
-
-  #   - name: Package
-  #     run: |
-  #       make package.dukkha.linux.all
-
-  #   - name: Hash
-  #     run: |
-  #       cd build
-  #       sha256sum dukkha.linux* > sha256.linux.txt
-  #       sha512sum dukkha.linux* > sha512.linux.txt
-  #       md5sum dukkha.linux* > md5.linux.txt
-  #       cd -
-
-  #   - name: Upload Artifact
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: build-on-linux-cgo
-  #       path: build
-
   build-on-darwin:
     if: contains(github.head_ref, 'deps/') == false
     runs-on: macos-latest
@@ -143,7 +89,7 @@ jobs:
 
     - name: Build
       run: |
-        CGO_ENABLED=1 make dukkha.darwin.amd64
+        CGO_ENABLED=0 make dukkha.darwin.amd64
         CGO_ENABLED=0 make dukkha.darwin.arm64
 
     # # TODO: Support macos packaging
