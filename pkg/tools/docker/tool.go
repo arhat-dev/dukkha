@@ -15,7 +15,7 @@ func init() {
 	field.RegisterInterfaceField(
 		tools.ToolType,
 		regexp.MustCompile("^docker$"),
-		func() interface{} { return &Tool{} },
+		func([]string) interface{} { return &Tool{} },
 	)
 }
 
@@ -63,11 +63,12 @@ func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 	return nil
 }
 
-func (t *Tool) Exec(ctx context.Context, taskKind, taskName string) error {
+func (t *Tool) Run(ctx context.Context, taskKind, taskName string) error {
 	var (
 		task tools.Task
 		ok   bool
 	)
+
 	switch taskKind {
 	case TaskKindBuild:
 		task, ok = t.buildTasks[taskName]
@@ -81,5 +82,5 @@ func (t *Tool) Exec(ctx context.Context, taskKind, taskName string) error {
 		return fmt.Errorf("docker: %s task %q not found", taskKind, taskName)
 	}
 
-	return t.DoTask(ctx, task)
+	return t.RunTask(ctx, task)
 }

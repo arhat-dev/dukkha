@@ -2,6 +2,7 @@ package docker
 
 import (
 	"regexp"
+	"strings"
 
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
@@ -12,8 +13,14 @@ const TaskKindBuild = "build"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^docker(:\w+)?:build$`),
-		func() interface{} { return &TaskBuild{} },
+		regexp.MustCompile(`^docker(:.+)?:build$`),
+		func(params []string) interface{} {
+			t := &TaskBuild{}
+			if len(params) != 0 {
+				t.SetToolName(strings.TrimPrefix(params[0], ":"))
+			}
+			return t
+		},
 	)
 }
 
@@ -24,10 +31,14 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	ImageName    string   `yaml:"image_name"`
-	ManifestName string   `yaml:"manifest_name"`
-	Dockerfile   string   `yaml:"dockerfile"`
-	ExtraArgs    []string `yaml:"extraArgs"`
+	ImageNames []ImageNameSpec `yaml:"image_names"`
+	Dockerfile string          `yaml:"dockerfile"`
+	ExtraArgs  []string        `yaml:"extraArgs"`
+}
+
+type ImageNameSpec struct {
+	Image    string `yaml:"image"`
+	Manifest string `yaml:"manifest"`
 }
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }

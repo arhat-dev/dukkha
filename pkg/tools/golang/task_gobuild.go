@@ -12,8 +12,14 @@ const TaskKindBuild = "build"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^golang(:\w+)?:build$`),
-		func() interface{} { return &TaskBuild{} },
+		regexp.MustCompile(`^golang(:.+)?:build$`),
+		func(params []string) interface{} {
+			t := &TaskBuild{}
+			if len(params) != 0 {
+				t.SetToolName(params[0])
+			}
+			return t
+		},
 	)
 }
 

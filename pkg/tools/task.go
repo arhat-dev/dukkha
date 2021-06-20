@@ -15,6 +15,9 @@ type Task interface {
 	// Kind of the tool managing this task (e.g. docker)
 	ToolKind() string
 
+	// Name of the tool managing this task (e.g. my-tool)
+	ToolName() string
+
 	// Kind of the task (e.g. build)
 	TaskKind() string
 
@@ -29,9 +32,13 @@ type BaseTask struct {
 
 	Name   string        `yaml:"name"`
 	Matrix *MatrixConfig `yaml:"matrix"`
+
+	toolName string `yaml:"-"`
 }
 
-func (t *BaseTask) TaskName() string { return t.Name }
+func (t *BaseTask) ToolName() string        { return t.toolName }
+func (t *BaseTask) SetToolName(name string) { t.toolName = name }
+func (t *BaseTask) TaskName() string        { return t.Name }
 
 func (t *BaseTask) GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
 	// resolve matrix config first
