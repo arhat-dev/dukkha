@@ -6,7 +6,21 @@
 [![GoReportCard](https://goreportcard.com/badge/arhat.dev/dukkha)](https://goreportcard.com/report/arhat.dev/dukkha)
 [![codecov](https://codecov.io/gh/arhat-dev/dukkha/branch/master/graph/badge.svg)](https://codecov.io/gh/arhat-dev/dukkha)
 
-> 生, 老, 病, 死, 爱别离, 怨憎恚, 求不得, 五蕴炽盛
+Make YAML files Makefiles
+
+## The Idea
+
+- Type checked configuration (e.g. workflow definition for github actions)
+- Language or tool specific support (e.g. `goreleaser` for go/docker/npm builds)
+- Flexible scripting (e.g. Makefile, shell scripts)
+
+A typical build automation tool only take one or two from the above, but we'd take three in `dukkha`!
+
+## Install
+
+```bash
+go get -u arhat.dev/dukkha/cmd/dukkha
+```
 
 ## LICENSE
 
