@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -49,8 +50,8 @@ func (t *BaseTool) Init(rf field.RenderingFunc) error {
 
 func (t *BaseTool) ToolName() string { return t.Name }
 
-func (t *BaseTool) RunTask(ctx context.Context, task Task) error {
-	specs, err := task.GetMatrixSpec(
+func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) error {
+	specs, err := task.GetMatrixSpecs(
 		field.WithRenderingValues(ctx, t.Env), t.RenderingFunc,
 	)
 	if err != nil {
@@ -58,22 +59,53 @@ func (t *BaseTool) RunTask(ctx context.Context, task Task) error {
 	}
 
 	for _, s := range specs {
-		fmt.Println(task.TaskKind(), "using matrix {", s.String(), "}")
+		fmt.Println("---", task.TaskKind(), "with {", s.String(), "}")
 
-		var env []string
+		var matrixEnv []string
 		for k, v := range s {
-			env = append(env, "MATRIX_"+strings.ToUpper(k)+"="+v)
+			matrixEnv = append(matrixEnv, "MATRIX_"+strings.ToUpper(k)+"="+v)
 		}
 
-		err = task.ResolveFields(
-			field.WithRenderingValues(ctx, append(env, t.Env...)),
-			t.RenderingFunc, -1,
-		)
+		values := field.WithRenderingValues(ctx, append(matrixEnv, t.Env...))
+		err = task.ResolveFields(values, t.RenderingFunc, -1)
 		if err != nil {
 			return fmt.Errorf("failed to resolve task fields: %w", err)
 		}
 
-		// TODO: execute task
+		// TODO: use generated args to execute tasks in parallel
+
+		args, err := task.ExecArgs()
+		if err != nil {
+			return fmt.Errorf("failed to generate task args: %w", err)
+		}
+
+		var cmd []string
+		if len(t.Path) != 0 {
+			cmd = append(cmd, t.Path)
+		} else {
+			cmd = append(cmd, toolKind)
+		}
+
+		cmd = append(cmd, t.GlobalArgs...)
+		cmd = append(cmd, args...)
+
+		fmt.Println(">>>", toolKind, "[", strings.Join(cmd, " "), "]")
+		p, err := exechelper.Do(exechelper.Spec{
+			Context: ctx,
+			Command: cmd,
+			Env:     values.Values().Env,
+			Stdin:   os.Stdin,
+			Stdout:  os.Stdout,
+			Stderr:  os.Stderr,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(cmd, " "), err)
+		}
+
+		code, err := p.Wait()
+		if err != nil {
+			return fmt.Errorf("command exited with code %d: %w", code, err)
+		}
 	}
 
 	return nil

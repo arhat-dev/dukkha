@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"fmt"
 	"regexp"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -33,3 +34,7 @@ type TaskBuild struct {
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
+
+func (c *TaskBuild) ExecArgs() ([]string, error) {
+	return nil, fmt.Errorf("unimplemented")
+}

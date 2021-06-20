@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -37,6 +38,10 @@ type TaskPush struct {
 
 func (c *TaskPush) ToolKind() string { return ToolKind }
 func (c *TaskPush) TaskKind() string { return TaskKindPush }
+
+func (c *TaskPush) ExecArgs() ([]string, error) {
+	return nil, fmt.Errorf("unimplemented")
+}
 
 func (c *TaskPush) Inherit(bc *TaskBuild) {
 	if bc == nil {

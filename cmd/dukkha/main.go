@@ -38,7 +38,7 @@ func main() {
 
 	err := rootCmd.Execute()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "failed to run dukkha %v: %v\n", os.Args, err)
+		_, _ = fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }

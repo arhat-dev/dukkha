@@ -17,7 +17,7 @@
   {{- $manifest_tag = printf "dev-%s" $formatted_branch -}}
 {{- end -}}
 
-- image: docker.io/arhatdev/dukkha:{{ $tag }}-{{ .Env.MATRIX_ARCH }}
+- image: docker.io/arhatdev/dukkha:{{ $tag }}
   manifest: docker.io/arhatdev/dukkha:{{ $manifest_tag }}
-- image: ghcr.io/arhat-dev/dukkha:{{ $tag }}-{{ .Env.MATRIX_ARCH }}
+- image: ghcr.io/arhat-dev/dukkha:{{ $tag }}
   manifest: ghcr.io/arhat-dev/dukkha:{{ $manifest_tag }}

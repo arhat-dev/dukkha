@@ -31,9 +31,10 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-	Dockerfile string          `yaml:"dockerfile"`
-	ExtraArgs  []string        `yaml:"extraArgs"`
+	BuildContext string          `yaml:"build_context"`
+	ImageNames   []ImageNameSpec `yaml:"image_names"`
+	Dockerfile   string          `yaml:"dockerfile"`
+	ExtraArgs    []string        `yaml:"extraArgs"`
 }
 
 type ImageNameSpec struct {
@@ -43,3 +44,31 @@ type ImageNameSpec struct {
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
+
+func (c *TaskBuild) ExecArgs() ([]string, error) {
+	args := []string{
+		"build",
+	}
+
+	if len(c.Dockerfile) != 0 {
+		args = append(args, "-f", c.Dockerfile)
+	}
+
+	if len(c.ImageNames) == 0 {
+		args = append(args, "-t", c.Name)
+	} else {
+		for _, imgName := range c.ImageNames {
+			args = append(args, "-t", imgName.Image)
+		}
+	}
+
+	args = append(args, c.ExtraArgs...)
+
+	if len(c.BuildContext) == 0 {
+		args = append(args, ".")
+	} else {
+		args = append(args, c.BuildContext)
+	}
+
+	return args, nil
+}

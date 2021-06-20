@@ -25,7 +25,11 @@ type Task interface {
 	// Name of the task
 	TaskName() string
 
-	GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error)
+	// GetMatrixSpecs for matrix build
+	GetMatrixSpecs(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error)
+
+	// ExecArgs cli args for current field values
+	ExecArgs() ([]string, error)
 }
 
 type BaseTask struct {
@@ -41,7 +45,7 @@ func (t *BaseTask) ToolName() string        { return t.toolName }
 func (t *BaseTask) SetToolName(name string) { t.toolName = name }
 func (t *BaseTask) TaskName() string        { return t.Name }
 
-func (t *BaseTask) GetMatrixSpec(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
+func (t *BaseTask) GetMatrixSpecs(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
 	// resolve matrix config first
 	err := t.ResolveFields(ctx, rf, 1)
 	if err != nil {
