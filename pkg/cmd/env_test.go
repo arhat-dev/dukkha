@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,7 +14,18 @@ import (
 )
 
 func TestPopulateGlobalEnv(t *testing.T) {
+	var envNames []string
+	for _, e := range os.Environ() {
+		envNames = append(envNames, strings.SplitN(e, "=", 2)[0])
+	}
+
+	// DO NOT os.Clearenv(), git will not work with not environment variables
+
 	populateGlobalEnv(context.TODO())
+
+	for _, name := range envNames {
+		os.Unsetenv(name)
+	}
 
 	requiredEnv := map[string]string{
 		"GIT_BRANCH":          "",
@@ -30,6 +42,8 @@ func TestPopulateGlobalEnv(t *testing.T) {
 		"HOST_OS":             runtime.GOOS,
 		"HOST_ARCH":           "",
 	}
+
+	assert.Equal(t, len(requiredEnv), len(os.Environ()))
 
 	for name, expectedValue := range requiredEnv {
 		t.Run(name, func(t *testing.T) {
