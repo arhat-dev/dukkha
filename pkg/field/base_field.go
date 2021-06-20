@@ -207,6 +207,8 @@ fieldLoop:
 						)
 					}
 				}
+			default:
+				// TODO: handle other yaml tag flags
 			}
 		}
 
@@ -290,7 +292,10 @@ fieldLoop:
 
 			err = unmarshal(yamlKey, v, fSpec.fieldValue)
 			if err != nil {
-				panic(err)
+				return fmt.Errorf(
+					"field: failed to unmarshal yaml field %q to struct field %q",
+					yamlKey, fSpec.fieldName,
+				)
 			}
 
 			continue
