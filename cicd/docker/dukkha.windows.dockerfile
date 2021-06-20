@@ -5,4 +5,6 @@ FROM arhatdev/builder-go:alpine as builder
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 ARG APP=dukkha
 
+LABEL org.opencontainers.image.source https://github.com/arhat-dev/dukkha
+
 ENTRYPOINT [ "/dukkha" ]
