@@ -435,9 +435,11 @@ fieldLoop:
 				return fmt.Errorf("failed to create interface field: %w", err)
 			}
 
-			outField.Set(reflect.ValueOf(fVal))
+			val := reflect.ValueOf(fVal)
+			outField.Set(val)
 
-			return unmarshal(yamlKey, in, reflect.ValueOf(fVal))
+			// DO NOT use outField directly, which will always match reflect.Interface
+			return unmarshal(yamlKey, in, val)
 		case reflect.Ptr:
 			// process later
 		default:
