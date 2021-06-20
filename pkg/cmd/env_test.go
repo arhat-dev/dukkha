@@ -32,15 +32,18 @@ func TestPopulateGlobalEnv(t *testing.T) {
 		"GIT_COMMIT":          "",
 		"GIT_TAG":             "",
 		"GIT_WORKSPACE_CLEAN": "",
-		"GIT_DEFAULT_BRANCH":  "master",
-		"TIME_YEAR":           strconv.FormatInt(int64(time.Now().Year()), 10),
-		"TIME_MONTH":          strconv.FormatInt(int64(time.Now().Month()), 10),
-		"TIME_DAY":            strconv.FormatInt(int64(time.Now().Day()), 10),
-		"TIME_HOUR":           strconv.FormatInt(int64(time.Now().Hour()), 10),
-		"TIME_MINUTE":         strconv.FormatInt(int64(time.Now().Minute()), 10),
-		"TIME_SECOND":         "",
-		"HOST_OS":             runtime.GOOS,
-		"HOST_ARCH":           "",
+
+		// TODO: fix github action default branch check and add back `master` #11
+		"GIT_DEFAULT_BRANCH": "",
+
+		"TIME_YEAR":   strconv.FormatInt(int64(time.Now().Year()), 10),
+		"TIME_MONTH":  strconv.FormatInt(int64(time.Now().Month()), 10),
+		"TIME_DAY":    strconv.FormatInt(int64(time.Now().Day()), 10),
+		"TIME_HOUR":   strconv.FormatInt(int64(time.Now().Hour()), 10),
+		"TIME_MINUTE": strconv.FormatInt(int64(time.Now().Minute()), 10),
+		"TIME_SECOND": "",
+		"HOST_OS":     runtime.GOOS,
+		"HOST_ARCH":   "",
 	}
 
 	assert.Equal(t, len(requiredEnv), len(os.Environ()))
