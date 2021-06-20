@@ -175,7 +175,7 @@ func (f *BaseField) addUnresolvedField(
 }
 
 // UnmarshalYAML handles renderer suffix
-// nolint:gocyclo
+// nolint:gocyclo,revive
 func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&self._initialized) == 0 {
 		return fmt.Errorf("field unmarshal: struct not intialized with Init()")

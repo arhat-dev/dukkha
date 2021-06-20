@@ -163,6 +163,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("struct embedded ", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
@@ -173,6 +174,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("struct embedded inline", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
@@ -183,6 +185,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("ptr", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
@@ -193,6 +196,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("ptr inline", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
@@ -203,6 +207,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("ptr embedded ", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
@@ -213,6 +218,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 	})
 
 	t.Run("ptr embedded inline", func(t *testing.T) {
+		// nolint:unused
 		type T struct {
 			BaseField
 
