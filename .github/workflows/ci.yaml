@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: "0"
+
     - uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
@@ -66,8 +69,6 @@ jobs:
 
     - name: Test Packages
       run: |
-        git fetch --all
-
         make test.pkg
 
     - name: Test Commands
