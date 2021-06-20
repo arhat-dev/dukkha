@@ -8,7 +8,7 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const ToolName = "golang"
+const ToolKind = "golang"
 
 func init() {
 	field.RegisterInterfaceField(
@@ -23,10 +23,10 @@ var _ tools.Tool = (*Config)(nil)
 type Config struct {
 	field.BaseField
 
-	Name string `yaml:"name"`
+	tools.BaseTool `yaml:",inline"`
 }
 
-func (c *Config) Kind() string { return ToolName }
+func (c *Config) ToolKind() string { return ToolKind }
 
 func (c *Config) ResolveTasks(tasks []tools.Task) error {
 	return fmt.Errorf("unimplemented")

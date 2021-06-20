@@ -1,10 +1,10 @@
 package file
 
 import (
-	"context"
 	"fmt"
 	"os"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -19,8 +19,8 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx context.Context, rawValue string, v *renderer.RenderingValues) (string, error) {
-	data, err := os.ReadFile(rawValue)
+func (d *Driver) Render(ctx *field.RenderingContext, path string) (string, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
 	}

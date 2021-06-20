@@ -1,42 +1,18 @@
 package renderer
 
 import (
-	"context"
 	"fmt"
 	"sync"
+
+	"arhat.dev/dukkha/pkg/field"
 )
 
-func WithManager(ctx context.Context, mgr *Manager) context.Context {
-	return context.WithValue(ctx, contextKeyManager, mgr)
-}
-
-func GetManager(ctx context.Context) *Manager {
-	mgr, ok := ctx.Value(contextKeyManager).(*Manager)
-	if ok {
-		return mgr
-	}
-
-	return nil
-}
-
 func NewManager() *Manager {
-	return &Manager{
-		renderers: &sync.Map{},
-
-		values: &RenderingValues{
-			Env: make(map[string]string),
-		},
-	}
+	return &Manager{}
 }
 
 type Manager struct {
-	renderers *sync.Map
-
-	values *RenderingValues
-}
-
-func (m *Manager) UpdateEnv(key, value string) {
-	m.values.Env[key] = value
+	renderers sync.Map
 }
 
 func (m *Manager) Add(config Config, names ...string) error {
@@ -53,13 +29,13 @@ func (m *Manager) Add(config Config, names ...string) error {
 	return nil
 }
 
-func (m *Manager) Render(ctx context.Context, renderer, rawData string) (string, error) {
+func (m *Manager) Render(ctx *field.RenderingContext, renderer, rawData string) (string, error) {
 	r := m.getRenderer(renderer)
 	if r == nil {
 		return "", fmt.Errorf("renderer.Manager.Render: renderer %q not found", renderer)
 	}
 
-	return r.Render(ctx, rawData, m.values)
+	return r.Render(ctx, rawData)
 }
 
 func (m *Manager) getRenderer(rendererName string) Interface {

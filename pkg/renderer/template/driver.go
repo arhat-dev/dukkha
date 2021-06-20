@@ -2,10 +2,10 @@ package template
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"text/template"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -17,14 +17,14 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx context.Context, rawValue string, v *renderer.RenderingValues) (string, error) {
-	tpl, err := template.New("").Parse(rawValue)
+func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, error) {
+	tpl, err := template.New("").Parse(tplStr)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to parse template: %w", DefaultName, err)
 	}
 
 	buf := &bytes.Buffer{}
-	err = tpl.Execute(buf, v)
+	err = tpl.Execute(buf, ctx.Values())
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to execute template: %w", DefaultName, err)
 	}

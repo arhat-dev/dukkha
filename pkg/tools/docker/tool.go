@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -27,40 +26,60 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 
-	mgr *renderer.Manager
-
 	buildTasks map[string]*TaskBuild
 	pushTasks  map[string]*TaskPush
 }
 
-func (t *Tool) Kind() string { return ToolKind }
+func (t *Tool) ToolKind() string { return ToolKind }
+
+func (t *Tool) Init(rf field.RenderingFunc) error {
+	err := t.BaseTool.Init(rf)
+	if err != nil {
+		return fmt.Errorf("docker: failed to init tool base: %w", err)
+	}
+
+	t.buildTasks = make(map[string]*TaskBuild)
+	t.pushTasks = make(map[string]*TaskPush)
+
+	return nil
+}
 
 func (t *Tool) ResolveTasks(tasks []tools.Task) error {
-	// TODO
-	_ = t.mgr
+	for i, tsk := range tasks {
+		switch typ := tasks[i].(type) {
+		case *TaskBuild:
+			t.buildTasks[tsk.TaskName()] = typ
+		case *TaskPush:
+			t.pushTasks[tsk.TaskName()] = typ
+		default:
+			return fmt.Errorf("unknown task type %T with name %q", tsk, tsk.TaskName())
+		}
+	}
+
+	for name := range t.pushTasks {
+		t.pushTasks[name].Inherit(t.buildTasks[name])
+	}
+
 	return nil
 }
 
 func (t *Tool) Exec(ctx context.Context, taskKind, taskName string) error {
+	var (
+		task tools.Task
+		ok   bool
+	)
 	switch taskKind {
 	case TaskKindBuild:
-		bt, ok := t.buildTasks[taskName]
-		if !ok {
-			return fmt.Errorf("docker: build task %q not found", taskName)
-		}
-
-		_ = bt
-		return nil
+		task, ok = t.buildTasks[taskName]
 	case TaskKindPush:
-		pt, ok := t.pushTasks[taskName]
-		if !ok {
-			return fmt.Errorf("docker: push task %q not found", taskName)
-		}
-
-		pt.Inherit(t.buildTasks[taskName])
-
-		return nil
+		task, ok = t.pushTasks[taskName]
 	default:
 		return fmt.Errorf("docker: unknown task kind %q", taskKind)
 	}
+
+	if !ok {
+		return fmt.Errorf("docker: %s task %q not found", taskKind, taskName)
+	}
+
+	return t.DoTask(ctx, task)
 }

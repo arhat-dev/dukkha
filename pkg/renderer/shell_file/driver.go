@@ -1,10 +1,10 @@
 package shell_file
 
 import (
-	"context"
 	"fmt"
 	"os"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 )
@@ -21,15 +21,15 @@ func (d *Driver) Name() string {
 	return DefaultName
 }
 
-func (d *Driver) Render(ctx context.Context, path string, v *renderer.RenderingValues) (string, error) {
+func (d *Driver) Render(ctx *field.RenderingContext, path string) (string, error) {
 	script, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to read script: %w", DefaultName, err)
 	}
 
-	result, err := d.impl.Render(ctx, string(script), v)
+	result, err := d.impl.Render(ctx, string(script))
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return "", fmt.Errorf("renderer.%s: failed to execute script %q: %w", DefaultName, path, err)
 	}
 
 	return result, nil

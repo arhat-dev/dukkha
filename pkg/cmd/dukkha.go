@@ -22,6 +22,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
@@ -29,21 +30,24 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/renderer/shell_file"
 	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/renderer/template_file"
-
-	_ "embed" // go:embed to embed default config file
+	"arhat.dev/dukkha/pkg/tools"
 )
 
 func NewRootCmd() *cobra.Command {
 	var (
 		appCtx      context.Context
 		configPaths []string
+		logConfig   = new(log.Config)
 		config      = conf.NewConfig()
+
+		renderingMgr = renderer.NewManager()
 	)
 
 	rootCmd := &cobra.Command{
@@ -55,7 +59,9 @@ func NewRootCmd() *cobra.Command {
 				return nil
 			}
 
-			err := log.SetDefaultLogger(log.ConfigSet{config.Log})
+			config.Log = logConfig
+
+			err := log.SetDefaultLogger(log.ConfigSet{*logConfig})
 			if err != nil {
 				return err
 			}
@@ -63,7 +69,7 @@ func NewRootCmd() *cobra.Command {
 			err = readConfig(
 				configPaths,
 				cmd.PersistentFlags().Changed("config"),
-				&config,
+				config,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to read config: %w", err)
@@ -82,49 +88,28 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			// create a renderer manager with essential renderers
-			mgr := renderer.NewManager()
-			err = multierr.Append(
-				err,
-				mgr.Add(
+			err = multierr.Combine(err,
+				renderingMgr.Add(
 					&shell.Config{ExecFunc: config.Bootstrap.Exec},
 					shell.DefaultName,
 				),
-			)
-			err = multierr.Append(
-				err,
-				mgr.Add(
+				renderingMgr.Add(
 					&shell_file.Config{ExecFunc: config.Bootstrap.Exec},
 					shell_file.DefaultName,
 				),
+				renderingMgr.Add(&template.Config{}, template.DefaultName),
+				renderingMgr.Add(&template_file.Config{}, template_file.DefaultName),
+				renderingMgr.Add(&file.Config{}, file.DefaultName),
 			)
-			err = multierr.Append(
-				err,
-				mgr.Add(&template.Config{}, template.DefaultName),
-			)
-			err = multierr.Append(
-				err,
-				mgr.Add(&template_file.Config{}, template_file.DefaultName),
-			)
-			err = multierr.Append(
-				err,
-				mgr.Add(&file.Config{}, file.DefaultName),
-			)
+
 			if err != nil {
 				return fmt.Errorf("failed to create essential renderers: %w", err)
-			}
-
-			appCtx = renderer.WithManager(appCtx, mgr)
-
-			// ensure all top-level config resolved
-			err = config.Resolve(appCtx, mgr.Render, 1)
-			if err != nil {
-				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(appCtx, config)
+			return run(appCtx, renderingMgr, config)
 		},
 	}
 
@@ -133,30 +118,124 @@ func NewRootCmd() *cobra.Command {
 	globalFlags.StringSliceVarP(&configPaths, "config", "c", []string{".dukkha", ".dukkha.yaml"}, "")
 
 	// logging
-	globalFlags.StringVarP(&config.Log.Level, "log.level", "v", "info",
+	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",
 		"log level, one of [verbose, debug, info, error, silent]")
-	globalFlags.StringVar(&config.Log.Format, "log.format", "console",
+	globalFlags.StringVar(&logConfig.Format, "log.format", "console",
 		"log output format, one of [console, json]")
-	globalFlags.StringVar(&config.Log.File, "log.file", "stderr",
+	globalFlags.StringVar(&logConfig.File, "log.file", "stderr",
 		"log output to this file")
 
 	return rootCmd
 }
 
-func run(appCtx context.Context, config *conf.Config) error {
+func run(appCtx context.Context, renderingMgr *renderer.Manager, config *conf.Config) error {
 	logger := log.Log.WithName("app")
 
-	logger.I("application configured",
-		log.Any("bootstrap", config.Bootstrap),
-		log.Any("shell", config.Shell),
-	)
+	// ensure all top-level config resolved using basic renderers
+	logger.V("resolving top-level config")
+	err := config.ResolveFields(field.WithRenderingValues(appCtx, nil), renderingMgr.Render, 1)
+	if err != nil {
+		return fmt.Errorf("failed to resolve config: %w", err)
+	}
 
-	_ = appCtx
+	logger.V("top-level config resolved", log.Any("resolved_config", config))
+
+	// resolve all shells, add them as shell & shell_file renderers
+
+	for i, v := range config.Shells {
+		logger.V("resolving shell config",
+			log.String("shell", v.ToolName()),
+			log.Int("index", i),
+		)
+
+		// resolve all config
+		err = v.ResolveFields(field.WithRenderingValues(appCtx, nil), renderingMgr.Render, -1)
+		if err != nil {
+			return fmt.Errorf("failed to resolve config for shell %q #%d", v.ToolName(), i)
+		}
+
+		if i == 0 {
+			err = multierr.Combine(err,
+				renderingMgr.Add(&shell.Config{ExecFunc: v.RenderingExec}, shell.DefaultName),
+				renderingMgr.Add(&shell_file.Config{ExecFunc: v.RenderingExec}, shell_file.DefaultName),
+			)
+		}
+
+		err = multierr.Combine(err,
+			renderingMgr.Add(&shell.Config{ExecFunc: v.RenderingExec}, shell.DefaultName+":"+v.ToolName()),
+			renderingMgr.Add(&shell_file.Config{ExecFunc: v.RenderingExec}, shell_file.DefaultName+":"+v.ToolName()),
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to add shell renderer %q", v.ToolName())
+		}
+	}
+
+	// gather tasks for tools
+	toolSpecificTasks := make(map[string][]tools.Task)
+
+	for _, tasks := range config.Tasks {
+		if len(tasks) == 0 {
+			continue
+		}
+
+		toolKind := tasks[0].ToolKind()
+
+		toolSpecificTasks[toolKind] = append(
+			toolSpecificTasks[toolKind], tasks...,
+		)
+	}
+
+	for _, tools := range config.Tools {
+		for i, t := range tools {
+			logger := logger.WithFields(
+				log.String("tool", t.ToolKind()),
+				log.Int("index", i),
+				log.String("name", t.ToolName()),
+			)
+
+			toolID := t.ToolKind() + "#" + strconv.FormatInt(int64(i), 10)
+			if len(t.ToolName()) != 0 {
+				toolID = t.ToolKind() + ":" + t.ToolName()
+			}
+
+			logger.V("resolving tool config")
+
+			err = t.ResolveFields(field.WithRenderingValues(appCtx, nil), renderingMgr.Render, -1)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to resolve config for tool %q: %w",
+					toolID, err,
+				)
+			}
+
+			logger.V("initializing tool")
+			err = t.Init(renderingMgr.Render)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to initialize tool %q: %w",
+					toolID, err,
+				)
+			}
+
+			logger.V("resolving tool tasks")
+
+			err = t.ResolveTasks(toolSpecificTasks[t.ToolKind()])
+			if err != nil {
+				return fmt.Errorf(
+					"failed to resolve tasks for tool %q: %w",
+					toolID, err,
+				)
+			}
+		}
+	}
+
+	logger.D("application configured", log.Any("config", config))
+
 	return nil
 }
 
-// do not use strict unmarshal when reading config, tasks are dynamic
-func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig **conf.Config) error {
+func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig *conf.Config) error {
 	readAndMergeConfigFile := func(path string) error {
 		configBytes, err2 := os.ReadFile(path)
 		if err2 != nil {
@@ -171,8 +250,7 @@ func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig
 
 		log.Log.V("config unmarshaled", log.String("file", path), log.Any("config", current))
 
-		// TODO: merge into mergedConfig
-		_ = mergedConfig
+		mergedConfig.Merge(current)
 
 		return err2
 	}
