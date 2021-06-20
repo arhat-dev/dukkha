@@ -379,7 +379,6 @@ fieldLoop:
 func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 	oe := outField
 
-fieldLoop:
 	for {
 		switch oe.Kind() {
 		case reflect.Slice:
@@ -405,6 +404,8 @@ fieldLoop:
 
 			return nil
 		case reflect.Map:
+			// map key MUST be string
+
 			inMap := reflect.ValueOf(in)
 
 			mapVal := reflect.MakeMap(oe.Type())
@@ -441,7 +442,7 @@ fieldLoop:
 			// process later
 		default:
 			// scalar types or struct/array/func/chan/unsafe.Pointer
-			break fieldLoop
+			// hand it to go-yaml
 		}
 
 		if oe.Kind() != reflect.Ptr {
@@ -469,7 +470,7 @@ fieldLoop:
 
 	dataBytes, err := yaml.Marshal(in)
 	if err != nil {
-		return fmt.Errorf("field: failed to marshal back for plain field: %w", err)
+		return fmt.Errorf("field: failed to marshal back yaml field %q: %w", yamlKey, err)
 	}
 
 	return yaml.Unmarshal(dataBytes, outPtr.Interface())
