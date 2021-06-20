@@ -331,12 +331,7 @@ fieldLoop:
 				return fmt.Errorf("field: unknown yaml field %q for %s", yamlKey, pt.String())
 			}
 
-			// TODO: handle catch all
 			fSpec = catchOtherField
-			v = map[string]interface{}{
-				yamlKey: v,
-			}
-			_ = v
 		}
 
 		logger = logger.WithFields(log.String("field", fSpec.fieldName))
@@ -368,25 +363,17 @@ fieldLoop:
 		return nil
 	}
 
-	if catchOtherField == nil {
-		var unknownFields []string
-		for k := range m {
-			unknownFields = append(unknownFields, k)
-		}
-		sort.Strings(unknownFields)
-
-		return fmt.Errorf(
-			"field: unknown yaml fields for %s: %s",
-			pt.String(), strings.Join(unknownFields, ", "),
-		)
+	var unknownFields []string
+	for k := range m {
+		unknownFields = append(unknownFields, k)
 	}
 
-	for k, v := range m {
-		// TODO: fill values to catchOtherField
-		_, _ = k, v
-	}
+	sort.Strings(unknownFields)
 
-	return nil
+	return fmt.Errorf(
+		"field: unknown yaml fields for %s: %s",
+		pt.String(), strings.Join(unknownFields, ", "),
+	)
 }
 
 func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
