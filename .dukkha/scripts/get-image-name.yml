@@ -1,0 +1,23 @@
+{{- $tag := "" -}}
+{{- if and .Env.GIT_WORKSPACE_CLEAN (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
+  {{- $tag = printf "latest-%s" .Env.MATRIX_ARCH -}}
+{{- else -}}
+  {{- $tag = "dev" -}}
+{{- end -}}
+
+{{- $manifest_tag := "" -}}
+{{- $formatted_branch := (.Env.GIT_BRANCH | replace "/" "-" | kebabcase) }}
+{{- if .Env.GIT_WORKSPACE_CLEAN -}}
+  {{- if .Env.GIT_TAG -}}
+    {{- $manifest_tag = .Env.GIT_TAG -}}
+  {{- else -}}
+    {{- $manifest_tag = printf "%s-%s" $formatted_branch .Env.GIT_COMMIT }}
+  {{- end -}}
+{{- else -}}
+  {{- $manifest_tag = printf "dev-%s" $formatted_branch -}}
+{{- end -}}
+
+- image: docker.io/arhatdev/dukkha:{{ $tag }}-{{ .Env.MATRIX_ARCH }}
+  manifest: docker.io/arhatdev/dukkha:{{ $manifest_tag }}
+- image: ghcr.io/arhat-dev/dukkha:{{ $tag }}-{{ .Env.MATRIX_ARCH }}
+  manifest: ghcr.io/arhat-dev/dukkha:{{ $manifest_tag }}
