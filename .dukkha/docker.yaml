@@ -9,7 +9,8 @@ docker:build:
 - name: dukkha
   matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
   image_names@template_file: .dukkha/scripts/get-image-name.yml
-  dockerfile@shell_file: .dukkha/scripts/select-dockerfile.sh
+  dockerfile@shell_file: .dukkha/scripts/get-dockerfile.sh
+  build_context: "."
   extraArgs:
   - --build-arg="ARCH=${MATRIX_ARCH}"
 

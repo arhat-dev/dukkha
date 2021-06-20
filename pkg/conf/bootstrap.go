@@ -111,6 +111,8 @@ func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 func (c *BootstrapConfig) Exec(script string, spec *exechelper.Spec) (int, error) {
 	spec.Command = append(append([]string{c.Shell}, c.ShellArgs...), script)
 
+	fmt.Println(">>> bootstrap.exec: [", strings.Join(spec.Command, " "), "]")
+
 	cmd, err := exechelper.Do(*spec)
 	if err != nil {
 		return 128, fmt.Errorf("conf.Bootstrap.exec: %w", err)

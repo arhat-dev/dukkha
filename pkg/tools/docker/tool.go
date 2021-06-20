@@ -82,5 +82,5 @@ func (t *Tool) Run(ctx context.Context, taskKind, taskName string) error {
 		return fmt.Errorf("docker: %s task %q not found", taskKind, taskName)
 	}
 
-	return t.RunTask(ctx, task)
+	return t.BaseTool.RunTask(ctx, t.ToolKind(), task)
 }

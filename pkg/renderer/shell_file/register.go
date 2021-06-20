@@ -21,5 +21,10 @@ func NewDriver(config interface{}) (renderer.Interface, error) {
 		return nil, fmt.Errorf("required exec func not set")
 	}
 
-	return shell.NewDriver(&shell.Config{ExecFunc: cfg.ExecFunc})
+	impl, err := shell.NewDriver(&shell.Config{ExecFunc: cfg.ExecFunc})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create inner shell renderer: %w", err)
+	}
+
+	return &Driver{impl: impl.(*shell.Driver)}, nil
 }
