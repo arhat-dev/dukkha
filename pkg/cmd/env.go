@@ -60,11 +60,16 @@ func populateGlobalEnv(ctx context.Context) {
 			command: []string{
 				"git", "symbolic-ref", "refs/remotes/origin/HEAD",
 			},
-			onError: func() string { return "" },
+			onError: func() string { return os.Getenv(constant.EnvGIT_DEFAULT_BRANCH) },
 			onSuccess: func(result string) string {
-				return strings.TrimSpace(
+				ret := strings.TrimSpace(
 					strings.TrimPrefix(result, "refs/remotes/origin/"),
 				)
+				if len(ret) != 0 {
+					return ret
+				}
+
+				return os.Getenv(constant.EnvGIT_DEFAULT_BRANCH)
 			},
 		},
 	}
