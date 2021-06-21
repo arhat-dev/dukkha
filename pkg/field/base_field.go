@@ -515,10 +515,8 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 			return nil
 		case reflect.Map:
 			// map key MUST be string
-
-			mapVal := reflect.MakeMap(oe.Type())
 			if oe.IsZero() {
-				oe.Set(mapVal)
+				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 
 			valType := oe.Type().Elem()
