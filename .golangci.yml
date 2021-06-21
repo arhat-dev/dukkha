@@ -92,6 +92,14 @@ issues:
     - lll
     - scopelint
 
+  - text: string `true`
+    linters:
+    - goconst
+
+  - text: string `false`
+    linters:
+    - goconst
+
   - text: "commentFormatting: put a space between `//` and comment text"
     linters:
     - gocritic
