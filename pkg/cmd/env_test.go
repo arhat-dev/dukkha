@@ -23,10 +23,6 @@ func TestPopulateGlobalEnv(t *testing.T) {
 
 	populateGlobalEnv(context.TODO())
 
-	for _, name := range envNames {
-		os.Unsetenv(name)
-	}
-
 	requiredEnv := map[string]string{
 		"GIT_BRANCH":          "",
 		"GIT_COMMIT":          "",
@@ -41,6 +37,14 @@ func TestPopulateGlobalEnv(t *testing.T) {
 		"TIME_SECOND":         "",
 		"HOST_OS":             runtime.GOOS,
 		"HOST_ARCH":           "",
+	}
+
+	for _, name := range envNames {
+		if _, required := requiredEnv[name]; required {
+			continue
+		}
+
+		os.Unsetenv(name)
 	}
 
 	assert.Equal(t, len(requiredEnv), len(os.Environ()))
