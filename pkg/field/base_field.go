@@ -317,7 +317,6 @@ fieldLoop:
 		// dukkha tag is used to extend yaml tag
 		dTags := strings.Split(fieldType.Tag.Get("dukkha"), ",")
 		for _, t := range dTags {
-			// nolint:gocritic
 			switch t {
 			case "other":
 				// other is used to match unhandled values
