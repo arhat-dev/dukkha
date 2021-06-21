@@ -10,9 +10,12 @@ docker:build:
   matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
   image_names@template_file: .dukkha/scripts/get-image-name.yml
   dockerfile@shell_file: .dukkha/scripts/get-dockerfile.sh
+  # yamllint disable-line rule:quoted-strings
   build_context: "."
-  extraArgs:
-  - --build-arg="ARCH=${MATRIX_ARCH}"
+  extraArgs@shell: |-
+    cat <<EOF
+    - --build-arg="ARCH=${MATRIX_ARCH}"
+    EOF
 
 docker:push:
 - name: dukkha
