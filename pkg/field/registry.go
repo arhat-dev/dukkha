@@ -38,19 +38,23 @@ func RegisterInterfaceField(
 
 	v, ok := supportedInterfaceTypes[key]
 	if ok {
-		v.factories = append(v.factories, &interfaceFieldFactoryImpl{
-			exp:         yamlKeyMatch,
-			createField: createField,
-		})
-	} else {
-		supportedInterfaceTypes[key] = &interfaceFieldFactoryValue{
-			factories: []*interfaceFieldFactoryImpl{
-				{
-					exp:         yamlKeyMatch,
-					createField: createField,
-				},
+		v.factories = append(v.factories,
+			&interfaceFieldFactoryImpl{
+				exp:         yamlKeyMatch,
+				createField: createField,
 			},
-		}
+		)
+
+		return
+	}
+
+	supportedInterfaceTypes[key] = &interfaceFieldFactoryValue{
+		factories: []*interfaceFieldFactoryImpl{
+			{
+				exp:         yamlKeyMatch,
+				createField: createField,
+			},
+		},
 	}
 }
 
@@ -65,13 +69,15 @@ func CreateInterfaceField(interfaceType reflect.Type, yamlKey string) (interface
 	}
 
 	for _, impl := range v.factories {
-		if impl.exp.MatchString(yamlKey) {
-			if impl.exp.NumSubexp() == 0 {
-				return impl.createField(nil), nil
-			}
-
-			return impl.createField(impl.exp.FindStringSubmatch(yamlKey)[1:]), nil
+		if !impl.exp.MatchString(yamlKey) {
+			continue
 		}
+
+		if impl.exp.NumSubexp() == 0 {
+			return impl.createField(nil), nil
+		}
+
+		return impl.createField(impl.exp.FindStringSubmatch(yamlKey)[1:]), nil
 	}
 
 	return nil, fmt.Errorf("yaml field %q not resolved as %q", yamlKey, interfaceType.String())
