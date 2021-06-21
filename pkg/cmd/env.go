@@ -109,4 +109,42 @@ func populateGlobalEnv(ctx context.Context) {
 	} {
 		os.Setenv(k, v)
 	}
+
+	// check ci platform specific settings
+
+	switch {
+	case os.Getenv("GITHUB_ACTIONS") == "true":
+		// github actions
+
+		// https://docs.github.com/en/actions/reference/environment-variables
+		commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
+		if len(commit) != 0 {
+			os.Setenv(constant.EnvGIT_COMMIT, commit)
+		}
+
+		branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
+		if len(branch) != 0 {
+			os.Setenv(constant.EnvGIT_BRANCH, branch)
+		}
+	case os.Getenv("GITLAB_CI") == "true":
+		// gitlab-ci
+
+		// https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+
+		commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
+		if len(commit) != 0 {
+			os.Setenv(constant.EnvGIT_COMMIT, commit)
+		}
+
+		branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
+		if len(branch) != 0 {
+			os.Setenv(constant.EnvGIT_BRANCH, branch)
+		}
+
+		tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
+		if len(tag) != 0 {
+			os.Setenv(constant.EnvGIT_TAG, tag)
+		}
+	default:
+	}
 }
