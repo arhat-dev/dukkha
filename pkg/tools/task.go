@@ -10,6 +10,11 @@ import (
 // TaskType for interface type registration
 var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
 
+type TaskExecSpec struct {
+	Command     []string
+	IgnoreError bool
+}
+
 type Task interface {
 	field.Interface
 
@@ -28,8 +33,8 @@ type Task interface {
 	// GetMatrixSpecs for matrix build
 	GetMatrixSpecs(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error)
 
-	// ExecArgs cli args for current field values
-	ExecArgs() ([]string, error)
+	// GetExecSpecs generate commands using current field values
+	GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
 }
 
 type BaseTask struct {

@@ -49,16 +49,16 @@ func init() {
 
 	switch cpuArch {
 	case PROCESSOR_ARCHITECTURE_INTEL:
-		arch = constant.ArchX86
+		arch = constant.ARCH_X86
 	case PROCESSOR_ARCHITECTURE_ARM:
 		// usually armv7, can be armv6/armv5
 		arch = version.Arch()
 	case PROCESSOR_ARCHITECTURE_ARM64:
-		arch = constant.ArchARM64
+		arch = constant.ARCH_ARM64
 	case PROCESSOR_ARCHITECTURE_IA64:
-		arch = constant.ArchIA64
+		arch = constant.ARCH_IA64
 	case PROCESSOR_ARCHITECTURE_AMD64:
-		arch = constant.ArchAMD64
+		arch = constant.ARCH_AMD64
 	default:
 		arch = version.Arch()
 	}

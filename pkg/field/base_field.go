@@ -34,6 +34,10 @@ type BaseField struct {
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
 }
 
+func (f *BaseField) HasUnresolvedField() bool {
+	return len(f.unresolvedFields) != 0
+}
+
 func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")

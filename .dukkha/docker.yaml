@@ -21,3 +21,5 @@ docker:build:
 
 docker:push:
 - name: dukkha
+  matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
+  image_names@template_file: .dukkha/scripts/get-image-name.yml
