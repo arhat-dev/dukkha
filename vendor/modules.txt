@@ -3,6 +3,7 @@
 arhat.dev/pkg/decodehelper
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
+arhat.dev/pkg/hashhelper
 arhat.dev/pkg/log
 arhat.dev/pkg/textquery
 arhat.dev/pkg/wellknownerrors
