@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
 	"arhat.dev/pkg/exechelper"
 
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/output"
 )
 
 // ToolType for interface type registration
@@ -24,7 +26,11 @@ type Tool interface {
 
 	ToolName() string
 
-	Init(rf field.RenderingFunc) error
+	Init(
+		cacheDir string,
+		rf field.RenderingFunc,
+		getBaseExecSpec field.ExecSpecGetFunc,
+	) error
 
 	ResolveTasks(tasks []Task) error
 
@@ -38,36 +44,47 @@ type BaseTool struct {
 	Path string   `yaml:"path"`
 	Env  []string `yaml:"env"`
 
-	GlobalArgs []string `yaml:"args"`
+	Args []string `yaml:"args"`
 
-	RenderingFunc field.RenderingFunc `json:"-" yaml:"-"`
+	cacheDir             string                `json:"-" yaml:"-"`
+	RenderingFunc        field.RenderingFunc   `json:"-" yaml:"-"`
+	getBootstrapExecSpec field.ExecSpecGetFunc `json:"-" yaml:"-"`
 }
 
-func (t *BaseTool) Init(rf field.RenderingFunc) error {
+func (t *BaseTool) Init(
+	cacheDir string,
+	rf field.RenderingFunc,
+	getBaseExecSpec field.ExecSpecGetFunc,
+) error {
+	t.cacheDir = cacheDir
 	t.RenderingFunc = rf
+	t.getBootstrapExecSpec = getBaseExecSpec
 	return nil
 }
 
 func (t *BaseTool) ToolName() string { return t.Name }
 
 func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) error {
-	specs, err := task.GetMatrixSpecs(
-		field.WithRenderingValues(ctx, t.Env), t.RenderingFunc,
-	)
+	baseCtx := field.WithRenderingValues(ctx, t.Env)
+
+	specs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
 	if err != nil {
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}
 
 	for _, s := range specs {
-		fmt.Println("---", task.TaskKind(), "with {", s.String(), "}")
+		taskCtx := baseCtx.Clone()
 
-		var matrixEnv []string
+		output.WriteTaskStart(taskCtx.Context(),
+			task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
+			s.String(),
+		)
+
 		for k, v := range s {
-			matrixEnv = append(matrixEnv, "MATRIX_"+strings.ToUpper(k)+"="+v)
+			taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 		}
 
-		values := field.WithRenderingValues(ctx, append(matrixEnv, t.Env...))
-		err = task.ResolveFields(values, t.RenderingFunc, -1)
+		err = task.ResolveFields(taskCtx, t.RenderingFunc, -1)
 		if err != nil {
 			return fmt.Errorf("failed to resolve task fields: %w", err)
 		}
@@ -86,19 +103,34 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 			cmd = append(cmd, toolKind)
 		}
 
-		cmd = append(cmd, t.GlobalArgs...)
+		cmd = append(cmd, t.Args...)
 		cmd = append(cmd, args...)
 
-		fmt.Println(">>>", toolKind, "[", strings.Join(cmd, " "), "]")
+		_, runScriptCmd, err := t.getBootstrapExecSpec(strings.Join(cmd, " "), false)
+		if err != nil {
+			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
+		}
+
+		output.WriteExecStart(
+			taskCtx.Context(),
+			toolKind,
+			cmd,
+			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
+		)
+
 		p, err := exechelper.Do(exechelper.Spec{
-			Context: ctx,
-			Command: cmd,
-			Env:     values.Values().Env,
-			Stdin:   os.Stdin,
-			Stdout:  os.Stdout,
-			Stderr:  os.Stderr,
+			Context: taskCtx.Context(),
+			Command: runScriptCmd,
+			Env:     taskCtx.Values().Env,
+
+			Stdin: os.Stdin,
+
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
 		})
 		if err != nil {
+			output.WriteExecFailure()
+
 			return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(cmd, " "), err)
 		}
 
@@ -106,15 +138,30 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		if err != nil {
 			return fmt.Errorf("command exited with code %d: %w", code, err)
 		}
+
+		output.WriteExecSuccess()
 	}
 
 	return nil
 }
 
-// RenderingExec is a helper func for shell renderer
-func (t *BaseTool) RenderingExec(script string, spec *exechelper.Spec) (int, error) {
-	// TODO
-	_, _ = exechelper.Do(*spec)
+// GetExecSpec is a helper func for shell renderer
+func (t *BaseTool) GetExecSpec(script string, isFilePath bool) (env, cmd []string, err error) {
+	scriptPath := script
+	if !isFilePath {
+		scriptPath, err = GetScriptCache(t.cacheDir, script)
+		if err != nil {
+			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
+		}
+	}
 
-	return -1, nil
+	if len(t.Path) != 0 {
+		cmd = append(cmd, t.Path)
+	} else {
+		cmd = append(cmd, t.ToolName())
+	}
+
+	cmd = append(cmd, t.Args...)
+
+	return t.Env, append(cmd, scriptPath), nil
 }

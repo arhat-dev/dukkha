@@ -32,8 +32,12 @@ type Tool struct {
 
 func (t *Tool) ToolKind() string { return ToolKind }
 
-func (t *Tool) Init(rf field.RenderingFunc) error {
-	err := t.BaseTool.Init(rf)
+func (t *Tool) Init(
+	cacheDir string,
+	rf field.RenderingFunc,
+	getBaseExecSpec field.ExecSpecGetFunc,
+) error {
+	err := t.BaseTool.Init(cacheDir, rf, getBaseExecSpec)
 	if err != nil {
 		return fmt.Errorf("docker: failed to init tool base: %w", err)
 	}

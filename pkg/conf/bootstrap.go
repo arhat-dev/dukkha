@@ -7,16 +7,20 @@ import (
 	"runtime"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/pkg/envhelper"
-	"arhat.dev/pkg/exechelper"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
 )
 
 type bootstrapPureConfig struct {
-	Env       []string `yaml:"env"`
-	Shell     string   `yaml:"shell"`
-	ShellArgs []string `yaml:"shell_args"`
+	// Directory to store command cache
+	CacheDir string `yaml:"cacheDir"`
+
+	Env []string `yaml:"env"`
+
+	// The command to run scripts (files) directly
+	ScriptCmd []string `yaml:"script_cmd"`
 }
 
 type BootstrapConfig struct {
@@ -24,7 +28,13 @@ type BootstrapConfig struct {
 }
 
 func (c *BootstrapConfig) Resolve() error {
-	if len(c.Shell) != 0 {
+	if len(c.CacheDir) == 0 {
+		c.CacheDir = ".dukkha/cache"
+	}
+
+	_ = os.MkdirAll(c.CacheDir, 0750)
+
+	if len(c.ScriptCmd) != 0 {
 		return nil
 	}
 
@@ -33,37 +43,26 @@ func (c *BootstrapConfig) Resolve() error {
 	case "windows":
 		_, err := exec.LookPath("sh")
 		if err == nil {
-			c.Shell = "sh"
+			c.ScriptCmd = []string{"sh"}
 			break
 		}
 
 		_, err = exec.LookPath("pwsh")
 		if err == nil {
-			c.Shell = "pwsh"
+			c.ScriptCmd = []string{"pwsh"}
 			break
 		}
 
 		_, err = exec.LookPath("powershell")
 		if err == nil {
-			c.Shell = "powershell"
+			c.ScriptCmd = []string{"powershell"}
 			break
 		}
 
-		c.Shell = "cmd"
+		c.ScriptCmd = []string{"cmd"}
 	default:
-		c.Shell = "sh"
+		c.ScriptCmd = []string{"sh"}
 	}
-
-	_, err := exec.LookPath(c.Shell)
-	if err == nil {
-		c.ShellArgs = getDefaultShellArgs(c.Shell)
-		return nil
-	}
-
-	// defaults to local shell at last
-
-	c.Shell = os.Getenv("SHELL")
-	c.ShellArgs = getDefaultShellArgs(c.Shell)
 
 	return nil
 }
@@ -99,7 +98,10 @@ func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 			return fmt.Errorf("conf.bootstrap: config expansion failed: %w", err)
 		}
 
-		err = yaml.Unmarshal([]byte(preparedDataStr), &c.bootstrapPureConfig)
+		dec := yaml.NewDecoder(strings.NewReader(preparedDataStr))
+		dec.KnownFields(true)
+
+		err = dec.Decode(&c.bootstrapPureConfig)
 		if err != nil {
 			return fmt.Errorf("conf.bootstrap: failed to unmarshal config: %w", err)
 		}
@@ -108,33 +110,15 @@ func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
-func (c *BootstrapConfig) Exec(script string, spec *exechelper.Spec) (int, error) {
-	spec.Command = append(append([]string{c.Shell}, c.ShellArgs...), script)
-
-	fmt.Println(">>> bootstrap.exec: [", strings.Join(spec.Command, " "), "]")
-
-	cmd, err := exechelper.Do(*spec)
-	if err != nil {
-		return 128, fmt.Errorf("conf.Bootstrap.exec: %w", err)
+func (c *BootstrapConfig) GetExecSpec(script string, isFilePath bool) (env, cmd []string, err error) {
+	scriptPath := script
+	if !isFilePath {
+		scriptPath, err = tools.GetScriptCache(c.CacheDir, script)
+		if err != nil {
+			return nil, nil, fmt.Errorf("bootstrap: failed to ensure script cache: %w", err)
+		}
 	}
 
-	exitCode, err := cmd.Wait()
-	if err != nil {
-		return exitCode, fmt.Errorf("conf.Bootstrap.exec: %w", err)
-	}
-
-	return 0, nil
-}
-
-func getDefaultShellArgs(shell string) []string {
-	switch {
-	case strings.HasSuffix(shell, "sh"),
-		shell == "powershell":
-		// sh, bash, zsh, pwsh
-		return []string{"-c"}
-	case shell == "cmd":
-		return []string{"/c"}
-	}
-
-	return nil
+	cmd = append(cmd, c.ScriptCmd...)
+	return c.Env, append(cmd, scriptPath), nil
 }

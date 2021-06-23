@@ -47,7 +47,7 @@ func (c *Config) Merge(a *Config) {
 		c.Log = a.Log
 	}
 
-	if len(a.Bootstrap.Shell) != 0 {
+	if len(a.Bootstrap.ScriptCmd) != 0 {
 		c.Bootstrap = a.Bootstrap
 	}
 

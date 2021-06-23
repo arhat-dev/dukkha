@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/renderer/shell"
 )
 
 func init() {
@@ -17,14 +16,9 @@ func NewDriver(config interface{}) (renderer.Interface, error) {
 		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
 	}
 
-	if cfg.ExecFunc == nil {
+	if cfg.GetExecSpec == nil {
 		return nil, fmt.Errorf("required exec func not set")
 	}
 
-	impl, err := shell.NewDriver(&shell.Config{ExecFunc: cfg.ExecFunc})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create inner shell renderer: %w", err)
-	}
-
-	return &Driver{impl: impl.(*shell.Driver)}, nil
+	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
 }
