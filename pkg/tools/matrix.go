@@ -26,8 +26,8 @@ func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
 	if mc == nil {
 		return []MatrixSpec{
 			{
-				"os":   os.Getenv(constant.EnvHOST_OS),
-				"arch": os.Getenv(constant.EnvHOST_ARCH),
+				"os":   os.Getenv(constant.ENV_HOST_OS),
+				"arch": os.Getenv(constant.ENV_HOST_ARCH),
 			},
 		}
 	}
@@ -37,13 +37,13 @@ func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
 	osList := mc.OS
 	if len(osList) == 0 {
 		// add default host arch
-		osList = []string{os.Getenv(constant.EnvHOST_OS)}
+		osList = []string{os.Getenv(constant.ENV_HOST_OS)}
 	}
 	all["os"] = osList
 
 	archList := mc.Arch
 	if len(archList) == 0 {
-		archList = []string{os.Getenv(constant.EnvHOST_ARCH)}
+		archList = []string{os.Getenv(constant.ENV_HOST_ARCH)}
 	}
 	all["arch"] = archList
 

@@ -1,13 +1,13 @@
 {{- $tag := "" -}}
-{{- if and .Env.GIT_WORKSPACE_CLEAN (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
-  {{- $tag = printf "latest-%s" .Env.MATRIX_ARCH -}}
+{{- if and (eq .Env.GIT_WORKSPACE_CLEAN "true") (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
+  {{- $tag = printf "%s-latest" .Env.MATRIX_ARCH -}}
 {{- else -}}
   {{- $tag = "dev" -}}
 {{- end -}}
 
 {{- $manifest_tag := "" -}}
 {{- $formatted_branch := (.Env.GIT_BRANCH | replace "/" "-" | kebabcase) }}
-{{- if .Env.GIT_WORKSPACE_CLEAN -}}
+{{- if (eq .Env.GIT_WORKSPACE_CLEAN "true") -}}
   {{- if .Env.GIT_TAG -}}
     {{- $manifest_tag = .Env.GIT_TAG -}}
   {{- else -}}

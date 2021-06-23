@@ -5,11 +5,6 @@ arch:
 - amd64
 - armv7
 {{- else -}}
-exclude:
-- os:
-  - linux
-  arch:
-  - mips64le
 os:
 - linux
 arch:

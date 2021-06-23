@@ -35,6 +35,6 @@ type TaskBuild struct {
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 
-func (c *TaskBuild) ExecArgs() ([]string, error) {
+func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	return nil, fmt.Errorf("unimplemented")
 }

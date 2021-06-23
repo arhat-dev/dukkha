@@ -24,7 +24,7 @@ func populateGlobalEnv(ctx context.Context) {
 		onSuccess func(result string) string
 	}{
 		{
-			name: constant.EnvGIT_BRANCH,
+			name: constant.ENV_GIT_BRANCH,
 			command: []string{
 				"git", "symbolic-ref", "--short", "-q", "HEAD",
 			},
@@ -32,7 +32,7 @@ func populateGlobalEnv(ctx context.Context) {
 			onSuccess: strings.TrimSpace,
 		},
 		{
-			name: constant.EnvGIT_COMMIT,
+			name: constant.ENV_GIT_COMMIT,
 			command: []string{
 				"git", "rev-parse", "HEAD",
 			},
@@ -40,7 +40,7 @@ func populateGlobalEnv(ctx context.Context) {
 			onSuccess: strings.TrimSpace,
 		},
 		{
-			name: constant.EnvGIT_TAG,
+			name: constant.ENV_GIT_TAG,
 			command: []string{
 				"git", "describe", "--tags",
 			},
@@ -48,7 +48,7 @@ func populateGlobalEnv(ctx context.Context) {
 			onSuccess: strings.TrimSpace,
 		},
 		{
-			name: constant.EnvGIT_WORKSPACE_CLEAN,
+			name: constant.ENV_GIT_WORKSPACE_CLEAN,
 			command: []string{
 				"git", "diff-index", "--quiet", "HEAD",
 			},
@@ -56,11 +56,11 @@ func populateGlobalEnv(ctx context.Context) {
 			onSuccess: func(result string) string { return "true" },
 		},
 		{
-			name: constant.EnvGIT_DEFAULT_BRANCH,
+			name: constant.ENV_GIT_DEFAULT_BRANCH,
 			command: []string{
 				"git", "symbolic-ref", "refs/remotes/origin/HEAD",
 			},
-			onError: func() string { return os.Getenv(constant.EnvGIT_DEFAULT_BRANCH) },
+			onError: func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
 			onSuccess: func(result string) string {
 				ret := strings.TrimSpace(
 					strings.TrimPrefix(result, "refs/remotes/origin/"),
@@ -69,7 +69,7 @@ func populateGlobalEnv(ctx context.Context) {
 					return ret
 				}
 
-				return os.Getenv(constant.EnvGIT_DEFAULT_BRANCH)
+				return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH)
 			},
 		},
 	}
@@ -98,14 +98,14 @@ func populateGlobalEnv(ctx context.Context) {
 
 	now := time.Now()
 	for k, v := range map[string]string{
-		constant.EnvTIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
-		constant.EnvTIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
-		constant.EnvTIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),
-		constant.EnvTIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
-		constant.EnvTIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
-		constant.EnvTIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
-		constant.EnvHOST_OS:     runtime.GOOS,
-		constant.EnvHOST_ARCH:   sysinfo.Arch(),
+		constant.ENV_TIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
+		constant.ENV_TIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
+		constant.ENV_TIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),
+		constant.ENV_TIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
+		constant.ENV_TIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
+		constant.ENV_TIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
+		constant.ENV_HOST_OS:     runtime.GOOS,
+		constant.ENV_HOST_ARCH:   sysinfo.Arch(),
 	} {
 		os.Setenv(k, v)
 	}
@@ -119,12 +119,12 @@ func populateGlobalEnv(ctx context.Context) {
 		// https://docs.github.com/en/actions/reference/environment-variables
 		commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
 		if len(commit) != 0 {
-			os.Setenv(constant.EnvGIT_COMMIT, commit)
+			os.Setenv(constant.ENV_GIT_COMMIT, commit)
 		}
 
 		branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
 		if len(branch) != 0 {
-			os.Setenv(constant.EnvGIT_BRANCH, branch)
+			os.Setenv(constant.ENV_GIT_BRANCH, branch)
 		}
 	case os.Getenv("GITLAB_CI") == "true":
 		// gitlab-ci
@@ -133,17 +133,17 @@ func populateGlobalEnv(ctx context.Context) {
 
 		commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
 		if len(commit) != 0 {
-			os.Setenv(constant.EnvGIT_COMMIT, commit)
+			os.Setenv(constant.ENV_GIT_COMMIT, commit)
 		}
 
 		branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
 		if len(branch) != 0 {
-			os.Setenv(constant.EnvGIT_BRANCH, branch)
+			os.Setenv(constant.ENV_GIT_BRANCH, branch)
 		}
 
 		tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
 		if len(tag) != 0 {
-			os.Setenv(constant.EnvGIT_TAG, tag)
+			os.Setenv(constant.ENV_GIT_TAG, tag)
 		}
 	default:
 	}

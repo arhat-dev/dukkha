@@ -60,10 +60,6 @@ func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 		}
 	}
 
-	for name := range t.pushTasks {
-		t.pushTasks[name].Inherit(t.buildTasks[name])
-	}
-
 	return nil
 }
 

@@ -40,36 +40,37 @@ func Arch() string {
 	switch {
 	case rawArch == "x86_64",
 		rawArch == "i686-64":
-		return constant.ArchAMD64
+		return constant.ARCH_AMD64
 	case strings.HasPrefix(rawArch, "armv8"),
 		strings.HasPrefix(rawArch, "arm64"),
 		strings.HasPrefix(rawArch, "aarch64"):
-		return constant.ArchARM64
+		return constant.ARCH_ARM64
 	case strings.HasPrefix(rawArch, "armv7"):
-		return constant.ArchARMv7
+		return constant.ARCH_ARM_V7
 	case strings.HasPrefix(rawArch, "armv6"):
-		return constant.ArchARMv6
+		return constant.ARCH_ARM_V6
 	case strings.HasPrefix(rawArch, "armv5"):
-		return constant.ArchARMv5
+		return constant.ARCH_ARM_V5
 	case strings.HasPrefix(rawArch, "i686"),
 		strings.HasPrefix(rawArch, "i386"),
 		rawArch == "i86pc",
 		rawArch == "x86pc",
 		rawArch == "x86":
-		return constant.ArchX86
+		return constant.ARCH_X86
 	case rawArch == "ppc64":
 		if littleEndian {
-			return constant.ArchPPC64LE
+			return constant.ARCH_PPC64LE
 		}
 
-		return constant.ArchPPC64
+		return constant.ARCH_PPC64
 	case rawArch == "ppc":
-		return constant.ArchPPC64
+		return constant.ARCH_PPC64
 	case rawArch == "mips64":
 		if littleEndian {
-			return constant.ArchMIPS64LE
+			return constant.ARCH_MIPS64_LE
 		}
-		return constant.ArchMIPS64
+
+		return constant.ARCH_MIPS64
 	default:
 		// uncertain, use build arch
 		return version.Arch()

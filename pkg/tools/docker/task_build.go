@@ -45,30 +45,36 @@ type ImageNameSpec struct {
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 
-func (c *TaskBuild) ExecArgs() ([]string, error) {
-	args := []string{
-		"build",
-	}
+func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
+	var cmd []string
+
+	cmd = append(cmd, toolCmd...)
+	cmd = append(cmd, "build")
 
 	if len(c.Dockerfile) != 0 {
-		args = append(args, "-f", c.Dockerfile)
+		cmd = append(cmd, "-f", c.Dockerfile)
 	}
 
 	if len(c.ImageNames) == 0 {
-		args = append(args, "-t", c.Name)
+		cmd = append(cmd, "-t", c.Name)
 	} else {
 		for _, imgName := range c.ImageNames {
-			args = append(args, "-t", imgName.Image)
+			cmd = append(cmd, "-t", imgName.Image)
 		}
 	}
 
-	args = append(args, c.ExtraArgs...)
+	cmd = append(cmd, c.ExtraArgs...)
 
 	if len(c.BuildContext) == 0 {
-		args = append(args, ".")
+		cmd = append(cmd, ".")
 	} else {
-		args = append(args, c.BuildContext)
+		cmd = append(cmd, c.BuildContext)
 	}
 
-	return args, nil
+	return []tools.TaskExecSpec{
+		{
+			Command:     cmd,
+			IgnoreError: false,
+		},
+	}, nil
 }

@@ -69,14 +69,14 @@ func (t *BaseTool) ToolName() string { return t.Name }
 func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) error {
 	baseCtx := field.WithRenderingValues(ctx, t.Env)
 
-	specs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
+	matrixSpecs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
 	if err != nil {
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}
 
 	workerCount := constant.GetWorkerCount(ctx)
-	if workerCount > len(specs) {
-		workerCount = len(specs)
+	if workerCount > len(matrixSpecs) {
+		workerCount = len(matrixSpecs)
 	}
 
 	waitCh := make(chan struct{}, workerCount)
@@ -85,7 +85,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	}
 
 	wg := &sync.WaitGroup{}
-	for _, s := range specs {
+	for _, ms := range matrixSpecs {
 		taskCtx := baseCtx.Clone()
 
 		select {
@@ -97,10 +97,10 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		output.WriteTaskStart(
 			taskCtx.Context(),
 			task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
-			s.String(),
+			ms.String(),
 		)
 
-		for k, v := range s {
+		for k, v := range ms {
 			taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 		}
 
@@ -111,32 +111,19 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 
 		// TODO: use generated args to execute tasks in parallel
 
-		args, err := task.ExecArgs()
+		var toolCmd []string
+		if len(t.Path) != 0 {
+			toolCmd = append(toolCmd, t.Path)
+		} else {
+			toolCmd = append(toolCmd, toolKind)
+		}
+
+		toolCmd = append(toolCmd, t.Args...)
+
+		execSpecs, err := task.GetExecSpecs(taskCtx, toolCmd)
 		if err != nil {
 			return fmt.Errorf("failed to generate task args: %w", err)
 		}
-
-		var cmd []string
-		if len(t.Path) != 0 {
-			cmd = append(cmd, t.Path)
-		} else {
-			cmd = append(cmd, toolKind)
-		}
-
-		cmd = append(cmd, t.Args...)
-		cmd = append(cmd, args...)
-
-		_, runScriptCmd, err := t.getBootstrapExecSpec(strings.Join(cmd, " "), false)
-		if err != nil {
-			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
-		}
-
-		output.WriteExecStart(
-			taskCtx.Context(),
-			toolKind,
-			cmd,
-			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
-		)
 
 		wg.Add(1)
 		go func() {
@@ -150,7 +137,8 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 				}
 			}()
 
-			err := t.doRunTask(ctx, taskCtx.Values().Env, runScriptCmd)
+			// TODO: collect error
+			err := t.doRunTask(taskCtx, execSpecs)
 			if err != nil {
 				output.WriteExecFailure()
 			}
@@ -164,25 +152,39 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	return nil
 }
 
-func (t *BaseTool) doRunTask(ctx context.Context, env map[string]string, cmd []string) error {
-	p, err := exechelper.Do(exechelper.Spec{
-		Context: ctx,
-		Command: cmd,
-		Env:     env,
+func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, execSpecs []TaskExecSpec) error {
+	for _, es := range execSpecs {
+		_, runScriptCmd, err := t.getBootstrapExecSpec(strings.Join(es.Command, " "), false)
+		if err != nil {
+			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
+		}
 
-		Stdin: os.Stdin,
+		output.WriteExecStart(
+			taskCtx.Context(),
+			t.ToolName(),
+			es.Command,
+			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
+		)
 
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	})
+		p, err := exechelper.Do(exechelper.Spec{
+			Context: taskCtx.Context(),
+			Command: runScriptCmd,
+			Env:     taskCtx.Values().Env,
 
-	if err != nil {
-		return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(cmd, " "), err)
-	}
+			Stdin: os.Stdin,
 
-	code, err := p.Wait()
-	if err != nil {
-		return fmt.Errorf("command exited with code %d: %w", code, err)
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(es.Command, " "), err)
+		}
+
+		code, err := p.Wait()
+		if err != nil {
+			return fmt.Errorf("command exited with code %d: %w", code, err)
+		}
 	}
 
 	return nil
