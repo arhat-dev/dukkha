@@ -6,9 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"arhat.dev/pkg/exechelper"
+
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/pkg/exechelper"
 )
 
 const DefaultName = "shell"
