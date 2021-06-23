@@ -1,5 +1,7 @@
 # Development
 
+## `field.BaseFiled`
+
 ## `dukkha` struct field tag
 
 The `dukkha` field tag is intended for config parsing
@@ -8,6 +10,6 @@ The `dukkha` field tag is intended for config parsing
 type Foo struct {
     field.BaseField
 
-    Bar []string `dukkha:"other"`
+    Bar map[string]interface{} `dukkha:"other"`
 }
 ```
