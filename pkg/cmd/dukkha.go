@@ -89,19 +89,19 @@ dukkha docker non-default-tool build my-image`,
 			}
 
 			// bootstrap config was resolved when unmarshaling
-			if config.Bootstrap.Shell == "" {
-				return fmt.Errorf("unable to get a shell name, please set bootstrap.shell manually")
+			if len(config.Bootstrap.ScriptCmd) == 0 {
+				return fmt.Errorf("bootstrap script_cmd not set")
 			}
 
 			// create a renderer manager with essential renderers
 			err = multierr.Combine(err,
 				renderingMgr.Add(
-					&shell.Config{ExecFunc: config.Bootstrap.Exec},
-					shell.DefaultName,
+					&shell_file.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
+					shell_file.DefaultName,
 				),
 				renderingMgr.Add(
-					&shell_file.Config{ExecFunc: config.Bootstrap.Exec},
-					shell_file.DefaultName,
+					&shell.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
+					shell.DefaultName,
 				),
 				renderingMgr.Add(&template.Config{}, template.DefaultName),
 				renderingMgr.Add(&template_file.Config{}, template_file.DefaultName),
@@ -171,14 +171,14 @@ func run(
 
 		if i == 0 {
 			err = multierr.Combine(err,
-				renderingMgr.Add(&shell.Config{ExecFunc: v.RenderingExec}, shell.DefaultName),
-				renderingMgr.Add(&shell_file.Config{ExecFunc: v.RenderingExec}, shell_file.DefaultName),
+				renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName),
+				renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName),
 			)
 		}
 
 		err = multierr.Combine(err,
-			renderingMgr.Add(&shell.Config{ExecFunc: v.RenderingExec}, shell.DefaultName+":"+v.ToolName()),
-			renderingMgr.Add(&shell_file.Config{ExecFunc: v.RenderingExec}, shell_file.DefaultName+":"+v.ToolName()),
+			renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName+":"+v.ToolName()),
+			renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName+":"+v.ToolName()),
 		)
 
 		if err != nil {
@@ -237,7 +237,11 @@ func run(
 			}
 
 			logger.V("initializing tool")
-			err = t.Init(renderingMgr.Render)
+			err = t.Init(
+				config.Bootstrap.CacheDir,
+				renderingMgr.Render,
+				config.Bootstrap.GetExecSpec,
+			)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to initialize tool %q: %w",

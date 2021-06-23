@@ -1,3 +1,4 @@
+cache
 *.yaml
 
 !/docker.yaml

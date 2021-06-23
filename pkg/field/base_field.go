@@ -231,8 +231,9 @@ fieldLoop:
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
 		// check if ignored
-		for _, t := range yTags[1:] {
+		for _, t := range yTags {
 			if t == "-" {
+				// ignored
 				continue fieldLoop
 			}
 		}
@@ -297,6 +298,10 @@ fieldLoop:
 					innerFt := inlineFt.Field(j)
 
 					innerYamlKey := strings.Split(innerFt.Tag.Get("yaml"), ",")[0]
+					if innerYamlKey == "-" {
+						continue
+					}
+
 					if len(innerYamlKey) == 0 {
 						// already in a inline field, do not check inline anymore
 						continue
@@ -304,8 +309,8 @@ fieldLoop:
 
 					if !addField(innerYamlKey, innerFt.Name, innerFv, base) {
 						return fmt.Errorf(
-							"field: duplicate yaml key %q in inline field %s",
-							innerYamlKey, pt.String(),
+							"field: duplicate yaml key %q in inline field %s of %s",
+							innerYamlKey, innerFt.Name, pt.String(),
 						)
 					}
 				}
