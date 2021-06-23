@@ -1,2 +1,2 @@
 bootstrap:
-  shell: /bin/sh
+  script_cmd: [/bin/sh]
