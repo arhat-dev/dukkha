@@ -7,10 +7,11 @@ import (
 	"runtime"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/pkg/envhelper"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/tools"
 )
 
 type bootstrapPureConfig struct {

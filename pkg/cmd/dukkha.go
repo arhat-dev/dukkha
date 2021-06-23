@@ -30,6 +30,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -46,6 +47,7 @@ func NewRootCmd() *cobra.Command {
 		configPaths []string
 		logConfig   = new(log.Config)
 		config      = conf.NewConfig()
+		workerCount int
 
 		renderingMgr = renderer.NewManager()
 	)
@@ -112,6 +114,8 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("failed to create essential renderers: %w", err)
 			}
 
+			appCtx = constant.WithWorkerCount(appCtx, workerCount)
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -126,6 +130,8 @@ dukkha docker non-default-tool build my-image`,
 		[]string{".dukkha", ".dukkha.yaml"},
 		"path to your config files",
 	)
+
+	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
 
 	// logging
 	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",

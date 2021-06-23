@@ -14,7 +14,7 @@ const TaskKindPush = "push"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^docker(:.+)?:push$`),
+		regexp.MustCompile(`^docker(:.+){0,1}:push$`),
 		func(params []string) interface{} {
 			t := &TaskPush{}
 			if len(params) != 0 {

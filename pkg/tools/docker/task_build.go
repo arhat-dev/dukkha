@@ -13,7 +13,7 @@ const TaskKindBuild = "build"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^docker(:.+)?:build$`),
+		regexp.MustCompile(`^docker(:.+){0,1}:build$`),
 		func(params []string) interface{} {
 			t := &TaskBuild{}
 			if len(params) != 0 {

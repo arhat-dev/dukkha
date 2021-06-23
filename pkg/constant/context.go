@@ -16,9 +16,31 @@ limitations under the License.
 
 package constant
 
+import "context"
+
 type ContextKey string
 
 // nolint:revive
 const (
 	ContextKeyConfig ContextKey = "config"
+
+	contextKeyWorkerCount ContextKey = "worker_count"
 )
+
+func WithWorkerCount(ctx context.Context, n int) context.Context {
+	if n < 1 {
+		n = 1
+	}
+
+	return context.WithValue(ctx, contextKeyWorkerCount, n)
+}
+
+func GetWorkerCount(ctx context.Context) int {
+	v, ok := ctx.Value(contextKeyWorkerCount).(int)
+	if !ok {
+		// default in serial mode
+		return 1
+	}
+
+	return v
+}
