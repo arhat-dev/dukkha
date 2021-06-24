@@ -1,6 +1,6 @@
 bootstrap:
   env:
-  - DEFAULT_GIT_BRANCH=master
+  - GIT_DEFAULT_BRANCH=master
   script_cmd: [sh]
 
 shells:
