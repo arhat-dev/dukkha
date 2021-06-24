@@ -15,8 +15,8 @@ golang:test:
       per_matrix_run: false
     - shell: echo "hello"
     - shell:python: print("world")
-    after:success:
-    - shell: echo "Done."
+    after:success@shell: |-
+      echo '- shell: echo "Done."'
     after:failure:
     - shell: echo "failed"
 
@@ -28,6 +28,9 @@ golang:build:
   path: ./cmd/dukkha
   env:
   - CGO_CFLAGS_ALLOW="-W"
+  hooks:
+    before:
+    - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
   cgo:
     enabled: false
     hostCC: clang

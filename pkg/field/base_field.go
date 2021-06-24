@@ -66,30 +66,36 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, d
 
 		logger.V("resolving", log.Any("values", ctx.Values()))
 
-		var target interface{}
+		var target reflect.Value
 		switch v.fieldValue.Kind() {
 		case reflect.Ptr:
-			target = v.fieldValue.Interface()
+			target = v.fieldValue
 		default:
-			target = v.fieldValue.Addr().Interface()
+			target = v.fieldValue.Addr()
 		}
 
-		for _, rawData := range v.rawData {
+		for i, rawData := range v.rawData {
 			resolvedValue, err := render(ctx, k.renderer, rawData)
 			if err != nil {
-				return fmt.Errorf("field: failed to render value of this base field: %w", err)
+				return fmt.Errorf("field: failed to render value of this base field %T: %w", target, err)
 			}
 
-			err = yaml.Unmarshal([]byte(resolvedValue), target)
+			var tmp interface{}
+			err = yaml.Unmarshal([]byte(resolvedValue), &tmp)
 			if err != nil {
-				return fmt.Errorf("field: failed to unmarshal resolved value: %w", err)
+				return fmt.Errorf("field: failed to unmarshal resolve value to any type: %w", err)
+			}
+
+			err = unmarshal(v.yamlFieldName, tmp, target, i != 0)
+			if err != nil {
+				return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
 			}
 
 			logger.V("resolved field", log.Any("value", target))
 		}
 
 		if depth > 1 || depth < 0 {
-			innerF, canCallResolve := target.(Interface)
+			innerF, canCallResolve := target.Interface().(Interface)
 			if !canCallResolve {
 				continue
 			}
@@ -411,7 +417,7 @@ fieldLoop:
 
 			logger.V("working on plain field")
 
-			err = unmarshal(yamlKey, v, fSpec.fieldValue)
+			err = unmarshal(yamlKey, v, fSpec.fieldValue, true)
 			if err != nil {
 				return fmt.Errorf(
 					"field: failed to unmarshal yaml field %q to struct field %q: %w",
@@ -527,7 +533,7 @@ func initAllStructCanCallInit(fieldValue reflect.Value) {
 	}
 }
 
-func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
+func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld bool) error {
 	oe := outField
 
 	for {
@@ -541,13 +547,13 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 			for i := 0; i < size; i++ {
 				itemVal := sliceVal.Index(i)
 
-				err := unmarshal(yamlKey, inSlice[i], itemVal)
+				err := unmarshal(yamlKey, inSlice[i], itemVal, keepOld)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
 				}
 			}
 
-			if oe.IsZero() {
+			if oe.IsZero() || !keepOld {
 				oe.Set(sliceVal)
 			} else {
 				oe.Set(reflect.AppendSlice(oe, sliceVal))
@@ -556,7 +562,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 			return nil
 		case reflect.Map:
 			// map key MUST be string
-			if oe.IsZero() {
+			if oe.IsZero() || !keepOld {
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 
@@ -565,7 +571,12 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 			iter := reflect.ValueOf(in).MapRange()
 			for iter.Next() {
 				valVal := reflect.New(valType)
-				err := unmarshal(iter.Key().String(), iter.Value().Interface(), valVal)
+				err := unmarshal(
+					iter.Key().String(),
+					iter.Value().Interface(),
+					valVal,
+					keepOld,
+				)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
 						valType.String(), iter.Key().String(), err,
@@ -586,7 +597,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {
 			outField.Set(val)
 
 			// DO NOT use outField directly, which will always match reflect.Interface
-			return unmarshal(yamlKey, in, val)
+			return unmarshal(yamlKey, in, val, keepOld)
 		case reflect.Ptr:
 			// process later
 		default:
