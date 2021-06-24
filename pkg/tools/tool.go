@@ -96,7 +96,12 @@ func (t *BaseTool) RunTask(
 	allShells map[ToolKey]*BaseTool,
 	task Task,
 ) error {
-	execCtx, cancelExec := context.WithCancel(ctx)
+	workerCount := constant.GetWorkerCount(ctx)
+
+	execCtx, cancelExec := context.WithCancel(
+		// all sub tasks for this task should only have one worker
+		constant.WithWorkerCount(ctx, 1),
+	)
 	defer cancelExec()
 
 	baseCtx := field.WithRenderingValues(execCtx, t.Env)
@@ -110,7 +115,6 @@ func (t *BaseTool) RunTask(
 		return fmt.Errorf("no matrix spec match")
 	}
 
-	workerCount := constant.GetWorkerCount(ctx)
 	if workerCount > len(matrixSpecs) {
 		workerCount = len(matrixSpecs)
 	}
