@@ -58,7 +58,7 @@ func (c *Config) Merge(a *Config) {
 			c.Tools = a.Tools
 		} else {
 			for k := range a.Tools {
-				c.Tools[k] = a.Tools[k]
+				c.Tools[k] = append(c.Tools[k], a.Tools[k]...)
 			}
 		}
 	}
@@ -68,7 +68,7 @@ func (c *Config) Merge(a *Config) {
 			c.Tasks = a.Tasks
 		} else {
 			for k := range a.Tasks {
-				c.Tasks[k] = a.Tasks[k]
+				c.Tasks[k] = append(c.Tasks[k], a.Tasks[k]...)
 			}
 		}
 	}
