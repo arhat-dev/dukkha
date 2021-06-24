@@ -16,12 +16,6 @@ Make YAML files Makefiles
 
 A typical build automation tool only take one or two from the above, but we'd take three in `dukkha`!
 
-## Install
-
-```bash
-go get -u arhat.dev/dukkha/cmd/dukkha
-```
-
 ## LICENSE
 
 ```text
