@@ -6,41 +6,37 @@ shell:
 # fist shell will become the default shell, you can reference it using `shell`,
 # but other shells with `shell:<shell_name>`
 - name: bash
-  path: /bin/bash
   # environment variables used when provisioning a shell
   env:
   - SHELL_ENV_NAME=value
-  command:
+  cmd:
   - bash
-  args:
   - -x
   - -c
 - name: python
-  path@shell: command -v python3
+  cmd@shell: |-
+    echo "- $(command -v python3)"
 
 tools:
   # configure tools
-  <tool_name>:
+  <tool_kind>:
   # fisrt configuration will become the default shell
   # empty value is also valid
-  - id: <tool_id>
+  - name: <tool_kind>
     # environment variables applied when running this tool
     env:
     - ENV_VAR_NAME=value
     - ENV_VAR_FOO=${ENV_VAR_NAME}
     - ENV_VAR_BAR=$ENV_VAR_FOO
     - ENV_VAR_EXP=$(shell expression)
-    # path to the executable
-    path: <path to the tool>
-    # global args applied when running tool tasks
-    args:
+    # cmd to run this tool
+    cmd:
+    - <path to the tool>
     - -f
     - some value
     - --bar
-    # tool specific config
-    config: {}
 
-<tool_name>{:<tool_id>}:<task_type>:
+<tool_kind>{:<tool_name>}:<task_kind>:
 - name: <task_name>
   # you cannot run the same task in the hook
   hook:
@@ -53,16 +49,16 @@ tools:
         print("bar")
 
     # run another predefined task
-    - task: <tool_name>{:<tool_id>}:<task_type>:<another_task_name>
+    - task: <tool_kind>{:<tool_name>}:<task_kind>:<another_task_name>
 
     # run commands/tasks after a successful task execution
     after:success:
-    - task: <tool_name>{:<tool_id>}:<task_type>:<another_task_name>
+    - task: <tool_kind>{:<tool_name>}:<task_kind>:<another_task_name>
     - shell: echo "Done."
 
     # run commands/tasks when the task execution failed
     after:failure:
-    - task: <tool_name>{:<tool_id>}:<task_type>:<another_task_name>
+    - task: <tool_kind>{:<tool_name>}:<task_kind>:<another_task_name>
     - shell: echo "Failed."
 
 - name: <another_task_name>

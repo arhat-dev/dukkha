@@ -5,7 +5,14 @@ tools:
     - GO111MODULE=on
     - GO_PROXY=direct
     - GO_SUMDB=off
-    args: []
+    cmd: [go]
+  - name: docker
+    cmd:
+    - |-
+      docker run -it --rm -v $(pwd):$(pwd) -w $(pwd) golang:buster go
+
+golang:docker:test:
+- name: dukkha
 
 golang:test:
 - name: dukkha

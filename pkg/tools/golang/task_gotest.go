@@ -2,6 +2,7 @@ package golang
 
 import (
 	"regexp"
+	"strings"
 
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
@@ -14,10 +15,10 @@ func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
 		regexp.MustCompile(`^golang(:.+)?:test$`),
-		func(params []string) interface{} {
+		func(subMatches []string) interface{} {
 			t := &TaskTest{}
-			if len(params) != 0 {
-				t.SetToolName(params[0])
+			if len(subMatches) != 0 {
+				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
 			}
 			return t
 		},

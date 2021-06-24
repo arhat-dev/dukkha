@@ -1,66 +1,65 @@
 tools:
-  go:
-  - id: default
+  golang:
+  - name: default
     env:
     - GO111MODULE=on
     - GO_PROXY=direct
     - GO_SUMDB=off
-    # path: /path/to/your/go
-    args: []
+    cmd: []
     # tool specific config
-    config:
-      # build options shared by all tasks
-      global_build_options:
-        # -x
-        debug: false
-        # -race
-        race: false
-        # -buildmode=<pie | exe | plugin | default | c-shared | c-archive | shared | archive>
-        buildmode: pie
-        # -compiler
-        compiler: gc
-        asmflags: []
-        gccgoflags: []
-        gcflags: []
-        ldflags: []
-        # build tags
-        tags:
-        - netgo
-        # -mod=<vendor | readonly | mode>
-        # defaults to `vendor` if there is a vendor directory
-        # otherwise defaults to `readonly`
-        mod: vendor
-        trimpath: true
-      run:
-        dir: .build
-      test:
-        dir: .test
-      coverage:
-        dir: .coverage
-      profile:
-        dir: .profile
-      build:
-        dir: .build
-      release:
-        dir: .release
+    # config:
+    #   # build options shared by all tasks
+    #   global_build_options:
+    #     # -x
+    #     debug: false
+    #     # -race
+    #     race: false
+    #     # -buildmode=<pie | exe | plugin | default | c-shared | c-archive | shared | archive>
+    #     buildmode: pie
+    #     # -compiler
+    #     compiler: gc
+    #     asmflags: []
+    #     gccgoflags: []
+    #     gcflags: []
+    #     ldflags: []
+    #     # build tags
+    #     tags:
+    #     - netgo
+    #     # -mod=<vendor | readonly | mode>
+    #     # defaults to `vendor` if there is a vendor directory
+    #     # otherwise defaults to `readonly`
+    #     mod: vendor
+    #     trimpath: true
+    #   run:
+    #     dir: .build
+    #   test:
+    #     dir: .test
+    #   coverage:
+    #     dir: .coverage
+    #   profile:
+    #     dir: .profile
+    #   build:
+    #     dir: .build
+    #   release:
+    #     dir: .release
 
-go:test:
+golang:test:
 - name: <name your test>
   race: true
   package: ./pkg/...
 
-go:coverage:
+golang:coverage:
 - name: <same name of your test>
   fail_under: 10
   ignore_match:
   - ^TestFoo$
 
-go:benchmark:
+golang:benchmark:
 - name: <name your benchmark>
   race: true
   package: ./pkg/...
 
-go:profile:
+golang:profile:
 - name: <name your pprof>
   mem:
     enabled: false
@@ -70,7 +69,7 @@ go:profile:
   block: {}
   trace: {}
 
-go:build:
+golang:build:
 - name: <name your build>
   matrix:
     include:
@@ -108,7 +107,7 @@ go:build:
   src: ./cmd/dukkha
 
 # release task to inherit, extend and override attributes from the build task
-go:release:
+golang:release:
 - name: <same name of your build>
   extend:
     ldflags:
