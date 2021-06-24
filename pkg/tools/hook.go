@@ -111,7 +111,9 @@ type Hook struct {
 	// execute this hook per-matrix run instead of per-task
 	PerMatrixRun *bool `yaml:"per_matrix_run"`
 
-	Config map[string]string `dukkha:"other"`
+	Task string `yaml:"task"`
+
+	Other map[string]string `dukkha:"other"`
 }
 
 func (h *Hook) Run(
@@ -121,12 +123,46 @@ func (h *Hook) Run(
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
-	if len(h.Config) == 0 {
-		return nil
+	if len(h.Task) != 0 {
+		parts := strings.Split(h.Task, ":")
+
+		var (
+			taskKind string
+			taskName string
+		)
+
+		key := ToolKey{
+			ToolKind: parts[0],
+			ToolName: "",
+		}
+
+		switch len(parts) {
+		case 3:
+			taskKind = parts[1]
+			taskName = parts[2]
+		case 4:
+			key.ToolName = parts[1]
+			taskKind = parts[2]
+			taskName = parts[3]
+		default:
+			return fmt.Errorf("hook: invalid task reference: %q", h.Task)
+		}
+
+		tool, ok := allTools[key]
+		if !ok {
+			return fmt.Errorf("hook: tool %q not found", key.ToolKind+":"+key.ToolName)
+		}
+
+		return tool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
 	}
 
-	if len(h.Config) != 1 {
-		return fmt.Errorf("invalid multiple hook kind in one hook")
+	switch {
+	case len(h.Other) > 1:
+		return fmt.Errorf("unexpected multiple entries in one hook spec")
+	case len(h.Other) == 1:
+	default:
+		// no hook to run
+		return nil
 	}
 
 	var (
@@ -135,41 +171,10 @@ func (h *Hook) Run(
 		isFilePath bool
 	)
 
-	for k, v := range h.Config {
+	for k, v := range h.Other {
 		script = v
 
 		switch {
-		case k == "task":
-			parts := strings.Split(v, ":")
-
-			var (
-				taskKind string
-				taskName string
-			)
-
-			key := ToolKey{
-				ToolKind: parts[0],
-				ToolName: "",
-			}
-
-			switch len(parts) {
-			case 3:
-				taskKind = parts[1]
-				taskName = parts[2]
-			case 4:
-				key.ToolName = parts[1]
-				taskKind = parts[2]
-				taskName = parts[3]
-			default:
-				return fmt.Errorf("hook: invalid task reference: %q", v)
-			}
-
-			tool, ok := allTools[key]
-			if !ok {
-				return fmt.Errorf("hook: tool %q not found", key.ToolKind+":"+key.ToolName)
-			}
-
-			return tool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
 		case strings.HasPrefix(k, "shell_file:"):
 			shellKey = &ToolKey{ToolKind: "shell", ToolName: strings.SplitN(k, ":", 2)[1]}
 			isFilePath = true
@@ -183,7 +188,7 @@ func (h *Hook) Run(
 			shellKey = &ToolKey{ToolKind: "shell", ToolName: ""}
 			isFilePath = false
 		default:
-			return fmt.Errorf("unknown hook kind: %q", k)
+			return fmt.Errorf("unknown hook action: %q", k)
 		}
 	}
 
