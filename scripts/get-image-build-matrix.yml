@@ -1,11 +1,11 @@
-{{- if eq .Env.HOST_OS "windows" -}}
-os:
+{{- if eq .Env.HOST_KERNEL "windows" -}}
+kernel:
 - windows
 arch:
 - amd64
 - armv7
 {{- else -}}
-os:
+kernel:
 - linux
 arch:
 - amd64

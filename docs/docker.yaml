@@ -15,18 +15,18 @@ docker:build:
   # matrix values will be assigned to environment variable MATRIX_<matrix name>
   matrix:
     include:
-    - os:
+    - kernel:
       - windows
       arch:
       - amd64
       - armv7
     exclude:
-    - os:
+    - kernel:
       - linux
       arch:
       - mips64le
     # built-in matrix os, defaults to [linux]
-    os:
+    kernel:
     - linux
     # built-in matrix arch, defaults to [ $HOST_ARCH ]
     arch:

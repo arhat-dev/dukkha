@@ -84,7 +84,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
 		annotateCmd := sliceutils.NewStringSlice(
 			manifestCmd, "annotate", spec.Manifest, spec.Image,
-			"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_OS]),
+			"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
 			"--arch", c.getManifestArch(mArch),
 		)
 

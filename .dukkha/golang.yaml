@@ -19,8 +19,21 @@ golang:build:
     hostCC: clang
     hostCXX: clang++
     # target cc and cxx for cross compiling
-    targetCC: ""
-    targetCXX: ""
+    targetCC@template: |-
+      {{- if or (eq .Env.HOST_OS "debian") (eq .Env.HOST_OS "ubuntu") -}}
+        {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+      {{- else if eq .Env.HOST_OS "alpine" -}}
+        {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+      {{- get -}}
+      -gcc
+
+    targetCXX@template: |-
+      {{- if or (eq .Env.HOST_OS "debian") (eq .Env.HOST_OS "ubuntu") -}}
+        {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+      {{- else if eq .Env.HOST_OS "alpine" -}}
+        {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+      {{- get -}}
+      -g++
 
     cflags@shell: |-
       cat <<EOF
@@ -31,7 +44,7 @@ golang:build:
       cat <<EOF
       EOF
   matrix:
-    os:
+    kernel:
     - windows
     - linux
     - freebsd
@@ -46,25 +59,25 @@ golang:build:
     - armv6
     - armv5
     exclude:
-    - os:
+    - kernel:
       - windows
       - plan9
       arch: [arm64]
     include:
-    - os:
+    - kernel:
       - darwin
       arch:
       - arm64
       - amd64
-    - os:
+    - kernel:
       - solaris
       - dragonfly
       arch: [amd64]
-    - os:
+    - kernel:
       - aix
       - linux
       arch: [ppc64]
-    - os:
+    - kernel:
       - linux
       arch:
       - mips
@@ -91,15 +104,15 @@ golang:build:
   - -X arhat.dev/dukkha/pkg/version.goCompilerPlatform="$(go version | cut -d\  -f4)"
   outputs@shell: |-
     suffix=""
-    if [ "${MATRIX_OS}" = "windows" ]; then
+    if [ "${MATRIX_KERNEL}" = "windows" ]; then
       suffix="${suffix}.exe"
     fi
 
-    if [ "${MATRIX_OS}" = "${HOST_OS}" ] && [ "${MATRIX_ARCH}" = "${HOST_ARCH}" ]; then
+    if [ "${MATRIX_KERNEL}" = "${HOST_KERNEL}" ] && [ "${MATRIX_ARCH}" = "${HOST_ARCH}" ]; then
       echo "- build/dukkha${suffix}"
     fi
 
-    echo "- build/dukkha.${MATRIX_OS}.${MATRIX_ARCH}${suffix}"
+    echo "- build/dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}${suffix}"
   extraArgs:
   - -buildmode=default
   - -mod=vendor

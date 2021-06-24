@@ -1,6 +1,6 @@
 #!/bin/sh
 
-case "${MATRIX_OS}" in
+case "${MATRIX_KERNEL}" in
 linux)
   case "${MATRIX_ARCH}" in
   armv5 | mips64le)

@@ -25,12 +25,12 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 	tpl, err := template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
-			"jq":              textquery.JQ,
-			"jqBytes":         textquery.JQBytes,
-			"getAlpineArch":   constant.GetAlpineArch,
-			"getAlpineTriple": constant.GetAlpineTripleName,
-			"getDebianArch":   constant.GetDebianArch,
-			"getDebianTriple": constant.GetDebianTripleName,
+			"jq":                  textquery.JQ,
+			"jqBytes":             textquery.JQBytes,
+			"getAlpineArch":       constant.GetAlpineArch,
+			"getAlpineTripleName": constant.GetAlpineTripleName,
+			"getDebianArch":       constant.GetDebianArch,
+			"getDebianTripleName": constant.GetDebianTripleName,
 		}).
 		Parse(tplStr)
 	if err != nil {

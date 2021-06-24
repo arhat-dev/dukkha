@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"io/ioutil"
@@ -104,10 +105,43 @@ func populateGlobalEnv(ctx context.Context) {
 		constant.ENV_TIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
 		constant.ENV_TIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
 		constant.ENV_TIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
-		constant.ENV_HOST_OS:     runtime.GOOS,
-		constant.ENV_HOST_ARCH:   sysinfo.Arch(),
+
+		constant.ENV_HOST_KERNEL:         runtime.GOOS,
+		constant.ENV_HOST_KERNEL_VERSION: sysinfo.KernelVersion(),
+
+		constant.ENV_HOST_OS:         "",
+		constant.ENV_HOST_OS_VERSION: "",
+
+		constant.ENV_HOST_ARCH: sysinfo.Arch(),
 	} {
 		os.Setenv(k, v)
+	}
+
+	// set host os name and version
+	switch runtime.GOOS {
+	case constant.KERNEL_LINUX:
+		data, err := os.ReadFile("/etc/os-release")
+		if err == nil {
+			s := bufio.NewScanner(bytes.NewReader(data))
+			s.Split(bufio.ScanLines)
+
+			for s.Scan() {
+				line := s.Text()
+				switch {
+				case strings.HasPrefix(line, "ID="):
+					osName := strings.TrimPrefix(line, "ID=")
+					osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
+
+					os.Setenv(constant.ENV_HOST_OS, osName)
+				case strings.HasPrefix(line, "VERSION_ID="):
+					osVersion := strings.TrimPrefix(line, "VERSION_ID=")
+					osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
+
+					os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion)
+				}
+			}
+		}
+	default:
 	}
 
 	// check ci platform specific settings

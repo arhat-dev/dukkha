@@ -16,9 +16,21 @@ const (
 	ENV_TIME_MINUTE = "TIME_MINUTE"
 	ENV_TIME_SECOND = "TIME_SECOND"
 
-	ENV_HOST_OS   = "HOST_OS"
+	// for linux: ID value in /etc/os-release
+	ENV_HOST_OS = "HOST_OS"
+
+	// for linux: VERSION_ID value in /etc/os-release
+	ENV_HOST_OS_VERSION = "HOST_OS_VERSION"
+
+	// value of runtime.GOOS
+	ENV_HOST_KERNEL = "HOST_KERNEL"
+
+	// value of uname -r syscall
+	ENV_HOST_KERNEL_VERSION = "HOST_KERNEL_VERSION"
+
+	// arch value
 	ENV_HOST_ARCH = "HOST_ARCH"
 
-	ENV_MATRIX_OS   = "MATRIX_OS"
-	ENV_MATRIX_ARCH = "MATRIX_ARCH"
+	ENV_MATRIX_KERNEL = "MATRIX_KERNEL"
+	ENV_MATRIX_ARCH   = "MATRIX_ARCH"
 )

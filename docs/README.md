@@ -32,6 +32,9 @@ __NOTE:__ environment variables are also avaiable in template with the same name
 ### All
 
 - HOST_OS
+- HOST_OS_VERSION
+- HOST_KERNEL
+- HOST_KERNEL_VERSION
 - HOST_ARCH
 
 - TIME_YEAR
@@ -42,7 +45,7 @@ __NOTE:__ environment variables are also avaiable in template with the same name
 - GIT_COMMIT
 - GIT_TAG
 - GIT_WORKSPACE_CLEAN
-- GIT_ON_DEFAULT_BRANCH
+- GIT_DEFAULT_BRANCH
 
 ### Tool `go`
 
