@@ -2,3 +2,7 @@ bootstrap:
   env:
   - DEFAULT_GIT_BRANCH=master
   script_cmd: [sh]
+
+shells:
+- name: bash
+- name: python

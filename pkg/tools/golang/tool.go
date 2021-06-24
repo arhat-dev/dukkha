@@ -63,7 +63,12 @@ func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 	return nil
 }
 
-func (t *Tool) Run(ctx context.Context, taskKind, taskName string) error {
+func (t *Tool) Run(
+	ctx context.Context,
+	allTools map[tools.ToolKey]tools.Tool,
+	allShells map[tools.ToolKey]*tools.BaseTool,
+	taskKind, taskName string,
+) error {
 	var (
 		task tools.Task
 		ok   bool
@@ -82,5 +87,5 @@ func (t *Tool) Run(ctx context.Context, taskKind, taskName string) error {
 		return fmt.Errorf("golang: %s task %q not found", taskKind, taskName)
 	}
 
-	return t.BaseTool.RunTask(ctx, t.ToolKind(), task)
+	return t.BaseTool.RunTask(ctx, allTools, allShells, task)
 }

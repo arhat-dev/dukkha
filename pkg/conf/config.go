@@ -35,7 +35,7 @@ type Config struct {
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
 	// Shells for rendering and command execution
-	Shells []tools.BaseTool `yaml:"shells"`
+	Shells []*tools.BaseTool `yaml:"shells"`
 
 	// Language or tool specific tools
 	Tools map[string][]tools.Tool `yaml:"tools"`

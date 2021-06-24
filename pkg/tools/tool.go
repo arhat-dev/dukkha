@@ -23,6 +23,11 @@ import (
 // ToolType for interface type registration
 var ToolType = reflect.TypeOf((*Tool)(nil)).Elem()
 
+type ToolKey struct {
+	ToolKind string
+	ToolName string
+}
+
 // nolint:revive
 type Tool interface {
 	field.Interface
@@ -40,7 +45,12 @@ type Tool interface {
 
 	ResolveTasks(tasks []Task) error
 
-	Run(ctx context.Context, taskKind, taskName string) error
+	Run(
+		ctx context.Context,
+		allTools map[ToolKey]Tool,
+		allShells map[ToolKey]*BaseTool,
+		taskKind, taskName string,
+	) error
 }
 
 type BaseTool struct {
@@ -80,7 +90,12 @@ func (t *BaseTool) InitBaseTool(
 
 func (t *BaseTool) ToolName() string { return t.Name }
 
-func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) error {
+func (t *BaseTool) RunTask(
+	ctx context.Context,
+	allTools map[ToolKey]Tool,
+	allShells map[ToolKey]*BaseTool,
+	task Task,
+) error {
 	execCtx, cancelExec := context.WithCancel(ctx)
 	defer cancelExec()
 
@@ -127,6 +142,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	}
 
 	var colorList = [][2]*color.Color{
+		{color.New(color.FgHiWhite), color.New(color.FgWhite)},
 		{color.New(color.FgHiCyan), color.New(color.FgCyan)},
 		{color.New(color.FgHiGreen), color.New(color.FgGreen)},
 		{color.New(color.FgHiMagenta), color.New(color.FgMagenta)},
@@ -138,19 +154,37 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	failFast := constant.IsFailFast(baseCtx.Context())
 
 	wg := &sync.WaitGroup{}
+
+	// ready
+
+	taskPrefix := fmt.Sprintf(
+		"%s [ %s ]",
+		output.AssembleTaskKindID(task.ToolKind(), task.ToolName(), task.TaskKind()),
+		task.TaskName(),
+	)
+
+	err = task.RunHooks(
+		baseCtx, taskExecBeforeStart,
+		"hook:before "+taskPrefix, nil, nil,
+		allTools, allShells,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to run before hooks: %w", err)
+	}
+
 	for i, ms := range matrixSpecs {
+		color := colorList[i%len(colorList)]
+		prefixColor, outputColor := color[0], color[1]
+
+		taskCtx := baseCtx.Clone()
+
+		select {
+		case <-taskCtx.Context().Done():
+			return taskCtx.Context().Err()
+		case <-waitCh:
+		}
+
 		err2 := func() error {
-			color := colorList[i%len(colorList)]
-			prefixColor, outputColor := color[0], color[1]
-
-			taskCtx := baseCtx.Clone()
-
-			select {
-			case <-taskCtx.Context().Done():
-				return taskCtx.Context().Err()
-			case <-waitCh:
-			}
-
 			output.WriteTaskStart(
 				taskCtx.Context(),
 				task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
@@ -161,9 +195,9 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 				taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
 
-			err = task.ResolveFields(taskCtx, t.RenderingFunc, -1)
-			if err != nil {
-				return fmt.Errorf("failed to resolve task fields: %w", err)
+			err3 := task.ResolveFields(taskCtx, t.RenderingFunc, -1)
+			if err3 != nil {
+				return fmt.Errorf("failed to resolve task fields: %w", err3)
 			}
 
 			var toolCmd []string
@@ -175,9 +209,20 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 
 			toolCmd = append(toolCmd, t.Args...)
 
-			execSpecs, err := task.GetExecSpecs(taskCtx, toolCmd)
-			if err != nil {
-				return fmt.Errorf("failed to generate task args: %w", err)
+			execSpecs, err3 := task.GetExecSpecs(taskCtx, toolCmd)
+			if err3 != nil {
+				return fmt.Errorf("failed to generate task args: %w", err3)
+			}
+
+			prefix := fmt.Sprint("{", ms.String(), "}: ")
+
+			err3 = task.RunHooks(
+				taskCtx, taskExecBeforeMatrixStart,
+				"hook:before "+prefix, prefixColor, outputColor,
+				allTools, allShells,
+			)
+			if err3 != nil {
+				return fmt.Errorf("failed to run matrix before hooks: %w", err3)
 			}
 
 			wg.Add(1)
@@ -192,7 +237,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 					}
 				}()
 
-				err := t.doRunTask(
+				err4 := t.doRunTask(
 					taskCtx,
 					fmt.Sprint("{", ms.String(), "}: "),
 					prefixColor, outputColor,
@@ -202,15 +247,39 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 					taskCtx.Context(),
 					task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
 					ms.String(),
-					err,
+					err4,
 				)
 
-				if err != nil {
+				if err4 != nil {
 					if failFast {
 						cancelExec()
 					}
 
-					appendResult(ms, err)
+					appendResult(ms, err4)
+
+					err4 = task.RunHooks(
+						taskCtx, taskExecAfterMatrixFailure,
+						"hook:after:failure "+prefix, prefixColor, outputColor,
+						allTools, allShells,
+					)
+					if err4 != nil {
+						// TODO: handle hook error
+						err4 = fmt.Errorf("failed to run matrix after failure hooks: %w", err4)
+						_ = err4
+					}
+
+					return
+				}
+
+				err4 = task.RunHooks(
+					taskCtx, taskExecAfterMatrixSuccess,
+					"hook:after:success "+prefix, prefixColor, outputColor,
+					allTools, allShells,
+				)
+				if err4 != nil {
+					// TODO: handle hook error
+					err4 = fmt.Errorf("failed to run matrix after success hooks: %w", err4)
+					_ = err4
 				}
 			}(ms)
 
@@ -228,7 +297,29 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	wg.Wait()
 
 	if len(errCollection) != 0 {
+		err = task.RunHooks(
+			baseCtx, taskExecAfterFailure,
+			"hook:after:failure "+taskPrefix, nil, nil,
+			allTools, allShells,
+		)
+		if err != nil {
+			// TODO: handle hook error
+			err = fmt.Errorf("failed to run after failure hooks: %w", err)
+			_ = err
+		}
+
 		return fmt.Errorf("task execution failed")
+	}
+
+	err = task.RunHooks(
+		baseCtx, taskExecAfterSuccess,
+		"hook:after:success "+taskPrefix, nil, nil,
+		allTools, allShells,
+	)
+	if err != nil {
+		// TODO: handle hook error
+		err = fmt.Errorf("failed to run after success hooks: %w", err)
+		_ = err
 	}
 
 	return nil
@@ -321,7 +412,7 @@ func (t *BaseTool) GetExecSpec(script string, isFilePath bool) (env, cmd []strin
 	if len(t.Path) != 0 {
 		cmd = append(cmd, t.Path)
 	} else {
-		cmd = append(cmd, t.ToolName())
+		cmd = append(cmd, t.defaultExecutable)
 	}
 
 	cmd = append(cmd, t.Args...)
