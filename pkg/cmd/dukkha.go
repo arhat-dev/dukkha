@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
@@ -49,6 +50,7 @@ func NewRootCmd() *cobra.Command {
 		config      = conf.NewConfig()
 		workerCount int
 
+		matrixFilter = make(map[string]string)
 		renderingMgr = renderer.NewManager()
 	)
 
@@ -114,7 +116,15 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("failed to create essential renderers: %w", err)
 			}
 
+			mf := make(map[string][]string)
+			for k, v := range matrixFilter {
+				mf[k] = strings.Split(v, ",")
+			}
+
 			appCtx = constant.WithWorkerCount(appCtx, workerCount)
+			if len(mf) != 0 {
+				appCtx = constant.WithMatrixFilter(appCtx, mf)
+			}
 
 			return nil
 		},
@@ -132,6 +142,8 @@ dukkha docker non-default-tool build my-image`,
 	)
 
 	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
+
+	globalFlags.StringToStringVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter")
 
 	// logging
 	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",
