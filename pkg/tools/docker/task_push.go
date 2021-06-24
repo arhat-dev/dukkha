@@ -6,6 +6,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -56,9 +57,9 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		pushCmd := newStringSlice(toolCmd, "push")
+		pushCmd := sliceutils.NewStringSlice(toolCmd, "push")
 		result = append(result, tools.TaskExecSpec{
-			Command:     newStringSlice(pushCmd, spec.Image),
+			Command:     sliceutils.NewStringSlice(pushCmd, spec.Image),
 			IgnoreError: false,
 		})
 
@@ -66,22 +67,22 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		manifestCmd := newStringSlice(toolCmd, "manifest")
+		manifestCmd := sliceutils.NewStringSlice(toolCmd, "manifest")
 		result = append(result,
 			// ensure manifest exists
 			tools.TaskExecSpec{
-				Command:     newStringSlice(manifestCmd, "create", spec.Manifest),
+				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest),
 				IgnoreError: true,
 			},
 			// link manifest and image
 			tools.TaskExecSpec{
-				Command:     newStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
+				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
 				IgnoreError: false,
 			},
 		)
 
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-		annotateCmd := newStringSlice(
+		annotateCmd := sliceutils.NewStringSlice(
 			manifestCmd, "annotate", spec.Manifest, spec.Image,
 			"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_OS]),
 			"--arch", c.getManifestArch(mArch),
@@ -143,8 +144,4 @@ func (c *TaskPush) getManifestArchVariant(arch string) string {
 	}[arch]
 
 	return variant
-}
-
-func newStringSlice(base []string, other ...string) []string {
-	return append(append([]string{}, base...), other...)
 }

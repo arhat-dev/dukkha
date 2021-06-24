@@ -24,6 +24,7 @@ import (
 var (
 	branch, commit, tag, arch string
 	goCompilerPlatform        string
+	workspaceClean            string
 )
 
 var version string
@@ -34,8 +35,17 @@ commit: %s
 tag: %s
 arch: %s
 goVersion: %s
+workspaceClean: %s
 goCompilerPlatform: %s
-`, Branch(), Commit(), Tag(), Arch(), GoVersion(), GoCompilerPlatform())
+`,
+		Branch(),
+		Commit(),
+		Tag(),
+		Arch(),
+		GoVersion(),
+		workspaceClean,
+		GoCompilerPlatform(),
+	)
 }
 
 func Version() string {
@@ -63,6 +73,10 @@ func Arch() string {
 
 func GoVersion() string {
 	return runtime.Version()
+}
+
+func WorkspaceClean() bool {
+	return workspaceClean == "true"
 }
 
 func GoCompilerPlatform() string {

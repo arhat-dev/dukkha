@@ -33,9 +33,6 @@ include scripts/test/unit.mk
 # binary build
 include scripts/build/dukkha.mk
 
-# image
-include scripts/image/dukkha.mk
-
 image.build.linux.all: \
 	image.build.dukkha.linux.all
 

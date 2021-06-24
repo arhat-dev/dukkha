@@ -12,7 +12,7 @@ repos:
   - id: check-yaml
     exclude: |-
       (?x)^(
-        .dukkha/scripts/.* |
+        scripts/.*\.yml |
         cicd/deploy/charts/.*?/templates
       )$
     args:
