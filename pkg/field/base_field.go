@@ -539,6 +539,14 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 	for {
 		switch oe.Kind() {
 		case reflect.Slice:
+			switch in.(type) {
+			case []interface{}:
+			case nil:
+				return nil
+			default:
+				return fmt.Errorf("unexpected non slice data for %q", outField.String())
+			}
+
 			inSlice := in.([]interface{})
 			size := len(inSlice)
 
