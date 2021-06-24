@@ -229,9 +229,6 @@ func run(
 
 	// gather tasks for tools
 	toolSpecificTasks := make(map[tools.ToolKey][]tools.Task)
-
-	// Always initialize all tasks in case task dependencies
-
 	for _, tasks := range config.Tasks {
 		if len(tasks) == 0 {
 			continue

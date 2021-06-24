@@ -18,6 +18,7 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/output"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 // ToolType for interface type registration
@@ -57,10 +58,8 @@ type BaseTool struct {
 	field.BaseField
 
 	Name string   `yaml:"name"`
-	Path string   `yaml:"path"`
 	Env  []string `yaml:"env"`
-
-	Args []string `yaml:"args"`
+	Cmd  []string `yaml:"cmd"`
 
 	cacheDir             string                `json:"-" yaml:"-"`
 	defaultExecutable    string                `json:"-" yaml:"-"`
@@ -205,14 +204,10 @@ func (t *BaseTool) RunTask(
 				return fmt.Errorf("failed to resolve task fields: %w", err3)
 			}
 
-			var toolCmd []string
-			if len(t.Path) != 0 {
-				toolCmd = append(toolCmd, t.Path)
-			} else {
+			toolCmd := sliceutils.NewStringSlice(t.Cmd)
+			if len(toolCmd) == 0 {
 				toolCmd = append(toolCmd, t.defaultExecutable)
 			}
-
-			toolCmd = append(toolCmd, t.Args...)
 
 			execSpecs, err3 := task.GetExecSpecs(taskCtx, toolCmd)
 			if err3 != nil {
@@ -419,13 +414,10 @@ func (t *BaseTool) GetExecSpec(script string, isFilePath bool) (env, cmd []strin
 		}
 	}
 
-	if len(t.Path) != 0 {
-		cmd = append(cmd, t.Path)
-	} else {
+	cmd = sliceutils.NewStringSlice(t.Cmd)
+	if len(cmd) == 0 {
 		cmd = append(cmd, t.defaultExecutable)
 	}
-
-	cmd = append(cmd, t.Args...)
 
 	return t.Env, append(cmd, scriptPath), nil
 }
