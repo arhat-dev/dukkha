@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/fatih/color"
 
@@ -42,6 +43,7 @@ type Task interface {
 
 	RunHooks(
 		ctx *field.RenderingContext,
+		rf field.RenderingFunc,
 		state taskExecState,
 		prefix string,
 		prefixColor, outputColor *color.Color,
@@ -58,16 +60,27 @@ type BaseTask struct {
 	Hooks  TaskHooks    `yaml:"hooks"`
 
 	toolName string `yaml:"-"`
+
+	hookMU sync.Mutex
 }
 
 func (t *BaseTask) RunHooks(
 	ctx *field.RenderingContext,
+	rf field.RenderingFunc,
 	state taskExecState,
 	prefix string,
 	prefixColor, outputColor *color.Color,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
+	t.hookMU.Lock()
+	defer t.hookMU.Unlock()
+
+	err := t.Hooks.ResolveFields(ctx, rf, -1)
+	if err != nil {
+		return fmt.Errorf("failed to resolve hooks field: %w", err)
+	}
+
 	return t.Hooks.Run(ctx, state, prefix, prefixColor, outputColor, allTools, allShells)
 }
 

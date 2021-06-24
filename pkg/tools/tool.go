@@ -98,13 +98,13 @@ func (t *BaseTool) RunTask(
 ) error {
 	workerCount := constant.GetWorkerCount(ctx)
 
-	execCtx, cancelExec := context.WithCancel(
+	ctx, cancelExec := context.WithCancel(
 		// all sub tasks for this task should only have one worker
 		constant.WithWorkerCount(ctx, 1),
 	)
 	defer cancelExec()
 
-	baseCtx := field.WithRenderingValues(execCtx, t.Env)
+	baseCtx := field.WithRenderingValues(ctx, t.Env)
 
 	matrixSpecs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
 	if err != nil {
@@ -168,7 +168,8 @@ func (t *BaseTool) RunTask(
 	)
 
 	err = task.RunHooks(
-		baseCtx, taskExecBeforeStart,
+		baseCtx, t.RenderingFunc,
+		taskExecBeforeStart,
 		"hook:before "+taskPrefix, nil, nil,
 		allTools, allShells,
 	)
@@ -221,7 +222,8 @@ func (t *BaseTool) RunTask(
 			prefix := fmt.Sprint("{", ms.String(), "}: ")
 
 			err3 = task.RunHooks(
-				taskCtx, taskExecBeforeMatrixStart,
+				taskCtx, t.RenderingFunc,
+				taskExecBeforeMatrixStart,
 				"hook:before "+prefix, prefixColor, outputColor,
 				allTools, allShells,
 			)
@@ -262,7 +264,8 @@ func (t *BaseTool) RunTask(
 					appendResult(ms, err4)
 
 					err4 = task.RunHooks(
-						taskCtx, taskExecAfterMatrixFailure,
+						taskCtx, t.RenderingFunc,
+						taskExecAfterMatrixFailure,
 						"hook:after:failure "+prefix, prefixColor, outputColor,
 						allTools, allShells,
 					)
@@ -276,7 +279,8 @@ func (t *BaseTool) RunTask(
 				}
 
 				err4 = task.RunHooks(
-					taskCtx, taskExecAfterMatrixSuccess,
+					taskCtx, t.RenderingFunc,
+					taskExecAfterMatrixSuccess,
 					"hook:after:success "+prefix, prefixColor, outputColor,
 					allTools, allShells,
 				)
@@ -302,7 +306,8 @@ func (t *BaseTool) RunTask(
 
 	if len(errCollection) != 0 {
 		err = task.RunHooks(
-			baseCtx, taskExecAfterFailure,
+			baseCtx, t.RenderingFunc,
+			taskExecAfterFailure,
 			"hook:after:failure "+taskPrefix, nil, nil,
 			allTools, allShells,
 		)
@@ -316,7 +321,8 @@ func (t *BaseTool) RunTask(
 	}
 
 	err = task.RunHooks(
-		baseCtx, taskExecAfterSuccess,
+		baseCtx, t.RenderingFunc,
+		taskExecAfterSuccess,
 		"hook:after:success "+taskPrefix, nil, nil,
 		allTools, allShells,
 	)
