@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"arhat.dev/pkg/exechelper"
+	"arhat.dev/pkg/log"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
@@ -49,16 +50,19 @@ type BaseTool struct {
 	Args []string `yaml:"args"`
 
 	cacheDir             string                `json:"-" yaml:"-"`
+	defaultExecutable    string                `json:"-" yaml:"-"`
 	RenderingFunc        field.RenderingFunc   `json:"-" yaml:"-"`
 	getBootstrapExecSpec field.ExecSpecGetFunc `json:"-" yaml:"-"`
 }
 
-func (t *BaseTool) Init(
+func (t *BaseTool) InitBaseTool(
 	cacheDir string,
+	defaultExecutable string,
 	rf field.RenderingFunc,
 	getBaseExecSpec field.ExecSpecGetFunc,
 ) error {
 	t.cacheDir = cacheDir
+	t.defaultExecutable = defaultExecutable
 	t.RenderingFunc = rf
 	t.getBootstrapExecSpec = getBaseExecSpec
 	return nil
@@ -109,13 +113,11 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 			return fmt.Errorf("failed to resolve task fields: %w", err)
 		}
 
-		// TODO: use generated args to execute tasks in parallel
-
 		var toolCmd []string
 		if len(t.Path) != 0 {
 			toolCmd = append(toolCmd, t.Path)
 		} else {
-			toolCmd = append(toolCmd, toolKind)
+			toolCmd = append(toolCmd, t.defaultExecutable)
 		}
 
 		toolCmd = append(toolCmd, t.Args...)
@@ -137,7 +139,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 				}
 			}()
 
-			// TODO: collect error
+			// TODO: collect errors
 			err := t.doRunTask(taskCtx, execSpecs)
 			if err != nil {
 				output.WriteExecFailure()
@@ -154,36 +156,51 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 
 func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, execSpecs []TaskExecSpec) error {
 	for _, es := range execSpecs {
+		ctx := taskCtx.Clone()
+
+		ctx.AddEnv(es.Env...)
+
 		_, runScriptCmd, err := t.getBootstrapExecSpec(strings.Join(es.Command, " "), false)
 		if err != nil {
 			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
 		}
 
 		output.WriteExecStart(
-			taskCtx.Context(),
+			ctx.Context(),
 			t.ToolName(),
 			es.Command,
 			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
 		)
 
 		p, err := exechelper.Do(exechelper.Spec{
-			Context: taskCtx.Context(),
+			Context: ctx.Context(),
 			Command: runScriptCmd,
-			Env:     taskCtx.Values().Env,
+			Env:     ctx.Values().Env,
 
 			Stdin: os.Stdin,
 
+			// TODO: render output with different colors in tty
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
 		})
 
 		if err != nil {
-			return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(es.Command, " "), err)
+			if !es.IgnoreError {
+				return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(es.Command, " "), err)
+			}
+
+			// TODO: log error in detail
+			log.Log.I("error ignored", log.Error(err))
 		}
 
 		code, err := p.Wait()
 		if err != nil {
-			return fmt.Errorf("command exited with code %d: %w", code, err)
+			if !es.IgnoreError {
+				return fmt.Errorf("command exited with code %d: %w", code, err)
+			}
+
+			// TODO: log error in detail
+			log.Log.I("error ignored", log.Error(err))
 		}
 	}
 

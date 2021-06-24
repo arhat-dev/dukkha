@@ -7,9 +7,9 @@ tools:
 
 docker:build:
 - name: dukkha
-  matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
-  image_names@template_file: .dukkha/scripts/get-image-name.yml
-  dockerfile@shell_file: .dukkha/scripts/get-dockerfile.sh
+  matrix@template_file: scripts/get-image-build-matrix.yml
+  image_names@template_file: scripts/get-image-name.yml
+  dockerfile@shell_file: scripts/get-dockerfile.sh
   # yamllint disable-line rule:quoted-strings
   build_context: "."
   extraArgs:
@@ -21,5 +21,5 @@ docker:build:
 
 docker:push:
 - name: dukkha
-  matrix@template_file: .dukkha/scripts/get-image-build-matrix.yml
-  image_names@template_file: .dukkha/scripts/get-image-name.yml
+  matrix@template_file: scripts/get-image-build-matrix.yml
+  image_names@template_file: scripts/get-image-name.yml

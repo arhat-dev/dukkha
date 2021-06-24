@@ -11,6 +11,7 @@ import (
 var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
 
 type TaskExecSpec struct {
+	Env         []string
 	Command     []string
 	IgnoreError bool
 }

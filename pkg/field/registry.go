@@ -8,7 +8,7 @@ import (
 
 // nolint:revive
 type (
-	FieldFactoryFunc func(params []string) interface{}
+	FieldFactoryFunc func(subMatches []string) interface{}
 
 	interfaceFieldFactoryKey struct {
 		typ reflect.Type
