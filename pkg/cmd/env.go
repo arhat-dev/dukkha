@@ -84,17 +84,17 @@ func populateGlobalEnv(ctx context.Context) {
 			Stderr:  ioutil.Discard,
 		})
 		if err != nil {
-			os.Setenv(e.name, e.onError())
+			_ = os.Setenv(e.name, e.onError())
 			continue
 		}
 
 		_, err = cmd.Wait()
 		if err != nil {
-			os.Setenv(e.name, e.onError())
+			_ = os.Setenv(e.name, e.onError())
 			continue
 		}
 
-		os.Setenv(e.name, e.onSuccess(buf.String()))
+		_ = os.Setenv(e.name, e.onSuccess(buf.String()))
 	}
 
 	now := time.Now()
@@ -114,7 +114,7 @@ func populateGlobalEnv(ctx context.Context) {
 
 		constant.ENV_HOST_ARCH: sysinfo.Arch(),
 	} {
-		os.Setenv(k, v)
+		_ = os.Setenv(k, v)
 	}
 
 	// set host os name and version
@@ -132,12 +132,12 @@ func populateGlobalEnv(ctx context.Context) {
 					osName := strings.TrimPrefix(line, "ID=")
 					osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
 
-					os.Setenv(constant.ENV_HOST_OS, osName)
+					_ = os.Setenv(constant.ENV_HOST_OS, osName)
 				case strings.HasPrefix(line, "VERSION_ID="):
 					osVersion := strings.TrimPrefix(line, "VERSION_ID=")
 					osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
 
-					os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion)
+					_ = os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion)
 				}
 			}
 		}
@@ -153,12 +153,12 @@ func populateGlobalEnv(ctx context.Context) {
 		// https://docs.github.com/en/actions/reference/environment-variables
 		commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
 		if len(commit) != 0 {
-			os.Setenv(constant.ENV_GIT_COMMIT, commit)
+			_ = os.Setenv(constant.ENV_GIT_COMMIT, commit)
 		}
 
 		branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
 		if len(branch) != 0 {
-			os.Setenv(constant.ENV_GIT_BRANCH, branch)
+			_ = os.Setenv(constant.ENV_GIT_BRANCH, branch)
 		}
 	case os.Getenv("GITLAB_CI") == "true":
 		// gitlab-ci
@@ -167,17 +167,17 @@ func populateGlobalEnv(ctx context.Context) {
 
 		commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
 		if len(commit) != 0 {
-			os.Setenv(constant.ENV_GIT_COMMIT, commit)
+			_ = os.Setenv(constant.ENV_GIT_COMMIT, commit)
 		}
 
 		branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
 		if len(branch) != 0 {
-			os.Setenv(constant.ENV_GIT_BRANCH, branch)
+			_ = os.Setenv(constant.ENV_GIT_BRANCH, branch)
 		}
 
 		tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
 		if len(tag) != 0 {
-			os.Setenv(constant.ENV_GIT_TAG, tag)
+			_ = os.Setenv(constant.ENV_GIT_TAG, tag)
 		}
 	default:
 	}
