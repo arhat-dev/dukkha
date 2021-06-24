@@ -78,6 +78,10 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}
 
+	if len(matrixSpecs) == 0 {
+		return fmt.Errorf("no matrix spec match")
+	}
+
 	workerCount := constant.GetWorkerCount(ctx)
 	if workerCount > len(matrixSpecs) {
 		workerCount = len(matrixSpecs)
