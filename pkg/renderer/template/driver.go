@@ -8,6 +8,7 @@ import (
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
@@ -24,8 +25,12 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 	tpl, err := template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
-			"jq":      textquery.JQ,
-			"jqBytes": textquery.JQBytes,
+			"jq":              textquery.JQ,
+			"jqBytes":         textquery.JQBytes,
+			"getAlpineArch":   constant.GetAlpineArch,
+			"getAlpineTriple": constant.GetAlpineTripleName,
+			"getDebianArch":   constant.GetDebianArch,
+			"getDebianTriple": constant.GetDebianTripleName,
 		}).
 		Parse(tplStr)
 	if err != nil {

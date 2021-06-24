@@ -122,7 +122,7 @@ func (c *TaskPush) getManifestArch(arch string) string {
 		constant.ARCH_MIPS64_LE:    "mips64le",
 		constant.ARCH_MIPS64_LE_HF: "mips64le",
 
-		constant.ARCH_PPC64LE: "ppc64le",
+		constant.ARCH_PPC64_LE: "ppc64le",
 
 		constant.ARCH_S390X: "s390x",
 	}[arch]
