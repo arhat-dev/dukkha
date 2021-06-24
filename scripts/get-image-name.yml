@@ -2,19 +2,19 @@
 {{- if and (eq .Env.GIT_WORKSPACE_CLEAN "true") (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
   {{- $tag = printf "%s-latest" .Env.MATRIX_ARCH -}}
 {{- else -}}
-  {{- $tag = "dev" -}}
+  {{- $tag = printf "dev-%s" .Env.MATRIX_ARCH -}}
 {{- end -}}
 
 {{- $manifest_tag := "" -}}
-{{- $formatted_branch := (.Env.GIT_BRANCH | replace "/" "-" | kebabcase) }}
+{{- $branch := (.Env.GIT_BRANCH | replace "/" "-" | kebabcase) }}
 {{- if (eq .Env.GIT_WORKSPACE_CLEAN "true") -}}
   {{- if .Env.GIT_TAG -}}
     {{- $manifest_tag = .Env.GIT_TAG -}}
   {{- else -}}
-    {{- $manifest_tag = printf "%s-%s" $formatted_branch .Env.GIT_COMMIT }}
+    {{- $manifest_tag = printf "%s-%s" $branch .Env.GIT_COMMIT }}
   {{- end -}}
 {{- else -}}
-  {{- $manifest_tag = printf "dev-%s" $formatted_branch -}}
+  {{- $manifest_tag = printf "dev-%s" $branch -}}
 {{- end -}}
 
 - image: docker.io/arhatdev/dukkha:{{ $tag }}
