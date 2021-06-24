@@ -12,12 +12,12 @@ docker:build:
   dockerfile@shell_file: scripts/get-dockerfile.sh
   # yamllint disable-line rule:quoted-strings
   build_context: "."
-  extraArgs:
-  - --pull
-  - --build-arg="ARCH=${MATRIX_ARCH}"
-  - --build-arg="TARGET=dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}"
-  - --build-arg="APP=dukkha"
-  - --no-cache
+  extraArgs@template: |-
+    - --pull
+    - --build-arg="ARCH={{- .Env.MATRIX_ARCH | trimSuffix "hf" -}}"
+    - --build-arg="TARGET=dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}"
+    - --build-arg="APP=dukkha"
+    - --no-cache
 
 docker:push:
 - name: dukkha
