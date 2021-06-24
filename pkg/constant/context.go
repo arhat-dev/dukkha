@@ -26,6 +26,7 @@ const (
 
 	contextKeyWorkerCount  ContextKey = "worker_count"
 	contextKeyMatrixFilter ContextKey = "matrix_filter"
+	contextKeyFailFast     ContextKey = "fail_fast"
 )
 
 func WithWorkerCount(ctx context.Context, n int) context.Context {
@@ -55,6 +56,20 @@ func GetMatrixFilter(ctx context.Context) map[string][]string {
 	if !ok {
 		// default in serial mode
 		return nil
+	}
+
+	return v
+}
+
+func WithFailFast(ctx context.Context, failFast bool) context.Context {
+	return context.WithValue(ctx, contextKeyFailFast, failFast)
+}
+
+func IsFailFast(ctx context.Context) bool {
+	v, ok := ctx.Value(contextKeyFailFast).(bool)
+	if !ok {
+		// default in fail fast mode
+		return true
 	}
 
 	return v

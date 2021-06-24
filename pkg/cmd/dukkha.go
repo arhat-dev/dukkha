@@ -48,9 +48,11 @@ func NewRootCmd() *cobra.Command {
 		configPaths []string
 		logConfig   = new(log.Config)
 		config      = conf.NewConfig()
-		workerCount int
 
+		workerCount  int
+		failFast     bool
 		matrixFilter = make(map[string]string)
+
 		renderingMgr = renderer.NewManager()
 	)
 
@@ -126,6 +128,8 @@ dukkha docker non-default-tool build my-image`,
 				appCtx = constant.WithMatrixFilter(appCtx, mf)
 			}
 
+			appCtx = constant.WithFailFast(appCtx, failFast)
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -142,8 +146,8 @@ dukkha docker non-default-tool build my-image`,
 	)
 
 	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
-
 	globalFlags.StringToStringVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter")
+	globalFlags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution when one errored")
 
 	// logging
 	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",
