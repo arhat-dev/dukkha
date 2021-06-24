@@ -99,6 +99,16 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("bootstrap script_cmd not set")
 			}
 
+			for _, entry := range config.Bootstrap.Env {
+				parts := strings.SplitN(entry, "=", 2)
+				name, value := parts[0], ""
+				if len(parts) == 2 {
+					value = parts[1]
+				}
+
+				_ = os.Setenv(name, value)
+			}
+
 			// create a renderer manager with essential renderers
 			err = multierr.Combine(err,
 				renderingMgr.Add(
