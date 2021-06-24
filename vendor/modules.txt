@@ -18,6 +18,9 @@ github.com/Masterminds/sprig/v3
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/fatih/color v1.12.0
+## explicit
+github.com/fatih/color
 # github.com/google/uuid v1.2.0
 ## explicit
 github.com/google/uuid
@@ -33,6 +36,11 @@ github.com/inconshreveable/mousetrap
 github.com/itchyny/gojq
 # github.com/itchyny/timefmt-go v0.1.2
 github.com/itchyny/timefmt-go
+# github.com/mattn/go-colorable v0.1.8
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.13
+## explicit
+github.com/mattn/go-isatty
 # github.com/mitchellh/copystructure v1.2.0
 ## explicit
 github.com/mitchellh/copystructure
@@ -70,12 +78,16 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
-# golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
+# golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
 ## explicit
 golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
+# golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
+## explicit
+golang.org/x/term
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3

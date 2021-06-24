@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,6 +12,8 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
+	"github.com/fatih/color"
+	"golang.org/x/term"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
@@ -53,6 +56,9 @@ type BaseTool struct {
 	defaultExecutable    string                `json:"-" yaml:"-"`
 	RenderingFunc        field.RenderingFunc   `json:"-" yaml:"-"`
 	getBootstrapExecSpec field.ExecSpecGetFunc `json:"-" yaml:"-"`
+
+	stdoutIsTty bool `json:"-" yaml:"-"`
+	stderrIsTty bool `json:"-" yaml:"-"`
 }
 
 func (t *BaseTool) InitBaseTool(
@@ -65,6 +71,10 @@ func (t *BaseTool) InitBaseTool(
 	t.defaultExecutable = defaultExecutable
 	t.RenderingFunc = rf
 	t.getBootstrapExecSpec = getBaseExecSpec
+
+	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
+	t.stderrIsTty = term.IsTerminal(int(os.Stderr.Fd()))
+
 	return nil
 }
 
@@ -102,6 +112,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 
 		resultMU = &sync.Mutex{}
 	)
+
 	appendResult := func(spec MatrixSpec, err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
@@ -112,8 +123,20 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		})
 	}
 
+	var colorList = [][2]*color.Color{
+		{color.New(color.FgHiCyan), color.New(color.FgCyan)},
+		{color.New(color.FgHiGreen), color.New(color.FgGreen)},
+		{color.New(color.FgHiMagenta), color.New(color.FgMagenta)},
+		{color.New(color.FgHiYellow), color.New(color.FgYellow)},
+		{color.New(color.FgHiBlue), color.New(color.FgBlue)},
+		{color.New(color.FgHiRed), color.New(color.FgRed)},
+	}
+
 	wg := &sync.WaitGroup{}
-	for _, ms := range matrixSpecs {
+	for i, ms := range matrixSpecs {
+		color := colorList[i%len(colorList)]
+		prefixColor, outputColor := color[0], color[1]
+
 		taskCtx := baseCtx.Clone()
 
 		select {
@@ -163,7 +186,12 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 				}
 			}()
 
-			err := t.doRunTask(taskCtx, fmt.Sprint("{", ms.String(), "}: "), execSpecs)
+			err := t.doRunTask(
+				taskCtx,
+				fmt.Sprint("{", ms.String(), "}: "),
+				prefixColor, outputColor,
+				execSpecs,
+			)
 			output.WriteExecResult(
 				taskCtx.Context(),
 				task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
@@ -186,7 +214,12 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	return nil
 }
 
-func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, outputPrefix string, execSpecs []TaskExecSpec) error {
+func (t *BaseTool) doRunTask(
+	taskCtx *field.RenderingContext,
+	outputPrefix string,
+	prefixColor, outputColor *color.Color,
+	execSpecs []TaskExecSpec,
+) error {
 	for _, es := range execSpecs {
 		ctx := taskCtx.Clone()
 
@@ -204,6 +237,23 @@ func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, outputPrefix strin
 			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
 		)
 
+		var (
+			stdout io.Writer
+			stderr io.Writer
+		)
+
+		if t.stderrIsTty {
+			stderr = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stderr)
+		} else {
+			stderr = output.PrefixWriter(outputPrefix, nil, nil, os.Stderr)
+		}
+
+		if t.stdoutIsTty {
+			stdout = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stdout)
+		} else {
+			stdout = output.PrefixWriter(outputPrefix, nil, nil, os.Stdout)
+		}
+
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx.Context(),
 			Command: runScriptCmd,
@@ -211,8 +261,8 @@ func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, outputPrefix strin
 
 			Stdin: os.Stdin,
 
-			Stdout: output.PrefixWriter(outputPrefix, os.Stdout),
-			Stderr: output.PrefixWriter(outputPrefix, os.Stderr),
+			Stdout: stdout,
+			Stderr: stderr,
 		})
 
 		if err != nil {
