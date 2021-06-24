@@ -1,6 +1,6 @@
 cache
 *.yaml
 
-!/golang\.yaml
+!/base\.yaml
 !/docker\.yaml
-!/scripts
+!/golang\.yaml
