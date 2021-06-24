@@ -7,9 +7,23 @@ tools:
     - GO_SUMDB=off
     args: []
 
-golang:test: []
+golang:test:
+- name: dukkha
+  hooks:
+    before:
+    - task: golang:build:dukkha-local
+      per_matrix_run: false
+    - shell: echo "hello"
+    - shell:python: print("world")
+    after:success:
+    - shell: echo "Done."
+    after:failure:
+    - shell: echo "failed"
 
 golang:build:
+- name: dukkha-local
+  path: ./cmd/dukkha
+  outputs: [build/dukkha-local]
 - name: dukkha
   path: ./cmd/dukkha
   env:

@@ -232,6 +232,11 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 fieldLoop:
 	for i := 1; i < pt.NumField(); i++ {
 		fieldType := pt.Field(i)
+		fieldValue := self._parentValue.Elem().Field(i)
+
+		// initialize struct fields accepted by Init(), in case being used later
+		initAllStructCanCallInit(fieldValue)
+
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
 		// check if ignored
@@ -245,7 +250,7 @@ fieldLoop:
 		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
-			if !addField(yamlKey, fieldType.Name, self._parentValue.Elem().Field(i), self) {
+			if !addField(yamlKey, fieldType.Name, fieldValue, self) {
 				return fmt.Errorf(
 					"field: duplicate yaml key %q in %s",
 					yamlKey, pt.String(),
@@ -270,7 +275,7 @@ fieldLoop:
 
 				logger.V("inspecting inline fields", log.String("field", fieldType.Name))
 
-				inlineFv := self._parentValue.Elem().Field(i)
+				inlineFv := fieldValue
 				inlineFt := self._parentValue.Type().Elem().Field(i).Type
 
 				var iface interface{}
@@ -341,7 +346,7 @@ fieldLoop:
 				logger.V("found catch other field", log.String("field", fieldType.Name))
 				catchOtherField = &fieldSpec{
 					fieldName:  fieldType.Name,
-					fieldValue: self._parentValue.Elem().Field(i),
+					fieldValue: fieldValue,
 					base:       self,
 				}
 			case "":
@@ -493,6 +498,33 @@ fieldLoop:
 		"field: unknown yaml fields for %s: %s",
 		pt.String(), strings.Join(unknownFields, ", "),
 	)
+}
+
+func initAllStructCanCallInit(fieldValue reflect.Value) {
+	if fieldValue.Kind() != reflect.Struct {
+		return
+	}
+
+	if fieldValue.Type() == baseFieldStructType {
+		return
+	}
+
+	if !fieldValue.CanAddr() {
+		return
+	}
+
+	if !fieldValue.Addr().CanInterface() {
+		return
+	}
+
+	iface, canCallInit := fieldValue.Addr().Interface().(Interface)
+	if canCallInit {
+		_ = Init(iface)
+	}
+
+	for i := 0; i < fieldValue.NumField(); i++ {
+		initAllStructCanCallInit(fieldValue.Field(i))
+	}
 }
 
 func unmarshal(yamlKey string, in interface{}, outField reflect.Value) error {

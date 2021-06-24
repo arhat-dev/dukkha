@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/fatih/color"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 )
@@ -37,15 +39,36 @@ type Task interface {
 
 	// GetExecSpecs generate commands using current field values
 	GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
+
+	RunHooks(
+		ctx *field.RenderingContext,
+		state taskExecState,
+		prefix string,
+		prefixColor, outputColor *color.Color,
+		allTools map[ToolKey]Tool,
+		allShells map[ToolKey]*BaseTool,
+	) error
 }
 
 type BaseTask struct {
 	field.BaseField
 
-	Name   string        `yaml:"name"`
-	Matrix *MatrixConfig `yaml:"matrix"`
+	Name   string       `yaml:"name"`
+	Matrix MatrixConfig `yaml:"matrix"`
+	Hooks  TaskHooks    `yaml:"hooks"`
 
 	toolName string `yaml:"-"`
+}
+
+func (t *BaseTask) RunHooks(
+	ctx *field.RenderingContext,
+	state taskExecState,
+	prefix string,
+	prefixColor, outputColor *color.Color,
+	allTools map[ToolKey]Tool,
+	allShells map[ToolKey]*BaseTool,
+) error {
+	return t.Hooks.Run(ctx, state, prefix, prefixColor, outputColor, allTools, allShells)
 }
 
 func (t *BaseTask) ToolName() string        { return t.toolName }

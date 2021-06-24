@@ -32,7 +32,7 @@ func WriteExecResult(
 
 	output := []interface{}{
 		resultKind,
-		assembleTaskKindID(toolKind, toolName, taskKind),
+		AssembleTaskKindID(toolKind, toolName, taskKind),
 		"[", taskName, "]",
 		"{", matrixSpec,
 	}

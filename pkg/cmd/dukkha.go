@@ -179,6 +179,8 @@ func run(
 
 	// resolve all shells, add them as shell & shell_file renderers
 
+	allShells := make(map[tools.ToolKey]*tools.BaseTool)
+
 	for i, v := range config.Shells {
 		logger.V("resolving shell config",
 			log.String("shell", v.ToolName()),
@@ -191,13 +193,20 @@ func run(
 			return fmt.Errorf("failed to resolve config for shell %q #%d", v.ToolName(), i)
 		}
 
+		err = v.InitBaseTool(config.Bootstrap.CacheDir, v.ToolName(), nil, nil)
+		if err != nil {
+			return fmt.Errorf("failed to initialize shell %q", v.ToolName())
+		}
+
 		if i == 0 {
+			allShells[tools.ToolKey{ToolKind: "shell", ToolName: ""}] = config.Shells[i]
 			err = multierr.Combine(err,
 				renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName),
 				renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName),
 			)
 		}
 
+		allShells[tools.ToolKey{ToolKind: "shell", ToolName: v.Name}] = config.Shells[i]
 		err = multierr.Combine(err,
 			renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName+":"+v.ToolName()),
 			renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName+":"+v.ToolName()),
@@ -209,12 +218,7 @@ func run(
 	}
 
 	// gather tasks for tools
-	type toolKey struct {
-		toolKind string
-		toolName string
-	}
-
-	toolSpecificTasks := make(map[toolKey][]tools.Task)
+	toolSpecificTasks := make(map[tools.ToolKey][]tools.Task)
 
 	// Always initialize all tasks in case task dependencies
 
@@ -223,9 +227,9 @@ func run(
 			continue
 		}
 
-		key := toolKey{
-			toolKind: tasks[0].ToolKind(),
-			toolName: tasks[0].ToolName(),
+		key := tools.ToolKey{
+			ToolKind: tasks[0].ToolKind(),
+			ToolName: tasks[0].ToolName(),
 		}
 
 		toolSpecificTasks[key] = append(
@@ -233,10 +237,10 @@ func run(
 		)
 	}
 
-	allTools := make(map[toolKey]tools.Tool)
+	allTools := make(map[tools.ToolKey]tools.Tool)
 
-	for _, tools := range config.Tools {
-		for i, t := range tools {
+	for _, toolSet := range config.Tools {
+		for i, t := range toolSet {
 			logger := logger.WithFields(
 				log.String("tool", t.ToolKind()),
 				log.Int("index", i),
@@ -273,9 +277,9 @@ func run(
 
 			logger.V("resolving tool tasks")
 
-			key := toolKey{
-				toolKind: t.ToolKind(),
-				toolName: t.ToolName(),
+			key := tools.ToolKey{
+				ToolKind: t.ToolKind(),
+				ToolName: t.ToolName(),
 			}
 
 			err = t.ResolveTasks(toolSpecificTasks[key])
@@ -288,11 +292,11 @@ func run(
 
 			allTools[key] = t
 
-			if i == 0 && len(key.toolName) != 0 {
+			if i == 0 && len(key.ToolName) != 0 {
 				// is default tool for this kind but using name before
-				key = toolKey{
-					toolKind: t.ToolKind(),
-					toolName: "",
+				key = tools.ToolKey{
+					ToolKind: t.ToolKind(),
+					ToolName: "",
 				}
 
 				allTools[key] = t
@@ -316,15 +320,15 @@ func run(
 	}
 
 	var (
-		targetTool toolKey
+		targetTool tools.ToolKey
 		targetTask taskKey
 	)
 	switch n := len(args); n {
 	case 3:
-		targetTool.toolKind, targetTool.toolName = args[0], ""
+		targetTool.ToolKind, targetTool.ToolName = args[0], ""
 		targetTask.taskKind, targetTask.taskName = args[1], args[2]
 	case 4:
-		targetTool.toolKind, targetTool.toolName = args[0], args[1]
+		targetTool.ToolKind, targetTool.ToolName = args[0], args[1]
 		targetTask.taskKind, targetTask.taskName = args[2], args[3]
 	default:
 		return fmt.Errorf("expecting 3 or 4 args, got %d", n)
@@ -332,10 +336,10 @@ func run(
 
 	tool, ok := allTools[targetTool]
 	if !ok {
-		return fmt.Errorf("tool %q with name %q not found", targetTool.toolKind, targetTool.toolName)
+		return fmt.Errorf("tool %q with name %q not found", targetTool.ToolKind, targetTool.ToolName)
 	}
 
-	return tool.Run(appCtx, targetTask.taskKind, targetTask.taskName)
+	return tool.Run(appCtx, allTools, allShells, targetTask.taskKind, targetTask.taskName)
 }
 
 func readConfig(configPaths []string, failOnFileNotFoundError bool, mergedConfig *conf.Config) error {

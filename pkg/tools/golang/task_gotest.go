@@ -1,10 +1,10 @@
 package golang
 
 import (
-	"fmt"
 	"regexp"
 
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -33,8 +33,11 @@ type TaskTest struct {
 }
 
 func (c *TaskTest) ToolKind() string { return ToolKind }
-func (c *TaskTest) TaskKind() string { return TaskKindBuild }
+func (c *TaskTest) TaskKind() string { return TaskKindTest }
 
 func (c *TaskTest) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	return nil, fmt.Errorf("unimplemented")
+	spec := &tools.TaskExecSpec{
+		Command: sliceutils.NewStringSlice(toolCmd, "test", "./..."),
+	}
+	return []tools.TaskExecSpec{*spec}, nil
 }
