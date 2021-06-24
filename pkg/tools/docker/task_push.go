@@ -71,7 +71,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		result = append(result,
 			// ensure manifest exists
 			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest),
+				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
 				IgnoreError: true,
 			},
 			// link manifest and image
@@ -141,6 +141,7 @@ func (c *TaskPush) getManifestArchVariant(arch string) string {
 		constant.ARCH_ARM_V5: "v5",
 		constant.ARCH_ARM_V6: "v6",
 		constant.ARCH_ARM_V7: "v7",
+		constant.ARCH_ARM64:  "v8",
 	}[arch]
 
 	return variant
