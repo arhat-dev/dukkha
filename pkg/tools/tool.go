@@ -81,7 +81,10 @@ func (t *BaseTool) InitBaseTool(
 func (t *BaseTool) ToolName() string { return t.Name }
 
 func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) error {
-	baseCtx := field.WithRenderingValues(ctx, t.Env)
+	execCtx, cancelExec := context.WithCancel(ctx)
+	defer cancelExec()
+
+	baseCtx := field.WithRenderingValues(execCtx, t.Env)
 
 	matrixSpecs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
 	if err != nil {
@@ -108,7 +111,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 	}
 
 	var (
-		resultCollection []taskResult
+		errCollection []taskResult
 
 		resultMU = &sync.Mutex{}
 	)
@@ -117,7 +120,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
-		resultCollection = append(resultCollection, taskResult{
+		errCollection = append(errCollection, taskResult{
 			matrixSpec: spec,
 			err:        err,
 		})
@@ -132,82 +135,99 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		{color.New(color.FgHiRed), color.New(color.FgRed)},
 	}
 
+	failFast := constant.IsFailFast(baseCtx.Context())
+
 	wg := &sync.WaitGroup{}
 	for i, ms := range matrixSpecs {
-		color := colorList[i%len(colorList)]
-		prefixColor, outputColor := color[0], color[1]
+		err2 := func() error {
+			color := colorList[i%len(colorList)]
+			prefixColor, outputColor := color[0], color[1]
 
-		taskCtx := baseCtx.Clone()
+			taskCtx := baseCtx.Clone()
 
-		select {
-		case <-taskCtx.Context().Done():
-			return taskCtx.Context().Err()
-		case <-waitCh:
-		}
+			select {
+			case <-taskCtx.Context().Done():
+				return taskCtx.Context().Err()
+			case <-waitCh:
+			}
 
-		output.WriteTaskStart(
-			taskCtx.Context(),
-			task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
-			ms.String(),
-		)
-
-		for k, v := range ms {
-			taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
-		}
-
-		err = task.ResolveFields(taskCtx, t.RenderingFunc, -1)
-		if err != nil {
-			return fmt.Errorf("failed to resolve task fields: %w", err)
-		}
-
-		var toolCmd []string
-		if len(t.Path) != 0 {
-			toolCmd = append(toolCmd, t.Path)
-		} else {
-			toolCmd = append(toolCmd, t.defaultExecutable)
-		}
-
-		toolCmd = append(toolCmd, t.Args...)
-
-		execSpecs, err := task.GetExecSpecs(taskCtx, toolCmd)
-		if err != nil {
-			return fmt.Errorf("failed to generate task args: %w", err)
-		}
-
-		wg.Add(1)
-		go func(ms MatrixSpec) {
-			defer func() {
-				wg.Done()
-
-				select {
-				case waitCh <- struct{}{}:
-				case <-taskCtx.Context().Done():
-					return
-				}
-			}()
-
-			err := t.doRunTask(
-				taskCtx,
-				fmt.Sprint("{", ms.String(), "}: "),
-				prefixColor, outputColor,
-				execSpecs,
-			)
-			output.WriteExecResult(
+			output.WriteTaskStart(
 				taskCtx.Context(),
 				task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
 				ms.String(),
-				err,
 			)
 
-			if err != nil {
-				appendResult(ms, err)
+			for k, v := range ms {
+				taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
-		}(ms)
+
+			err = task.ResolveFields(taskCtx, t.RenderingFunc, -1)
+			if err != nil {
+				return fmt.Errorf("failed to resolve task fields: %w", err)
+			}
+
+			var toolCmd []string
+			if len(t.Path) != 0 {
+				toolCmd = append(toolCmd, t.Path)
+			} else {
+				toolCmd = append(toolCmd, t.defaultExecutable)
+			}
+
+			toolCmd = append(toolCmd, t.Args...)
+
+			execSpecs, err := task.GetExecSpecs(taskCtx, toolCmd)
+			if err != nil {
+				return fmt.Errorf("failed to generate task args: %w", err)
+			}
+
+			wg.Add(1)
+			go func(ms MatrixSpec) {
+				defer func() {
+					wg.Done()
+
+					select {
+					case waitCh <- struct{}{}:
+					case <-taskCtx.Context().Done():
+						return
+					}
+				}()
+
+				err := t.doRunTask(
+					taskCtx,
+					fmt.Sprint("{", ms.String(), "}: "),
+					prefixColor, outputColor,
+					execSpecs,
+				)
+				output.WriteExecResult(
+					taskCtx.Context(),
+					task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
+					ms.String(),
+					err,
+				)
+
+				if err != nil {
+					if failFast {
+						cancelExec()
+					}
+
+					appendResult(ms, err)
+				}
+			}(ms)
+
+			return nil
+		}()
+
+		if err2 != nil {
+			// failed before execution
+			if failFast {
+				return fmt.Errorf("failed to prepare task execution: %w", err2)
+			}
+		}
 	}
 
 	wg.Wait()
 
-	if len(resultCollection) != 0 {
+	if len(errCollection) != 0 {
 		return fmt.Errorf("task execution failed")
 	}
 
