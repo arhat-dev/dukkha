@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -63,5 +64,5 @@ func (t *BaseTask) GetMatrixSpecs(ctx *field.RenderingContext, rf field.Renderin
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
 
-	return t.Matrix.GetSpecs(), nil
+	return t.Matrix.GetSpecs(constant.GetMatrixFilter(ctx.Context())), nil
 }

@@ -143,7 +143,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.EqualValues(t, test.expected, test.in.GetSpecs())
+			assert.EqualValues(t, test.expected, test.in.GetSpecs(nil))
 		})
 	}
 }

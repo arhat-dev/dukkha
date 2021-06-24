@@ -22,7 +22,7 @@ type MatrixConfig struct {
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
+func (mc *MatrixConfig) GetSpecs(filter map[string][]string) []MatrixSpec {
 	if mc == nil {
 		return []MatrixSpec{
 			{
@@ -59,6 +59,10 @@ func (mc *MatrixConfig) GetSpecs() []MatrixSpec {
 
 	var result []MatrixSpec
 
+	var mf []map[string]string
+	if len(filter) != 0 {
+		mf = CartesianProduct(filter)
+	}
 	mat := CartesianProduct(all)
 loop:
 	for i := range mat {
@@ -70,7 +74,18 @@ loop:
 			}
 		}
 
-		result = append(result, spec)
+		if len(mf) == 0 {
+			// no filter, add it
+			result = append(result, spec)
+			continue
+		}
+
+		for _, f := range mf {
+			if spec.Match(f) {
+				result = append(result, spec)
+				continue loop
+			}
+		}
 	}
 
 	// add included
@@ -78,13 +93,26 @@ loop:
 		mat := CartesianProduct(inc)
 	addInclude:
 		for i := range mat {
+			includeSpec := MatrixSpec(mat[i])
+
 			for _, spec := range result {
-				if spec.Equals(mat[i]) {
+				if spec.Equals(includeSpec) {
 					continue addInclude
 				}
 			}
 
-			result = append(result, mat[i])
+			if len(mf) == 0 {
+				// no filter, add it
+				result = append(result, includeSpec)
+				continue
+			}
+
+			for _, f := range mf {
+				if includeSpec.Match(f) {
+					result = append(result, includeSpec)
+					continue addInclude
+				}
+			}
 		}
 	}
 

@@ -24,7 +24,8 @@ type ContextKey string
 const (
 	ContextKeyConfig ContextKey = "config"
 
-	contextKeyWorkerCount ContextKey = "worker_count"
+	contextKeyWorkerCount  ContextKey = "worker_count"
+	contextKeyMatrixFilter ContextKey = "matrix_filter"
 )
 
 func WithWorkerCount(ctx context.Context, n int) context.Context {
@@ -40,6 +41,20 @@ func GetWorkerCount(ctx context.Context) int {
 	if !ok {
 		// default in serial mode
 		return 1
+	}
+
+	return v
+}
+
+func WithMatrixFilter(ctx context.Context, filter map[string][]string) context.Context {
+	return context.WithValue(ctx, contextKeyMatrixFilter, filter)
+}
+
+func GetMatrixFilter(ctx context.Context) map[string][]string {
+	v, ok := ctx.Value(contextKeyMatrixFilter).(map[string][]string)
+	if !ok {
+		// default in serial mode
+		return nil
 	}
 
 	return v
