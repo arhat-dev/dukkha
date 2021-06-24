@@ -40,6 +40,18 @@ type TaskBuild struct {
 	Tags      []string `yaml:"tags"`
 	ExtraArgs []string `yaml:"extraArgs"`
 	Outputs   []string `yaml:"outputs"`
+
+	CGO struct {
+		Enabled bool     `yaml:"enabled"`
+		CFlags  []string `yaml:"cflags"`
+		LDFlags []string `yaml:"ldflags"`
+
+		HostCC  string `yaml:"hostCC"`
+		HostCXX string `yaml:"hostCXX"`
+
+		TargetCC  string `yaml:"targetCC"`
+		TargetCXX string `yaml:"targetCXX"`
+	} `yaml:"cgo"`
 }
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }
@@ -56,6 +68,36 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		spec := &tools.TaskExecSpec{}
 
 		spec.Env = append(spec.Env, c.Env...)
+
+		if c.CGO.Enabled {
+			spec.Env = append(spec.Env, "CGO_ENABLED=1")
+
+			if len(c.CGO.CFlags) != 0 {
+				spec.Env = append(spec.Env, fmt.Sprintf("CGO_CFLAGS=%s", strings.Join(c.CGO.CFlags, " ")))
+			}
+
+			if len(c.CGO.LDFlags) != 0 {
+				spec.Env = append(spec.Env, fmt.Sprintf("CGO_LDFLAGS=%s", strings.Join(c.CGO.LDFlags, " ")))
+			}
+
+			if len(c.CGO.HostCC) != 0 {
+				spec.Env = append(spec.Env, "CC="+c.CGO.HostCC)
+			}
+
+			if len(c.CGO.HostCXX) != 0 {
+				spec.Env = append(spec.Env, "CXX="+c.CGO.HostCXX)
+			}
+
+			if len(c.CGO.TargetCC) != 0 {
+				spec.Env = append(spec.Env, "CC_FOR_TARGET="+c.CGO.TargetCC)
+			}
+
+			if len(c.CGO.TargetCXX) != 0 {
+				spec.Env = append(spec.Env, "CXX_FOR_TARGET="+c.CGO.TargetCXX)
+			}
+		} else {
+			spec.Env = append(spec.Env, "CGO_ENABLED=0")
+		}
 
 		envGOOS := c.getGOOS(strings.ToLower(ctx.Values().Env[constant.ENV_MATRIX_OS]))
 		spec.Env = append(spec.Env, "GOOS="+envGOOS)
@@ -120,6 +162,10 @@ func (c *TaskBuild) getGOARCH(mArch string) string {
 		constant.ARCH_S390X:    "s390x",
 		constant.ARCH_IA64:     "ia64",
 	}[mArch]
+
+	if len(goArch) == 0 {
+		return mArch
+	}
 
 	return goArch
 }

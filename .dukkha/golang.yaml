@@ -13,7 +13,23 @@ golang:build:
 - name: dukkha
   path: ./cmd/dukkha
   env:
-  - CGO_ENABLED=0
+  - CGO_CFLAGS_ALLOW="-W"
+  cgo:
+    enabled: false
+    hostCC: clang
+    hostCXX: clang++
+    # target cc and cxx for cross compiling
+    targetCC: ""
+    targetCXX: ""
+
+    cflags@shell: |-
+      cat <<EOF
+      - -I/usr/include/glib-2.0
+      - -I/usr/include
+      EOF
+    ldflags@shell: |-
+      cat <<EOF
+      EOF
   matrix:
     os:
     - windows
@@ -80,7 +96,7 @@ golang:build:
     fi
 
     if [ "${MATRIX_OS}" = "${HOST_OS}" ] && [ "${MATRIX_ARCH}" = "${HOST_ARCH}" ]; then
-      echo "- build/dukkha.native${suffix}"
+      echo "- build/dukkha${suffix}"
     fi
 
     echo "- build/dukkha.${MATRIX_OS}.${MATRIX_ARCH}${suffix}"
