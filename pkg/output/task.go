@@ -11,17 +11,19 @@ func WriteTaskStart(
 	toolKind, toolName, taskKind, taskName string,
 	matrixSpec string,
 ) {
+	_, _ = fmt.Println(
+		"---",
+		assembleTaskKindID(toolKind, toolName, taskKind),
+		"[", taskName, "]",
+		"{", matrixSpec, "}",
+	)
+}
+
+func assembleTaskKindID(toolKind, toolName, taskKind string) string {
 	kindParts := []string{toolKind}
 	if len(toolName) != 0 {
 		kindParts = append(kindParts, toolName)
 	}
 
-	kindParts = append(kindParts, taskKind)
-
-	fmt.Println(
-		"---",
-		strings.Join(kindParts, ":"),
-		"[", taskName, "]",
-		"{", matrixSpec, "}",
-	)
+	return strings.Join(append(kindParts, taskKind), ":")
 }

@@ -45,10 +45,11 @@ func KernelVersion() string {
 
 	buf := make([]byte, len(uname.Release))
 	for i, b := range uname.Release {
+		// nolint:unconvert
 		buf[i] = byte(b)
 	}
 
-	kernelVersion := string(buf[:])
+	kernelVersion := string(buf)
 	if i := strings.Index(kernelVersion, "\x00"); i != -1 {
 		kernelVersion = kernelVersion[:i]
 	}
