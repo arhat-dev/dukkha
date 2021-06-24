@@ -5,6 +5,7 @@ package sysinfo
 
 import (
 	"bytes"
+	"runtime"
 	"strings"
 	"unsafe"
 
@@ -19,6 +20,40 @@ var littleEndian bool
 func init() {
 	var x uint32 = 0x01020304
 	littleEndian = *(*byte)(unsafe.Pointer(&x)) == 0x04
+}
+
+func OSName() string {
+	// TODO: check real name using syscall
+	switch runtime.GOOS {
+	case constant.KERNEL_WINDOWS:
+		return "windows"
+	case constant.KERNEL_DARWIN:
+		return "macos"
+	default:
+		return runtime.GOOS
+	}
+}
+
+func OSVersion() string {
+	// TODO: check os version using syscall
+	return ""
+}
+
+func KernelVersion() string {
+	var uname unix.Utsname
+	_ = unix.Uname(&uname)
+
+	buf := make([]byte, len(uname.Release))
+	for i, b := range uname.Release {
+		buf[i] = byte(b)
+	}
+
+	kernelVersion := string(buf[:])
+	if i := strings.Index(kernelVersion, "\x00"); i != -1 {
+		kernelVersion = kernelVersion[:i]
+	}
+
+	return kernelVersion
 }
 
 func Arch() string {

@@ -15,7 +15,7 @@ docker:build:
   extraArgs:
   - --pull
   - --build-arg="ARCH=${MATRIX_ARCH}"
-  - --build-arg="TARGET=dukkha.${MATRIX_OS}.${MATRIX_ARCH}"
+  - --build-arg="TARGET=dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}"
   - --build-arg="APP=dukkha"
   - --no-cache
 

@@ -35,7 +35,10 @@ func TestPopulateGlobalEnv(t *testing.T) {
 		"TIME_HOUR":           strconv.FormatInt(int64(time.Now().Hour()), 10),
 		"TIME_MINUTE":         strconv.FormatInt(int64(time.Now().Minute()), 10),
 		"TIME_SECOND":         "",
-		"HOST_OS":             runtime.GOOS,
+		"HOST_OS":             "",
+		"HOST_OS_VERSION":     "",
+		"HOST_KERNEL":         runtime.GOOS,
+		"HOST_KERNEL_VERSION": "",
 		"HOST_ARCH":           "",
 	}
 

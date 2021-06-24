@@ -15,31 +15,31 @@ type MatrixConfig struct {
 	Include []map[string][]string `yaml:"include"`
 	Exclude []map[string][]string `yaml:"exclude"`
 
-	OS   []string `yaml:"os"`
-	Arch []string `yaml:"arch"`
+	Kernel []string `yaml:"kernel"`
+	Arch   []string `yaml:"arch"`
 
 	// catch other matrix fields
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func (mc *MatrixConfig) GetSpecs(filter map[string][]string) []MatrixSpec {
+func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
 	if mc == nil {
 		return []MatrixSpec{
 			{
-				"os":   os.Getenv(constant.ENV_HOST_OS),
-				"arch": os.Getenv(constant.ENV_HOST_ARCH),
+				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
+				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
 			},
 		}
 	}
 
 	all := make(map[string][]string)
 
-	osList := mc.OS
+	osList := mc.Kernel
 	if len(osList) == 0 {
 		// add default host arch
-		osList = []string{os.Getenv(constant.ENV_HOST_OS)}
+		osList = []string{os.Getenv(constant.ENV_HOST_KERNEL)}
 	}
-	all["os"] = osList
+	all["kernel"] = osList
 
 	archList := mc.Arch
 	if len(archList) == 0 {
@@ -60,8 +60,8 @@ func (mc *MatrixConfig) GetSpecs(filter map[string][]string) []MatrixSpec {
 	var result []MatrixSpec
 
 	var mf []map[string]string
-	if len(filter) != 0 {
-		mf = CartesianProduct(filter)
+	if len(matchFilter) != 0 {
+		mf = CartesianProduct(matchFilter)
 	}
 	mat := CartesianProduct(all)
 loop:

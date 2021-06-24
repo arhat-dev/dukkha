@@ -99,7 +99,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 			spec.Env = append(spec.Env, "CGO_ENABLED=0")
 		}
 
-		envGOOS := c.getGOOS(strings.ToLower(ctx.Values().Env[constant.ENV_MATRIX_OS]))
+		envGOOS := c.getGOOS(strings.ToLower(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]))
 		spec.Env = append(spec.Env, "GOOS="+envGOOS)
 
 		mArch := strings.ToLower(ctx.Values().Env[constant.ENV_MATRIX_ARCH])

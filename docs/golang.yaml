@@ -74,21 +74,21 @@ go:build:
 - name: <name your build>
   matrix:
     include:
-    - os:
+    - kernel:
       - darwin
       arch:
       - amd64
       - arm64
     exclude:
-    - os:
+    - kernel:
       - windows
       arch:
       - arm64
       - s390x
       - ppc64le
       - mips64le
-    # built-in matrix os, defaults to [ $HOST_OS ]
-    os:
+    # built-in matrix kernel, defaults to [ $HOST_KERNEL ]
+    kernel:
     - darwin
     - windows
     - linux

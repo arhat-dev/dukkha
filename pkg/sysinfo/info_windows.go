@@ -4,13 +4,38 @@
 package sysinfo
 
 import (
+	"fmt"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+	"golang.org/x/sys/windows/registry"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/version"
 )
+
+var (
+	arch          string
+	osName        string
+	kernelVersion string
+)
+
+func Arch() string {
+	return arch
+}
+
+func OSName() string {
+	return osName
+}
+
+func OSVersion() string {
+	// TODO: check os version using syscall
+	return ""
+}
+
+func KernelVersion() string {
+	return kernelVersion
+}
 
 func init() {
 	defer func() {
@@ -62,10 +87,42 @@ func init() {
 	default:
 		arch = version.Arch()
 	}
-}
 
-var arch string
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_ = k.Close()
+	}()
 
-func Arch() string {
-	return arch
+	{
+		// get product name as os name
+		osName, _, _ = k.GetStringValue("ProductName")
+	}
+
+	{
+		// build kernel version
+		buildNumber, _, err := k.GetStringValue("CurrentBuildNumber")
+		if err != nil {
+			return
+		}
+
+		majorVersionNumber, _, err := k.GetIntegerValue("CurrentMajorVersionNumber")
+		if err != nil {
+			return
+		}
+
+		minorVersionNumber, _, err := k.GetIntegerValue("CurrentMinorVersionNumber")
+		if err != nil {
+			return
+		}
+
+		revision, _, err := k.GetIntegerValue("UBR")
+		if err != nil {
+			return
+		}
+
+		kernelVersion = fmt.Sprintf("%d.%d.%s.%d", majorVersionNumber, minorVersionNumber, buildNumber, revision)
+	}
 }
