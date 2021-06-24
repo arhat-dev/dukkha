@@ -157,7 +157,7 @@ func (c *TaskBuild) getGOARCH(mArch string) string {
 		constant.ARCH_MIPS64_LE_HF: "mips64le",
 		// constant.ARCH_PPC:          "ppc",
 		constant.ARCH_PPC64:    "ppc64",
-		constant.ARCH_PPC64LE:  "ppc64le",
+		constant.ARCH_PPC64_LE: "ppc64le",
 		constant.ARCH_RISCV_64: "riscv64",
 		constant.ARCH_S390X:    "s390x",
 		constant.ARCH_IA64:     "ia64",

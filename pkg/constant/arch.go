@@ -1,5 +1,6 @@
 package constant
 
+// Arch values for matrix
 // nolint:revive
 const (
 	ARCH_X86 = "x86"
@@ -26,8 +27,8 @@ const (
 
 	ARCH_PPC = "ppc"
 
-	ARCH_PPC64   = "ppc64"
-	ARCH_PPC64LE = "ppc64le"
+	ARCH_PPC64    = "ppc64"
+	ARCH_PPC64_LE = "ppc64le"
 
 	ARCH_RISCV_64 = "riscv64"
 

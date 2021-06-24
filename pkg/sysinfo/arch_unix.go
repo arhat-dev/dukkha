@@ -59,7 +59,7 @@ func Arch() string {
 		return constant.ARCH_X86
 	case rawArch == "ppc64":
 		if littleEndian {
-			return constant.ARCH_PPC64LE
+			return constant.ARCH_PPC64_LE
 		}
 
 		return constant.ARCH_PPC64
