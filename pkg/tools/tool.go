@@ -92,6 +92,26 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		waitCh <- struct{}{}
 	}
 
+	type taskResult struct {
+		matrixSpec MatrixSpec
+		err        error
+	}
+
+	var (
+		resultCollection []taskResult
+
+		resultMU = &sync.Mutex{}
+	)
+	appendResult := func(spec MatrixSpec, err error) {
+		resultMU.Lock()
+		defer resultMU.Unlock()
+
+		resultCollection = append(resultCollection, taskResult{
+			matrixSpec: spec,
+			err:        err,
+		})
+	}
+
 	wg := &sync.WaitGroup{}
 	for _, ms := range matrixSpecs {
 		taskCtx := baseCtx.Clone()
@@ -132,7 +152,7 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 		}
 
 		wg.Add(1)
-		go func() {
+		go func(ms MatrixSpec) {
 			defer func() {
 				wg.Done()
 
@@ -143,22 +163,30 @@ func (t *BaseTool) RunTask(ctx context.Context, toolKind string, task Task) erro
 				}
 			}()
 
-			// TODO: collect errors
-			err := t.doRunTask(taskCtx, execSpecs)
-			if err != nil {
-				output.WriteExecFailure()
-			}
+			err := t.doRunTask(taskCtx, fmt.Sprint("{", ms.String(), "}: "), execSpecs)
+			output.WriteExecResult(
+				taskCtx.Context(),
+				task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
+				ms.String(),
+				err,
+			)
 
-			output.WriteExecSuccess()
-		}()
+			if err != nil {
+				appendResult(ms, err)
+			}
+		}(ms)
 	}
 
 	wg.Wait()
 
+	if len(resultCollection) != 0 {
+		return fmt.Errorf("task execution failed")
+	}
+
 	return nil
 }
 
-func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, execSpecs []TaskExecSpec) error {
+func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, outputPrefix string, execSpecs []TaskExecSpec) error {
 	for _, es := range execSpecs {
 		ctx := taskCtx.Clone()
 
@@ -183,9 +211,8 @@ func (t *BaseTool) doRunTask(taskCtx *field.RenderingContext, execSpecs []TaskEx
 
 			Stdin: os.Stdin,
 
-			// TODO: render output with different colors in tty
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
+			Stdout: output.PrefixWriter(outputPrefix, os.Stdout),
+			Stderr: output.PrefixWriter(outputPrefix, os.Stderr),
 		})
 
 		if err != nil {
