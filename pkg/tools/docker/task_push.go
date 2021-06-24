@@ -85,10 +85,10 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		annotateCmd := sliceutils.NewStringSlice(
 			manifestCmd, "annotate", spec.Manifest, spec.Image,
 			"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-			"--arch", c.getManifestArch(mArch),
+			"--arch", constant.GetDockerArch(mArch),
 		)
 
-		variant := c.getManifestArchVariant(mArch)
+		variant := constant.GetDockerArchVariant(mArch)
 		if len(variant) != 0 {
 			annotateCmd = append(annotateCmd, "--variant", variant)
 		}
@@ -104,45 +104,4 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 
 func (c *TaskPush) getManifestOS(os string) string {
 	return strings.ToLower(os)
-}
-
-func (c *TaskPush) getManifestArch(arch string) string {
-	arch = strings.ToLower(arch)
-
-	mArch := map[string]string{
-		constant.ARCH_X86:   "386",
-		constant.ARCH_AMD64: "amd64",
-
-		constant.ARCH_ARM_V5: "arm",
-		constant.ARCH_ARM_V6: "arm",
-		constant.ARCH_ARM_V7: "arm",
-
-		constant.ARCH_ARM64: "arm64",
-
-		constant.ARCH_MIPS64_LE:    "mips64le",
-		constant.ARCH_MIPS64_LE_HF: "mips64le",
-
-		constant.ARCH_PPC64_LE: "ppc64le",
-
-		constant.ARCH_S390X: "s390x",
-	}[arch]
-
-	if len(mArch) == 0 {
-		mArch = arch
-	}
-
-	return mArch
-}
-
-func (c *TaskPush) getManifestArchVariant(arch string) string {
-	arch = strings.ToLower(arch)
-
-	variant := map[string]string{
-		constant.ARCH_ARM_V5: "v5",
-		constant.ARCH_ARM_V6: "v6",
-		constant.ARCH_ARM_V7: "v7",
-		constant.ARCH_ARM64:  "v8",
-	}[arch]
-
-	return variant
 }

@@ -25,12 +25,28 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 	tpl, err := template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
-			"jq":                  textquery.JQ,
-			"jqBytes":             textquery.JQBytes,
+			"jq":      textquery.JQ,
+			"jqBytes": textquery.JQBytes,
+
 			"getAlpineArch":       constant.GetAlpineArch,
 			"getAlpineTripleName": constant.GetAlpineTripleName,
+
 			"getDebianArch":       constant.GetDebianArch,
 			"getDebianTripleName": constant.GetDebianTripleName,
+
+			"getDockerArch":        constant.GetDockerArch,
+			"getDockerArchVariant": constant.GetDockerArchVariant,
+			"getDockerPlatformArch": func(mArch string) string {
+				arch := constant.GetDockerArch(mArch)
+				variant := constant.GetDockerArchVariant(mArch)
+				if len(variant) != 0 {
+					return arch + "/" + variant
+				}
+
+				return arch
+			},
+
+			"getGolangArch": constant.GetGolangArch,
 		}).
 		Parse(tplStr)
 	if err != nil {
