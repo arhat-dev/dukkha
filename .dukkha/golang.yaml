@@ -15,6 +15,25 @@ golang:build:
   env:
   - CGO_ENABLED=0
   matrix:
+    os:
+    - windows
+    - linux
+    - freebsd
+    - netbsd
+    - openbsd
+    - plan9
+    arch:
+    - x86
+    - arm64
+    - amd64
+    - armv7
+    - armv6
+    - armv5
+    exclude:
+    - os:
+      - windows
+      - plan9
+      arch: [arm64]
     include:
     - os:
       - darwin
@@ -30,15 +49,6 @@ golang:build:
       - linux
       arch: [ppc64]
     - os:
-      - windows
-      arch:
-      - x86
-      - amd64
-      # - arm64
-      - armv7
-      - armv6
-      - armv5
-    - os:
       - linux
       arch:
       - mips
@@ -52,19 +62,6 @@ golang:build:
       - ppc64le
       - s390x
       - riscv64
-    os:
-    - linux
-    - freebsd
-    - netbsd
-    - openbsd
-    - plan9
-    arch:
-    - x86
-    - arm64
-    - amd64
-    - armv7
-    - armv6
-    - armv5
   tags:
   - nokube
   - nocloud
