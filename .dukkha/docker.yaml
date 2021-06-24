@@ -13,10 +13,16 @@ docker:build:
   # yamllint disable-line rule:quoted-strings
   build_context: "."
   extraArgs@template: |-
+    {{- $platform_arch := getDockerPlatformArch .Env.MATRIX_ARCH -}}
+    {{- $host_platform_arch := getDockerPlatformArch .Env.HOST_ARCH -}}
+
+    - --platform={{ .Env.MATRIX_KERNEL }}/{{ $platform_arch }}
     - --pull
     - --build-arg="ARCH={{- .Env.MATRIX_ARCH | trimSuffix "hf" -}}"
     - --build-arg="TARGET=dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}"
     - --build-arg="APP=dukkha"
+    - --build-arg="PLATFORM_ARCH={{ $platform_arch }}"
+    - --build-arg="HOST_PLATFORM_ARCH={{ $host_platform_arch }}"
     - --no-cache
 
 docker:push:

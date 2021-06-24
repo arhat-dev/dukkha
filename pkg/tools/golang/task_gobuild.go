@@ -103,7 +103,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		spec.Env = append(spec.Env, "GOOS="+envGOOS)
 
 		mArch := strings.ToLower(ctx.Values().Env[constant.ENV_MATRIX_ARCH])
-		spec.Env = append(spec.Env, "GOARCH="+c.getGOARCH(mArch))
+		spec.Env = append(spec.Env, "GOARCH="+constant.GetGolangArch(mArch))
 
 		switch {
 		case strings.HasPrefix(mArch, "mips"):
@@ -135,39 +135,8 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 	return ret, nil
 }
 
-func (c *TaskBuild) getGOOS(mOS string) string {
-	return mOS
-}
-
-func (c *TaskBuild) getGOARCH(mArch string) string {
-	goArch := map[string]string{
-		constant.ARCH_X86:          "386",
-		constant.ARCH_AMD64:        "amd64",
-		constant.ARCH_ARM64:        "arm64",
-		constant.ARCH_ARM_V5:       "arm",
-		constant.ARCH_ARM_V6:       "arm",
-		constant.ARCH_ARM_V7:       "arm",
-		constant.ARCH_MIPS:         "mips",
-		constant.ARCH_MIPS_HF:      "mips",
-		constant.ARCH_MIPS_LE:      "mipsle",
-		constant.ARCH_MIPS_LE_HF:   "mipsle",
-		constant.ARCH_MIPS64:       "mips64",
-		constant.ARCH_MIPS64_HF:    "mips64",
-		constant.ARCH_MIPS64_LE:    "mips64le",
-		constant.ARCH_MIPS64_LE_HF: "mips64le",
-		// constant.ARCH_PPC:          "ppc",
-		constant.ARCH_PPC64:    "ppc64",
-		constant.ARCH_PPC64_LE: "ppc64le",
-		constant.ARCH_RISCV_64: "riscv64",
-		constant.ARCH_S390X:    "s390x",
-		constant.ARCH_IA64:     "ia64",
-	}[mArch]
-
-	if len(goArch) == 0 {
-		return mArch
-	}
-
-	return goArch
+func (c *TaskBuild) getGOOS(mKernel string) string {
+	return mKernel
 }
 
 func (c *TaskBuild) getGOARM(mArch string) string {
