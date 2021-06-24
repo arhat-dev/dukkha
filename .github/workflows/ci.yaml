@@ -69,7 +69,7 @@ jobs:
 
     - name: Test Packages
       env:
-        # TODO: cannot get GIT_DEFAULT_BRANCH in github actions
+        # TODO: cannot get GIT_DEFAULT_BRANCH in github actions using actions/checkout
         #       set manually as a workaround
         GIT_DEFAULT_BRANCH: master
       run: |

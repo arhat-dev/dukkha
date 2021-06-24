@@ -55,7 +55,7 @@ jobs:
       run: |
         make dukkha
 
-        ./build/dukkha golang build dukkha -j 100
+        ./build/dukkha golang build dukkha -j $(nproc --all)
 
     # - name: Package
     #   run: |
