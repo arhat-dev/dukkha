@@ -1,20 +1,30 @@
-{{- $tag := "" -}}
-{{- if and (eq .Env.GIT_WORKSPACE_CLEAN "true") (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
-  {{- $tag = printf "%s-latest" .Env.MATRIX_ARCH -}}
-{{- else -}}
-  {{- $tag = printf "dev-%s" .Env.MATRIX_ARCH -}}
-{{- end -}}
-
-{{- $manifest_tag := "" -}}
 {{- $branch := (.Env.GIT_BRANCH | replace "/" "-" | kebabcase) }}
+
+{{- $tag := "" -}}
+{{- $manifest_tag := "" -}}
+
 {{- if (eq .Env.GIT_WORKSPACE_CLEAN "true") -}}
   {{- if .Env.GIT_TAG -}}
-    {{- $manifest_tag = .Env.GIT_TAG -}}
+
+    {{- $tag = printf "%s-%s" .Env.GIT_TAG .Env.MATRIX_ARCH -}}
+    {{- $manifest_tag = printf "%s" .Env.GIT_TAG -}}
+
+  {{- else if (eq .Env.GIT_DEFAULT_BRANCH .Env.GIT_BRANCH) -}}
+
+    {{- $tag = printf "%s-latest" .Env.MATRIX_ARCH -}}
+    {{- $manifest_tag = "latest" -}}
+
   {{- else -}}
+
+    {{- $tag = printf "%s-%s-%s" $branch .Env.GIT_COMMIT .Env.MATRIX_ARCH -}}
     {{- $manifest_tag = printf "%s-%s" $branch .Env.GIT_COMMIT }}
+
   {{- end -}}
 {{- else -}}
+
+  {{- $tag = printf "dev-%s-%s" $branch .Env.MATRIX_ARCH -}}
   {{- $manifest_tag = printf "dev-%s" $branch -}}
+
 {{- end -}}
 
 - image: docker.io/arhatdev/dukkha:{{ $tag }}
