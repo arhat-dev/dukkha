@@ -79,33 +79,42 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			manifestCmd = append(manifestCmd, "manifest")
 		}
 
-		result = append(result,
-			// ensure manifest exists
-			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
-				IgnoreError: true,
-			},
-			// link manifest and image
-			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
+		// ensure manifest exists
+		{
+			result = append(result,
+				// ensure manifest exists
+				tools.TaskExecSpec{
+					Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
+					IgnoreError: true,
+				},
+				// link manifest and image
+				tools.TaskExecSpec{
+					Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
+					IgnoreError: false,
+				},
+			)
+
+			mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+			annotateCmd := sliceutils.NewStringSlice(
+				manifestCmd, "annotate", spec.Manifest, spec.Image,
+				"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
+				"--arch", constant.GetDockerArch(mArch),
+			)
+
+			variant := constant.GetDockerArchVariant(mArch)
+			if len(variant) != 0 {
+				annotateCmd = append(annotateCmd, "--variant", variant)
+			}
+
+			result = append(result, tools.TaskExecSpec{
+				Command:     annotateCmd,
 				IgnoreError: false,
-			},
-		)
-
-		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-		annotateCmd := sliceutils.NewStringSlice(
-			manifestCmd, "annotate", spec.Manifest, spec.Image,
-			"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-			"--arch", constant.GetDockerArch(mArch),
-		)
-
-		variant := constant.GetDockerArchVariant(mArch)
-		if len(variant) != 0 {
-			annotateCmd = append(annotateCmd, "--variant", variant)
+			})
 		}
 
+		// push manifest
 		result = append(result, tools.TaskExecSpec{
-			Command:     annotateCmd,
+			Command:     sliceutils.NewStringSlice(manifestCmd, "push", spec.Manifest),
 			IgnoreError: false,
 		})
 	}
