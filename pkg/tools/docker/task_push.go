@@ -33,6 +33,9 @@ type TaskPush struct {
 
 	tools.BaseTask `yaml:",inline"`
 
+	pushCmd     []string
+	manifestCmd []string
+
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 	ExtraArgs  []string        `yaml:"extraArgs"`
 }
@@ -57,7 +60,11 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		pushCmd := sliceutils.NewStringSlice(toolCmd, "push")
+		pushCmd := sliceutils.NewStringSlice(toolCmd, c.pushCmd...)
+		if len(pushCmd) == len(toolCmd) {
+			pushCmd = append(pushCmd, "push")
+		}
+
 		result = append(result, tools.TaskExecSpec{
 			Command:     sliceutils.NewStringSlice(pushCmd, spec.Image),
 			IgnoreError: false,
@@ -67,7 +74,11 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		manifestCmd := sliceutils.NewStringSlice(toolCmd, "manifest")
+		manifestCmd := sliceutils.NewStringSlice(toolCmd, c.manifestCmd...)
+		if len(manifestCmd) == len(toolCmd) {
+			manifestCmd = append(manifestCmd, "manifest")
+		}
+
 		result = append(result,
 			// ensure manifest exists
 			tools.TaskExecSpec{

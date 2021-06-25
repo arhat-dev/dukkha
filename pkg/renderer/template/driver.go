@@ -35,6 +35,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 			"getDebianTripleName": constant.GetDebianTripleName,
 
 			"getDockerArch":        constant.GetDockerArch,
+			"getDockerHubArch":     constant.GetDockerHubArch,
 			"getDockerArchVariant": constant.GetDockerArchVariant,
 			"getDockerPlatformArch": func(mArch string) string {
 				arch := constant.GetDockerArch(mArch)

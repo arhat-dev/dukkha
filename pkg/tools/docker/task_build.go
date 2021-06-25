@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -31,6 +32,8 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
+	buildCmd []string
+
 	BuildContext string          `yaml:"build_context"`
 	ImageNames   []ImageNameSpec `yaml:"image_names"`
 	Dockerfile   string          `yaml:"dockerfile"`
@@ -46,10 +49,10 @@ func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 
 func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	var cmd []string
-
-	cmd = append(cmd, toolCmd...)
-	cmd = append(cmd, "build")
+	cmd := sliceutils.NewStringSlice(toolCmd, c.buildCmd...)
+	if len(cmd) == len(toolCmd) {
+		cmd = append(cmd, "build")
+	}
 
 	if len(c.Dockerfile) != 0 {
 		cmd = append(cmd, "-f", c.Dockerfile)
