@@ -1,9 +1,15 @@
 package constant
 
-func GetOCIArch(mArch string) string {
+func GetOciArch(mArch string) string {
 	return GetGolangArch(mArch)
 }
 
-func GetOCIArchVariant(mArch string) string {
-	return GetDockerArchVariant(mArch)
+func GetOciArchVariant(mArch string) string {
+	return map[string]string{
+		ARCH_ARM_V5: "v5",
+		ARCH_ARM_V6: "v6",
+		ARCH_ARM_V7: "v7",
+
+		ARCH_ARM64: "v8",
+	}[mArch]
 }
