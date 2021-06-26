@@ -1,0 +1,22 @@
+To load completions:
+bash:
+
+  $ source <(dukkha completion bash)
+
+fish:
+
+  $ dukkha completion fish | source
+
+pwsh (PowerShell):
+
+  PS> dukkha completion powershell | Out-String | Invoke-Expression
+
+zsh:
+
+  # Enable shell completion
+  $ echo "autoload -U compinit; compinit" >> ~/.zshrc
+
+  # Add completion script to one of you $fpath directory
+  $ dukkha completion zsh > "${fpath[1]}/_dukkha"
+
+  NOTE: You will need to start a new shell for this setup to take effect.
