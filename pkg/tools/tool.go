@@ -52,6 +52,8 @@ type Tool interface {
 		allShells map[ToolKey]*BaseTool,
 		taskKind, taskName string,
 	) error
+
+	GetEnv() []string
 }
 
 type BaseTool struct {
@@ -88,6 +90,7 @@ func (t *BaseTool) InitBaseTool(
 }
 
 func (t *BaseTool) ToolName() string { return t.Name }
+func (t *BaseTool) GetEnv() []string { return sliceutils.NewStringSlice(t.Env) }
 
 func (t *BaseTool) RunTask(
 	ctx context.Context,
@@ -105,7 +108,10 @@ func (t *BaseTool) RunTask(
 
 	baseCtx := field.WithRenderingValues(ctx, t.Env)
 
-	matrixSpecs, err := task.GetMatrixSpecs(baseCtx, t.RenderingFunc)
+	matrixSpecs, err := task.GetMatrixSpecs(
+		baseCtx, t.RenderingFunc,
+		constant.GetMatrixFilter(baseCtx.Context()),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}

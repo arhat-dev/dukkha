@@ -142,7 +142,7 @@ func handleTaskCompletion(
 			break
 		}
 	default:
-		return nil, cobra.ShellCompDirectiveNoFileComp
+		return []string{"-m"}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	if len(ret) == 0 {

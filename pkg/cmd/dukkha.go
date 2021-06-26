@@ -19,7 +19,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
@@ -32,14 +31,16 @@ import (
 
 func NewRootCmd() *cobra.Command {
 	var (
-		appCtx      = context.Background()
+		_appCtx = context.Background()
+		appCtx  = &_appCtx
+
 		configPaths []string
 		logConfig   = new(log.Config)
 		config      = conf.NewConfig()
 
 		workerCount  int
 		failFast     bool
-		matrixFilter = make(map[string]string)
+		matrixFilter []string
 
 		renderingMgr = renderer.NewManager()
 	)
@@ -66,7 +67,7 @@ dukkha docker non-default-tool build my-image`,
 				return nil
 			}
 
-			populateGlobalEnv(appCtx)
+			populateGlobalEnv(*appCtx)
 
 			config.Log = logConfig
 
@@ -84,29 +85,26 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("failed to read config: %w", err)
 			}
 
-			err = resolveConfig(appCtx, renderingMgr, config, &allShells, &allTools, &toolSpecificTasks)
+			err = resolveConfig(*appCtx, renderingMgr, config, &allShells, &allTools, &toolSpecificTasks)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
-			mf := make(map[string][]string)
-			for k, v := range matrixFilter {
-				mf[k] = strings.Split(v, ",")
-			}
-
-			appCtx = constant.WithWorkerCount(appCtx, workerCount)
+			mf := parseMatrixFilter(matrixFilter)
+			ctx := constant.WithWorkerCount(*appCtx, workerCount)
 			if len(mf) != 0 {
-				appCtx = constant.WithMatrixFilter(appCtx, mf)
+				ctx = constant.WithMatrixFilter(ctx, mf)
 			}
 
-			appCtx = constant.WithFailFast(appCtx, failFast)
+			ctx = constant.WithFailFast(ctx, failFast)
+			appCtx = &ctx
 
 			log.Log.D("application configured", log.Any("config", config))
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(appCtx, args, allShells, allTools)
+			return run(*appCtx, args, allShells, allTools)
 		},
 	}
 
@@ -119,7 +117,7 @@ dukkha docker non-default-tool build my-image`,
 	)
 
 	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
-	globalFlags.StringToStringVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter")
+	globalFlags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter")
 	globalFlags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution when one errored")
 
 	// logging
@@ -130,7 +128,7 @@ dukkha docker non-default-tool build my-image`,
 	globalFlags.StringVar(&logConfig.File, "log.file", "stderr",
 		"log output to this file")
 
-	setupCompletion(rootCmd, &allTools, &toolSpecificTasks)
+	setupCompletion(appCtx, rootCmd, renderingMgr.Render, &allTools, &toolSpecificTasks)
 
 	return rootCmd
 }
