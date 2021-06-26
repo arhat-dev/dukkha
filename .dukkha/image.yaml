@@ -1,0 +1,34 @@
+tools:
+  docker:
+  # first tool in this kind will be the default tool
+  - name: docker
+    env:
+    - DOCKER_BUILDKIT=1
+  buildah:
+  - name: buildah
+
+docker:build:
+- &dukkha_image_build
+  name: dukkha
+  matrix@template_file: cicd/image-matrix.yml
+  image_names@template_file: cicd/image-names.yml
+  dockerfile@shell_file: cicd/get-dockerfile.sh
+  # yamllint disable-line rule:quoted-strings
+  context: "."
+  extraArgs@template: |-
+    - --pull
+    - --no-cache
+    - --build-arg="IMAGE_ARCH={{- .Env.MATRIX_ARCH | trimSuffix "hf" -}}"
+    - --build-arg="MATRIX_ARCH={{- .Env.MATRIX_ARCH -}}"
+
+docker:push:
+- &dukkha_image_push
+  name: dukkha
+  matrix@template_file: cicd/image-matrix.yml
+  image_names@template_file: cicd/image-names.yml
+
+buildah:bud:
+- *dukkha_image_build
+
+buildah:push:
+- *dukkha_image_push
