@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -57,10 +56,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 	}
 
 	var (
-		buildCmd    = sliceutils.NewStringSlice(toolCmd, "build")
-		manifestCmd = sliceutils.NewStringSlice(toolCmd, "manifest")
-
-		taskExecAfterBuildCmd []tools.TaskExecSpec
+		buildCmd = sliceutils.NewStringSlice(toolCmd, "build")
 	)
 
 	for _, spec := range targets {
@@ -69,44 +65,6 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		}
 
 		buildCmd = append(buildCmd, "-t", spec.Image)
-
-		if len(spec.Manifest) == 0 {
-			// no manifest handling
-			continue
-		}
-
-		taskExecAfterBuildCmd = append(taskExecAfterBuildCmd,
-			// ensure manifest exists
-			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
-				IgnoreError: true,
-			},
-			// link manifest and image
-			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
-				IgnoreError: false,
-			},
-		)
-
-		// docker manifest annotate \
-		// 		<manifest-list-name> <image-name> \
-		// 		--os <arch> --arch <arch> {--variant <variant>}
-		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-		annotateCmd := sliceutils.NewStringSlice(
-			manifestCmd, "annotate", spec.Manifest, spec.Image,
-			"--os", constant.GetDockerOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-			"--arch", constant.GetDockerArch(mArch),
-		)
-
-		variant := constant.GetDockerArchVariant(mArch)
-		if len(variant) != 0 {
-			annotateCmd = append(annotateCmd, "--variant", variant)
-		}
-
-		taskExecAfterBuildCmd = append(taskExecAfterBuildCmd, tools.TaskExecSpec{
-			Command:     annotateCmd,
-			IgnoreError: false,
-		})
 	}
 
 	if len(c.Dockerfile) != 0 {
@@ -121,10 +79,10 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		buildCmd = append(buildCmd, c.Context)
 	}
 
-	return append([]tools.TaskExecSpec{
+	return []tools.TaskExecSpec{
 		{
 			Command:     buildCmd,
 			IgnoreError: false,
 		},
-	}, taskExecAfterBuildCmd...), nil
+	}, nil
 }
