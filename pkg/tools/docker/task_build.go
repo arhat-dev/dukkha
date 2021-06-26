@@ -94,7 +94,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
 		annotateCmd := sliceutils.NewStringSlice(
 			manifestCmd, "annotate", spec.Manifest, spec.Image,
-			"--os", ctx.Values().Env[constant.ENV_MATRIX_KERNEL],
+			"--os", constant.GetDockerOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
 			"--arch", constant.GetDockerArch(mArch),
 		)
 
