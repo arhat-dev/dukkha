@@ -26,6 +26,7 @@ import (
 	"arhat.dev/dukkha/pkg/version"
 
 	// Add tools
+	_ "arhat.dev/dukkha/pkg/tools/buildah"
 	_ "arhat.dev/dukkha/pkg/tools/docker"
 	_ "arhat.dev/dukkha/pkg/tools/golang"
 )
