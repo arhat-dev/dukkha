@@ -30,7 +30,8 @@ func setupCompletion(
 		Short: "Generate completion script",
 		Long:  completionGuide,
 
-		DisableFlagsInUseLine: true,
+		SilenceUsage: true,
+		Hidden:       true,
 
 		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
 		Args:      cobra.ExactValidArgs(1),
@@ -55,6 +56,11 @@ func setupCompletion(
 	) ([]string, cobra.ShellCompDirective) {
 		return handleTaskCompletion(args, toComplete, allTools, toolSpecificTasks)
 	}
+
+	rootCmd.SetHelpCommand(&cobra.Command{
+		SilenceUsage: true,
+		Hidden:       true,
+	})
 
 	err := rootCmd.RegisterFlagCompletionFunc(
 		"matrix",
