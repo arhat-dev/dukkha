@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -32,12 +33,10 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	buildCmd []string
-
-	BuildContext string          `yaml:"build_context"`
-	ImageNames   []ImageNameSpec `yaml:"image_names"`
-	Dockerfile   string          `yaml:"dockerfile"`
-	ExtraArgs    []string        `yaml:"extraArgs"`
+	Context    string          `yaml:"context"`
+	ImageNames []ImageNameSpec `yaml:"image_names"`
+	Dockerfile string          `yaml:"dockerfile"`
+	ExtraArgs  []string        `yaml:"extraArgs"`
 }
 
 type ImageNameSpec struct {
@@ -49,35 +48,83 @@ func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 
 func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	cmd := sliceutils.NewStringSlice(toolCmd, c.buildCmd...)
-	if len(cmd) == len(toolCmd) {
-		cmd = append(cmd, "build")
+	targets := c.ImageNames
+	if len(targets) == 0 {
+		targets = []ImageNameSpec{{
+			Image:    c.Name,
+			Manifest: "",
+		}}
+	}
+
+	var (
+		buildCmd    = sliceutils.NewStringSlice(toolCmd, "build")
+		manifestCmd = sliceutils.NewStringSlice(toolCmd, "manifest")
+
+		taskExecAfterBuildCmd []tools.TaskExecSpec
+	)
+
+	for _, spec := range targets {
+		if len(spec.Image) == 0 {
+			continue
+		}
+
+		buildCmd = append(buildCmd, "-t", spec.Image)
+
+		if len(spec.Manifest) == 0 {
+			// no manifest handling
+			continue
+		}
+
+		taskExecAfterBuildCmd = append(taskExecAfterBuildCmd,
+			// ensure manifest exists
+			tools.TaskExecSpec{
+				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
+				IgnoreError: true,
+			},
+			// link manifest and image
+			tools.TaskExecSpec{
+				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
+				IgnoreError: false,
+			},
+		)
+
+		// docker manifest annotate \
+		// 		<manifest-list-name> <image-name> \
+		// 		--os <arch> --arch <arch> {--variant <variant>}
+		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+		annotateCmd := sliceutils.NewStringSlice(
+			manifestCmd, "annotate", spec.Manifest, spec.Image,
+			"--os", ctx.Values().Env[constant.ENV_MATRIX_KERNEL],
+			"--arch", constant.GetDockerArch(mArch),
+		)
+
+		variant := constant.GetDockerArchVariant(mArch)
+		if len(variant) != 0 {
+			annotateCmd = append(annotateCmd, "--variant", variant)
+		}
+
+		taskExecAfterBuildCmd = append(taskExecAfterBuildCmd, tools.TaskExecSpec{
+			Command:     annotateCmd,
+			IgnoreError: false,
+		})
 	}
 
 	if len(c.Dockerfile) != 0 {
-		cmd = append(cmd, "-f", c.Dockerfile)
+		buildCmd = append(buildCmd, "-f", c.Dockerfile)
 	}
 
-	if len(c.ImageNames) == 0 {
-		cmd = append(cmd, "-t", c.Name)
+	buildCmd = append(buildCmd, c.ExtraArgs...)
+
+	if len(c.Context) == 0 {
+		buildCmd = append(buildCmd, ".")
 	} else {
-		for _, imgName := range c.ImageNames {
-			cmd = append(cmd, "-t", imgName.Image)
-		}
+		buildCmd = append(buildCmd, c.Context)
 	}
 
-	cmd = append(cmd, c.ExtraArgs...)
-
-	if len(c.BuildContext) == 0 {
-		cmd = append(cmd, ".")
-	} else {
-		cmd = append(cmd, c.BuildContext)
-	}
-
-	return []tools.TaskExecSpec{
+	return append([]tools.TaskExecSpec{
 		{
-			Command:     cmd,
+			Command:     buildCmd,
 			IgnoreError: false,
 		},
-	}, nil
+	}, taskExecAfterBuildCmd...), nil
 }
