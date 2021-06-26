@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -29,10 +28,6 @@ type Tool struct {
 
 	buildTasks map[string]*TaskBuild
 	pushTasks  map[string]*TaskPush
-
-	BuildCmd    []string `yaml:"buildCmd"`
-	PushCmd     []string `yaml:"pushCmd"`
-	ManifestCmd []string `yaml:"manifestCmd"`
 }
 
 func (t *Tool) ToolKind() string { return ToolKind }
@@ -57,11 +52,8 @@ func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 	for i, tsk := range tasks {
 		switch typ := tasks[i].(type) {
 		case *TaskBuild:
-			typ.buildCmd = sliceutils.NewStringSlice(t.BuildCmd)
 			t.buildTasks[tsk.TaskName()] = typ
 		case *TaskPush:
-			typ.pushCmd = sliceutils.NewStringSlice(t.PushCmd)
-			typ.manifestCmd = sliceutils.NewStringSlice(t.ManifestCmd)
 			t.pushTasks[tsk.TaskName()] = typ
 		default:
 			return fmt.Errorf("unknown task type %T with name %q", tsk, tsk.TaskName())

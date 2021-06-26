@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -33,11 +32,7 @@ type TaskPush struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	pushCmd     []string
-	manifestCmd []string
-
 	ImageNames []ImageNameSpec `yaml:"image_names"`
-	ExtraArgs  []string        `yaml:"extraArgs"`
 }
 
 func (c *TaskPush) ToolKind() string { return ToolKind }
@@ -46,12 +41,10 @@ func (c *TaskPush) TaskKind() string { return TaskKindPush }
 func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
-		targets = []ImageNameSpec{
-			{
-				Image:    c.Name,
-				Manifest: "",
-			},
-		}
+		targets = []ImageNameSpec{{
+			Image:    c.Name,
+			Manifest: "",
+		}}
 	}
 
 	var result []tools.TaskExecSpec
@@ -60,13 +53,9 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		pushCmd := sliceutils.NewStringSlice(toolCmd, c.pushCmd...)
-		if len(pushCmd) == len(toolCmd) {
-			pushCmd = append(pushCmd, "push")
-		}
-
+		// docker push <image-name>
 		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(pushCmd, spec.Image),
+			Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
 			IgnoreError: false,
 		})
 
@@ -74,47 +63,9 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		manifestCmd := sliceutils.NewStringSlice(toolCmd, c.manifestCmd...)
-		if len(manifestCmd) == len(toolCmd) {
-			manifestCmd = append(manifestCmd, "manifest")
-		}
-
-		// ensure manifest exists
-		{
-			result = append(result,
-				// ensure manifest exists
-				tools.TaskExecSpec{
-					Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
-					IgnoreError: true,
-				},
-				// link manifest and image
-				tools.TaskExecSpec{
-					Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
-					IgnoreError: false,
-				},
-			)
-
-			mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-			annotateCmd := sliceutils.NewStringSlice(
-				manifestCmd, "annotate", spec.Manifest, spec.Image,
-				"--os", c.getManifestOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-				"--arch", constant.GetDockerArch(mArch),
-			)
-
-			variant := constant.GetDockerArchVariant(mArch)
-			if len(variant) != 0 {
-				annotateCmd = append(annotateCmd, "--variant", variant)
-			}
-
-			result = append(result, tools.TaskExecSpec{
-				Command:     annotateCmd,
-				IgnoreError: false,
-			})
-		}
-
-		// push manifest
+		// docker manifest push <manifest-list-name>
 		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(manifestCmd, "push", spec.Manifest),
+			Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "push", spec.Manifest),
 			IgnoreError: false,
 		})
 	}
