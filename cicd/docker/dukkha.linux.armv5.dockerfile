@@ -1,5 +1,3 @@
-ARG ARCH=amd64
-
 FROM ghcr.io/arhat-dev/builder-go:alpine as builder
 
 ARG MATRIX_ARCH

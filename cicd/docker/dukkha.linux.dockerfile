@@ -1,4 +1,4 @@
-ARG ARCH=amd64
+ARG IMAGE_ARCH=amd64
 
 FROM ghcr.io/arhat-dev/builder-go:alpine as builder
 
@@ -7,7 +7,7 @@ RUN set -ex ;\
     make dukkha && \
     ./build/dukkha golang build dukkha -m kernel=linux -m arch=${MATRIX_ARCH}
 
-FROM ghcr.io/arhat-dev/go:alpine-${ARCH}
+FROM ghcr.io/arhat-dev/go:alpine-${IMAGE_ARCH}
 
 ARG MATRIX_ARCH
 COPY --from=builder /app/build/dukkha.linux.${MATRIX_ARCH} /dukkha
