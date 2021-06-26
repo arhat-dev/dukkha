@@ -63,7 +63,9 @@ func handleMatrixFlagCompletion(
 	}
 
 	ctx := field.WithRenderingValues(*appCtx, tool.GetEnv())
-	// mf := parseMatrixFilter(existingFilters)
+
+	// DO NOT apply existing filter, new filters with same key
+	// are merged together
 	mSpecs, err := task.GetMatrixSpecs(ctx, rf, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
