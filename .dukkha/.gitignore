@@ -2,5 +2,5 @@ cache
 *.yaml
 
 !/base\.yaml
-!/docker\.yaml
-!/golang\.yaml
+!/image\.yaml
+!/build\.yaml
