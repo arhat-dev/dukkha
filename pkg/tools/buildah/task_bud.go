@@ -56,6 +56,11 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 	budCmd = append(budCmd, c.ExtraArgs...)
 
+	context := c.Context
+	if len(context) == 0 {
+		context = "."
+	}
+
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []ImageNameSpec{{
@@ -63,36 +68,31 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			Manifest: "",
 		}}
 	}
-
-	for _, spec := range targets {
-		if len(spec.Image) == 0 {
-			continue
-		}
-
-		budCmd = append(budCmd, "-t", spec.Image)
-	}
-
-	// buildah only allows one --manifest for each bud run
-
-	context := c.Context
-	if len(context) == 0 {
-		context = "."
-	}
-
 	var result []tools.TaskExecSpec
 	for _, spec := range targets {
 		if len(spec.Manifest) == 0 {
 			continue
 		}
 
+		// TODO: buildah only allows one --manifest for each bud run
+		// 	    so we have to build multiple times for the same image with different
+		// 		manifest name
+		// 		need to find a way to use buildah manifest create & add correctly
 		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(budCmd, "--manifest", spec.Manifest, context),
+			Command: sliceutils.NewStringSlice(budCmd,
+				"-t", spec.Image,
+				"--manifest", spec.Manifest, context,
+			),
 			IgnoreError: false,
 		})
 	}
 
 	if len(result) == 0 {
-		// no manifest set
+		// no manifest set, build image without handling manifests
+		for _, spec := range targets {
+			budCmd = append(budCmd, "-t", spec.Image)
+		}
+
 		result = append(result, tools.TaskExecSpec{
 			Command:     append(budCmd, context),
 			IgnoreError: false,
@@ -102,8 +102,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	// NOTE: buildah will treat --os and --arch values to bud as pull target
 	// 	     which is not desierd in most use cases, especially when cross compiling
 	//
-	// so we MUST update manifest os/arch/variant after build
-	// user can override --os/--arch with --platform
+	// so we MUST update manifest os/arch/variant after bud
 	for _, spec := range targets {
 		if len(spec.Manifest) == 0 {
 			continue
@@ -122,14 +121,13 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		}
 
 		annotateCmd = append(annotateCmd, spec.Manifest)
-
 		annotateCmd = append(annotateCmd,
 			fmt.Sprintf("$(%s)",
 				strings.Join(
 					sliceutils.NewStringSlice(
 						toolCmd,
 						"inspect", "--type", "image",
-						"--format", `"{{ .FromImageID }}"`,
+						"--format", `"{{ .FromImageDigest }}"`,
 						spec.Image,
 					),
 					" ",
