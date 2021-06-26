@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
 
 	_ "embed"
@@ -17,7 +19,9 @@ var (
 )
 
 func setupCompletion(
+	appCtx *context.Context,
 	rootCmd *cobra.Command,
+	rf field.RenderingFunc,
 	allTools *map[tools.ToolKey]tools.Tool,
 	toolSpecificTasks *map[tools.ToolKey][]tools.Task,
 ) {
@@ -54,11 +58,18 @@ func setupCompletion(
 
 	err := rootCmd.RegisterFlagCompletionFunc(
 		"matrix",
-		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			// TODO
-			return nil, cobra.ShellCompDirectiveNoFileComp
+		func(
+			cmd *cobra.Command, args []string, toComplete string,
+		) ([]string, cobra.ShellCompDirective) {
+			filter, _ := rootCmd.PersistentFlags().GetStringSlice("matrix")
+
+			return handleMatrixFlagCompletion(
+				appCtx, rf, filter,
+				*allTools, *toolSpecificTasks, args, toComplete,
+			)
 		},
 	)
+
 	if err != nil {
 		panic(fmt.Errorf("failed to register flag completion for --matrix: %w", err))
 	}

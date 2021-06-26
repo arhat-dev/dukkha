@@ -7,7 +7,6 @@ import (
 
 	"github.com/fatih/color"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -36,7 +35,11 @@ type Task interface {
 	TaskName() string
 
 	// GetMatrixSpecs for matrix build
-	GetMatrixSpecs(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error)
+	GetMatrixSpecs(
+		ctx *field.RenderingContext,
+		rf field.RenderingFunc,
+		filter map[string][]string,
+	) ([]MatrixSpec, error)
 
 	// GetExecSpecs generate commands using current field values
 	GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
@@ -88,7 +91,11 @@ func (t *BaseTask) ToolName() string        { return t.toolName }
 func (t *BaseTask) SetToolName(name string) { t.toolName = name }
 func (t *BaseTask) TaskName() string        { return t.Name }
 
-func (t *BaseTask) GetMatrixSpecs(ctx *field.RenderingContext, rf field.RenderingFunc) ([]MatrixSpec, error) {
+func (t *BaseTask) GetMatrixSpecs(
+	ctx *field.RenderingContext,
+	rf field.RenderingFunc,
+	filter map[string][]string,
+) ([]MatrixSpec, error) {
 	// resolve matrix config first
 	err := t.ResolveFields(ctx, rf, 1)
 	if err != nil {
@@ -100,5 +107,5 @@ func (t *BaseTask) GetMatrixSpecs(ctx *field.RenderingContext, rf field.Renderin
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
 
-	return t.Matrix.GetSpecs(constant.GetMatrixFilter(ctx.Context())), nil
+	return t.Matrix.GetSpecs(filter), nil
 }
