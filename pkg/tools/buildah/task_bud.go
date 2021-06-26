@@ -121,6 +121,8 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			annotateCmd = append(annotateCmd, "--variant", variant)
 		}
 
+		annotateCmd = append(annotateCmd, spec.Manifest)
+
 		annotateCmd = append(annotateCmd,
 			fmt.Sprintf("$(%s)",
 				strings.Join(
