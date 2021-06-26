@@ -1,5 +1,3 @@
-ARG ARCH=mips64le
-
 FROM ghcr.io/arhat-dev/builder-go:alpine as builder
 
 ARG MATRIX_ARCH
