@@ -122,5 +122,5 @@ jobs:
 
         make dukkha
 
-        ./build/dukkha buildah bud dukkha -j 100
-        ./build/dukkha buildah push dukkha -j 100
+        ./build/dukkha buildah bud dukkha
+        ./build/dukkha buildah push dukkha
