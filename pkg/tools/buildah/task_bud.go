@@ -1,6 +1,7 @@
 package buildah
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -53,18 +54,6 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		budCmd = append(budCmd, "-f", c.Dockerfile)
 	}
 
-	// user can override --os/--arch with --platform
-	mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-	budCmd = append(budCmd,
-		"--os", constant.GetOciOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-		"--arch", constant.GetOciArch(mArch),
-	)
-
-	variant := constant.GetOciArchVariant(mArch)
-	if len(variant) != 0 {
-		budCmd = append(budCmd, "--variant", variant)
-	}
-
 	budCmd = append(budCmd, c.ExtraArgs...)
 
 	targets := c.ImageNames
@@ -106,6 +95,48 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		// no manifest set
 		result = append(result, tools.TaskExecSpec{
 			Command:     append(budCmd, context),
+			IgnoreError: false,
+		})
+	}
+
+	// NOTE: buildah will treat --os and --arch values to bud as pull target
+	// 	     which is not desierd in most use cases, especially when cross compiling
+	//
+	// so we MUST update manifest os/arch/variant after build
+	// user can override --os/--arch with --platform
+	for _, spec := range targets {
+		if len(spec.Manifest) == 0 {
+			continue
+		}
+
+		annotateCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "annotate")
+		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+		annotateCmd = append(annotateCmd,
+			"--os", constant.GetOciOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
+			"--arch", constant.GetOciArch(mArch),
+		)
+
+		variant := constant.GetOciArchVariant(mArch)
+		if len(variant) != 0 {
+			annotateCmd = append(annotateCmd, "--variant", variant)
+		}
+
+		annotateCmd = append(annotateCmd,
+			fmt.Sprintf("$(%s)",
+				strings.Join(
+					sliceutils.NewStringSlice(
+						toolCmd,
+						"inspect", "--type", "image",
+						"--format", `"{{ .FromImageID }}"`,
+						spec.Image,
+					),
+					" ",
+				),
+			),
+		)
+
+		result = append(result, tools.TaskExecSpec{
+			Command:     annotateCmd,
 			IgnoreError: false,
 		})
 	}
