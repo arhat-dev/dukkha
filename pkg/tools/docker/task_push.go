@@ -72,7 +72,3 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 
 	return result, nil
 }
-
-func (c *TaskPush) getManifestOS(os string) string {
-	return strings.ToLower(os)
-}
