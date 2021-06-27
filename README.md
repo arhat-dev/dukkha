@@ -16,6 +16,17 @@ Make YAML files Makefiles
 
 A typical build automation tool only take one or two from the above, but we'd take three in `dukkha`!
 
+## Features
+
+- Rendering suffix (`@<renderer>`), get configuration updated dynamically at runtime
+- Customizable task matrix execution everywhere
+- Shell completion for tools, tasks and task matrix
+
+## Known Limitations
+
+- Rendering suffix:
+  - Cannot render the value when applied in yaml file to a map key (in source code), see #22
+
 ## LICENSE
 
 ```text
