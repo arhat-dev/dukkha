@@ -27,7 +27,7 @@
 
 {{- end -}}
 
-- image: docker.io/arhatdev/dukkha:{{ $tag }}
-  manifest: docker.io/arhatdev/dukkha:{{ $manifest_tag }}
+# - image: docker.io/arhatdev/dukkha:{{ $tag }}
+#   manifest: docker.io/arhatdev/dukkha:{{ $manifest_tag }}
 - image: ghcr.io/arhat-dev/dukkha:{{ $tag }}
   manifest: ghcr.io/arhat-dev/dukkha:{{ $manifest_tag }}
