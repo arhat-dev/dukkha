@@ -85,29 +85,11 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			),
 			IgnoreError: false,
 		})
-	}
 
-	if len(result) == 0 {
-		// no manifest set, build image without handling manifests
-		for _, spec := range targets {
-			budCmd = append(budCmd, "-t", spec.Image)
-		}
-
-		result = append(result, tools.TaskExecSpec{
-			Command:     append(budCmd, context),
-			IgnoreError: false,
-		})
-	}
-
-	// NOTE: buildah will treat --os and --arch values to bud as pull target
-	// 	     which is not desierd in most use cases, especially when cross compiling
-	//
-	// so we MUST update manifest os/arch/variant after bud
-	for _, spec := range targets {
-		if len(spec.Manifest) == 0 {
-			continue
-		}
-
+		// NOTE: buildah will treat --os and --arch values to bud as pull target
+		// 	     which is not desierd in most use cases, especially when cross compiling
+		//
+		// so we MUST update manifest os/arch/variant after bud
 		annotateCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "annotate")
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
 		annotateCmd = append(annotateCmd,
@@ -137,6 +119,18 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 		result = append(result, tools.TaskExecSpec{
 			Command:     annotateCmd,
+			IgnoreError: false,
+		})
+	}
+
+	if len(result) == 0 {
+		// no manifest set, build image without handling manifests
+		for _, spec := range targets {
+			budCmd = append(budCmd, "-t", spec.Image)
+		}
+
+		result = append(result, tools.TaskExecSpec{
+			Command:     append(budCmd, context),
 			IgnoreError: false,
 		})
 	}
