@@ -56,21 +56,20 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
-			IgnoreError: false,
-		})
-
 		if len(spec.Manifest) == 0 {
+			result = append(result, tools.TaskExecSpec{
+				Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
+				IgnoreError: false,
+			})
 			continue
 		}
 
-		manifestCmd := sliceutils.NewStringSlice(toolCmd, "manifest")
-
-		// buildah manifest push <manifest-list-name> {<transport>:<transport-details>}
+		// buildah manifest push --all \
+		//   <manifest-list-name> <transport>:<transport-details>
 		result = append(result, tools.TaskExecSpec{
 			Command: sliceutils.NewStringSlice(
-				manifestCmd, "push", spec.Manifest, "docker://"+spec.Manifest,
+				toolCmd, "manifest", "push", "--all",
+				spec.Manifest, "docker://"+spec.Manifest,
 			),
 			IgnoreError: false,
 		})
