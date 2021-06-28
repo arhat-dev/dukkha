@@ -2,6 +2,9 @@ package buildah
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
@@ -9,6 +12,7 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/pkg/textquery"
 )
 
 const TaskKindBud = "bud"
@@ -49,17 +53,24 @@ func (c *TaskBud) ToolKind() string { return ToolKind }
 func (c *TaskBud) TaskKind() string { return TaskKindBud }
 
 func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	budCmd := sliceutils.NewStringSlice(toolCmd, "bud")
+	var steps []tools.TaskExecSpec
+
+	// create an image id file
+	imageIDFile, err := ioutil.TempFile(
+		ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR], "buildah-bud-image-id-*",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
+	}
+	imageIDFilePath := imageIDFile.Name()
+	_ = imageIDFile.Close()
+
+	budCmd := sliceutils.NewStringSlice(toolCmd, "bud", "--iidfile", imageIDFilePath)
 	if len(c.Dockerfile) != 0 {
 		budCmd = append(budCmd, "-f", c.Dockerfile)
 	}
 
 	budCmd = append(budCmd, c.ExtraArgs...)
-
-	context := c.Context
-	if len(context) == 0 {
-		context = "."
-	}
 
 	targets := c.ImageNames
 	if len(targets) == 0 {
@@ -68,72 +79,162 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			Manifest: "",
 		}}
 	}
-	var result []tools.TaskExecSpec
+
+	// set image names
+	for _, spec := range targets {
+		if len(spec.Image) == 0 {
+			continue
+		}
+
+		budCmd = append(budCmd, "-t", spec.Image)
+	}
+
+	context := c.Context
+	if len(context) == 0 {
+		context = "."
+	}
+
+	// buildah bud
+	steps = append(steps, tools.TaskExecSpec{
+		Command:     append(budCmd, context),
+		IgnoreError: false,
+	})
+
+	// read image id file to get image id
+	const replaceTargetImageID = "<IMAGE_ID>"
+	steps = append(steps, tools.TaskExecSpec{
+		OutputAsReplace:     replaceTargetImageID,
+		FixOutputForReplace: strings.TrimSpace,
+
+		AlterExecFunc: func(
+			replace map[string]string,
+			stdin io.Reader, stdout, stderr io.Writer,
+		) ([]tools.TaskExecSpec, error) {
+			imageIDBytes, err := os.ReadFile(imageIDFilePath)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = stdout.Write(imageIDBytes)
+			return nil, err
+		},
+		IgnoreError: false,
+	})
+
+	// buildah inspect --type image to get image digest from image id
+	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
+	steps = append(steps, tools.TaskExecSpec{
+		OutputAsReplace:     replaceTargetImageDigest,
+		FixOutputForReplace: strings.TrimSpace,
+
+		Command: sliceutils.NewStringSlice(
+			toolCmd, "inspect", "--type", "image",
+			"--format", `"{{ .FromImageDigest }}"`,
+			replaceTargetImageID,
+		),
+		IgnoreError: false,
+	})
+
+	// add to manifest, ensure same os/arch/variant only one exist
+	mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+	arch := constant.GetOciArch(mArch)
+	os := constant.GetOciOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL])
+	variant := constant.GetOciArchVariant(mArch)
+
+	manifestOsArchVariantQueryForDigest := fmt.Sprintf(
+		`.manifests[] | select( .platform.os == "%s")`+
+			` | select (.platform.architecture == "%s")`,
+		os, arch,
+	)
+	osArchVariantArgs := []string{
+		"--os", os, "--arch", arch,
+	}
+	if len(variant) != 0 {
+		manifestOsArchVariantQueryForDigest += fmt.Sprintf(
+			` | select (.platform.vairant == "%s")`, variant,
+		)
+		osArchVariantArgs = append(osArchVariantArgs, "--variant", variant)
+	}
+	manifestOsArchVariantQueryForDigest += ` | .digest`
+
 	for _, spec := range targets {
 		if len(spec.Manifest) == 0 {
 			continue
 		}
 
-		// TODO: buildah only allows one --manifest for each bud run
-		// 	    so we have to build multiple times for the same image with different
-		// 		manifest name
-		// 		need to find a way to use buildah manifest create & add correctly
-		result = append(result, tools.TaskExecSpec{
-			Command: sliceutils.NewStringSlice(budCmd,
-				"-t", spec.Image,
-				"--manifest", spec.Manifest, context,
+		const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
+		steps = append(steps, tools.TaskExecSpec{
+			OutputAsReplace:     replaceTargetManifestSpec,
+			FixOutputForReplace: nil,
+
+			Command: sliceutils.NewStringSlice(
+				toolCmd, "manifest", "inspect", spec.Manifest,
 			),
-			IgnoreError: false,
+			// manifest may not exist
+			IgnoreError: true,
 		})
 
-		// NOTE: buildah will treat --os and --arch values to bud as pull target
-		// 	     which is not desierd in most use cases, especially when cross compiling
-		//
-		// so we MUST update manifest os/arch/variant after bud
-		annotateCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "annotate")
-		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-		annotateCmd = append(annotateCmd,
-			"--os", constant.GetOciOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
-			"--arch", constant.GetOciArch(mArch),
-		)
+		manifestAddCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "add")
+		manifestAddCmd = append(manifestAddCmd, osArchVariantArgs...)
 
-		variant := constant.GetOciArchVariant(mArch)
-		if len(variant) != 0 {
-			annotateCmd = append(annotateCmd, "--variant", variant)
-		}
+		// find existing manifest entries with same os/arch/variant
+		steps = append(steps, tools.TaskExecSpec{
+			AlterExecFunc: func(
+				replace map[string]string,
+				stdin io.Reader, stdout, stderr io.Writer,
+			) ([]tools.TaskExecSpec, error) {
+				var subSteps []tools.TaskExecSpec
 
-		annotateCmd = append(annotateCmd, spec.Manifest)
-		annotateCmd = append(annotateCmd,
-			fmt.Sprintf("$(%s)",
-				strings.Join(
-					sliceutils.NewStringSlice(
-						toolCmd,
-						"inspect", "--type", "image",
-						"--format", `"{{ .FromImageDigest }}"`,
-						spec.Image,
-					),
-					" ",
-				),
-			),
-		)
+				manifestSpec, ok := replace[replaceTargetManifestSpec]
+				if !ok {
+					// manifest not created, create and add this image
+					subSteps = append(subSteps)
+					return []tools.TaskExecSpec{
+						{
+							Command: sliceutils.NewStringSlice(
+								toolCmd, "manifest", "create", spec.Manifest,
+							),
+							IgnoreError: false,
+						},
+						{
+							Command: sliceutils.NewStringSlice(
+								manifestAddCmd, spec.Manifest, replaceTargetImageID,
+							),
+							IgnoreError: false,
+						},
+					}, nil
+				}
 
-		result = append(result, tools.TaskExecSpec{
-			Command:     annotateCmd,
+				// manifest already created
+				digestLines, err := textquery.JQ(manifestOsArchVariantQueryForDigest, manifestSpec)
+				if err != nil {
+					return nil, fmt.Errorf("failed to lookup entries in manifest spec: %w", err)
+				}
+
+				// remove existing entries with same os/arch/variant
+				for _, digest := range strings.Split(digestLines, "\n") {
+					digest = strings.TrimSpace(digest)
+					if len(digest) == 0 {
+						continue
+					}
+
+					subSteps = append(subSteps, tools.TaskExecSpec{
+						Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "remove", spec.Manifest, digest),
+						IgnoreError: false,
+					})
+				}
+
+				// add this image to manifest with correct os/arch/variant
+				subSteps = append(subSteps, tools.TaskExecSpec{
+					Command:     sliceutils.NewStringSlice(manifestAddCmd, spec.Manifest, replaceTargetImageID),
+					IgnoreError: false,
+				})
+
+				return subSteps, nil
+			},
 			IgnoreError: false,
 		})
 	}
 
-	if len(result) == 0 {
-		// no manifest set, build image without handling manifests
-		for _, spec := range targets {
-			budCmd = append(budCmd, "-t", spec.Image)
-		}
-
-		result = append(result, tools.TaskExecSpec{
-			Command:     append(budCmd, context),
-			IgnoreError: false,
-		})
-	}
-
-	return result, nil
+	return steps, nil
 }

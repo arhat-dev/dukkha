@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
@@ -94,6 +96,7 @@ func (t *BaseTool) GetEnv() []string { return sliceutils.NewStringSlice(t.Env) }
 
 func (t *BaseTool) RunTask(
 	ctx context.Context,
+	thisTool Tool,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 	task Task,
@@ -176,7 +179,7 @@ func (t *BaseTool) RunTask(
 		baseCtx, t.RenderingFunc,
 		taskExecBeforeStart,
 		"hook:before "+taskPrefix, nil, nil,
-		allTools, allShells,
+		thisTool, allTools, allShells,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run before hooks: %w", err)
@@ -226,7 +229,7 @@ func (t *BaseTool) RunTask(
 				taskCtx, t.RenderingFunc,
 				taskExecBeforeMatrixStart,
 				"hook:before "+prefix, prefixColor, outputColor,
-				allTools, allShells,
+				thisTool, allTools, allShells,
 			)
 			if err3 != nil {
 				return fmt.Errorf("failed to run matrix before hooks: %w", err3)
@@ -248,7 +251,7 @@ func (t *BaseTool) RunTask(
 					taskCtx,
 					fmt.Sprint("{", ms.String(), "}: "),
 					prefixColor, outputColor,
-					execSpecs,
+					execSpecs, nil,
 				)
 				output.WriteExecResult(
 					taskCtx.Context(),
@@ -268,7 +271,7 @@ func (t *BaseTool) RunTask(
 						taskCtx, t.RenderingFunc,
 						taskExecAfterMatrixFailure,
 						"hook:after:failure "+prefix, prefixColor, outputColor,
-						allTools, allShells,
+						thisTool, allTools, allShells,
 					)
 					if err4 != nil {
 						// TODO: handle hook error
@@ -283,7 +286,7 @@ func (t *BaseTool) RunTask(
 					taskCtx, t.RenderingFunc,
 					taskExecAfterMatrixSuccess,
 					"hook:after:success "+prefix, prefixColor, outputColor,
-					allTools, allShells,
+					thisTool, allTools, allShells,
 				)
 				if err4 != nil {
 					// TODO: handle hook error
@@ -310,7 +313,7 @@ func (t *BaseTool) RunTask(
 			baseCtx, t.RenderingFunc,
 			taskExecAfterFailure,
 			"hook:after:failure "+taskPrefix, nil, nil,
-			allTools, allShells,
+			thisTool, allTools, allShells,
 		)
 		if err != nil {
 			// TODO: handle hook error
@@ -325,7 +328,7 @@ func (t *BaseTool) RunTask(
 		baseCtx, t.RenderingFunc,
 		taskExecAfterSuccess,
 		"hook:after:success "+taskPrefix, nil, nil,
-		allTools, allShells,
+		thisTool, allTools, allShells,
 	)
 	if err != nil {
 		// TODO: handle hook error
@@ -341,27 +344,39 @@ func (t *BaseTool) doRunTask(
 	outputPrefix string,
 	prefixColor, outputColor *color.Color,
 	execSpecs []TaskExecSpec,
+	_replaceEntries *map[string]string,
 ) error {
+	timer := time.NewTimer(0)
+	if !timer.Stop() {
+		<-timer.C
+	}
+
+	var replace map[string]string
+	if _replaceEntries != nil {
+		replace = *_replaceEntries
+	} else {
+		replace = make(map[string]string)
+	}
+
 	for _, es := range execSpecs {
 		ctx := taskCtx.Clone()
 
-		ctx.AddEnv(es.Env...)
+		if es.Delay > 0 {
+			_ = timer.Reset(es.Delay)
 
-		_, runScriptCmd, err := t.getBootstrapExecSpec(strings.Join(es.Command, " "), false)
-		if err != nil {
-			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
+			select {
+			case <-timer.C:
+			case <-ctx.Context().Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+
+				return ctx.Context().Err()
+			}
 		}
 
-		output.WriteExecStart(
-			ctx.Context(),
-			t.ToolName(),
-			es.Command,
-			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
-		)
-
 		var (
-			stdout io.Writer
-			stderr io.Writer
+			stdout, stderr io.Writer = os.Stdout, os.Stderr
 		)
 
 		if t.stderrIsTty {
@@ -376,6 +391,72 @@ func (t *BaseTool) doRunTask(
 			stdout = output.PrefixWriter(outputPrefix, nil, nil, os.Stdout)
 		}
 
+		var buf *bytes.Buffer
+		if len(es.OutputAsReplace) != 0 {
+			buf = &bytes.Buffer{}
+
+			stdout = io.MultiWriter(stdout, buf)
+		}
+
+		// alter exec func can generate sub exec specs
+		if es.AlterExecFunc != nil {
+			subSpecs, err := es.AlterExecFunc(replace, os.Stdin, stdout, stderr)
+			if err != nil {
+				return fmt.Errorf("failed to execute alter exec func: %w", err)
+			}
+
+			if buf != nil {
+				newValue := buf.String()
+				if es.FixOutputForReplace != nil {
+					newValue = es.FixOutputForReplace(newValue)
+				}
+
+				replace[es.OutputAsReplace] = newValue
+			}
+
+			if len(subSpecs) != 0 {
+				err = t.doRunTask(taskCtx, outputPrefix, prefixColor, outputColor, subSpecs, &replace)
+				if err != nil {
+					return fmt.Errorf("failed to run sub tasks: %w", err)
+				}
+			}
+
+			continue
+		}
+
+		for _, rawEnvPart := range es.Env {
+			actualEnvPart := rawEnvPart
+
+			for toReplace, newValue := range replace {
+				actualEnvPart = strings.ReplaceAll(actualEnvPart, toReplace, newValue)
+			}
+
+			ctx.AddEnv(actualEnvPart)
+		}
+
+		var cmd []string
+		for _, rawCmdPart := range es.Command {
+
+			actualCmdPart := rawCmdPart
+			for toReplace, newValue := range replace {
+				actualCmdPart = strings.ReplaceAll(actualCmdPart, toReplace, newValue)
+			}
+
+			cmd = append(cmd, actualCmdPart)
+		}
+
+		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
+		if err != nil {
+			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
+		}
+
+		output.WriteExecStart(
+			ctx.Context(),
+			t.ToolName(),
+			cmd,
+			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
+		)
+
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx.Context(),
 			Command: runScriptCmd,
@@ -386,24 +467,40 @@ func (t *BaseTool) doRunTask(
 			Stdout: stdout,
 			Stderr: stderr,
 		})
-
 		if err != nil {
 			if !es.IgnoreError {
-				return fmt.Errorf("failed to execute command [ %s ]: %w", strings.Join(es.Command, " "), err)
+				return fmt.Errorf("failed to prepare command [ %s ]: %w", strings.Join(cmd, " "), err)
 			}
 
 			// TODO: log error in detail
 			log.Log.I("error ignored", log.Error(err))
+
+			delete(replace, es.OutputAsReplace)
+
+			continue
 		}
 
-		code, err := p.Wait()
+		_, err = p.Wait()
 		if err != nil {
 			if !es.IgnoreError {
-				return fmt.Errorf("command exited with code %d: %w", code, err)
+				return fmt.Errorf("command exited with error: %w", err)
 			}
 
 			// TODO: log error in detail
 			log.Log.I("error ignored", log.Error(err))
+
+			delete(replace, es.OutputAsReplace)
+
+			continue
+		}
+
+		if buf != nil {
+			newValue := buf.String()
+			if es.FixOutputForReplace != nil {
+				newValue = es.FixOutputForReplace(newValue)
+			}
+
+			replace[es.OutputAsReplace] = newValue
 		}
 	}
 
@@ -411,13 +508,19 @@ func (t *BaseTool) doRunTask(
 }
 
 // GetExecSpec is a helper func for shell renderer
-func (t *BaseTool) GetExecSpec(script string, isFilePath bool) (env, cmd []string, err error) {
-	scriptPath := script
+func (t *BaseTool) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
+	if len(toExec) == 0 {
+		return nil, nil, fmt.Errorf("invalid empty exec spec")
+	}
+
+	scriptPath := ""
 	if !isFilePath {
-		scriptPath, err = GetScriptCache(t.cacheDir, script)
+		scriptPath, err = GetScriptCache(t.cacheDir, strings.Join(toExec, " "))
 		if err != nil {
 			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
 		}
+	} else {
+		scriptPath = toExec[0]
 	}
 
 	cmd = sliceutils.NewStringSlice(t.Cmd)

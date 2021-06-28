@@ -15,7 +15,7 @@ type Interface interface {
 	ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error
 }
 
-type ExecSpecGetFunc func(script string, isFilePath bool) (env, cmd []string, err error)
+type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env, cmd []string, err error)
 
 type (
 	RenderingFunc func(ctx *RenderingContext, renderer, rawData string) (string, error)

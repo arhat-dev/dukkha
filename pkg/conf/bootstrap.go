@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
 	"arhat.dev/pkg/envhelper"
 	"go.uber.org/multierr"
-	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -25,15 +26,91 @@ type bootstrapPureConfig struct {
 }
 
 type BootstrapConfig struct {
-	bootstrapPureConfig `yaml:"-"`
+	bootstrapPureConfig `yaml:",inline"`
 }
 
+// Resolve bootstrap config
+// 	- resolve env and set these environment vairables as global env
+// 	- resolve cache dir, set global env DUKKHA_CACHE_DIR to its absolute path
+// 	- resolve script cmd using global env
 func (c *BootstrapConfig) Resolve() error {
+	var err error
+	expandEnvFunc := func(varName, origin string) string {
+		if strings.HasPrefix(origin, "$(") {
+			err = multierr.Append(
+				err,
+				fmt.Errorf("conf.bootstrap: shell evaluation %q is not allowed", origin),
+			)
+			return ""
+		}
+
+		val, ok := os.LookupEnv(varName)
+		if !ok {
+			err = multierr.Append(
+				err,
+				fmt.Errorf("conf.bootstrap: environment variable %q not found", val),
+			)
+			return ""
+		}
+
+		return val
+	}
+
+	for i, env := range c.Env {
+		realEnv := envhelper.Expand(env, expandEnvFunc)
+		if err != nil {
+			return fmt.Errorf("bootstrap: failed to expand env: %w", err)
+		}
+
+		c.Env[i] = realEnv
+
+		parts := strings.SplitN(c.Env[i], "=", 2)
+		key, value := parts[0], ""
+		if len(parts) == 2 {
+			value = parts[1]
+		}
+
+		err = os.Setenv(key, value)
+		if err != nil {
+			return fmt.Errorf("bootstrap: failed to set global env %q: %w", key, err)
+		}
+	}
+
+	c.CacheDir = envhelper.Expand(c.CacheDir, expandEnvFunc)
+	if err != nil {
+		return fmt.Errorf("bootstrap: failed to resolve cache dir: %w", err)
+	}
+
 	if len(c.CacheDir) == 0 {
 		c.CacheDir = ".dukkha/cache"
 	}
 
-	_ = os.MkdirAll(c.CacheDir, 0750)
+	c.CacheDir, err = filepath.Abs(c.CacheDir)
+	if err != nil {
+		return fmt.Errorf("bootstrap: failed to get absolute path of cache dir: %w", err)
+	}
+
+	err = os.MkdirAll(c.CacheDir, 0750)
+	if err != nil && !os.IsExist(err) {
+		return fmt.Errorf("bootstrap: failed to ensure cache dir: %w", err)
+	}
+
+	err = os.Setenv(constant.ENV_DUKKHA_CACHE_DIR, c.CacheDir)
+	if err != nil {
+		return fmt.Errorf("bootstrap: failed to set cache dir global env %q: %w",
+			constant.ENV_DUKKHA_CACHE_DIR, err,
+		)
+	}
+
+	for i, cmdPart := range c.ScriptCmd {
+		c.ScriptCmd[i] = envhelper.Expand(cmdPart, expandEnvFunc)
+		if err != nil {
+			return fmt.Errorf(
+				"bootstrap: unable to resolve script cmd %q: %w",
+				cmdPart, err,
+			)
+		}
+	}
 
 	if len(c.ScriptCmd) != 0 {
 		return nil
@@ -68,53 +145,14 @@ func (c *BootstrapConfig) Resolve() error {
 	return nil
 }
 
-func (c *BootstrapConfig) UnmarshalYAML(n *yaml.Node) error {
-	configBytes, err := yaml.Marshal(n)
-	if err != nil {
-		return fmt.Errorf("bootstrap: marshal back failed: %w", err)
+func (c *BootstrapConfig) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
+	if len(toExec) == 0 {
+		return nil, nil, fmt.Errorf("bootstrap: invalid empty exec spec")
 	}
 
-	if len(configBytes) != 0 {
-		preparedDataStr := envhelper.Expand(string(configBytes), func(varName, origin string) string {
-			if strings.HasPrefix(origin, "$(") {
-				err = multierr.Append(
-					err,
-					fmt.Errorf("conf.bootstrap: shell evaluation %q is not allowed", origin),
-				)
-				return ""
-			}
-
-			val, ok := os.LookupEnv(varName)
-			if !ok {
-				err = multierr.Append(
-					err,
-					fmt.Errorf("conf.bootstrap: environment variable %q not found", val),
-				)
-				return ""
-			}
-
-			return val
-		})
-		if err != nil {
-			return fmt.Errorf("conf.bootstrap: config expansion failed: %w", err)
-		}
-
-		dec := yaml.NewDecoder(strings.NewReader(preparedDataStr))
-		dec.KnownFields(true)
-
-		err = dec.Decode(&c.bootstrapPureConfig)
-		if err != nil {
-			return fmt.Errorf("conf.bootstrap: failed to unmarshal config: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (c *BootstrapConfig) GetExecSpec(script string, isFilePath bool) (env, cmd []string, err error) {
-	scriptPath := script
+	scriptPath := toExec[0]
 	if !isFilePath {
-		scriptPath, err = tools.GetScriptCache(c.CacheDir, script)
+		scriptPath, err = tools.GetScriptCache(c.CacheDir, strings.Join(toExec, " "))
 		if err != nil {
 			return nil, nil, fmt.Errorf("bootstrap: failed to ensure script cache: %w", err)
 		}
