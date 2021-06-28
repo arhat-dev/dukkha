@@ -1,6 +1,7 @@
 package buildah
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/pkg/hashhelper"
 	"arhat.dev/pkg/textquery"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -163,13 +165,22 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			continue
 		}
 
+		localManifestName := getLocalManifestName(spec.Manifest)
+		// ensure local manifest exists
+		steps = append(steps, tools.TaskExecSpec{
+			Command: sliceutils.NewStringSlice(
+				toolCmd, "manifest", "create", localManifestName,
+			),
+			IgnoreError: true,
+		})
+
 		const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
 		steps = append(steps, tools.TaskExecSpec{
 			OutputAsReplace:     replaceTargetManifestSpec,
 			FixOutputForReplace: nil,
 
 			Command: sliceutils.NewStringSlice(
-				toolCmd, "manifest", "inspect", spec.Manifest,
+				toolCmd, "manifest", "inspect", localManifestName,
 			),
 			// manifest may not exist
 			IgnoreError: true,
@@ -177,6 +188,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 		manifestAddCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "add")
 		manifestAddCmd = append(manifestAddCmd, osArchVariantArgs...)
+		manifestAddCmd = append(manifestAddCmd, localManifestName, replaceTargetImageID)
 
 		// find existing manifest entries with same os/arch/variant
 		steps = append(steps, tools.TaskExecSpec{
@@ -186,18 +198,17 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			) ([]tools.TaskExecSpec, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
 				if !ok {
-					// manifest not created, create and add this image
+					// manifest not created, usually should not happen since we just created before
 					return []tools.TaskExecSpec{
 						{
+							// do not ignore manifest create error this time
 							Command: sliceutils.NewStringSlice(
-								toolCmd, "manifest", "create", spec.Manifest,
+								toolCmd, "manifest", "create", localManifestName,
 							),
 							IgnoreError: false,
 						},
 						{
-							Command: sliceutils.NewStringSlice(
-								manifestAddCmd, spec.Manifest, replaceTargetImageID,
-							),
+							Command:     sliceutils.NewStringSlice(manifestAddCmd),
 							IgnoreError: false,
 						},
 					}, nil
@@ -206,7 +217,11 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				// manifest already created, query to get all matching digests
 				digestLines, err := textquery.JQ(manifestOsArchVariantQueryForDigest, manifestSpec)
 				if err != nil {
-					return nil, fmt.Errorf("failed to lookup entries in manifest spec: %w", err)
+					// no manifests entries, add this image directly
+					return []tools.TaskExecSpec{{
+						Command:     sliceutils.NewStringSlice(manifestAddCmd),
+						IgnoreError: false,
+					}}, nil
 				}
 
 				var subSteps []tools.TaskExecSpec
@@ -219,14 +234,16 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 					}
 
 					subSteps = append(subSteps, tools.TaskExecSpec{
-						Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "remove", spec.Manifest, digest),
+						Command: sliceutils.NewStringSlice(
+							toolCmd, "manifest", "remove", localManifestName, digest,
+						),
 						IgnoreError: false,
 					})
 				}
 
 				// add this image to manifest with correct os/arch/variant
 				subSteps = append(subSteps, tools.TaskExecSpec{
-					Command:     sliceutils.NewStringSlice(manifestAddCmd, spec.Manifest, replaceTargetImageID),
+					Command:     sliceutils.NewStringSlice(manifestAddCmd),
 					IgnoreError: false,
 				})
 
@@ -237,4 +254,8 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	}
 
 	return steps, nil
+}
+
+func getLocalManifestName(manifestName string) string {
+	return hex.EncodeToString(hashhelper.MD5Sum([]byte(manifestName)))
 }

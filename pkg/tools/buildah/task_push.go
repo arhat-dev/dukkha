@@ -69,7 +69,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		result = append(result, tools.TaskExecSpec{
 			Command: sliceutils.NewStringSlice(
 				toolCmd, "manifest", "push", "--all",
-				spec.Manifest, "docker://"+spec.Manifest,
+				getLocalManifestName(spec.Manifest), "docker://"+spec.Manifest,
 			),
 			IgnoreError: false,
 		})
