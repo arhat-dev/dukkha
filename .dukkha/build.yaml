@@ -7,22 +7,34 @@ tools:
     - GO_SUMDB=off
     cmd: [go]
   - name: linux-container
-    cmd:
-    - |-
-      docker run -it --rm \
-        -v $(pwd):$(pwd) \
-        -w $(pwd) \
-        ghcr.io/arhat-dev/builder-go:debian \
-        go
+    cmd@template: |-
+      - |-
+        docker run -it --rm \
+          -v $(pwd):$(pwd) \
+          -w $(pwd) \
+          ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | trimSuffix "hf" }} \
+          go
 
 golang:test:
 - name: dukkha
+  matrix: &test_matrix
+    kernel:
+    - linux
+    - darwin
+    - windows
+    arch:
+    - x86
+    - arm64
+    - amd64
+    - armv7
+    - armv6
+    - armv5
   hooks:
     before:
-    - task: golang:build:dukkha-local
-      per_matrix_run: false
     - shell: echo "hello"
     - shell:python: print("world")
+    before:matrix:
+    - task: golang:local:build:dukkha-local
     after:success@shell: |-
       echo '- shell: echo "Done."'
     after:failure:
@@ -30,6 +42,7 @@ golang:test:
 
 golang:build:
 - name: dukkha-local
+  matrix: *test_matrix
   path: ./cmd/dukkha
   outputs: [build/dukkha-local]
 - name: dukkha
@@ -37,7 +50,7 @@ golang:build:
   env:
   - CGO_CFLAGS_ALLOW="-W"
   hooks:
-    before:
+    before:matrix:
     - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
   cgo:
     enabled: false
