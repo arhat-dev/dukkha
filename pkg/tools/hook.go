@@ -15,7 +15,12 @@ import (
 type TaskHooks struct {
 	field.BaseField
 
-	Before       []Hook `yaml:"before"`
+	Before []Hook `yaml:"before"`
+
+	BeforeMatrix       []Hook `yaml:"before:matrix"`
+	AfterMatrixSuccess []Hook `yaml:"after:matrix:success"`
+	AfterMatrixFailure []Hook `yaml:"after:matrix:failure"`
+
 	AfterSuccess []Hook `yaml:"after:success"`
 	AfterFailure []Hook `yaml:"after:failure"`
 }
@@ -33,6 +38,19 @@ const (
 	taskExecAfterFailure
 )
 
+func (s taskExecState) String() string {
+	return map[taskExecState]string{
+		taskExecBeforeStart: "before",
+
+		taskExecBeforeMatrixStart:  "before:matrix",
+		taskExecAfterMatrixSuccess: "after:matrix:success",
+		taskExecAfterMatrixFailure: "after:matrix:failure",
+
+		taskExecAfterSuccess: "after:success",
+		taskExecAfterFailure: "after:failure",
+	}[s]
+}
+
 func (h *TaskHooks) Run(
 	ctx *field.RenderingContext,
 	state taskExecState,
@@ -42,64 +60,24 @@ func (h *TaskHooks) Run(
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
-	var toRun []*Hook
-	switch state {
-	case taskExecBeforeStart:
-		for i, bh := range h.Before {
-			if bh.isPerMatrixRun() {
-				continue
-			}
+	toRun, ok := map[taskExecState][]Hook{
+		taskExecBeforeStart: h.Before,
 
-			toRun = append(toRun, &h.Before[i])
-		}
-	case taskExecBeforeMatrixStart:
-		for i, bh := range h.Before {
-			if !bh.isPerMatrixRun() {
-				continue
-			}
+		taskExecBeforeMatrixStart:  h.BeforeMatrix,
+		taskExecAfterMatrixSuccess: h.AfterMatrixSuccess,
+		taskExecAfterMatrixFailure: h.AfterMatrixFailure,
 
-			toRun = append(toRun, &h.Before[i])
-		}
-	case taskExecAfterMatrixSuccess:
-		for i, ash := range h.AfterSuccess {
-			if !ash.isPerMatrixRun() {
-				continue
-			}
-
-			toRun = append(toRun, &h.AfterSuccess[i])
-		}
-	case taskExecAfterMatrixFailure:
-		for i, afh := range h.AfterFailure {
-			if !afh.isPerMatrixRun() {
-				continue
-			}
-
-			toRun = append(toRun, &h.AfterFailure[i])
-		}
-	case taskExecAfterSuccess:
-		for i, ash := range h.AfterSuccess {
-			if ash.isPerMatrixRun() {
-				continue
-			}
-
-			toRun = append(toRun, &h.AfterSuccess[i])
-		}
-	case taskExecAfterFailure:
-		for i, afh := range h.AfterFailure {
-			if !afh.isPerMatrixRun() {
-				continue
-			}
-
-			toRun = append(toRun, &h.AfterFailure[i])
-		}
-	default:
+		taskExecAfterSuccess: h.AfterSuccess,
+		taskExecAfterFailure: h.AfterFailure,
+	}[state]
+	if !ok {
 		return fmt.Errorf("unknonw task exec state: %d", state)
 	}
 
-	for _, h := range toRun {
-		err := h.Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
+	for i := range toRun {
+		err := toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
 		if err != nil {
-			return fmt.Errorf("hook failed: %w", err)
+			return fmt.Errorf("hook %s#%d failed: %w", state.String(), i, err)
 		}
 	}
 
@@ -108,9 +86,6 @@ func (h *TaskHooks) Run(
 
 type Hook struct {
 	field.BaseField
-
-	// execute this hook per-matrix run instead of per-task
-	PerMatrixRun *bool `yaml:"per_matrix_run"`
 
 	Task string `yaml:"task"`
 
@@ -236,13 +211,4 @@ func (h *Hook) Run(
 	}
 
 	return nil
-}
-
-func (h *Hook) isPerMatrixRun() bool {
-	if h.PerMatrixRun == nil {
-		// defaults to per-matrix spec
-		return true
-	}
-
-	return *h.PerMatrixRun
 }
