@@ -52,28 +52,34 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 
 	var result []tools.TaskExecSpec
 	for _, spec := range targets {
-		if len(spec.Image) == 0 {
-			continue
-		}
-
-		if len(spec.Manifest) == 0 {
+		if hasFQDN(spec.Image) {
 			result = append(result, tools.TaskExecSpec{
 				Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
 				IgnoreError: false,
 			})
-			continue
 		}
 
-		// buildah manifest push --all \
-		//   <manifest-list-name> <transport>:<transport-details>
-		result = append(result, tools.TaskExecSpec{
-			Command: sliceutils.NewStringSlice(
-				toolCmd, "manifest", "push", "--all",
-				getLocalManifestName(spec.Manifest), "docker://"+spec.Manifest,
-			),
-			IgnoreError: false,
-		})
+		if hasFQDN(spec.Manifest) {
+			// buildah manifest push --all \
+			//   <manifest-list-name> <transport>:<transport-details>
+			result = append(result, tools.TaskExecSpec{
+				Command: sliceutils.NewStringSlice(
+					toolCmd, "manifest", "push", "--all",
+					getLocalManifestName(spec.Manifest), "docker://"+spec.Manifest,
+				),
+				IgnoreError: false,
+			})
+		}
 	}
 
 	return result, nil
+}
+
+func hasFQDN(image string) bool {
+	parts := strings.SplitN(image, "/", 2)
+	if len(parts) == 1 {
+		return false
+	}
+
+	return strings.Contains(parts[0], ".")
 }
