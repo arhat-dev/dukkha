@@ -27,7 +27,7 @@ func (d *Driver) Name() string {
 func (d *Driver) Render(ctx *field.RenderingContext, script string) (string, error) {
 	buf := &bytes.Buffer{}
 
-	env, cmd, err := d.getExecSpec(script, false)
+	env, cmd, err := d.getExecSpec([]string{script}, false)
 	if err != nil {
 		return "", fmt.Errorf(
 			"renderer.%s: failed to get exec spec: %w",

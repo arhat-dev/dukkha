@@ -38,6 +38,7 @@ func (h *TaskHooks) Run(
 	state taskExecState,
 	prefix string,
 	prefixColor, outputColor *color.Color,
+	thisTool Tool,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
@@ -96,7 +97,7 @@ func (h *TaskHooks) Run(
 	}
 
 	for _, h := range toRun {
-		err := h.Run(ctx, prefix, prefixColor, outputColor, allTools, allShells)
+		err := h.Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
 		if err != nil {
 			return fmt.Errorf("hook failed: %w", err)
 		}
@@ -120,6 +121,7 @@ func (h *Hook) Run(
 	ctx *field.RenderingContext,
 	prefix string,
 	prefixColor, outputColor *color.Color,
+	thisTool Tool,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
@@ -140,6 +142,11 @@ func (h *Hook) Run(
 		case 3:
 			taskKind = parts[1]
 			taskName = parts[2]
+
+			if key.ToolKind == thisTool.ToolKind() {
+				// same kind, but no tool name provided, use same tool to handle it
+				return thisTool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
+			}
 		case 4:
 			key.ToolName = parts[1]
 			taskKind = parts[2]
@@ -148,6 +155,7 @@ func (h *Hook) Run(
 			return fmt.Errorf("hook: invalid task reference: %q", h.Task)
 		}
 
+		// has tool name or using a different tool kind, find target tool to handle it
 		tool, ok := allTools[key]
 		if !ok {
 			return fmt.Errorf("hook: tool %q not found", key.ToolKind+":"+key.ToolName)
@@ -202,7 +210,7 @@ func (h *Hook) Run(
 	}
 
 	scriptCtx := ctx.Clone()
-	env, cmd, err := sh.GetExecSpec(script, isFilePath)
+	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
 	if err != nil {
 		return err
 	}

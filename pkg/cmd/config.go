@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"arhat.dev/pkg/log"
 	"go.uber.org/multierr"
@@ -107,21 +106,6 @@ func resolveConfig(
 		return fmt.Errorf("failed to resolve bootstrap config: %w", err)
 	}
 
-	// bootstrap config was resolved when unmarshaling
-	if len(config.Bootstrap.ScriptCmd) == 0 {
-		return fmt.Errorf("bootstrap script_cmd not set")
-	}
-
-	for _, entry := range config.Bootstrap.Env {
-		parts := strings.SplitN(entry, "=", 2)
-		name, value := parts[0], ""
-		if len(parts) == 2 {
-			value = parts[1]
-		}
-
-		_ = os.Setenv(name, value)
-	}
-
 	// create a renderer manager with essential renderers
 	err = multierr.Combine(err,
 		renderingMgr.Add(
@@ -203,17 +187,17 @@ func resolveConfig(
 		)
 	}
 
-	for _, toolSet := range config.Tools {
+	for toolKind, toolSet := range config.Tools {
 		for i, t := range toolSet {
 			logger := logger.WithFields(
-				log.String("tool", t.ToolKind()),
+				log.String("tool", toolKind),
 				log.Int("index", i),
 				log.String("name", t.ToolName()),
 			)
 
-			toolID := t.ToolKind() + "#" + strconv.FormatInt(int64(i), 10)
+			toolID := toolKind + "#" + strconv.FormatInt(int64(i), 10)
 			if len(t.ToolName()) != 0 {
-				toolID = t.ToolKind() + ":" + t.ToolName()
+				toolID = toolKind + ":" + t.ToolName()
 			}
 
 			logger.V("resolving tool config")
@@ -242,9 +226,21 @@ func resolveConfig(
 			logger.V("resolving tool tasks")
 
 			fullToolKey := tools.ToolKey{
-				ToolKind: t.ToolKind(),
+				ToolKind: toolKind,
 				ToolName: t.ToolName(),
 			}
+
+			defaultToolKey := tools.ToolKey{
+				ToolKind: toolKind,
+				ToolName: "",
+			}
+
+			// append tasks without tool name
+			// also used by shell completion
+			(*toolSpecificTasks)[fullToolKey] = append(
+				(*toolSpecificTasks)[fullToolKey],
+				(*toolSpecificTasks)[defaultToolKey]...,
+			)
 
 			err = t.ResolveTasks((*toolSpecificTasks)[fullToolKey])
 			if err != nil {
@@ -254,32 +250,10 @@ func resolveConfig(
 				)
 			}
 
-			(*allTools)[fullToolKey] = t
-
-			if i != 0 {
-				continue
-			}
-
-			// setup default tasks
-			if len(fullToolKey.ToolName) != 0 {
-				// is default tool for this kind but using name before
-				defaultToolKey := tools.ToolKey{
-					ToolKind: t.ToolKind(),
-					ToolName: "",
-				}
-
-				(*allTools)[defaultToolKey] = t
-
-				tasksWithDefaultTool := (*toolSpecificTasks)[defaultToolKey]
-				err = t.ResolveTasks(tasksWithDefaultTool)
-				if err != nil {
-					return fmt.Errorf(
-						"failed to resolve tasks for default tool %q: %w",
-						toolID, err,
-					)
-				}
-
-				(*toolSpecificTasks)[fullToolKey] = tasksWithDefaultTool
+			(*allTools)[fullToolKey] = config.Tools[toolKind][i]
+			if i == 0 {
+				// is first tool, set default tool key
+				(*allTools)[defaultToolKey] = config.Tools[toolKind][i]
 			}
 		}
 	}

@@ -87,5 +87,5 @@ func (t *Tool) Run(
 		return fmt.Errorf("golang: %s task %q not found", taskKind, taskName)
 	}
 
-	return t.BaseTool.RunTask(ctx, allTools, allShells, task)
+	return t.BaseTool.RunTask(ctx, t, allTools, allShells, task)
 }

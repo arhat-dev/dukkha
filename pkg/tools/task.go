@@ -2,8 +2,10 @@ package tools
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/fatih/color"
 
@@ -14,8 +16,22 @@ import (
 var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
 
 type TaskExecSpec struct {
-	Env         []string
-	Command     []string
+	// Delay execution
+	Delay time.Duration
+
+	// OutputAsReplace to replace same string in following TaskExecSpecs
+	OutputAsReplace string
+
+	FixOutputForReplace func(newValue string) string
+
+	Env     []string
+	Command []string
+
+	AlterExecFunc func(
+		replace map[string]string,
+		stdin io.Reader, stdout, stderr io.Writer,
+	) ([]TaskExecSpec, error)
+
 	IgnoreError bool
 }
 
@@ -50,6 +66,7 @@ type Task interface {
 		state taskExecState,
 		prefix string,
 		prefixColor, outputColor *color.Color,
+		thisTool Tool,
 		allTools map[ToolKey]Tool,
 		allShells map[ToolKey]*BaseTool,
 	) error
@@ -67,12 +84,17 @@ type BaseTask struct {
 	hookMU sync.Mutex
 }
 
+func (t *BaseTask) ToolName() string        { return t.toolName }
+func (t *BaseTask) SetToolName(name string) { t.toolName = name }
+func (t *BaseTask) TaskName() string        { return t.Name }
+
 func (t *BaseTask) RunHooks(
 	ctx *field.RenderingContext,
 	rf field.RenderingFunc,
 	state taskExecState,
 	prefix string,
 	prefixColor, outputColor *color.Color,
+	thisTool Tool,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
@@ -84,12 +106,12 @@ func (t *BaseTask) RunHooks(
 		return fmt.Errorf("failed to resolve hooks field: %w", err)
 	}
 
-	return t.Hooks.Run(ctx, state, prefix, prefixColor, outputColor, allTools, allShells)
+	return t.Hooks.Run(
+		ctx, state,
+		prefix, prefixColor, outputColor,
+		thisTool, allTools, allShells,
+	)
 }
-
-func (t *BaseTask) ToolName() string        { return t.toolName }
-func (t *BaseTask) SetToolName(name string) { t.toolName = name }
-func (t *BaseTask) TaskName() string        { return t.Name }
 
 func (t *BaseTask) GetMatrixSpecs(
 	ctx *field.RenderingContext,
