@@ -1,5 +1,7 @@
 # Tasks
 
+All tasks using default tool will be available to all other tools with same tool kind
+
 ## Common Task Config Options
 
 All tasks have a `arhat.dev/dukkha/pkg/tools.BaseTask` embedded
