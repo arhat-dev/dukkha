@@ -46,6 +46,8 @@ type ImageNameSpec struct {
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 
+// GetExecSpecs
+// TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
 func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
