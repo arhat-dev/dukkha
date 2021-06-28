@@ -1,18 +1,19 @@
 tools:
   golang:
-  - name: default-golang
+  - name: local
     env:
     - GO111MODULE=on
     - GO_PROXY=direct
     - GO_SUMDB=off
     cmd: [go]
-  - name: docker
+  - name: linux-container
     cmd:
     - |-
-      docker run -it --rm -v $(pwd):$(pwd) -w $(pwd) golang:buster go
-
-golang:docker:test:
-- name: dukkha
+      docker run -it --rm \
+        -v $(pwd):$(pwd) \
+        -w $(pwd) \
+        ghcr.io/arhat-dev/builder-go:debian \
+        go
 
 golang:test:
 - name: dukkha

@@ -6,6 +6,19 @@ tools:
     - DOCKER_BUILDKIT=1
   buildah:
   - name: buildah
+  # $ docker volume create buildah-dukkha
+  - name: in-docker
+    cmd:
+    - |-
+      docker run -it --rm \
+        --workdir $(pwd) \
+        -v $(pwd):$(pwd) \
+        --security-opt label=disable \
+        --security-opt seccomp=unconfined \
+        -v buildah-dukkha:/var/lib/containers \
+        --device /dev/fuse:rw \
+        quay.io/buildah/stable \
+        buildah
 
 docker:build:
 - &dukkha_image_build
