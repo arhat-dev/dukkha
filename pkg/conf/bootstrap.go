@@ -30,7 +30,7 @@ type BootstrapConfig struct {
 }
 
 // Resolve bootstrap config
-// 	- resolve env and set these environment vairables as global env
+// 	- resolve env and set these environment variables as global env
 // 	- resolve cache dir, set global env DUKKHA_CACHE_DIR to its absolute path
 // 	- resolve script cmd using global env
 func (c *BootstrapConfig) Resolve() error {
