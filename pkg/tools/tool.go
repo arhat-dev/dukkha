@@ -403,10 +403,7 @@ func (t *BaseTool) doRunTask(
 			}
 		}
 
-		var (
-			stdout, stderr io.Writer = os.Stdout, os.Stderr
-		)
-
+		var stdout, stderr io.Writer
 		if t.stderrIsTty {
 			stderr = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stderr)
 		} else {

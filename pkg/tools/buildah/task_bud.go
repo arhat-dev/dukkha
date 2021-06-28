@@ -8,11 +8,12 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/pkg/textquery"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/pkg/textquery"
 )
 
 const TaskKindBud = "bud"
@@ -183,12 +184,9 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				replace map[string]string,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) ([]tools.TaskExecSpec, error) {
-				var subSteps []tools.TaskExecSpec
-
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
 				if !ok {
 					// manifest not created, create and add this image
-					subSteps = append(subSteps)
 					return []tools.TaskExecSpec{
 						{
 							Command: sliceutils.NewStringSlice(
@@ -205,11 +203,13 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 					}, nil
 				}
 
-				// manifest already created
+				// manifest already created, query to get all matching digests
 				digestLines, err := textquery.JQ(manifestOsArchVariantQueryForDigest, manifestSpec)
 				if err != nil {
 					return nil, fmt.Errorf("failed to lookup entries in manifest spec: %w", err)
 				}
+
+				var subSteps []tools.TaskExecSpec
 
 				// remove existing entries with same os/arch/variant
 				for _, digest := range strings.Split(digestLines, "\n") {
