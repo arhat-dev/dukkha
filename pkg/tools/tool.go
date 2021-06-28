@@ -178,11 +178,14 @@ func (t *BaseTool) RunTask(
 	err = task.RunHooks(
 		baseCtx, t.RenderingFunc,
 		taskExecBeforeStart,
-		"hook:before "+taskPrefix, nil, nil,
+		taskExecBeforeStart.String()+" "+taskPrefix,
+		nil, nil,
 		thisTool, allTools, allShells,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to run before hooks: %w", err)
+		return fmt.Errorf("failed to run hooks %q: %w",
+			taskExecBeforeStart.String(), err,
+		)
 	}
 
 	for i, ms := range matrixSpecs {
@@ -237,11 +240,14 @@ func (t *BaseTool) RunTask(
 			err3 = task.RunHooks(
 				taskCtx, t.RenderingFunc,
 				taskExecBeforeMatrixStart,
-				"hook:before "+prefix, prefixColor, outputColor,
+				taskExecBeforeMatrixStart.String()+" "+prefix,
+				prefixColor, outputColor,
 				thisTool, allTools, allShells,
 			)
 			if err3 != nil {
-				return fmt.Errorf("failed to run matrix before hooks: %w", err3)
+				return fmt.Errorf("failed to run hooks %q: %w",
+					taskExecBeforeMatrixStart.String(), err3,
+				)
 			}
 
 			wg.Add(1)
@@ -279,12 +285,16 @@ func (t *BaseTool) RunTask(
 					err4 = task.RunHooks(
 						taskCtx, t.RenderingFunc,
 						taskExecAfterMatrixFailure,
-						"hook:after:failure "+prefix, prefixColor, outputColor,
+						taskExecAfterMatrixFailure.String()+" "+prefix,
+						prefixColor, outputColor,
 						thisTool, allTools, allShells,
 					)
 					if err4 != nil {
 						// TODO: handle hook error
-						err4 = fmt.Errorf("failed to run matrix after failure hooks: %w", err4)
+						err4 = fmt.Errorf(
+							"failed to run hooks %q: %w",
+							taskExecAfterMatrixFailure.String(), err4,
+						)
 						_ = err4
 					}
 
@@ -294,12 +304,15 @@ func (t *BaseTool) RunTask(
 				err4 = task.RunHooks(
 					taskCtx, t.RenderingFunc,
 					taskExecAfterMatrixSuccess,
-					"hook:after:success "+prefix, prefixColor, outputColor,
+					taskExecAfterMatrixSuccess.String()+" "+prefix,
+					prefixColor, outputColor,
 					thisTool, allTools, allShells,
 				)
 				if err4 != nil {
 					// TODO: handle hook error
-					err4 = fmt.Errorf("failed to run matrix after success hooks: %w", err4)
+					err4 = fmt.Errorf("failed to run hooks %q: %w",
+						taskExecAfterMatrixSuccess.String(), err4,
+					)
 					_ = err4
 				}
 			}(ms)
@@ -321,12 +334,15 @@ func (t *BaseTool) RunTask(
 		err = task.RunHooks(
 			baseCtx, t.RenderingFunc,
 			taskExecAfterFailure,
-			"hook:after:failure "+taskPrefix, nil, nil,
+			taskExecAfterFailure.String()+" "+taskPrefix,
+			nil, nil,
 			thisTool, allTools, allShells,
 		)
 		if err != nil {
 			// TODO: handle hook error
-			err = fmt.Errorf("failed to run after failure hooks: %w", err)
+			err = fmt.Errorf("failed to run hooks %q: %w",
+				taskExecAfterFailure.String(), err,
+			)
 			_ = err
 		}
 
@@ -336,12 +352,15 @@ func (t *BaseTool) RunTask(
 	err = task.RunHooks(
 		baseCtx, t.RenderingFunc,
 		taskExecAfterSuccess,
-		"hook:after:success "+taskPrefix, nil, nil,
+		taskExecAfterSuccess.String()+" "+taskPrefix,
+		nil, nil,
 		thisTool, allTools, allShells,
 	)
 	if err != nil {
 		// TODO: handle hook error
-		err = fmt.Errorf("failed to run after success hooks: %w", err)
+		err = fmt.Errorf("failed to run hooks %q: %w",
+			taskExecAfterSuccess.String(), err,
+		)
 		_ = err
 	}
 
