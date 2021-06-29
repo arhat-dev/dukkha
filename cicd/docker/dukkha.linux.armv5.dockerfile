@@ -1,5 +1,6 @@
 FROM ghcr.io/arhat-dev/builder-go:alpine as builder
 
+COPY . /app
 ARG MATRIX_ARCH
 RUN set -ex ;\
     make dukkha && \
