@@ -1,5 +1,6 @@
 package constant
 
+// nolint:revive
 const (
 	OS_DEBIAN = "debian"
 	OS_UBUNTU = "ubuntu"
