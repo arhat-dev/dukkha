@@ -33,6 +33,8 @@ const (
 	// arch value
 	ENV_HOST_ARCH = "HOST_ARCH"
 
+	// triple name parts
 	ENV_MATRIX_KERNEL = "MATRIX_KERNEL"
 	ENV_MATRIX_ARCH   = "MATRIX_ARCH"
+	ENV_MATRIX_LIBC   = "MATRIX_LIBC"
 )

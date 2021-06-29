@@ -4,7 +4,7 @@
 
 ## Common Values
 
-### OS values
+### Kernel values
 
 - `linux`
 - `darwin`
@@ -13,7 +13,7 @@
 - `openbsd`
 - `netbsd`
 
-### OS Arch values
+### Arch values
 
 - `amd64`
 - `armv5`
@@ -24,6 +24,12 @@
 - `mips64le`
 - `riscv64`
 - `x86`
+
+### Libc values
+
+- `glibc`
+- `musl`
+- `msvc`
 
 ## Environment Variables
 
