@@ -29,8 +29,8 @@ func GetAlpineArch(mArch string) string {
 
 func GetAlpineTripleName(mArch string) string {
 	return map[string]string{
-		ARCH_X86: "i686-linux-musl",
-		// ARCH_AMD64: "",
+		ARCH_X86:   "i686-linux-musl",
+		ARCH_AMD64: "x86_64-linux-musl",
 
 		// ARCH_ARM_V5: "",
 		ARCH_ARM_V6: "armel-linux-musleabi",

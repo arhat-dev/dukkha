@@ -13,12 +13,7 @@ func GetDockerArchVariant(mArch string) string {
 	}[mArch]
 }
 
-func GetDockerHubArch(mArch string, other ...string) string {
-	mKernel := KERNEL_LINUX
-	if len(other) != 0 {
-		mKernel = other[0]
-	}
-
+func GetDockerHubArch(mArch, mKernel string) string {
 	arch := map[string]string{
 		ARCH_AMD64: "amd64",
 		ARCH_X86:   "i386",

@@ -31,8 +31,18 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 			"getAlpineArch":       constant.GetAlpineArch,
 			"getAlpineTripleName": constant.GetAlpineTripleName,
 
-			"getDebianArch":       constant.GetDebianArch,
-			"getDebianTripleName": constant.GetDebianTripleName,
+			"getDebianArch": constant.GetDebianArch,
+			"getDebianTripleName": func(mArch string, other ...string) string {
+				targetKernel, targetLibc := "", ""
+				if len(other) > 0 {
+					targetKernel = other[0]
+				}
+				if len(other) > 1 {
+					targetLibc = other[1]
+				}
+
+				return constant.GetDebianTripleName(mArch, targetKernel, targetLibc)
+			},
 
 			"getQemuArch": constant.GetQemuArch,
 
@@ -44,7 +54,14 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 			"getDockerArch":        constant.GetDockerArch,
 			"getDockerArchVariant": constant.GetDockerArchVariant,
 
-			"getDockerHubArch": constant.GetDockerHubArch,
+			"getDockerHubArch": func(mArch string, other ...string) string {
+				mKernel := ""
+				if len(other) > 0 {
+					mKernel = other[0]
+				}
+
+				return constant.GetDockerHubArch(mArch, mKernel)
+			},
 			"getDockerPlatformArch": func(mArch string) string {
 				arch := constant.GetDockerArch(mArch)
 				variant := constant.GetDockerArchVariant(mArch)
