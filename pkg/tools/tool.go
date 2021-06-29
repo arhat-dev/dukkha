@@ -192,7 +192,14 @@ func (t *BaseTool) RunTask(
 		color := colorList[i%len(colorList)]
 		prefixColor, outputColor := color[0], color[1]
 
-		taskCtx := baseCtx.Clone()
+		mFilter := make(map[string][]string)
+		for k, v := range ms {
+			mFilter[k] = []string{v}
+		}
+
+		ctx := constant.WithMatrixFilter(baseCtx.Context(), mFilter)
+		taskCtx := field.WithRenderingValues(ctx, nil)
+		taskCtx.SetEnv(baseCtx.Values().Env)
 
 		select {
 		case <-taskCtx.Context().Done():
