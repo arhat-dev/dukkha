@@ -15,8 +15,8 @@ tools:
           ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | trimSuffix "hf" }} \
           go
 
-golang:test:
-- name: dukkha
+golang:build:
+- name: dukkha-local
   matrix: &test_matrix
     kernel:
     - linux
@@ -29,20 +29,6 @@ golang:test:
     - armv7
     - armv6
     - armv5
-  hooks:
-    before:
-    - shell: echo "hello"
-    - shell:python: print("world")
-    before:matrix:
-    - task: golang:local:build:dukkha-local
-    after:success@shell: |-
-      echo '- shell: echo "Done."'
-    after:failure:
-    - shell: echo "failed"
-
-golang:build:
-- name: dukkha-local
-  matrix: *test_matrix
   path: ./cmd/dukkha
   outputs: [build/dukkha-local]
 - name: dukkha
@@ -54,24 +40,27 @@ golang:build:
     - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
   cgo:
     enabled: false
-    hostCC: clang
-    hostCXX: clang++
-    # target cc and cxx for cross compiling
-    targetCC@template: |-
-      {{- if or (eq .Env.HOST_OS "debian") (eq .Env.HOST_OS "ubuntu") -}}
-        {{- getDebianTripleName .Env.MATRIX_ARCH -}}
-      {{- else if eq .Env.HOST_OS "alpine" -}}
-        {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
-      {{- get -}}
-      -gcc
+    hostCC: gcc
+    hostCXX: g++
 
-    targetCXX@template: |-
-      {{- if or (eq .Env.HOST_OS "debian") (eq .Env.HOST_OS "ubuntu") -}}
-        {{- getDebianTripleName .Env.MATRIX_ARCH -}}
-      {{- else if eq .Env.HOST_OS "alpine" -}}
-        {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
-      {{- get -}}
-      -g++
+    # targetCC and targetCXX will be set automatically for cross compiling when using cgo
+    # and of course you can customize
+
+    # targetCC@template: |-
+    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #   {{- else if eq .Env.HOST_OS "alpine" -}}
+    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- get -}}
+    #   -gcc
+
+    # targetCXX@template: |-
+    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #   {{- else if eq .Env.HOST_OS "alpine" -}}
+    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- get -}}
+    #   -g++
 
     cflags@shell: |-
       cat <<EOF
@@ -155,3 +144,17 @@ golang:build:
   - -buildmode=default
   - -mod=vendor
   - -trimpath
+
+golang:test:
+- name: dukkha
+  matrix: *test_matrix
+  hooks:
+    before:
+    - shell: echo "hello"
+    - shell:python: print("world")
+    before:matrix:
+    - task: golang:local:build:dukkha-local
+    after:success@shell: |-
+      echo '- shell: echo "Done."'
+    after:failure:
+    - shell: echo "failed"
