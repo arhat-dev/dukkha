@@ -192,6 +192,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 		// find existing manifest entries with same os/arch/variant
 		steps = append(steps, tools.TaskExecSpec{
+			IgnoreError: false,
 			AlterExecFunc: func(
 				replace map[string]string,
 				stdin io.Reader, stdout, stderr io.Writer,
@@ -249,7 +250,6 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 				return subSteps, nil
 			},
-			IgnoreError: false,
 		})
 	}
 
