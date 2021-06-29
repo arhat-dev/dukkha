@@ -2,7 +2,7 @@ package constant
 
 // https://github.com/tpoechtrager/osxcross
 
-func GetDarwinArch(mArch string) string {
+func GetAppleArch(mArch string) string {
 	return map[string]string{
 		ARCH_AMD64: "x86_64",
 
@@ -11,7 +11,7 @@ func GetDarwinArch(mArch string) string {
 	}[mArch]
 }
 
-func GetDarwinTripleName(mArch, darwinVersion string) string {
+func GetAppleTripleName(mArch, darwinVersion string) string {
 	v := map[string]string{
 		ARCH_AMD64: "x86_64-apple-darwin",
 
