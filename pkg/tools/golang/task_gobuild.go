@@ -178,7 +178,7 @@ func (c *CGOSepc) getEnv(doingCrossCompiling bool, mKernel, mArch, hostOS, targe
 				tripleName = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			case constant.KERNEL_DARWIN:
 				// TODO: set darwin version
-				tripleName = constant.GetDarwinTripleName(mArch, "")
+				tripleName = constant.GetAppleTripleName(mArch, "")
 			case constant.KERNEL_WINDOWS:
 				tripleName = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			default:
