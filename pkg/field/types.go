@@ -61,6 +61,12 @@ func (c *RenderingContext) AddEnv(entries ...string) {
 	}
 }
 
+func (c *RenderingContext) SetEnv(envMap map[string]string) {
+	for k, v := range envMap {
+		c.values.Env[k] = v
+	}
+}
+
 func (c *RenderingContext) Clone() *RenderingContext {
 	ret := &RenderingContext{
 		ctx: c.ctx,
