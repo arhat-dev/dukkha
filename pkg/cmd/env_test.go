@@ -40,6 +40,8 @@ func TestPopulateGlobalEnv(t *testing.T) {
 		"HOST_KERNEL":         runtime.GOOS,
 		"HOST_KERNEL_VERSION": "",
 		"HOST_ARCH":           "",
+
+		"DUKKHA_WORKING_DIR": "",
 	}
 
 	for _, name := range envNames {

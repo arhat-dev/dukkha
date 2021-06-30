@@ -24,6 +24,8 @@ type TaskExecSpec struct {
 
 	FixOutputForReplace func(newValue string) string
 
+	Chdir string
+
 	Env     []string
 	Command []string
 
@@ -58,7 +60,9 @@ type Task interface {
 	) ([]MatrixSpec, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
+	GetExecSpecs(
+		ctx *field.RenderingContext, toolCmd []string,
+	) ([]TaskExecSpec, error)
 
 	RunHooks(
 		ctx *field.RenderingContext,
@@ -78,6 +82,7 @@ type BaseTask struct {
 	Name   string       `yaml:"name"`
 	Matrix MatrixConfig `yaml:"matrix"`
 	Hooks  TaskHooks    `yaml:"hooks"`
+	Chdir  string       `yaml:"chdir"`
 
 	toolName string `yaml:"-"`
 

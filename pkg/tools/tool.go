@@ -493,6 +493,7 @@ func (t *BaseTool) doRunTask(
 			Context: ctx.Context(),
 			Command: runScriptCmd,
 			Env:     ctx.Values().Env,
+			Dir:     es.Chdir,
 
 			Stdin: os.Stdin,
 
