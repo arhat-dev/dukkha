@@ -36,15 +36,15 @@ type Code struct {
 //
 // It is safe to call this method of a *Code in multiple goroutines.
 func (c *Code) Run(v interface{}, values ...interface{}) Iter {
-	return c.RunWithContext(nil, v, values...)
+	return c.RunWithContext(context.Background(), v, values...)
 }
 
 // RunWithContext runs the code with context.
 func (c *Code) RunWithContext(ctx context.Context, v interface{}, values ...interface{}) Iter {
 	if len(values) > len(c.variables) {
-		return unitIterator(&tooManyVariableValuesError{})
+		return NewIter(&tooManyVariableValuesError{})
 	} else if len(values) < len(c.variables) {
-		return unitIterator(&expectedVariableError{c.variables[len(values)]})
+		return NewIter(&expectedVariableError{c.variables[len(values)]})
 	}
 	for i, v := range values {
 		values[i] = normalizeNumbers(v)
@@ -60,8 +60,7 @@ func (c *Code) RunWithContext(ctx context.Context, v interface{}, values ...inte
 //  LoadInitModules() ([]*Query, error)
 //  LoadJSON(string) (interface{}, error)
 //  LoadJSONWithMeta(string, map[string]interface{}) (interface{}, error)
-type ModuleLoader interface {
-}
+type ModuleLoader interface{}
 
 type codeinfo struct {
 	name string
@@ -438,7 +437,7 @@ func (c *compiler) compileAlt(l, r *Query) error {
 	return c.compileQuery(r)
 }
 
-func (c *compiler) compileQueryUpdate(l, r *Query, op Operator) (err error) {
+func (c *compiler) compileQueryUpdate(l, r *Query, op Operator) error {
 	switch op {
 	case OpAssign:
 		// .foo.bar = f => setpath(["foo", "bar"]; f)
@@ -736,7 +735,7 @@ func (c *compiler) compileLabel(e *Label) error {
 	return c.compileQuery(e.Body)
 }
 
-func (c *compiler) compileTerm(e *Term) (err error) {
+func (c *compiler) compileTerm(e *Term) error {
 	if len(e.SuffixList) > 0 {
 		s := e.SuffixList[len(e.SuffixList)-1]
 		t := *e // clone without changing e
@@ -885,12 +884,6 @@ func (c *compiler) compileFunc(e *Func) error {
 			}
 			c.codes[len(c.codes)-1] = &code{op: oppathend}
 			return nil
-		case "debug":
-			c.append(&code{op: opdebug, v: "DEBUG:"})
-			return nil
-		case "stderr":
-			c.append(&code{op: opdebug, v: "STDERR:"})
-			return nil
 		case "builtins":
 			return c.compileCallInternal(
 				[3]interface{}{c.funcBuiltins, 0, e.Name},
@@ -920,12 +913,18 @@ func (c *compiler) compileFunc(e *Func) error {
 		}
 	}
 	if fn, ok := c.customFuncs[e.Name]; ok && fn.accept(len(e.Args)) {
-		return c.compileCallInternal(
+		if err := c.compileCallInternal(
 			[3]interface{}{fn.callback, len(e.Args), e.Name},
 			e.Args,
 			nil,
 			false,
-		)
+		); err != nil {
+			return err
+		}
+		if fn.iter {
+			c.append(&code{op: opeach})
+		}
+		return nil
 	}
 	return &funcNotFoundError{e}
 }

@@ -27,6 +27,9 @@ import (
 type Spec struct {
 	Context context.Context
 
+	// set working directory when running the command
+	Dir string
+
 	Env         map[string]string
 	Command     []string
 	SysProcAttr *syscall.SysProcAttr
@@ -129,6 +132,7 @@ func Prepare(s Spec) (*exec.Cmd, error) {
 		cmd = exec.CommandContext(s.Context, bin, s.Command[1:]...)
 	}
 
+	cmd.Dir = s.Dir
 	cmd.SysProcAttr = getSysProcAttr(s.Tty, s.SysProcAttr)
 
 	for k, v := range s.Env {
