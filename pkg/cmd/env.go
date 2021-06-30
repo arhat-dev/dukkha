@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -99,6 +101,20 @@ func populateGlobalEnv(ctx context.Context) {
 
 	now := time.Now()
 	for k, v := range map[string]string{
+		constant.ENV_DUKKHA_WORKING_DIR: func() string {
+			pwd, err := os.Getwd()
+			if err != nil {
+				return ""
+			}
+
+			pwd, err = filepath.Abs(pwd)
+			if err != nil {
+				panic(fmt.Errorf("failed to get dukkha working dir: %w", err))
+			}
+
+			return pwd
+		}(),
+
 		constant.ENV_TIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
 		constant.ENV_TIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
 		constant.ENV_TIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),

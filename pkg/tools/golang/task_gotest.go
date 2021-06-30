@@ -38,6 +38,7 @@ func (c *TaskTest) TaskKind() string { return TaskKindTest }
 
 func (c *TaskTest) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	spec := &tools.TaskExecSpec{
+		Chdir:   c.Chdir,
 		Command: sliceutils.NewStringSlice(toolCmd, "test", "./..."),
 	}
 	return []tools.TaskExecSpec{*spec}, nil

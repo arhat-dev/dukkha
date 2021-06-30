@@ -92,6 +92,8 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 	var buildSteps []tools.TaskExecSpec
 	for _, output := range outputs {
 		spec := &tools.TaskExecSpec{
+			Chdir: c.Chdir,
+
 			Env:     sliceutils.NewStringSlice(env),
 			Command: sliceutils.NewStringSlice(toolCmd, "build", "-o", output),
 		}
