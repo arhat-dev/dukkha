@@ -6,6 +6,7 @@ All tools have a `arhat.dev/dukkha/pkg/tools.BaseTool` embedded
 
 ```yaml
 tools:
+  # tool_kind is the kind name of the tool
   <tool_kind>:
   - name: <tool_name> # custom tool name
 
@@ -14,6 +15,13 @@ tools:
     # - ENV_NAME=env_value
 
     # cmd to run this tool
-    # e.g. [ssh, remote-host, do]
+    # e.g. [ssh, remote-host, do, something]
     cmd: []
 ```
+
+## Supported Tool Kinds
+
+- `buildah`
+- `docker`
+- `golang`
+- [`skopeo`](./skopeo.md)
