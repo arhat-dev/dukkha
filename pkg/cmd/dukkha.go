@@ -32,6 +32,7 @@ import (
 
 func NewRootCmd() *cobra.Command {
 	// cli options
+	// nolint:revive
 	var (
 		cli_logConfig    = new(log.Config)
 		cli_workerCount  int
