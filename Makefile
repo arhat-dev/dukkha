@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# IMAGE_REPOS is the comma separated list of image registries
-IMAGE_REPOS ?= docker.io/arhatdev,ghcr.io/arhat-dev
-
-export IMAGE_REPOS
-
-DEFAULT_IMAGE_MANIFEST_TAG ?= latest
-
 include scripts/lint.mk
 
 GOMOD := GOPROXY=direct GOSUMDB=off go mod
@@ -27,23 +20,15 @@ vendor:
 	${GOMOD} tidy
 	${GOMOD} vendor
 
+GOOS ?= $(shell go env GOHOSTOS)
+GOARCH ?= $(shell go env GOHOSTARCH)
+.PHONY: dukkha
+dukkha:
+	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
+		go build -o build/dukkha -mod vendor ./cmd/dukkha
+
 # testing
 include scripts/test/unit.mk
-
-# binary build
-include scripts/build/dukkha.mk
-
-image.build.linux.all: \
-	image.build.dukkha.linux.all
-
-image.build.windows.all: \
-	image.build.dukkha.windows.all
-
-image.push.linux.all: \
-	image.push.dukkha.linux.all
-
-image.push.windows.all: \
-	image.push.dukkha.windows.all
 
 # packaging
 include scripts/package/dukkha.mk
