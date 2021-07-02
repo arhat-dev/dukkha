@@ -30,7 +30,7 @@ type (
 	}
 )
 
-func WithRenderingValues(ctx context.Context, env []string) *RenderingContext {
+func WithRenderingValues(ctx context.Context, extraEnv []string) *RenderingContext {
 	ret := &RenderingContext{
 		ctx: ctx,
 		values: &RenderingValues{
@@ -39,7 +39,7 @@ func WithRenderingValues(ctx context.Context, env []string) *RenderingContext {
 	}
 
 	ret.AddEnv(os.Environ()...)
-	ret.AddEnv(env...)
+	ret.AddEnv(extraEnv...)
 
 	return ret
 }
