@@ -18,10 +18,3 @@ tools:
     # e.g. [ssh, remote-host, do, something]
     cmd: []
 ```
-
-## Supported Tool Kinds
-
-- `buildah`
-- `docker`
-- `golang`
-- [`skopeo`](./skopeo.md)

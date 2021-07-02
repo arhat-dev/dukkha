@@ -20,6 +20,8 @@ import (
 	"arhat.dev/dukkha/pkg/sysinfo"
 )
 
+// TODO(all): Update docs/environment-variables.md when updating this file
+
 func populateGlobalEnv(ctx context.Context) error {
 	envs := []struct {
 		name      string
@@ -48,8 +50,10 @@ func populateGlobalEnv(ctx context.Context) error {
 			command: []string{
 				"git", "describe", "--tags",
 			},
-			onError:   func() string { return "" },
-			onSuccess: strings.TrimSpace,
+			onError: func() string { return "" },
+			onSuccess: func(result string) string {
+				return strings.TrimSpace(strings.SplitN(result, " ", 2)[0])
+			},
 		},
 		{
 			name: constant.ENV_GIT_WORKSPACE_CLEAN,
