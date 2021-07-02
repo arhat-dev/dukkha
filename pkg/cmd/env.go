@@ -14,12 +14,13 @@ import (
 	"time"
 
 	"arhat.dev/pkg/exechelper"
+	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sysinfo"
 )
 
-func populateGlobalEnv(ctx context.Context) {
+func populateGlobalEnv(ctx context.Context) error {
 	envs := []struct {
 		name      string
 		command   []string
@@ -77,39 +78,40 @@ func populateGlobalEnv(ctx context.Context) {
 		},
 	}
 
+	var err error
 	for _, e := range envs {
 		buf := &bytes.Buffer{}
-		cmd, err := exechelper.Do(exechelper.Spec{
+		cmd, err2 := exechelper.Do(exechelper.Spec{
 			Context: ctx,
 			Command: e.command,
 			Stdout:  buf,
 			Stderr:  ioutil.Discard,
 		})
-		if err != nil {
-			_ = os.Setenv(e.name, e.onError())
+		if err2 != nil {
+			err = multierr.Append(err, os.Setenv(e.name, e.onError()))
 			continue
 		}
 
-		_, err = cmd.Wait()
-		if err != nil {
-			_ = os.Setenv(e.name, e.onError())
+		_, err2 = cmd.Wait()
+		if err2 != nil {
+			err = multierr.Append(err, os.Setenv(e.name, e.onError()))
 			continue
 		}
 
-		_ = os.Setenv(e.name, e.onSuccess(buf.String()))
+		err = multierr.Append(err, os.Setenv(e.name, e.onSuccess(buf.String())))
 	}
 
 	now := time.Now()
 	for k, v := range map[string]string{
 		constant.ENV_DUKKHA_WORKING_DIR: func() string {
-			pwd, err := os.Getwd()
-			if err != nil {
+			pwd, err2 := os.Getwd()
+			if err2 != nil {
 				return ""
 			}
 
-			pwd, err = filepath.Abs(pwd)
-			if err != nil {
-				panic(fmt.Errorf("failed to get dukkha working dir: %w", err))
+			pwd, err2 = filepath.Abs(pwd)
+			if err2 != nil {
+				panic(fmt.Errorf("failed to get dukkha working dir: %w", err2))
 			}
 
 			return pwd
@@ -130,31 +132,34 @@ func populateGlobalEnv(ctx context.Context) {
 
 		constant.ENV_HOST_ARCH: sysinfo.Arch(),
 	} {
-		_ = os.Setenv(k, v)
+		err = multierr.Append(err, os.Setenv(k, v))
 	}
 
 	// set host os name and version
 	switch runtime.GOOS {
 	case constant.KERNEL_LINUX:
-		data, err := os.ReadFile("/etc/os-release")
-		if err == nil {
-			s := bufio.NewScanner(bytes.NewReader(data))
-			s.Split(bufio.ScanLines)
+		data, err2 := os.ReadFile("/etc/os-release")
+		if err2 != nil {
+			break
+		}
 
-			for s.Scan() {
-				line := s.Text()
-				switch {
-				case strings.HasPrefix(line, "ID="):
-					osName := strings.TrimPrefix(line, "ID=")
-					osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
+		s := bufio.NewScanner(bytes.NewReader(data))
+		s.Split(bufio.ScanLines)
 
-					_ = os.Setenv(constant.ENV_HOST_OS, osName)
-				case strings.HasPrefix(line, "VERSION_ID="):
-					osVersion := strings.TrimPrefix(line, "VERSION_ID=")
-					osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
+		for s.Scan() {
+			line := s.Text()
+			switch {
+			case strings.HasPrefix(line, "ID="):
+				osName := strings.TrimPrefix(line, "ID=")
+				osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
 
-					_ = os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion)
-				}
+				// TODO: ubuntu has ID_LIKE=debian, check other platforms
+				err = multierr.Append(err, os.Setenv(constant.ENV_HOST_OS, osName))
+			case strings.HasPrefix(line, "VERSION_ID="):
+				osVersion := strings.TrimPrefix(line, "VERSION_ID=")
+				osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
+
+				err = multierr.Append(err, os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion))
 			}
 		}
 	default:
@@ -169,12 +174,12 @@ func populateGlobalEnv(ctx context.Context) {
 		// https://docs.github.com/en/actions/reference/environment-variables
 		commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
 		if len(commit) != 0 {
-			_ = os.Setenv(constant.ENV_GIT_COMMIT, commit)
+			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
 		}
 
 		branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
 		if len(branch) != 0 {
-			_ = os.Setenv(constant.ENV_GIT_BRANCH, branch)
+			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
 		}
 	case os.Getenv("GITLAB_CI") == "true":
 		// gitlab-ci
@@ -183,18 +188,20 @@ func populateGlobalEnv(ctx context.Context) {
 
 		commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
 		if len(commit) != 0 {
-			_ = os.Setenv(constant.ENV_GIT_COMMIT, commit)
+			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
 		}
 
 		branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
 		if len(branch) != 0 {
-			_ = os.Setenv(constant.ENV_GIT_BRANCH, branch)
+			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
 		}
 
 		tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
 		if len(tag) != 0 {
-			_ = os.Setenv(constant.ENV_GIT_TAG, tag)
+			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_TAG, tag))
 		}
 	default:
 	}
+
+	return err
 }

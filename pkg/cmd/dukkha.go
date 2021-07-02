@@ -19,6 +19,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
@@ -30,22 +31,27 @@ import (
 )
 
 func NewRootCmd() *cobra.Command {
+	// cli options
+	var (
+		cli_logConfig    = new(log.Config)
+		cli_workerCount  int
+		cli_failFast     bool
+		cli_matrixFilter []string
+	)
+
+	// config file
+	var (
+		configPaths []string
+		config      = conf.NewConfig()
+	)
+
+	// runtime data
 	var (
 		_appCtx = context.Background()
 		appCtx  = &_appCtx
 
-		configPaths []string
-		logConfig   = new(log.Config)
-		config      = conf.NewConfig()
-
-		workerCount  int
-		failFast     bool
-		matrixFilter []string
-
 		renderingMgr = renderer.NewManager()
-	)
 
-	var (
 		allTools  = make(map[tools.ToolKey]tools.Tool)
 		allShells = make(map[tools.ToolKey]*tools.BaseTool)
 
@@ -62,27 +68,39 @@ dukkha docker non-default-tool build my-image`,
 
 		Args: cobra.RangeArgs(3, 4),
 
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd:   true,
+			DisableNoDescFlag:   true,
+			DisableDescriptions: true,
+		},
+
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if cmd.Use == "version" {
+			switch {
+			case strings.HasPrefix(cmd.Use, "version"),
+				strings.HasPrefix(cmd.Use, "completion"):
 				return nil
 			}
 
-			populateGlobalEnv(*appCtx)
+			// set global env per docs/environment-variables
+			err := populateGlobalEnv(*appCtx)
+			if err != nil {
+				return fmt.Errorf("failed to set essential global env: %w", err)
+			}
 
-			config.Log = logConfig
-
-			err := log.SetDefaultLogger(log.ConfigSet{*logConfig})
+			// setup global logger for debugging
+			err = log.SetDefaultLogger(log.ConfigSet{*cli_logConfig})
 			if err != nil {
 				return err
 			}
 
-			err = readConfig(
+			// read all configration files
+			err = readConfigRecursively(
 				configPaths,
 				cmd.PersistentFlags().Changed("config"),
 				config,
 			)
 			if err != nil {
-				return fmt.Errorf("failed to read config: %w", err)
+				return fmt.Errorf("failed to load config: %w", err)
 			}
 
 			err = resolveConfig(*appCtx, renderingMgr, config, &allShells, &allTools, &toolSpecificTasks)
@@ -90,13 +108,13 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
-			mf := parseMatrixFilter(matrixFilter)
-			ctx := constant.WithWorkerCount(*appCtx, workerCount)
+			mf := parseMatrixFilter(cli_matrixFilter)
+			ctx := constant.WithWorkerCount(*appCtx, cli_workerCount)
 			if len(mf) != 0 {
 				ctx = constant.WithMatrixFilter(ctx, mf)
 			}
 
-			ctx = constant.WithFailFast(ctx, failFast)
+			ctx = constant.WithFailFast(ctx, cli_failFast)
 			appCtx = &ctx
 
 			log.Log.D("application configured", log.Any("config", config))
@@ -111,22 +129,54 @@ dukkha docker non-default-tool build my-image`,
 	globalFlags := rootCmd.PersistentFlags()
 
 	globalFlags.StringSliceVarP(
-		&configPaths, "config", "c",
-		[]string{".dukkha", ".dukkha.yaml"},
-		"path to your config files",
+		&configPaths,
+		"config", "c",
+		[]string{".dukkha.yaml", ".dukkha"},
+		"path to your config files and directories, only files with .yaml extension are parsed",
 	)
 
-	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
-	globalFlags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter")
-	globalFlags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution when one errored")
+	globalFlags.IntVarP(
+		&cli_workerCount,
+		"workers", "j",
+		1,
+		"set parallel worker count",
+	)
 
-	// logging
-	globalFlags.StringVarP(&logConfig.Level, "log.level", "v", "info",
-		"log level, one of [verbose, debug, info, error, silent]")
-	globalFlags.StringVar(&logConfig.Format, "log.format", "console",
-		"log output format, one of [console, json]")
-	globalFlags.StringVar(&logConfig.File, "log.file", "stderr",
-		"log output to this file")
+	globalFlags.StringSliceVarP(
+		&cli_matrixFilter,
+		"matrix", "m",
+		nil,
+		"set matrix filter, format: <name>=<value>",
+	)
+
+	globalFlags.BoolVar(
+		&cli_failFast,
+		"fail-fast",
+		true,
+		"cancel other task execution when one errored",
+	)
+
+	// logging for debug purpose
+	globalFlags.StringVarP(
+		&cli_logConfig.Level,
+		"log.level", "v",
+		"info",
+		"log level, one of [verbose, debug, info, error, silent]",
+	)
+
+	globalFlags.StringVar(
+		&cli_logConfig.Format,
+		"log.format",
+		"console",
+		"log output format, one of [console, json]",
+	)
+
+	globalFlags.StringVar(
+		&cli_logConfig.File,
+		"log.file",
+		"stderr",
+		"file path to write log output, including `stdout` and `stderr`",
+	)
 
 	setupCompletion(appCtx, rootCmd, renderingMgr.Render, &allTools, &toolSpecificTasks)
 
