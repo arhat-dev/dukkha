@@ -1,5 +1,7 @@
 package constant
 
+// TODO(all): Update docs/environment-variables.md when updating this file
+
 // Environment variables for all tasks
 // nolint:revive
 const (

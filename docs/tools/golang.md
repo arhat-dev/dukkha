@@ -1,6 +1,8 @@
 # golang
 
-[Go](https://golang.org/) toolchain support
+[Golang](https://golang.org/) toolchain support
+
+`GO_COMPILER_PLATFORM="$(go version | cut -d\  -f4)"`
 
 ## Supported Tasks
 
@@ -13,3 +15,5 @@ Run go build
 Run go test
 
 ### Task `golang:profile`
+
+Run go tool pprof
