@@ -17,8 +17,6 @@ limitations under the License.
 package conf
 
 import (
-	"arhat.dev/pkg/log"
-
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -31,7 +29,6 @@ type Config struct {
 	field.BaseField
 
 	// no rendering suffix support
-	Log       *log.Config     `yaml:"log"`
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
 	// Shells for rendering and command execution
@@ -43,10 +40,6 @@ type Config struct {
 }
 
 func (c *Config) Merge(a *Config) {
-	if a.Log != nil {
-		c.Log = a.Log
-	}
-
 	if len(a.Bootstrap.ScriptCmd) != 0 {
 		c.Bootstrap = a.Bootstrap
 	}
