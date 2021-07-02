@@ -3,9 +3,7 @@ package conf
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"arhat.dev/pkg/envhelper"
@@ -15,31 +13,32 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-type bootstrapPureConfig struct {
-	// Directory to store command cache
-	CacheDir string `yaml:"cacheDir"`
+type BootstrapConfig struct {
+	// CacheDir to store script file and temporary task execution data
+	// it is used when
+	// 		- resolving fields using shell renderer
+	// 		- executing tasks need to run commands
+	CacheDir string `yaml:"cache_dir"`
 
+	// Env
 	Env []string `yaml:"env"`
 
 	// The command to run scripts (files) directly
 	ScriptCmd []string `yaml:"script_cmd"`
 }
 
-type BootstrapConfig struct {
-	bootstrapPureConfig `yaml:",inline"`
-}
-
 // Resolve bootstrap config
-// 	- resolve env and set these environment variables as global env
-// 	- resolve cache dir, set global env DUKKHA_CACHE_DIR to its absolute path
-// 	- resolve script cmd using global env
+//
+// 1. resolve env and set these environment variables as global env
+// 2. resolve cache_dir, set global env DUKKHA_CACHE_DIR to its absolute path
+// 3. resolve (expand) script_cmd with global env
 func (c *BootstrapConfig) Resolve() error {
 	var err error
 	expandEnvFunc := func(varName, origin string) string {
 		if strings.HasPrefix(origin, "$(") {
 			err = multierr.Append(
 				err,
-				fmt.Errorf("conf.bootstrap: shell evaluation %q is not allowed", origin),
+				fmt.Errorf("shell evaluation %q is not allowed", origin),
 			)
 			return ""
 		}
@@ -48,7 +47,7 @@ func (c *BootstrapConfig) Resolve() error {
 		if !ok {
 			err = multierr.Append(
 				err,
-				fmt.Errorf("conf.bootstrap: environment variable %q not found", val),
+				fmt.Errorf("environment variable %q not found", val),
 			)
 			return ""
 		}
@@ -82,17 +81,12 @@ func (c *BootstrapConfig) Resolve() error {
 	}
 
 	if len(c.CacheDir) == 0 {
-		c.CacheDir = ".dukkha/cache"
+		c.CacheDir = constant.DefaultCacheDir
 	}
 
 	c.CacheDir, err = filepath.Abs(c.CacheDir)
 	if err != nil {
 		return fmt.Errorf("bootstrap: failed to get absolute path of cache dir: %w", err)
-	}
-
-	err = os.MkdirAll(c.CacheDir, 0750)
-	if err != nil && !os.IsExist(err) {
-		return fmt.Errorf("bootstrap: failed to ensure cache dir: %w", err)
 	}
 
 	err = os.Setenv(constant.ENV_DUKKHA_CACHE_DIR, c.CacheDir)
@@ -106,39 +100,14 @@ func (c *BootstrapConfig) Resolve() error {
 		c.ScriptCmd[i] = envhelper.Expand(cmdPart, expandEnvFunc)
 		if err != nil {
 			return fmt.Errorf(
-				"bootstrap: unable to resolve script cmd %q: %w",
+				"bootstrap: unable to expand part %q in script_cmd: %w",
 				cmdPart, err,
 			)
 		}
 	}
 
-	if len(c.ScriptCmd) != 0 {
-		return nil
-	}
-
-	// to make it consistent among all platforms, always try to find `sh` first
-	switch runtime.GOOS {
-	case "windows":
-		_, err := exec.LookPath("sh")
-		if err == nil {
-			c.ScriptCmd = []string{"sh"}
-			break
-		}
-
-		_, err = exec.LookPath("pwsh")
-		if err == nil {
-			c.ScriptCmd = []string{"pwsh"}
-			break
-		}
-
-		_, err = exec.LookPath("powershell")
-		if err == nil {
-			c.ScriptCmd = []string{"powershell"}
-			break
-		}
-
-		c.ScriptCmd = []string{"cmd"}
-	default:
+	if len(c.ScriptCmd) == 0 {
+		// to make it consistent among all platforms, always defaults to `sh`
 		c.ScriptCmd = []string{"sh"}
 	}
 
