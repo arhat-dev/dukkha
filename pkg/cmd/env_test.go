@@ -21,7 +21,9 @@ func TestPopulateGlobalEnv(t *testing.T) {
 
 	// DO NOT os.Clearenv(), git will not work with not environment variables
 
-	populateGlobalEnv(context.TODO())
+	if !assert.NoError(t, populateGlobalEnv(context.TODO()), "fatal os.Setenv errored") {
+		return
+	}
 
 	requiredEnv := map[string]string{
 		"GIT_BRANCH":          "",
