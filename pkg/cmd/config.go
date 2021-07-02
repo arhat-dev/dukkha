@@ -15,6 +15,7 @@ import (
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/renderer/shell_file"
@@ -119,6 +120,7 @@ func resolveConfig(
 		renderingMgr.Add(&template.Config{}, template.DefaultName),
 		renderingMgr.Add(&template_file.Config{}, template_file.DefaultName),
 		renderingMgr.Add(&file.Config{}, file.DefaultName),
+		renderingMgr.Add(&env.Config{}, env.DefaultName),
 	)
 
 	if err != nil {
