@@ -96,7 +96,7 @@ func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) 
 	for _, spec := range c.Files {
 		matches, err := filepath.Glob(spec.Path)
 		if err != nil {
-			return nil, err
+			matches = []string{spec.Path}
 		}
 
 		for i, file := range matches {
