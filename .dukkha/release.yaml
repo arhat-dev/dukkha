@@ -1,0 +1,32 @@
+tools:
+  github:
+  - name: local
+
+github:release:
+- &std_release
+  name: dukkha
+  hooks:
+    before:
+    - shell: |-
+        cd build
+        openssl dgst -sha256 dukkha.* > sha256.txt
+        openssl dgst -sha512 dukkha.* > sha512.txt
+        openssl dgst -md5 dukkha.* > md5.txt
+  draft: true
+  tag: ${GIT_TAG}
+  pre_release: false
+  title@env: ${GIT_TAG}
+  notes@template_file: .dukkha/release-notes.md
+  files:
+  - path: build/dukkha.*
+  # checksums
+  - path: build/*.txt
+
+- name: testing
+  tag: testing
+  draft: true
+  title: testing-release-title
+  notes@file: .dukkha/release-notes.md
+  files:
+  - path: build/duk*
+    label: testing.dukkha
