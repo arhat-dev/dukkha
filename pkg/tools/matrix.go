@@ -32,20 +32,27 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
 		}
 	}
 
+	hasUserValue := len(mc.Include) != 0 || len(mc.Exclude) != 0
+	hasUserValue = hasUserValue || len(mc.Kernel) != 0 || len(mc.Arch) != 0 || len(mc.Custom) != 0
+
+	if !hasUserValue {
+		return []MatrixSpec{
+			{
+				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
+				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
+			},
+		}
+	}
+
 	all := make(map[string][]string)
 
-	osList := mc.Kernel
-	if len(osList) == 0 {
-		// add default host arch
-		osList = []string{os.Getenv(constant.ENV_HOST_KERNEL)}
+	if len(mc.Kernel) != 0 {
+		all["kernel"] = mc.Kernel
 	}
-	all["kernel"] = osList
 
-	archList := mc.Arch
-	if len(archList) == 0 {
-		archList = []string{os.Getenv(constant.ENV_HOST_ARCH)}
+	if len(mc.Arch) != 0 {
+		all["arch"] = mc.Arch
 	}
-	all["arch"] = archList
 
 	for name := range mc.Custom {
 		all[name] = mc.Custom[name]
