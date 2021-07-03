@@ -483,6 +483,8 @@ func (t *BaseTool) doRunTask(
 			for _, rawCmdPart := range es.Command {
 				cmd = append(cmd, replacer.Replace(rawCmdPart))
 			}
+		} else {
+			cmd = sliceutils.NewStringSlice(es.Command)
 		}
 
 		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
