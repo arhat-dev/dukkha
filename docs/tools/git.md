@@ -12,12 +12,12 @@ git:clone:
   url: https://example.com/repo.git
   path: ./third_party/repo
   # remote branch to checkout, defaults to the remote default branch
-  remoteBranch: v0.1.0
+  remote_branch: v0.1.0
   # local branch name checked out from the remote branch
-  localBranch: ""
+  local_branch: ""
   # value to git clone --origin
-  remoteName: upstream
-  # extraArgs for clone
-  extraArgs:
+  remote_name: upstream
+  # extra args for git clone
+  extra_args:
   - --depth=1
 ```
