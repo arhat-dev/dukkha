@@ -78,7 +78,7 @@ func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) 
 
 	if len(c.Notes) != 0 {
 		cacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
-		f, err := ioutil.TempFile(cacheDir, "dukkha-github-release-note-*")
+		f, err := ioutil.TempFile(cacheDir, "github-release-note-*")
 		if err != nil {
 			return nil, fmt.Errorf("failed to create temporary release note file: %w", err)
 		}
