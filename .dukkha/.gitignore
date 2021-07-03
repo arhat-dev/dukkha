@@ -4,3 +4,4 @@ cache
 !/base\.yaml
 !/image\.yaml
 !/build\.yaml
+!/release\.yaml
