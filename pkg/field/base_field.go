@@ -24,6 +24,10 @@ type (
 	}
 )
 
+var (
+	stringPtrType = reflect.TypeOf((*string)(nil))
+)
+
 type BaseField struct {
 	_initialized uint32
 
@@ -80,10 +84,19 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc,
 				return fmt.Errorf("field: failed to render value of this base field %T: %w", target, err)
 			}
 
+			if target.Type() == stringPtrType {
+				// resovled value is the target value
+				target.Elem().SetString(resolvedValue)
+				continue
+			}
+
 			var tmp interface{}
 			err = yaml.Unmarshal([]byte(resolvedValue), &tmp)
 			if err != nil {
-				return fmt.Errorf("field: failed to unmarshal resolve value to any type: %w", err)
+				logger.V("failed to unmarshal resolved value as interface",
+					log.String("value", resolvedValue),
+				)
+				return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
 			}
 
 			err = unmarshal(v.yamlFieldName, tmp, target, i != 0)
