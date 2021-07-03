@@ -279,7 +279,7 @@ fieldLoop:
 					)
 				}
 
-				logger.V("inspecting inline fields", log.String("field", fieldType.Name))
+				logger.V("inspecting inline field", log.String("name", fieldType.Name))
 
 				inlineFv := fieldValue
 				inlineFt := self._parentValue.Type().Elem().Field(i).Type

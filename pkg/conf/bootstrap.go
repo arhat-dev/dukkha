@@ -76,7 +76,7 @@ func (c *BootstrapConfig) Resolve() error {
 
 		logger.V("setting global env",
 			log.String("name", key),
-			log.String("vale", value),
+			log.String("value", value),
 		)
 		err = os.Setenv(key, value)
 		if err != nil {

@@ -40,6 +40,12 @@ type Config struct {
 }
 
 func (c *Config) Merge(a *Config) {
+	c.Bootstrap.Env = append(c.Bootstrap.Env, a.Bootstrap.Env...)
+	if len(a.Bootstrap.CacheDir) != 0 {
+		c.Bootstrap.CacheDir = a.Bootstrap.CacheDir
+	}
+
+	// once changed script cmd, replace the whole bootstrap config
 	if len(a.Bootstrap.ScriptCmd) != 0 {
 		c.Bootstrap = a.Bootstrap
 	}
