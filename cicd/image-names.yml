@@ -3,7 +3,7 @@
 {{- $tag := "" -}}
 {{- $manifest_tag := "" -}}
 
-{{- if (eq .Env.GIT_WORKSPACE_CLEAN "true") -}}
+{{- if (eq .Env.GIT_WORKTREE_CLEAN "true") -}}
   {{- if .Env.GIT_TAG -}}
 
     {{- $tag = printf "%s-%s" .Env.GIT_TAG .Env.MATRIX_ARCH -}}

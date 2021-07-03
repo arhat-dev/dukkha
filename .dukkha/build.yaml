@@ -127,7 +127,7 @@ golang:build:
   - -X arhat.dev/dukkha/pkg/version.commit="${GIT_COMMIT}"
   - -X arhat.dev/dukkha/pkg/version.tag="${GIT_TAG}"
   - -X arhat.dev/dukkha/pkg/version.arch="${MATRIX_ARCH}"
-  - -X arhat.dev/dukkha/pkg/version.workspaceClean="${GIT_WORKSPACE_CLEAN}"
+  - -X arhat.dev/dukkha/pkg/version.workspaceClean="${GIT_WORKTREE_CLEAN}"
   - -X arhat.dev/dukkha/pkg/version.goCompilerPlatform="$(go version | cut -d\  -f4)"
   outputs@shell: |-
     suffix=""

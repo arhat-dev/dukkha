@@ -38,7 +38,7 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and
     - Example Values: `v0.0.1`, `1.0.2`
   - Customization: Not Supported
 
-- `GIT_WORKSPACE_CLEAN` (First Availability: Before bootstrap)
+- `GIT_WORKTREE_CLEAN` (First Availability: Before bootstrap)
   - Description: Indicate whether there is file not committed when invoking `dukkha`
   - Default Value: `true` if `git diff-index --quiet HEAD` exited with 0, otherwise `false`
     - Example Values: `true` or `false`
