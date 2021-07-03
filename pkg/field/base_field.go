@@ -85,7 +85,7 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc,
 			}
 
 			if target.Type() == stringPtrType {
-				// resovled value is the target value
+				// resolved value is the target value
 				target.Elem().SetString(resolvedValue)
 				continue
 			}
