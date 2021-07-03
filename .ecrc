@@ -5,10 +5,11 @@
   "SpacesAftertabs": false,
   "NoColor": false,
   "Exclude": [
-    "vendor", "generated"
+    "\\.git/.*", "private/.*",
+    "vendor/.*", "generated/.*",
+    "build/.*", "\\.dukkha/cache/.*"
   ],
   "AllowedContentTypes": [],
-  "PassedFiles": [],
   "Disable": {
     "EndOfLine": false,
     "Indentation": false,

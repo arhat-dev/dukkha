@@ -9,6 +9,7 @@ ignore: |
   cicd/deploy/kube/
   private/
   cicd/*.yml
+  **/testdata/**
 
 rules:
   braces:
