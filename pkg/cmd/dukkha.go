@@ -109,8 +109,9 @@ dukkha docker non-default-tool build my-image`,
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
-			mf := parseMatrixFilter(cli_matrixFilter)
 			ctx := constant.WithWorkerCount(*appCtx, cli_workerCount)
+
+			mf := parseMatrixFilter(cli_matrixFilter)
 			if len(mf) != 0 {
 				ctx = constant.WithMatrixFilter(ctx, mf)
 			}

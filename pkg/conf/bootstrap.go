@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/envhelper"
+	"arhat.dev/pkg/log"
 	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -33,8 +34,12 @@ type BootstrapConfig struct {
 // 2. resolve cache_dir, set global env DUKKHA_CACHE_DIR to its absolute path
 // 3. resolve (expand) script_cmd with global env
 func (c *BootstrapConfig) Resolve() error {
+	logger := log.Log.WithName("bootstrap.resovle")
+
 	var err error
 	expandEnvFunc := func(varName, origin string) string {
+		logger.V("expanding env", log.String("origin", origin))
+
 		if strings.HasPrefix(origin, "$(") {
 			err = multierr.Append(
 				err,
@@ -69,6 +74,10 @@ func (c *BootstrapConfig) Resolve() error {
 			value = parts[1]
 		}
 
+		logger.V("setting global env",
+			log.String("name", key),
+			log.String("vale", value),
+		)
 		err = os.Setenv(key, value)
 		if err != nil {
 			return fmt.Errorf("bootstrap: failed to set global env %q: %w", key, err)
@@ -89,6 +98,7 @@ func (c *BootstrapConfig) Resolve() error {
 		return fmt.Errorf("bootstrap: failed to get absolute path of cache dir: %w", err)
 	}
 
+	logger.V("resolved dukkha cache dir", log.String("path", c.CacheDir))
 	err = os.Setenv(constant.ENV_DUKKHA_CACHE_DIR, c.CacheDir)
 	if err != nil {
 		return fmt.Errorf("bootstrap: failed to set cache dir global env %q: %w",
@@ -110,6 +120,8 @@ func (c *BootstrapConfig) Resolve() error {
 		// to make it consistent among all platforms, always defaults to `sh`
 		c.ScriptCmd = []string{"sh"}
 	}
+
+	logger.V("resolved script cmd", log.Strings("cmd", c.ScriptCmd))
 
 	return nil
 }

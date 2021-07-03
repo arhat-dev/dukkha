@@ -71,7 +71,7 @@ func (h *TaskHooks) Run(
 		taskExecAfterFailure: h.AfterFailure,
 	}[state]
 	if !ok {
-		return fmt.Errorf("unknonw task exec state: %d", state)
+		return fmt.Errorf("unknown task exec state: %d", state)
 	}
 
 	for i := range toRun {
