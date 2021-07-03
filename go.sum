@@ -1,5 +1,5 @@
-arhat.dev/pkg v0.5.7 h1:VSD7noJLqkbetbtKA1kPpw559yX7SHUPt75XMc0Id+U=
-arhat.dev/pkg v0.5.7/go.mod h1:kH3AtL2ejI5lF9nQGmv13UAXS28R9YuQQ4GGhA3krHc=
+arhat.dev/pkg v0.5.8-0.20210703220537-5c6c1cbe5fdc h1:XEht9KHhnxh27cg5FGycTwdaQvwz/ab+qGHx/3qeGiY=
+arhat.dev/pkg v0.5.8-0.20210703220537-5c6c1cbe5fdc/go.mod h1:q22TjChA4B9gGzjrjqDEdA2Cp8wQi/DBfY0DgvEgrGQ=
 bitbucket.org/bertimus9/systemstat v0.0.0-20180207000608-0eeff89b0690/go.mod h1:Ulb78X89vxKYgdL24HMTiXYHlyHEvruOj1ZPlqeNEZM=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
