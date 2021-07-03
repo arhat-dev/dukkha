@@ -20,7 +20,7 @@ type (
 	unresolvedFieldValue struct {
 		fieldValue    reflect.Value
 		yamlFieldName string
-		rawData       []string
+		rawData       []interface{}
 	}
 )
 
@@ -38,7 +38,7 @@ func (f *BaseField) HasUnresolvedField() bool {
 	return len(f.unresolvedFields) != 0
 }
 
-func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error {
+func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc, depth int) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
@@ -75,7 +75,7 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, d
 		}
 
 		for i, rawData := range v.rawData {
-			resolvedValue, err := render(ctx, k.renderer, rawData)
+			resolvedValue, err := doRender(ctx, k.renderer, rawData)
 			if err != nil {
 				return fmt.Errorf("field: failed to render value of this base field %T: %w", target, err)
 			}
@@ -100,7 +100,7 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, render RenderingFunc, d
 				continue
 			}
 
-			err := innerF.ResolveFields(ctx, render, depth-1)
+			err := innerF.ResolveFields(ctx, doRender, depth-1)
 			if err != nil {
 				return fmt.Errorf("failed to resolve inner field: %w", err)
 			}
@@ -114,7 +114,8 @@ func (f *BaseField) addUnresolvedField(
 	fieldName string,
 	fieldValue reflect.Value,
 	yamlKey string,
-	renderer, rawData string,
+	renderer string,
+	rawData interface{},
 ) error {
 	if f.unresolvedFields == nil {
 		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
@@ -178,7 +179,7 @@ func (f *BaseField) addUnresolvedField(
 	f.unresolvedFields[key] = &unresolvedFieldValue{
 		fieldValue:    fieldValue,
 		yamlFieldName: yamlKey,
-		rawData:       []string{rawData},
+		rawData:       []interface{}{rawData},
 	}
 
 	return nil
@@ -390,14 +391,14 @@ fieldLoop:
 
 		parts := strings.SplitN(rawYamlKey, "@", 2)
 		if len(parts) == 1 {
+			// no rendering suffix, fill value
+
 			if _, ok := handledYamlValues[yamlKey]; ok {
 				return fmt.Errorf(
 					"field: duplicate yaml field name %q",
 					yamlKey,
 				)
 			}
-
-			// no rendering suffix, fill value
 
 			handledYamlValues[yamlKey] = struct{}{}
 
@@ -444,14 +445,6 @@ fieldLoop:
 			)
 		}
 
-		rawData, ok := v.(string)
-		if !ok {
-			return fmt.Errorf(
-				"field: expecting string value for field %q (using rendering suffix), got %T",
-				rawYamlKey, v,
-			)
-		}
-
 		fSpec := getField(yamlKey)
 		if fSpec == nil {
 			if catchOtherField == nil {
@@ -477,7 +470,8 @@ fieldLoop:
 		err = fSpec.base.addUnresolvedField(
 			fSpec.fieldName, fSpec.fieldValue,
 			yamlKey,
-			renderer, rawData,
+			renderer,
+			m[rawYamlKey],
 		)
 		if err != nil {
 			return fmt.Errorf("field: failed to add unresolved field: %w", err)

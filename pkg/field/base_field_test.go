@@ -37,7 +37,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldValue:    reflect.Value{},
 							yamlFieldName: "foo",
-							rawData:       []string{"echo bar"},
+							rawData:       []interface{}{"echo bar"},
 						},
 					},
 				},
@@ -56,7 +56,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldValue:    reflect.Value{},
 							yamlFieldName: "other_field_1",
-							rawData:       []string{"foo"},
+							rawData:       []interface{}{"foo"},
 						},
 						{
 							fieldName: "Other",
@@ -64,7 +64,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldValue:    reflect.Value{},
 							yamlFieldName: "other_field_2",
-							rawData:       []string{"bar"},
+							rawData:       []interface{}{"bar"},
 						},
 					},
 				},
@@ -130,9 +130,9 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 
 		out.ResolveFields(
 			WithRenderingValues(context.TODO(), nil),
-			func(ctx *RenderingContext, renderer, rawData string) (string, error) {
+			func(ctx *RenderingContext, renderer string, rawData interface{}) (string, error) {
 				assert.Equal(t, "{ foo: rendered-bar }", rawData)
-				return rawData, nil
+				return rawData.(string), nil
 			},
 			-1,
 		)

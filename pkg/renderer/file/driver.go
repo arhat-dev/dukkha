@@ -19,7 +19,12 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx *field.RenderingContext, path string) (string, error) {
+func (d *Driver) Render(_ *field.RenderingContext, rawData interface{}) (string, error) {
+	path, ok := rawData.(string)
+	if !ok {
+		return "", fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)

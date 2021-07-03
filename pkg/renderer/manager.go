@@ -28,7 +28,7 @@ func (m *Manager) Add(config Config, names ...string) error {
 	return nil
 }
 
-func (m *Manager) Render(ctx *field.RenderingContext, renderer, rawData string) (string, error) {
+func (m *Manager) Render(ctx *field.RenderingContext, renderer string, rawData interface{}) (string, error) {
 	r := m.getRenderer(renderer)
 	if r == nil {
 		return "", fmt.Errorf("renderer.Manager.Render: renderer %q not found", renderer)

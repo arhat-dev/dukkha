@@ -22,9 +22,13 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx *field.RenderingContext, data string) (string, error) {
-	var err error
-	ret := envhelper.Expand(data, func(varName, origin string) string {
+func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
+	dataBytes, err := renderer.ToYamlBytes(rawData)
+	if err != nil {
+		return "", fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+	}
+
+	ret := envhelper.Expand(string(dataBytes), func(varName, origin string) string {
 		if strings.HasPrefix(origin, "$(") {
 			err = multierr.Append(
 				err,

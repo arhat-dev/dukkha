@@ -18,7 +18,7 @@ type Interface interface {
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env, cmd []string, err error)
 
 type (
-	RenderingFunc func(ctx *RenderingContext, renderer, rawData string) (string, error)
+	RenderingFunc func(ctx *RenderingContext, renderer string, rawData interface{}) (string, error)
 
 	RenderingValues struct {
 		Env map[string]string
