@@ -379,18 +379,18 @@ func (t *BaseTool) doRunTask(
 	outputPrefix string,
 	prefixColor, outputColor *color.Color,
 	execSpecs []TaskExecSpec,
-	_replaceEntries *map[string]string,
+	_replaceEntries *map[string][]byte,
 ) error {
 	timer := time.NewTimer(0)
 	if !timer.Stop() {
 		<-timer.C
 	}
 
-	var replace map[string]string
+	var replace map[string][]byte
 	if _replaceEntries != nil {
 		replace = *_replaceEntries
 	} else {
-		replace = make(map[string]string)
+		replace = make(map[string][]byte)
 	}
 
 	for _, es := range execSpecs {
@@ -438,7 +438,7 @@ func (t *BaseTool) doRunTask(
 			}
 
 			if buf != nil {
-				newValue := buf.String()
+				newValue := buf.Bytes()
 				if es.FixOutputForReplace != nil {
 					newValue = es.FixOutputForReplace(newValue)
 				}
@@ -456,25 +456,23 @@ func (t *BaseTool) doRunTask(
 			continue
 		}
 
-		for _, rawEnvPart := range es.Env {
-			actualEnvPart := rawEnvPart
-
-			for toReplace, newValue := range replace {
-				actualEnvPart = strings.ReplaceAll(actualEnvPart, toReplace, newValue)
-			}
-
-			ctx.AddEnv(actualEnvPart)
-		}
-
 		var cmd []string
-		for _, rawCmdPart := range es.Command {
-
-			actualCmdPart := rawCmdPart
+		if len(replace) != 0 {
+			pairs := make([]string, 2*len(replace))
+			i := 0
 			for toReplace, newValue := range replace {
-				actualCmdPart = strings.ReplaceAll(actualCmdPart, toReplace, newValue)
+				pairs[i], pairs[i+1] = toReplace, string(newValue)
+				i += 2
 			}
 
-			cmd = append(cmd, actualCmdPart)
+			replacer := strings.NewReplacer(pairs...)
+			for _, rawEnvPart := range es.Env {
+				ctx.AddEnv(replacer.Replace(rawEnvPart))
+			}
+
+			for _, rawCmdPart := range es.Command {
+				cmd = append(cmd, replacer.Replace(rawCmdPart))
+			}
 		}
 
 		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
@@ -528,7 +526,7 @@ func (t *BaseTool) doRunTask(
 		}
 
 		if buf != nil {
-			newValue := buf.String()
+			newValue := buf.Bytes()
 			if es.FixOutputForReplace != nil {
 				newValue = es.FixOutputForReplace(newValue)
 			}

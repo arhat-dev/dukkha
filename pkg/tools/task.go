@@ -22,7 +22,7 @@ type TaskExecSpec struct {
 	// OutputAsReplace to replace same string in following TaskExecSpecs
 	OutputAsReplace string
 
-	FixOutputForReplace func(newValue string) string
+	FixOutputForReplace func(newValue []byte) []byte
 
 	Chdir string
 
@@ -30,7 +30,7 @@ type TaskExecSpec struct {
 	Command []string
 
 	AlterExecFunc func(
-		replace map[string]string,
+		replace map[string][]byte,
 		stdin io.Reader, stdout, stderr io.Writer,
 	) ([]TaskExecSpec, error)
 
@@ -82,7 +82,6 @@ type BaseTask struct {
 	Name   string       `yaml:"name"`
 	Matrix MatrixConfig `yaml:"matrix"`
 	Hooks  TaskHooks    `yaml:"hooks"`
-	Chdir  string       `yaml:"chdir"`
 
 	toolName string `yaml:"-"`
 

@@ -127,13 +127,13 @@ func (h *Hook) Run(
 			taskKind = parts[2]
 			taskName = parts[3]
 		default:
-			return fmt.Errorf("hook: invalid task reference: %q", h.Task)
+			return fmt.Errorf("invalid task reference: %q", h.Task)
 		}
 
 		// has tool name or using a different tool kind, find target tool to handle it
 		tool, ok := allTools[key]
 		if !ok {
-			return fmt.Errorf("hook: tool %q not found", key.ToolKind+":"+key.ToolName)
+			return fmt.Errorf("tool %q not found", key.ToolKind+":"+key.ToolName)
 		}
 
 		return tool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
@@ -171,7 +171,7 @@ func (h *Hook) Run(
 			shellKey = &ToolKey{ToolKind: "shell", ToolName: ""}
 			isFilePath = false
 		default:
-			return fmt.Errorf("unknown hook action: %q", k)
+			return fmt.Errorf("unknown action: %q", k)
 		}
 	}
 
@@ -181,7 +181,7 @@ func (h *Hook) Run(
 
 	sh, ok := allShells[*shellKey]
 	if !ok {
-		return fmt.Errorf("hook: shell %q not found", shellKey.ToolName)
+		return fmt.Errorf("shell %q not found", shellKey.ToolName)
 	}
 
 	scriptCtx := ctx.Clone()
@@ -202,12 +202,12 @@ func (h *Hook) Run(
 		Stdout: output.PrefixWriter(prefix, prefixColor, outputColor, os.Stdout),
 	})
 	if err != nil {
-		return fmt.Errorf("hook: failed to run script: %w", err)
+		return fmt.Errorf("failed to run script: %w", err)
 	}
 
 	code, err := p.Wait()
 	if err != nil {
-		return fmt.Errorf("hook: command exited with code %d: %w", code, err)
+		return fmt.Errorf("command exited with code %d: %w", code, err)
 	}
 
 	return nil
