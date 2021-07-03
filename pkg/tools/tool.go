@@ -410,7 +410,17 @@ func (t *BaseTool) doRunTask(
 			}
 		}
 
-		var stdout, stderr io.Writer
+		var (
+			stdin          io.Reader
+			stdout, stderr io.Writer
+		)
+
+		if es.Stdin != nil {
+			stdin = io.MultiReader(es.Stdin, os.Stdin)
+		} else {
+			stdin = os.Stdin
+		}
+
 		if t.stderrIsTty {
 			stderr = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stderr)
 		} else {
@@ -432,7 +442,7 @@ func (t *BaseTool) doRunTask(
 
 		// alter exec func can generate sub exec specs
 		if es.AlterExecFunc != nil {
-			subSpecs, err := es.AlterExecFunc(replace, os.Stdin, stdout, stderr)
+			subSpecs, err := es.AlterExecFunc(replace, stdin, stdout, stderr)
 			if err != nil {
 				return fmt.Errorf("failed to execute alter exec func: %w", err)
 			}
@@ -493,7 +503,7 @@ func (t *BaseTool) doRunTask(
 			Env:     ctx.Values().Env,
 			Dir:     es.Chdir,
 
-			Stdin: os.Stdin,
+			Stdin: stdin,
 
 			Stdout: stdout,
 			Stderr: stderr,

@@ -34,6 +34,8 @@ type TaskExecSpec struct {
 		stdin io.Reader, stdout, stderr io.Writer,
 	) ([]TaskExecSpec, error)
 
+	Stdin io.Reader
+
 	IgnoreError bool
 }
 
