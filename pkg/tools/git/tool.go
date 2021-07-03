@@ -36,7 +36,7 @@ func (t *Tool) Init(
 	rf field.RenderingFunc,
 	getBaseExecSpec field.ExecSpecGetFunc,
 ) error {
-	err := t.BaseTool.InitBaseTool(cacheDir, "go", rf, getBaseExecSpec)
+	err := t.BaseTool.InitBaseTool(cacheDir, "git", rf, getBaseExecSpec)
 	if err != nil {
 		return fmt.Errorf("git: failed to init tool base: %w", err)
 	}
