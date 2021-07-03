@@ -28,11 +28,11 @@ docker:build:
   dockerfile@shell_file: cicd/get-dockerfile.sh
   # yamllint disable-line rule:quoted-strings
   context: "."
-  extraArgs@template: |-
-    - --pull
-    - --no-cache
-    - --build-arg="IMAGE_ARCH={{- .Env.MATRIX_ARCH | trimSuffix "hf" -}}"
-    - --build-arg="MATRIX_ARCH={{- .Env.MATRIX_ARCH -}}"
+  extraArgs@template:
+  - --pull
+  - --no-cache
+  - --build-arg="IMAGE_ARCH={{ .Env.MATRIX_ARCH | trimSuffix "hf" }}"
+  - --build-arg="MATRIX_ARCH={{ .Env.MATRIX_ARCH }}"
 
 docker:push:
 - &dukkha_image_push
