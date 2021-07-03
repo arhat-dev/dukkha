@@ -56,7 +56,7 @@ func populateGlobalEnv(ctx context.Context) error {
 			},
 		},
 		{
-			name: constant.ENV_GIT_WORKSPACE_CLEAN,
+			name: constant.ENV_GIT_WORKTREE_CLEAN,
 			command: []string{
 				"git", "diff-index", "--quiet", "HEAD",
 			},
