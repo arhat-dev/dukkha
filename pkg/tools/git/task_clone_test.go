@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTaskClone_GetExecSpecs(t *testing.T) {

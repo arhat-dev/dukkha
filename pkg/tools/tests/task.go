@@ -3,10 +3,11 @@ package tests
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"github.com/stretchr/testify/assert"
 )
 
 type ExecSpecGenerationTestCase struct {

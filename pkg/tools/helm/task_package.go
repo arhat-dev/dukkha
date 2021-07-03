@@ -36,10 +36,10 @@ type TaskPackage struct {
 	Chart       string `yaml:"chart"`
 	PackagesDir string `yaml:"packages_dir"`
 
-	Signing HelmPackageSigningSpec `yaml:"signing"`
+	Signing PackageSigningSpec `yaml:"signing"`
 }
 
-type HelmPackageSigningSpec struct {
+type PackageSigningSpec struct {
 	Enabled          bool   `yaml:"enabled"`
 	GPGKeyring       string `yaml:"gpg_keyring"`
 	GPGKeyName       string `yaml:"gpg_key_name"`

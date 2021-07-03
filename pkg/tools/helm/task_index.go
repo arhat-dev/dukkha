@@ -9,13 +9,14 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/pkg/textquery"
+	"github.com/itchyny/gojq"
+	"gopkg.in/yaml.v3"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/pkg/textquery"
-	"github.com/itchyny/gojq"
-	"gopkg.in/yaml.v3"
 )
 
 const TaskKindIndex = "index"
@@ -66,9 +67,9 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 
 	dukkhaWorkingDir := ctx.Values().Env[constant.ENV_DUKKHA_WORKING_DIR]
 	if len(c.PackagesDir) != 0 {
-		pkgDir, err := filepath.Abs(c.PackagesDir)
-		if err != nil {
-			return nil, fmt.Errorf("failed to determine absolute path of package_dir: %w", err)
+		pkgDir, err2 := filepath.Abs(c.PackagesDir)
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to determine absolute path of package_dir: %w", err2)
 		}
 
 		indexCmd = append(indexCmd, pkgDir)
@@ -108,7 +109,7 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 
 	baseURL := c.PackageDownloadBaseURL
 	if !strings.HasSuffix(baseURL, "/") {
-		baseURL = baseURL + "/"
+		baseURL += "/"
 	}
 
 	steps = append(steps, tools.TaskExecSpec{
@@ -146,7 +147,7 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 				return nil, fmt.Errorf("failed to sort chart packages: %w", err)
 			}
 
-			return nil, os.WriteFile(output, []byte(result), f.Mode().Perm())
+			return nil, os.WriteFile(output, result, f.Mode().Perm())
 		},
 	})
 
