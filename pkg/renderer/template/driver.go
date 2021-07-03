@@ -21,8 +21,29 @@ type Driver struct{}
 
 func (d *Driver) Name() string { return DefaultName }
 
-func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, error) {
-	tpl, err := template.New("template").
+func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
+	tplBytes, err := renderer.ToYamlBytes(rawData)
+	if err != nil {
+		return "", fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+	}
+
+	tplStr := string(tplBytes)
+	tpl, err := newTemplate().Parse(tplStr)
+	if err != nil {
+		return "", fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
+	}
+
+	buf := &bytes.Buffer{}
+	err = tpl.Execute(buf, ctx.Values())
+	if err != nil {
+		return "", fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
+	}
+
+	return buf.String(), nil
+}
+
+func newTemplate() *template.Template {
+	return template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
 			"jq":      textquery.JQ,
@@ -73,17 +94,5 @@ func (d *Driver) Render(ctx *field.RenderingContext, tplStr string) (string, err
 			},
 
 			"getGolangArch": constant.GetGolangArch,
-		}).
-		Parse(tplStr)
-	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
-	}
-
-	buf := &bytes.Buffer{}
-	err = tpl.Execute(buf, ctx.Values())
-	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
-	}
-
-	return buf.String(), nil
+		})
 }

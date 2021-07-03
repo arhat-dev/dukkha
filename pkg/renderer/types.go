@@ -7,7 +7,7 @@ import (
 type Interface interface {
 	Name() string
 
-	Render(ctx *field.RenderingContext, rawValue string) (result string, err error)
+	Render(ctx *field.RenderingContext, rawData interface{}) (result string, err error)
 }
 
 type Config interface{}
