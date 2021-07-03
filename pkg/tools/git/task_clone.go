@@ -39,7 +39,6 @@ type TaskClone struct {
 	RemoteBranch string `yaml:"remoteBranch"`
 	LocalBranch  string `yaml:"localBranch"`
 	RemoteName   string `yaml:"remoteName"`
-	Clean        bool   `yaml:"clean"`
 
 	ExtraArgs []string `yaml:"extraArgs"`
 }
