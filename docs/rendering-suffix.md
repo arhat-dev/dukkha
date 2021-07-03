@@ -49,25 +49,42 @@ foo@shell: printf "bar"
 
 Expand environment variables to generate real field value
 
+Usage:
+
 - `@env`: value is expected to be a string containing environment vairable references
-- `@env_file`: value is expected to be a local file path to file
+  - Supported value types: any
+
+Suggested Use Cases:
+
+- Expand environment variables before task execution
+  - In `buildah bud` tasks, manifest name is hashed to generate a local manifest name, if it includes non `arch` related environment variables, you have to expand it before execution, or you will produce malformed manifest with different images mixed.
 
 ### File Renderer
 
 Read file content as the real field value
 
+Usage:
+
 - `@file`: value is epxected to be a local file path
+
+Supported value types: `string`
 
 ### Template Renderer
 
 Evaluate golang templates as the real field value
 
+Usage:
+
 - `@template`: value is expected to be go template string
+  - Supported value types: any
 - `@template_file`: value is expected to be a local file path of the golang template file
+  - Supported value types: `string`
 
 ### Shell Renderer
 
 Run shell scripts and use the output to stdout as the real field value
 
 - `@shell` or `@shell:<shell_name>`: value is expected to be shell script
+  - Supported value types: `string`, list of `string`
 - `@shell_file` or `@shell_file:<shell_name>`: value is expected to be a local file path of the shell script
+  - Supported value types: `string`
