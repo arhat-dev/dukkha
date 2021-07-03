@@ -3,12 +3,13 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.5.7
+	arhat.dev/pkg v0.5.8-0.20210703220537-5c6c1cbe5fdc
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/fatih/color v1.12.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/itchyny/gojq v0.12.4
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/spf13/cobra v1.2.0
 	github.com/stretchr/testify v1.7.0
