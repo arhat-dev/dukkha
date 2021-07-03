@@ -56,7 +56,7 @@ func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 		case *TaskTest:
 			t.testTasks[tsk.TaskName()] = typ
 		default:
-			return fmt.Errorf("unknown task type %T with name %q", tsk, tsk.TaskName())
+			return fmt.Errorf("golang: unknown task type %T with name %q", tsk, tsk.TaskName())
 		}
 	}
 

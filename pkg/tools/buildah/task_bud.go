@@ -1,6 +1,7 @@
 package buildah
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -107,10 +108,10 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	const replaceTargetImageID = "<IMAGE_ID>"
 	steps = append(steps, tools.TaskExecSpec{
 		OutputAsReplace:     replaceTargetImageID,
-		FixOutputForReplace: strings.TrimSpace,
+		FixOutputForReplace: bytes.TrimSpace,
 
 		AlterExecFunc: func(
-			replace map[string]string,
+			replace map[string][]byte,
 			stdin io.Reader, stdout, stderr io.Writer,
 		) ([]tools.TaskExecSpec, error) {
 			imageIDBytes, err := os.ReadFile(imageIDFilePath)
@@ -128,7 +129,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
 	steps = append(steps, tools.TaskExecSpec{
 		OutputAsReplace:     replaceTargetImageDigest,
-		FixOutputForReplace: strings.TrimSpace,
+		FixOutputForReplace: bytes.TrimSpace,
 
 		Command: sliceutils.NewStringSlice(
 			toolCmd, "inspect", "--type", "image",
@@ -194,7 +195,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		steps = append(steps, tools.TaskExecSpec{
 			IgnoreError: false,
 			AlterExecFunc: func(
-				replace map[string]string,
+				replace map[string][]byte,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) ([]tools.TaskExecSpec, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
@@ -216,7 +217,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				}
 
 				// manifest already created, query to get all matching digests
-				digestLines, err := textquery.JQ(manifestOsArchVariantQueryForDigest, manifestSpec)
+				digestLines, err := textquery.JQBytes(manifestOsArchVariantQueryForDigest, manifestSpec)
 				if err != nil {
 					// no manifests entries, add this image directly
 					return []tools.TaskExecSpec{{

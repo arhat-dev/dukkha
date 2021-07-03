@@ -31,6 +31,8 @@ type TaskTest struct {
 	field.BaseField
 
 	tools.BaseTask `yaml:",inline"`
+
+	Chdir string `yaml:"chdir"`
 }
 
 func (c *TaskTest) ToolKind() string { return ToolKind }

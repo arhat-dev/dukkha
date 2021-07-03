@@ -34,6 +34,7 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
+	Chdir     string   `yaml:"chdir"`
 	Path      string   `yaml:"path"`
 	Env       []string `yaml:"env"`
 	LDFlags   []string `yaml:"ldflags"`
