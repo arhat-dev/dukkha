@@ -15,10 +15,9 @@ git:clone:
   remoteBranch: v0.1.0
   # local branch name checked out from the remote branch
   localBranch: ""
-  # clean if set to true will do git reset --hard HEAD
-  clean: true
+  # value to git clone --origin
+  remoteName: upstream
   # extraArgs for clone
   extraArgs:
   - --depth=1
-  - --origin=upstream
 ```
