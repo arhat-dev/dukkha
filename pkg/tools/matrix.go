@@ -137,6 +137,23 @@ func (m MatrixSpec) String() string {
 	return strings.Join(pairs, ", ")
 }
 
+// BriefString return all values concatenated with slash
+func (m MatrixSpec) BriefString() string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var parts []string
+	for _, k := range keys {
+		parts = append(parts, m[k])
+	}
+
+	return strings.Join(parts, "/")
+}
+
 func (m MatrixSpec) Match(a map[string]string) bool {
 	if len(a) == 0 {
 		return len(m) == 0

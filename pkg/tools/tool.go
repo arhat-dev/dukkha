@@ -242,7 +242,7 @@ func (t *BaseTool) RunTask(
 				return fmt.Errorf("failed to generate task args: %w", err3)
 			}
 
-			prefix := fmt.Sprint("{", ms.String(), "}: ")
+			prefix := ms.BriefString() + ": "
 
 			err3 = task.RunHooks(
 				taskCtx, t.RenderingFunc,
@@ -271,7 +271,7 @@ func (t *BaseTool) RunTask(
 
 				err4 := t.doRunTask(
 					taskCtx,
-					fmt.Sprint("{", ms.String(), "}: "),
+					prefix,
 					prefixColor, outputColor,
 					execSpecs, nil,
 				)
