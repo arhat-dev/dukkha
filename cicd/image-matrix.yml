@@ -4,7 +4,7 @@ kernel:
 arch:
 - amd64
 - armv7
-{{- else -}}
+{{- else }}
 kernel:
 - linux
 arch:
@@ -17,4 +17,4 @@ arch:
 - s390x
 - ppc64le
 - mips64lehf
-{{- end -}}
+{{- end }}
