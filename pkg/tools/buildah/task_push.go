@@ -33,7 +33,7 @@ type TaskPush struct {
 	tools.BaseTask `yaml:",inline"`
 
 	ImageNames []ImageNameSpec `yaml:"image_names"`
-	ExtraArgs  []string        `yaml:"extraArgs"`
+	ExtraArgs  []string        `yaml:"extra_args"`
 }
 
 func (c *TaskPush) ToolKind() string { return ToolKind }
