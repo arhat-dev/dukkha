@@ -1,6 +1,6 @@
 ARG MATRIX_ARCH
 
-FROM arhatdev/builder-go:alpine as builder
+FROM ghcr.io/arhat-dev/builder-go:alpine as builder
 
 ARG MATRIX_ARCH
 
