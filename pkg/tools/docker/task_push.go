@@ -8,6 +8,7 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
 const TaskKindPush = "push"
@@ -28,13 +29,7 @@ func init() {
 
 var _ tools.Task = (*TaskPush)(nil)
 
-type TaskPush struct {
-	field.BaseField
-
-	tools.BaseTask `yaml:",inline"`
-
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-}
+type TaskPush buildah.TaskPush
 
 func (c *TaskPush) ToolKind() string { return ToolKind }
 func (c *TaskPush) TaskKind() string { return TaskKindPush }
@@ -42,7 +37,7 @@ func (c *TaskPush) TaskKind() string { return TaskKindPush }
 func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
-		targets = []ImageNameSpec{{
+		targets = []buildah.ImageNameSpec{{
 			Image:    c.Name,
 			Manifest: "",
 		}}
