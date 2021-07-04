@@ -32,12 +32,8 @@ Update index file based on package files
 # this example is used in conjuction with the example for `helm:package`
 helm:index:
 - name: example
-  repo_url: https://helm-chart.example.com
-  # add base url to your packages
-  package_base_url: |-
-    https://github.com/<org>/<repo>/releases/download/<github-release-name>/
+  repo_url: https://github.com/<org>/<repo>/releases/download/<github-release-name>/
   packages_dir: *pkg_dir
-  output: ./index.yaml
   # merge into the output
-  merge: true
+  merge: ./index.yaml
 ```
