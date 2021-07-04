@@ -7,6 +7,7 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
 const TaskKindBuild = "build"
@@ -27,21 +28,7 @@ func init() {
 
 var _ tools.Task = (*TaskBuild)(nil)
 
-type TaskBuild struct {
-	field.BaseField
-
-	tools.BaseTask `yaml:",inline"`
-
-	Context    string          `yaml:"context"`
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-	Dockerfile string          `yaml:"dockerfile"`
-	ExtraArgs  []string        `yaml:"extraArgs"`
-}
-
-type ImageNameSpec struct {
-	Image    string `yaml:"image"`
-	Manifest string `yaml:"manifest"`
-}
+type TaskBuild buildah.TaskBud
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }
 func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
@@ -51,7 +38,7 @@ func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
 func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
-		targets = []ImageNameSpec{{
+		targets = []buildah.ImageNameSpec{{
 			Image:    c.Name,
 			Manifest: "",
 		}}
