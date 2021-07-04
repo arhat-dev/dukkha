@@ -5,16 +5,24 @@ arch:
 - amd64
 - armv7
 {{- else }}
-kernel:
-- linux
-arch:
-- amd64
-- arm64
-- armv7
-- armv6
-- armv5
-- x86
-- s390x
-- ppc64le
-- mips64lehf
+include:
+- kernel:
+  - linux
+  rootfs:
+  - alpine
+  arch:
+  - amd64
+  - arm64
+  - armv7
+  - armv6
+  - x86
+  - s390x
+  - ppc64le
+- kernel:
+  - linux
+  rootfs:
+  - debian
+  arch:
+  - armv5
+  - mips64le
 {{- end }}
