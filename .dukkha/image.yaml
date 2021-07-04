@@ -24,7 +24,7 @@ tools:
 buildah:bud:
 - &dukkha_image_build
   name: dukkha
-  matrix@template_file: &dukkha_image_matrix cicd/image-matrix.yml
+  matrix@template_file: &dukkha_image_matrix .dukkha/image-matrix.yml
   image_names: &dukkha_image_names
   - image: ghcr.io/arhat-dev/dukkha
     manifest: ghcr.io/arhat-dev/dukkha
