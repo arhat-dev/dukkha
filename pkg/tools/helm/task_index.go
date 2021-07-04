@@ -2,7 +2,6 @@ package helm
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -45,12 +44,6 @@ func (c *TaskIndex) ToolKind() string { return ToolKind }
 func (c *TaskIndex) TaskKind() string { return TaskKindIndex }
 
 func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) ([]tools.TaskExecSpec, error) {
-	cacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
-	indexDir, err := ioutil.TempDir(cacheDir, "helm-index-*")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary index dir: %w", err)
-	}
-
 	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {
@@ -73,12 +66,9 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 		indexCmd = append(indexCmd, "--merge", c.Merge)
 	}
 
-	var steps []tools.TaskExecSpec
-
-	steps = append(steps, tools.TaskExecSpec{
-		Chdir:   indexDir,
-		Command: indexCmd,
-	})
-
-	return steps, nil
+	return []tools.TaskExecSpec{
+		{
+			Command: indexCmd,
+		},
+	}, nil
 }
