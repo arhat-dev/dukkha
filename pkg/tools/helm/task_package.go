@@ -15,7 +15,7 @@ const TaskKindPackage = "package"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^helm(:.+)?:package$`),
+		regexp.MustCompile(`^helm(:.+){0,1}:package$`),
 		func(subMatches []string) interface{} {
 			t := &TaskPackage{}
 			if len(subMatches) != 0 {

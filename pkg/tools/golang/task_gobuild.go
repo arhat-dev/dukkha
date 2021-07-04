@@ -16,7 +16,7 @@ const TaskKindBuild = "build"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^golang(:.+)?:build$`),
+		regexp.MustCompile(`^golang(:.+){0,1}:build$`),
 		func(subMatches []string) interface{} {
 			t := &TaskBuild{}
 			if len(subMatches) != 0 {

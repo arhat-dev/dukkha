@@ -16,7 +16,7 @@ const TaskKindClone = "clone"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^git(:.+)?:clone$`),
+		regexp.MustCompile(`^git(:.+){0,1}:clone$`),
 		func(subMatches []string) interface{} {
 			t := &TaskClone{}
 			if len(subMatches) != 0 {
