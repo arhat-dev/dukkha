@@ -46,7 +46,7 @@ type TaskIndex struct {
 	PackagesDir string `yaml:"packages_dir"`
 	Output      string `yaml:"output"`
 
-	PackageDownloadBaseURL string `yaml:"package_download_base_url"`
+	PackageBaseURL string `yaml:"package_base_url"`
 }
 
 func (c *TaskIndex) ToolKind() string { return ToolKind }
@@ -107,7 +107,7 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 		Command: indexCmd,
 	})
 
-	baseURL := c.PackageDownloadBaseURL
+	baseURL := c.PackageBaseURL
 	if !strings.HasSuffix(baseURL, "/") {
 		baseURL += "/"
 	}
