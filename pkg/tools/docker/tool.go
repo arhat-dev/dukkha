@@ -26,6 +26,7 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 
+	loginTasks map[string]*TaskLogin
 	buildTasks map[string]*TaskBuild
 	pushTasks  map[string]*TaskPush
 }
@@ -42,6 +43,7 @@ func (t *Tool) Init(
 		return fmt.Errorf("docker: failed to init tool base: %w", err)
 	}
 
+	t.loginTasks = make(map[string]*TaskLogin)
 	t.buildTasks = make(map[string]*TaskBuild)
 	t.pushTasks = make(map[string]*TaskPush)
 
@@ -51,6 +53,8 @@ func (t *Tool) Init(
 func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 	for i, tsk := range tasks {
 		switch typ := tasks[i].(type) {
+		case *TaskLogin:
+			t.loginTasks[tsk.TaskName()] = typ
 		case *TaskBuild:
 			t.buildTasks[tsk.TaskName()] = typ
 		case *TaskPush:
@@ -75,6 +79,8 @@ func (t *Tool) Run(
 	)
 
 	switch taskKind {
+	case TaskKindLogin:
+		task, ok = t.loginTasks[taskName]
 	case TaskKindBuild:
 		task, ok = t.buildTasks[taskName]
 	case TaskKindPush:

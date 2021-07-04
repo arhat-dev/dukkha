@@ -26,8 +26,9 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 
-	budTasks  map[string]*TaskBud
-	pushTasks map[string]*TaskPush
+	loginTasks map[string]*TaskLogin
+	budTasks   map[string]*TaskBud
+	pushTasks  map[string]*TaskPush
 }
 
 func (t *Tool) ToolKind() string { return ToolKind }
@@ -42,6 +43,7 @@ func (t *Tool) Init(
 		return fmt.Errorf("buildah: failed to init tool base: %w", err)
 	}
 
+	t.loginTasks = make(map[string]*TaskLogin)
 	t.budTasks = make(map[string]*TaskBud)
 	t.pushTasks = make(map[string]*TaskPush)
 
@@ -51,6 +53,8 @@ func (t *Tool) Init(
 func (t *Tool) ResolveTasks(tasks []tools.Task) error {
 	for i, tsk := range tasks {
 		switch typ := tasks[i].(type) {
+		case *TaskLogin:
+			t.loginTasks[tsk.TaskName()] = typ
 		case *TaskBud:
 			t.budTasks[tsk.TaskName()] = typ
 		case *TaskPush:
@@ -75,6 +79,8 @@ func (t *Tool) Run(
 	)
 
 	switch taskKind {
+	case TaskKindLogin:
+		task, ok = t.loginTasks[taskName]
 	case TaskKindBud:
 		task, ok = t.budTasks[taskName]
 	case TaskKindPush:
