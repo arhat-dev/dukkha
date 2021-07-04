@@ -69,7 +69,7 @@ type Task interface {
 	RunHooks(
 		ctx *field.RenderingContext,
 		rf field.RenderingFunc,
-		state taskExecState,
+		state TaskExecStage,
 		prefix string,
 		prefixColor, outputColor *color.Color,
 		thisTool Tool,
@@ -97,7 +97,7 @@ func (t *BaseTask) TaskName() string        { return t.Name }
 func (t *BaseTask) RunHooks(
 	ctx *field.RenderingContext,
 	rf field.RenderingFunc,
-	state taskExecState,
+	state TaskExecStage,
 	prefix string,
 	prefixColor, outputColor *color.Color,
 	thisTool Tool,

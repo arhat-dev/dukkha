@@ -15,69 +15,100 @@ import (
 type TaskHooks struct {
 	field.BaseField
 
+	// Before runs before the task execution start
+	// if this hook failed, the whole task execution is canceled
+	// and will run `After` hooks
 	Before []Hook `yaml:"before"`
 
-	BeforeMatrix       []Hook `yaml:"before:matrix"`
+	// Matrix scope hooks
+
+	// Before a specific matrix execution start
+	BeforeMatrix []Hook `yaml:"before:matrix"`
+
+	// AfterMatrixSuccess runs after a successful matrix execution
 	AfterMatrixSuccess []Hook `yaml:"after:matrix:success"`
+
+	// AfterMatrixFailure runs after a failed matrix execution
 	AfterMatrixFailure []Hook `yaml:"after:matrix:failure"`
 
+	// AfterMatrix runs after at any condition of the matrix execution
+	// including success, failure
+	AfterMatrix []Hook `yaml:"after:matrix"`
+
+	// Task scope hooks again
+
+	// AfterSuccess runs after a successful task execution
+	// requires all matrix executions are successful
 	AfterSuccess []Hook `yaml:"after:success"`
+
+	// AfterFailure runs after a failed task execution
+	// any failed matrix execution will cause this hook to run
 	AfterFailure []Hook `yaml:"after:failure"`
+
+	// After any condition of the task execution
+	// including success, failure, canceled (hook `before` failure)
+	After []Hook `yaml:"after"`
 }
 
-type taskExecState uint8
+type TaskExecStage uint8
 
 const (
-	taskExecBeforeStart taskExecState = iota + 1
+	StageBefore TaskExecStage = iota + 1
 
-	taskExecBeforeMatrixStart
-	taskExecAfterMatrixSuccess
-	taskExecAfterMatrixFailure
+	StageBeforeMatrix
+	StageAfterMatrixSuccess
+	StageAfterMatrixFailure
+	StageAfterMatrix
 
-	taskExecAfterSuccess
-	taskExecAfterFailure
+	StageAfterSuccess
+	StageAfterFailure
+	StageAfter
 )
 
-func (s taskExecState) String() string {
-	return map[taskExecState]string{
-		taskExecBeforeStart: "before",
+func (s TaskExecStage) String() string {
+	return map[TaskExecStage]string{
+		StageBefore: "before",
 
-		taskExecBeforeMatrixStart:  "before:matrix",
-		taskExecAfterMatrixSuccess: "after:matrix:success",
-		taskExecAfterMatrixFailure: "after:matrix:failure",
+		StageBeforeMatrix:       "before:matrix",
+		StageAfterMatrixSuccess: "after:matrix:success",
+		StageAfterMatrixFailure: "after:matrix:failure",
+		StageAfterMatrix:        "after:matrix",
 
-		taskExecAfterSuccess: "after:success",
-		taskExecAfterFailure: "after:failure",
+		StageAfterSuccess: "after:success",
+		StageAfterFailure: "after:failure",
+		StageAfter:        "after",
 	}[s]
 }
 
 func (h *TaskHooks) Run(
 	ctx *field.RenderingContext,
-	state taskExecState,
+	stage TaskExecStage,
 	prefix string,
 	prefixColor, outputColor *color.Color,
 	thisTool Tool,
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
-	toRun, ok := map[taskExecState][]Hook{
-		taskExecBeforeStart: h.Before,
+	toRun, ok := map[TaskExecStage][]Hook{
+		StageBefore: h.Before,
 
-		taskExecBeforeMatrixStart:  h.BeforeMatrix,
-		taskExecAfterMatrixSuccess: h.AfterMatrixSuccess,
-		taskExecAfterMatrixFailure: h.AfterMatrixFailure,
+		StageBeforeMatrix:       h.BeforeMatrix,
+		StageAfterMatrixSuccess: h.AfterMatrixSuccess,
+		StageAfterMatrixFailure: h.AfterMatrixFailure,
+		StageAfterMatrix:        h.AfterMatrix,
 
-		taskExecAfterSuccess: h.AfterSuccess,
-		taskExecAfterFailure: h.AfterFailure,
-	}[state]
+		StageAfterSuccess: h.AfterSuccess,
+		StageAfterFailure: h.AfterFailure,
+		StageAfter:        h.After,
+	}[stage]
 	if !ok {
-		return fmt.Errorf("unknown task exec state: %d", state)
+		return fmt.Errorf("unknown task exec stage: %d", stage)
 	}
 
 	for i := range toRun {
 		err := toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
 		if err != nil {
-			return fmt.Errorf("hook %s#%d failed: %w", state.String(), i, err)
+			return fmt.Errorf("action #%d failed: %w", i, err)
 		}
 	}
 
