@@ -1,20 +1,13 @@
 package tools
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
-	"time"
 
-	"arhat.dev/pkg/exechelper"
-	"arhat.dev/pkg/log"
-	"github.com/fatih/color"
 	"golang.org/x/term"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -71,7 +64,6 @@ type BaseTool struct {
 	getBootstrapExecSpec field.ExecSpecGetFunc `json:"-" yaml:"-"`
 
 	stdoutIsTty bool `json:"-" yaml:"-"`
-	stderrIsTty bool `json:"-" yaml:"-"`
 }
 
 func (t *BaseTool) InitBaseTool(
@@ -86,7 +78,6 @@ func (t *BaseTool) InitBaseTool(
 	t.getBootstrapExecSpec = getBaseExecSpec
 
 	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
-	t.stderrIsTty = term.IsTerminal(int(os.Stderr.Fd()))
 
 	return nil
 }
@@ -143,7 +134,7 @@ func (t *BaseTool) RunTask(
 		resultMU = &sync.Mutex{}
 	)
 
-	appendResult := func(spec MatrixSpec, err error) {
+	appendErrorResult := func(spec MatrixSpec, err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
@@ -151,16 +142,6 @@ func (t *BaseTool) RunTask(
 			matrixSpec: spec,
 			err:        err,
 		})
-	}
-
-	var colorList = [][2]*color.Color{
-		{color.New(color.FgHiWhite), color.New(color.FgWhite)},
-		{color.New(color.FgHiCyan), color.New(color.FgCyan)},
-		{color.New(color.FgHiGreen), color.New(color.FgGreen)},
-		{color.New(color.FgHiMagenta), color.New(color.FgMagenta)},
-		{color.New(color.FgHiYellow), color.New(color.FgYellow)},
-		{color.New(color.FgHiBlue), color.New(color.FgBlue)},
-		{color.New(color.FgHiRed), color.New(color.FgRed)},
 	}
 
 	failFast := constant.IsFailFast(baseCtx.Context())
@@ -175,23 +156,39 @@ func (t *BaseTool) RunTask(
 		task.TaskName(),
 	)
 
-	err = task.RunHooks(
-		baseCtx, t.RenderingFunc,
-		taskExecBeforeStart,
-		taskExecBeforeStart.String()+" "+taskPrefix,
-		nil, nil,
-		thisTool, allTools, allShells,
+	// ensure hook `after` always run
+	defer func() {
+		// TODO: handle hook error
+		_ = HandleHookRunError(
+			StageAfter,
+			task.RunHooks(
+				baseCtx, t.RenderingFunc,
+				StageAfter,
+				StageAfter.String()+" "+taskPrefix,
+				nil, nil,
+				thisTool, allTools, allShells,
+			),
+		)
+	}()
+
+	// run hook `before`
+	err = HandleHookRunError(
+		StageBefore,
+		task.RunHooks(
+			baseCtx, t.RenderingFunc,
+			StageBefore,
+			StageBefore.String()+" "+taskPrefix,
+			nil, nil,
+			thisTool, allTools, allShells,
+		),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to run hooks %q: %w",
-			taskExecBeforeStart.String(), err,
-		)
+		// cancel task execution
+		return err
 	}
 
 	for i, ms := range matrixSpecs {
-		color := colorList[i%len(colorList)]
-		prefixColor, outputColor := color[0], color[1]
-
+		// set default matrix filter for referenced hook tasks
 		mFilter := make(map[string][]string)
 		for k, v := range ms {
 			mFilter[k] = []string{v}
@@ -244,22 +241,37 @@ func (t *BaseTool) RunTask(
 
 			prefix := ms.BriefString() + ": "
 
-			err3 = task.RunHooks(
-				taskCtx, t.RenderingFunc,
-				taskExecBeforeMatrixStart,
-				taskExecBeforeMatrixStart.String()+" "+prefix,
-				prefixColor, outputColor,
-				thisTool, allTools, allShells,
+			prefixColor, outputColor := output.PickColor(i)
+
+			err3 = HandleHookRunError(
+				StageBeforeMatrix,
+				task.RunHooks(
+					taskCtx, t.RenderingFunc,
+					StageBeforeMatrix,
+					StageBeforeMatrix.String()+" "+prefix,
+					prefixColor, outputColor,
+					thisTool, allTools, allShells,
+				),
 			)
 			if err3 != nil {
-				return fmt.Errorf("failed to run hooks %q: %w",
-					taskExecBeforeMatrixStart.String(), err3,
-				)
+				return err3
 			}
 
 			wg.Add(1)
 			go func(ms MatrixSpec) {
 				defer func() {
+					// TODO: handle hook error
+					_ = HandleHookRunError(
+						StageAfterMatrix,
+						task.RunHooks(
+							taskCtx, t.RenderingFunc,
+							StageAfterMatrix,
+							StageAfterMatrix.String()+" "+prefix,
+							prefixColor, outputColor,
+							thisTool, allTools, allShells,
+						),
+					)
+
 					wg.Done()
 
 					select {
@@ -275,6 +287,7 @@ func (t *BaseTool) RunTask(
 					prefixColor, outputColor,
 					execSpecs, nil,
 				)
+
 				output.WriteExecResult(
 					taskCtx.Context(),
 					task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
@@ -287,39 +300,38 @@ func (t *BaseTool) RunTask(
 						cancelExec()
 					}
 
-					appendResult(ms, err4)
+					appendErrorResult(ms, err4)
 
-					err4 = task.RunHooks(
-						taskCtx, t.RenderingFunc,
-						taskExecAfterMatrixFailure,
-						taskExecAfterMatrixFailure.String()+" "+prefix,
-						prefixColor, outputColor,
-						thisTool, allTools, allShells,
+					err4 = HandleHookRunError(
+						StageAfterMatrixFailure,
+						task.RunHooks(
+							taskCtx, t.RenderingFunc,
+							StageAfterMatrixFailure,
+							StageAfterMatrixFailure.String()+" "+prefix,
+							prefixColor, outputColor,
+							thisTool, allTools, allShells,
+						),
 					)
 					if err4 != nil {
 						// TODO: handle hook error
-						err4 = fmt.Errorf(
-							"failed to run hooks %q: %w",
-							taskExecAfterMatrixFailure.String(), err4,
-						)
 						_ = err4
 					}
 
 					return
 				}
 
-				err4 = task.RunHooks(
-					taskCtx, t.RenderingFunc,
-					taskExecAfterMatrixSuccess,
-					taskExecAfterMatrixSuccess.String()+" "+prefix,
-					prefixColor, outputColor,
-					thisTool, allTools, allShells,
+				err4 = HandleHookRunError(
+					StageAfterMatrixSuccess,
+					task.RunHooks(
+						taskCtx, t.RenderingFunc,
+						StageAfterMatrixSuccess,
+						StageAfterMatrixSuccess.String()+" "+prefix,
+						prefixColor, outputColor,
+						thisTool, allTools, allShells,
+					),
 				)
 				if err4 != nil {
 					// TODO: handle hook error
-					err4 = fmt.Errorf("failed to run hooks %q: %w",
-						taskExecAfterMatrixSuccess.String(), err4,
-					)
 					_ = err4
 				}
 			}(ms)
@@ -338,213 +350,38 @@ func (t *BaseTool) RunTask(
 	wg.Wait()
 
 	if len(errCollection) != 0 {
-		err = task.RunHooks(
-			baseCtx, t.RenderingFunc,
-			taskExecAfterFailure,
-			taskExecAfterFailure.String()+" "+taskPrefix,
-			nil, nil,
-			thisTool, allTools, allShells,
+		err = HandleHookRunError(
+			StageAfterFailure,
+			task.RunHooks(
+				baseCtx, t.RenderingFunc,
+				StageAfterFailure,
+				StageAfterFailure.String()+" "+taskPrefix,
+				nil, nil,
+				thisTool, allTools, allShells,
+			),
 		)
 		if err != nil {
 			// TODO: handle hook error
-			err = fmt.Errorf("failed to run hooks %q: %w",
-				taskExecAfterFailure.String(), err,
-			)
 			_ = err
 		}
 
-		return fmt.Errorf("task execution failed")
+		// TODO: handle execution error
+		return fmt.Errorf("task execution failed: %w")
 	}
 
-	err = task.RunHooks(
-		baseCtx, t.RenderingFunc,
-		taskExecAfterSuccess,
-		taskExecAfterSuccess.String()+" "+taskPrefix,
-		nil, nil,
-		thisTool, allTools, allShells,
+	err = HandleHookRunError(
+		StageAfterSuccess,
+		task.RunHooks(
+			baseCtx, t.RenderingFunc,
+			StageAfterSuccess,
+			StageAfterSuccess.String()+" "+taskPrefix,
+			nil, nil,
+			thisTool, allTools, allShells,
+		),
 	)
 	if err != nil {
 		// TODO: handle hook error
-		err = fmt.Errorf("failed to run hooks %q: %w",
-			taskExecAfterSuccess.String(), err,
-		)
 		_ = err
-	}
-
-	return nil
-}
-
-func (t *BaseTool) doRunTask(
-	taskCtx *field.RenderingContext,
-	outputPrefix string,
-	prefixColor, outputColor *color.Color,
-	execSpecs []TaskExecSpec,
-	_replaceEntries *map[string][]byte,
-) error {
-	timer := time.NewTimer(0)
-	if !timer.Stop() {
-		<-timer.C
-	}
-
-	var replace map[string][]byte
-	if _replaceEntries != nil {
-		replace = *_replaceEntries
-	} else {
-		replace = make(map[string][]byte)
-	}
-
-	for _, es := range execSpecs {
-		ctx := taskCtx.Clone()
-
-		if es.Delay > 0 {
-			_ = timer.Reset(es.Delay)
-
-			select {
-			case <-timer.C:
-			case <-ctx.Context().Done():
-				if !timer.Stop() {
-					<-timer.C
-				}
-
-				return ctx.Context().Err()
-			}
-		}
-
-		var (
-			stdin          io.Reader
-			stdout, stderr io.Writer
-		)
-
-		if es.Stdin != nil {
-			stdin = io.MultiReader(es.Stdin, os.Stdin)
-		} else {
-			stdin = os.Stdin
-		}
-
-		if t.stderrIsTty {
-			stderr = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stderr)
-		} else {
-			stderr = output.PrefixWriter(outputPrefix, nil, nil, os.Stderr)
-		}
-
-		if t.stdoutIsTty {
-			stdout = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stdout)
-		} else {
-			stdout = output.PrefixWriter(outputPrefix, nil, nil, os.Stdout)
-		}
-
-		var buf *bytes.Buffer
-		if len(es.OutputAsReplace) != 0 {
-			buf = &bytes.Buffer{}
-
-			stdout = io.MultiWriter(stdout, buf)
-		}
-
-		// alter exec func can generate sub exec specs
-		if es.AlterExecFunc != nil {
-			subSpecs, err := es.AlterExecFunc(replace, stdin, stdout, stderr)
-			if err != nil {
-				return fmt.Errorf("failed to execute alter exec func: %w", err)
-			}
-
-			if buf != nil {
-				newValue := buf.Bytes()
-				if es.FixOutputForReplace != nil {
-					newValue = es.FixOutputForReplace(newValue)
-				}
-
-				replace[es.OutputAsReplace] = newValue
-			}
-
-			if len(subSpecs) != 0 {
-				err = t.doRunTask(taskCtx, outputPrefix, prefixColor, outputColor, subSpecs, &replace)
-				if err != nil {
-					return fmt.Errorf("failed to run sub tasks: %w", err)
-				}
-			}
-
-			continue
-		}
-
-		var cmd []string
-		if len(replace) != 0 {
-			pairs := make([]string, 2*len(replace))
-			i := 0
-			for toReplace, newValue := range replace {
-				pairs[i], pairs[i+1] = toReplace, string(newValue)
-				i += 2
-			}
-
-			replacer := strings.NewReplacer(pairs...)
-			for _, rawEnvPart := range es.Env {
-				ctx.AddEnv(replacer.Replace(rawEnvPart))
-			}
-
-			for _, rawCmdPart := range es.Command {
-				cmd = append(cmd, replacer.Replace(rawCmdPart))
-			}
-		} else {
-			cmd = sliceutils.NewStrings(es.Command)
-		}
-
-		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
-		if err != nil {
-			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
-		}
-
-		output.WriteExecStart(
-			ctx.Context(),
-			t.ToolName(),
-			cmd,
-			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
-		)
-
-		p, err := exechelper.Do(exechelper.Spec{
-			Context: ctx.Context(),
-			Command: runScriptCmd,
-			Env:     ctx.Values().Env,
-			Dir:     es.Chdir,
-
-			Stdin: stdin,
-
-			Stdout: stdout,
-			Stderr: stderr,
-		})
-		if err != nil {
-			if !es.IgnoreError {
-				return fmt.Errorf("failed to prepare command [ %s ]: %w", strings.Join(cmd, " "), err)
-			}
-
-			// TODO: log error in detail
-			log.Log.I("error ignored", log.Error(err))
-
-			delete(replace, es.OutputAsReplace)
-
-			continue
-		}
-
-		_, err = p.Wait()
-		if err != nil {
-			if !es.IgnoreError {
-				return fmt.Errorf("command exited with error: %w", err)
-			}
-
-			// TODO: log error in detail
-			log.Log.I("error ignored", log.Error(err))
-
-			delete(replace, es.OutputAsReplace)
-
-			continue
-		}
-
-		if buf != nil {
-			newValue := buf.Bytes()
-			if es.FixOutputForReplace != nil {
-				newValue = es.FixOutputForReplace(newValue)
-			}
-
-			replace[es.OutputAsReplace] = newValue
-		}
 	}
 
 	return nil
