@@ -52,11 +52,11 @@ type CGOSepc struct {
 	CFlags  []string `yaml:"cflags"`
 	LDFlags []string `yaml:"ldflags"`
 
-	HostCC  string `yaml:"hostCC"`
-	HostCXX string `yaml:"hostCXX"`
+	HostCC  string `yaml:"host_cc"`
+	HostCXX string `yaml:"host_cxx"`
 
-	TargetCC  string `yaml:"targetCC"`
-	TargetCXX string `yaml:"targetCXX"`
+	TargetCC  string `yaml:"target_cc"`
+	TargetCXX string `yaml:"target_cxx"`
 }
 
 func (c *TaskBuild) ToolKind() string { return ToolKind }
