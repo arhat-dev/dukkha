@@ -44,7 +44,7 @@ func (c *TaskLogin) ToolKind() string { return ToolKind }
 func (c *TaskLogin) TaskKind() string { return TaskKindLogin }
 
 func (c *TaskLogin) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string) ([]tools.TaskExecSpec, error) {
-	loginCmd := sliceutils.NewStringSlice(
+	loginCmd := sliceutils.NewStrings(
 		buildahCmd, "login",
 		"--username", c.Username,
 		"--password-stdin",

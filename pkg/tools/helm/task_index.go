@@ -59,7 +59,7 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 		return nil, fmt.Errorf("failed to create temporary index dir: %w", err)
 	}
 
-	indexCmd := sliceutils.NewStringSlice(helmCmd, "repo", "index")
+	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {
 		indexCmd = append(indexCmd, "--url", c.RepoURL)

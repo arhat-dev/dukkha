@@ -65,7 +65,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 	}
 
 	var steps []tools.TaskExecSpec
-	cloneCmd := sliceutils.NewStringSlice(
+	cloneCmd := sliceutils.NewStrings(
 		gitCmd,
 		"clone", "--no-checkout", "--origin", remoteName,
 	)
@@ -103,7 +103,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 			OutputAsReplace: replaceTargetDefaultBranch,
 
 			IgnoreError: false,
-			Command: sliceutils.NewStringSlice(
+			Command: sliceutils.NewStrings(
 				gitCmd,
 				"symbolic-ref",
 				fmt.Sprintf("refs/remotes/%s/HEAD", remoteName),
@@ -115,7 +115,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 	steps = append(steps, tools.TaskExecSpec{
 		IgnoreError: false,
 		Chdir:       localPath,
-		Command: sliceutils.NewStringSlice(
+		Command: sliceutils.NewStrings(
 			gitCmd, "checkout", "-b", localBranch,
 			fmt.Sprintf("%s/%s", remoteName, remoteBranch),
 		),

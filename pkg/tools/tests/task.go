@@ -26,7 +26,7 @@ func RunTaskExecSpecGenerationTests(
 	toolCmd []string,
 	tests []ExecSpecGenerationTestCase,
 ) {
-	originalToolCmd := sliceutils.NewStringSlice(toolCmd)
+	originalToolCmd := sliceutils.NewStrings(toolCmd)
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			if test.Finalize != nil {

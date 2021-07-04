@@ -2,7 +2,7 @@ package sliceutils
 
 import "sort"
 
-func NewStringSlice(base []string, other ...string) []string {
+func NewStrings(base []string, other ...string) []string {
 	return append(append([]string(nil), base...), other...)
 }
 

@@ -58,7 +58,7 @@ func (c *TaskRelease) ToolKind() string { return ToolKind }
 func (c *TaskRelease) TaskKind() string { return TaskKindRelease }
 
 func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) ([]tools.TaskExecSpec, error) {
-	createCmd := sliceutils.NewStringSlice(
+	createCmd := sliceutils.NewStrings(
 		ghCmd, "release", "create", c.Tag,
 	)
 

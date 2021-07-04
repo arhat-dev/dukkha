@@ -92,7 +92,7 @@ func (t *BaseTool) InitBaseTool(
 }
 
 func (t *BaseTool) ToolName() string { return t.Name }
-func (t *BaseTool) GetEnv() []string { return sliceutils.NewStringSlice(t.Env) }
+func (t *BaseTool) GetEnv() []string { return sliceutils.NewStrings(t.Env) }
 
 func (t *BaseTool) RunTask(
 	ctx context.Context,
@@ -232,7 +232,7 @@ func (t *BaseTool) RunTask(
 				return fmt.Errorf("failed to resolve task fields: %w", err3)
 			}
 
-			toolCmd := sliceutils.NewStringSlice(t.Cmd)
+			toolCmd := sliceutils.NewStrings(t.Cmd)
 			if len(toolCmd) == 0 {
 				toolCmd = append(toolCmd, t.defaultExecutable)
 			}
@@ -484,7 +484,7 @@ func (t *BaseTool) doRunTask(
 				cmd = append(cmd, replacer.Replace(rawCmdPart))
 			}
 		} else {
-			cmd = sliceutils.NewStringSlice(es.Command)
+			cmd = sliceutils.NewStrings(es.Command)
 		}
 
 		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
@@ -566,7 +566,7 @@ func (t *BaseTool) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []str
 		scriptPath = toExec[0]
 	}
 
-	cmd = sliceutils.NewStringSlice(t.Cmd)
+	cmd = sliceutils.NewStrings(t.Cmd)
 	if len(cmd) == 0 {
 		cmd = append(cmd, t.defaultExecutable)
 	}

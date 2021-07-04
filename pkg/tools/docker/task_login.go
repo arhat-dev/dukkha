@@ -34,7 +34,7 @@ func (c *TaskLogin) ToolKind() string { return ToolKind }
 func (c *TaskLogin) TaskKind() string { return TaskKindLogin }
 
 func (c *TaskLogin) GetExecSpecs(ctx *field.RenderingContext, dockerCmd []string) ([]tools.TaskExecSpec, error) {
-	loginCmd := sliceutils.NewStringSlice(
+	loginCmd := sliceutils.NewStrings(
 		dockerCmd, "login",
 		"--username", c.Username,
 		"--password-stdin",
