@@ -9,12 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/output"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
 	"github.com/fatih/color"
+
+	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/output"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 func (t *BaseTool) doRunTask(

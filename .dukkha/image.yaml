@@ -21,7 +21,7 @@ tools:
         quay.io/buildah/stable \
         buildah
 
-docker:build:
+buildah:bud:
 - &dukkha_image_build
   name: dukkha
   matrix@template_file: &dukkha_image_matrix cicd/image-matrix.yml
@@ -37,14 +37,23 @@ docker:build:
   - --build-arg="MATRIX_ARCH={{ .Env.MATRIX_ARCH }}"
   - --build-arg="MATRIX_ROOTFS={{ .Env.MATRIX_ROOTFS | default "alpine" }}"
 
-docker:push:
+buildah:login:
+- name: ghcr
+  registry: ghcr.io
+  username: ${GHCR_USER}
+  password@env: ${GHCR_PASS}
+
+buildah:push:
 - &dukkha_image_push
   name: dukkha
+  hooks:
+    before:
+    - task: buildah:login:ghcr
   matrix@template_file: *dukkha_image_matrix
   image_names: *dukkha_image_names
 
-buildah:bud:
+docker:build:
 - *dukkha_image_build
 
-buildah:push:
+docker:push:
 - *dukkha_image_push

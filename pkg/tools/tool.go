@@ -366,7 +366,7 @@ func (t *BaseTool) RunTask(
 		}
 
 		// TODO: handle execution error
-		return fmt.Errorf("task execution failed: %w")
+		return fmt.Errorf("task execution failed: %v", errCollection)
 	}
 
 	err = HandleHookRunError(
