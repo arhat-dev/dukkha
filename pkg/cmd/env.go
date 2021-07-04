@@ -176,33 +176,44 @@ func populateGlobalEnv(ctx context.Context) error {
 		// github actions
 
 		// https://docs.github.com/en/actions/reference/environment-variables
-		commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
-		if len(commit) != 0 {
-			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+
+		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
+			commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
+			if len(commit) != 0 {
+				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+			}
 		}
 
-		branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
-		if len(branch) != 0 {
-			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
+			branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
+			if len(branch) != 0 {
+				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+			}
 		}
 	case os.Getenv("GITLAB_CI") == "true":
 		// gitlab-ci
 
 		// https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
 
-		commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
-		if len(commit) != 0 {
-			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
+			commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
+			if len(commit) != 0 {
+				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+			}
 		}
 
-		branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
-		if len(branch) != 0 {
-			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
+			branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
+			if len(branch) != 0 {
+				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+			}
 		}
 
-		tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
-		if len(tag) != 0 {
-			err = multierr.Append(err, os.Setenv(constant.ENV_GIT_TAG, tag))
+		if len(os.Getenv(constant.ENV_GIT_TAG)) == 0 {
+			tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
+			if len(tag) != 0 {
+				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_TAG, tag))
+			}
 		}
 	default:
 	}
