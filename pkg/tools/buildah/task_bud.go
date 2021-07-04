@@ -90,7 +90,9 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			continue
 		}
 
-		budCmd = append(budCmd, "-t", spec.Image)
+		budCmd = append(budCmd,
+			"-t", SetDefaultImageTagIfNoTagSet(ctx, spec.Image),
+		)
 	}
 
 	context := c.Context
@@ -166,7 +168,8 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			continue
 		}
 
-		localManifestName := getLocalManifestName(spec.Manifest)
+		manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
+		localManifestName := getLocalManifestName(manifestName)
 		// ensure local manifest exists
 		steps = append(steps, tools.TaskExecSpec{
 			Command: sliceutils.NewStringSlice(

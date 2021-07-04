@@ -54,25 +54,37 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
+		imageName := buildah.SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
 		// docker push <image-name>
-		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
-			IgnoreError: false,
-		})
+		if buildah.ImageOrManifestHasFQDN(imageName) {
+			result = append(result, tools.TaskExecSpec{
+				Command: sliceutils.NewStringSlice(
+					toolCmd, "push", imageName,
+				),
+				IgnoreError: false,
+			})
+		}
 
 		if len(spec.Manifest) == 0 {
 			continue
 		}
 
+		manifestName := buildah.SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
 		result = append(result,
 			// ensure manifest exists
 			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, spec.Image),
+				Command: sliceutils.NewStringSlice(
+					manifestCmd, "create", manifestName, imageName,
+				),
+				// may already exists
 				IgnoreError: true,
 			},
 			// link manifest and image
 			tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(manifestCmd, "create", spec.Manifest, "--amend", spec.Image),
+				Command: sliceutils.NewStringSlice(
+					manifestCmd, "create", manifestName,
+					"--amend", imageName,
+				),
 				IgnoreError: false,
 			},
 		)
@@ -82,7 +94,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		// 		--os <arch> --arch <arch> {--variant <variant>}
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
 		annotateCmd := sliceutils.NewStringSlice(
-			manifestCmd, "annotate", spec.Manifest, spec.Image,
+			manifestCmd, "annotate", manifestName, imageName,
 			"--os", constant.GetDockerOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
 			"--arch", constant.GetDockerArch(mArch),
 		)
@@ -98,10 +110,12 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		})
 
 		// docker manifest push <manifest-list-name>
-		result = append(result, tools.TaskExecSpec{
-			Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "push", spec.Manifest),
-			IgnoreError: false,
-		})
+		if buildah.ImageOrManifestHasFQDN(manifestName) {
+			result = append(result, tools.TaskExecSpec{
+				Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "push", spec.Manifest),
+				IgnoreError: false,
+			})
+		}
 	}
 
 	return result, nil

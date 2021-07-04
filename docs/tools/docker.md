@@ -23,36 +23,12 @@ tools:
 
 ### Task `docker:build`
 
-Build container images
+Build docker images
 
-```yaml
-docker:build:
-- name: example-image
-  # images_names of the build output
-  # if not set, will use the `name` value as `image`
-  image_names:
-  - image: example.com/image:tag-amd64
-    manifest: example.com/image:manifest-tag
-
-  # docker build [options] <the only positional-arg is the context>
-  context: "."
-
-  # arg to docker build -f
-  dockerfile: path/to/dockerfile
-
-  # extra docker build args
-  extra_args: []
-```
+Config is the same as [`buildah:bud`](./buildah.md#task-buildahbud), but replace `bud` with `build`, and `buildah` with `docker` in your mind
 
 ### Task `docker:push`
 
-Push images and manifests
+Push docker images and manifests
 
-```yaml
-docker:push:
-- name: foo
-  image_names:
-  - image: example.com/foo:latest-amd64
-    manifest: example.com/foo:latest
-  extra_args: []
-```
+Config is the same as [`buildah:push`](./buildah.md#task-buildahpush), but replace `buildah` with `docker` in your mind
