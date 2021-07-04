@@ -124,6 +124,7 @@ func (t *BaseTool) doRunTask(
 				cmd = append(cmd, replacer.Replace(rawCmdPart))
 			}
 		} else {
+			ctx.AddEnv(es.Env...)
 			cmd = sliceutils.NewStrings(es.Command)
 		}
 

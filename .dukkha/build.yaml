@@ -40,13 +40,13 @@ golang:build:
     - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
   cgo:
     enabled: false
-    hostCC: gcc
-    hostCXX: g++
+    host_cc: gcc
+    host_cxx: g++
 
-    # targetCC and targetCXX will be set automatically for cross compiling when using cgo
+    # target_cc and target_cxx will be set automatically for cross compiling when using cgo
     # and of course you can customize
 
-    # targetCC@template: |-
+    # target_cc@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
     #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
@@ -54,7 +54,7 @@ golang:build:
     #   {{- get -}}
     #   -gcc
 
-    # targetCXX@template: |-
+    # target_cxx@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
     #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
