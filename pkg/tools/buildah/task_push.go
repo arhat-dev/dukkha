@@ -33,13 +33,12 @@ type TaskPush struct {
 	tools.BaseTask `yaml:",inline"`
 
 	ImageNames []ImageNameSpec `yaml:"image_names"`
-	ExtraArgs  []string        `yaml:"extra_args"`
 }
 
 func (c *TaskPush) ToolKind() string { return ToolKind }
 func (c *TaskPush) TaskKind() string { return TaskKindPush }
 
-func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string) ([]tools.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []ImageNameSpec{
@@ -52,20 +51,25 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 
 	var result []tools.TaskExecSpec
 	for _, spec := range targets {
-		if hasFQDN(spec.Image) {
+		if ImageOrManifestHasFQDN(spec.Image) {
 			result = append(result, tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(toolCmd, "push", spec.Image),
+				Command: sliceutils.NewStringSlice(
+					buildahCmd, "push",
+					SetDefaultImageTagIfNoTagSet(ctx, spec.Image),
+				),
 				IgnoreError: false,
 			})
 		}
 
-		if hasFQDN(spec.Manifest) {
+		if ImageOrManifestHasFQDN(spec.Manifest) {
 			// buildah manifest push --all \
 			//   <manifest-list-name> <transport>:<transport-details>
+			manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
 			result = append(result, tools.TaskExecSpec{
 				Command: sliceutils.NewStringSlice(
-					toolCmd, "manifest", "push", "--all",
-					getLocalManifestName(spec.Manifest), "docker://"+spec.Manifest,
+					buildahCmd, "manifest", "push", "--all",
+					getLocalManifestName(manifestName),
+					"docker://"+manifestName,
 				),
 				IgnoreError: false,
 			})
@@ -75,8 +79,8 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 	return result, nil
 }
 
-func hasFQDN(image string) bool {
-	parts := strings.SplitN(image, "/", 2)
+func ImageOrManifestHasFQDN(s string) bool {
+	parts := strings.SplitN(s, "/", 2)
 	if len(parts) == 1 {
 		return false
 	}
