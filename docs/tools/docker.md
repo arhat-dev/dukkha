@@ -21,6 +21,14 @@ tools:
 
 ## Supported Tasks
 
+### Task `docker:login`
+
+Login to registries
+
+Config is the same as [`buildah:login`](./buildah.md#task-buildahlogin), but replace `buildah` with `docker` in your mind
+
+__NOTE:__ docker login has no `skip_tls_verify` support
+
 ### Task `docker:build`
 
 Build docker images
