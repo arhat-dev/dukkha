@@ -28,7 +28,7 @@ docker:build:
   dockerfile@shell_file: cicd/get-dockerfile.sh
   # yamllint disable-line rule:quoted-strings
   context: "."
-  extraArgs@template:
+  extra_args@template:
   - --pull
   - --no-cache
   - --build-arg="IMAGE_ARCH={{ .Env.MATRIX_ARCH | trimSuffix "hf" }}"

@@ -41,7 +41,7 @@ docker:build:
   dockerfile: path/to/dockerfile
 
   # extra docker build args
-  extraArgs: []
+  extra_args: []
 ```
 
 ### Task `docker:push`
@@ -54,5 +54,5 @@ docker:push:
   image_names:
   - image: example.com/foo:latest-amd64
     manifest: example.com/foo:latest
-  extraArgs: []
+  extra_args: []
 ```

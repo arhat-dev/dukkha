@@ -39,7 +39,7 @@ type TaskBuild struct {
 	Env       []string `yaml:"env"`
 	LDFlags   []string `yaml:"ldflags"`
 	Tags      []string `yaml:"tags"`
-	ExtraArgs []string `yaml:"extraArgs"`
+	ExtraArgs []string `yaml:"extra_args"`
 	Outputs   []string `yaml:"outputs"`
 
 	CGO CGOSepc `yaml:"cgo"`

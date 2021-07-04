@@ -140,7 +140,7 @@ golang:build:
     fi
 
     echo "- build/dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}${suffix}"
-  extraArgs:
+  extra_args:
   - -buildmode=default
   - -mod=vendor
   - -trimpath

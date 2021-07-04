@@ -36,11 +36,11 @@ type TaskClone struct {
 
 	URL          string `yaml:"url"`
 	Path         string `yaml:"path"`
-	RemoteBranch string `yaml:"remoteBranch"`
-	LocalBranch  string `yaml:"localBranch"`
-	RemoteName   string `yaml:"remoteName"`
+	RemoteBranch string `yaml:"remote_branch"`
+	LocalBranch  string `yaml:"local_branch"`
+	RemoteName   string `yaml:"remote_name"`
 
-	ExtraArgs []string `yaml:"extraArgs"`
+	ExtraArgs []string `yaml:"extra_args"`
 }
 
 func (c *TaskClone) ToolKind() string { return ToolKind }

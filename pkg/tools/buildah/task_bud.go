@@ -45,7 +45,7 @@ type TaskBud struct {
 	Context    string          `yaml:"context"`
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 	Dockerfile string          `yaml:"dockerfile"`
-	ExtraArgs  []string        `yaml:"extraArgs"`
+	ExtraArgs  []string        `yaml:"extra_args"`
 }
 
 type ImageNameSpec struct {
