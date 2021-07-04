@@ -111,15 +111,9 @@ jobs:
 
     - name: Build and Push Images
       env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        GITHUB_DOCKER_USERNAME: ${{ github.actor }}
-        GITHUB_DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        GHCR_USER: ${{ github.actor }}
+        GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        buildah login -u="${DOCKERHUB_USERNAME}" -p="${DOCKERHUB_PASSWORD}" docker.io
-        buildah login -u="${GITHUB_DOCKER_USERNAME}" -p="${GITHUB_DOCKER_PASSWORD}" ghcr.io
-
         make dukkha
 
         ./build/dukkha buildah bud dukkha
