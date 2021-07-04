@@ -24,7 +24,7 @@ const TaskKindIndex = "index"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^helm(:.+)?:index$`),
+		regexp.MustCompile(`^helm(:.+){0,1}:index$`),
 		func(subMatches []string) interface{} {
 			t := &TaskIndex{}
 			if len(subMatches) != 0 {

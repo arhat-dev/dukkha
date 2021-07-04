@@ -14,7 +14,7 @@ const TaskKindTest = "test"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^golang(:.+)?:test$`),
+		regexp.MustCompile(`^golang(:.+){0,1}:test$`),
 		func(subMatches []string) interface{} {
 			t := &TaskTest{}
 			if len(subMatches) != 0 {

@@ -19,7 +19,7 @@ const TaskKindRelease = "release"
 func init() {
 	field.RegisterInterfaceField(
 		tools.TaskType,
-		regexp.MustCompile(`^github(:.+)?:release$`),
+		regexp.MustCompile(`^github(:.+){0,1}:release$`),
 		func(subMatches []string) interface{} {
 			t := &TaskRelease{}
 			if len(subMatches) != 0 {
