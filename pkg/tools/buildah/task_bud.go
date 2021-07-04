@@ -69,7 +69,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	imageIDFilePath := imageIDFile.Name()
 	_ = imageIDFile.Close()
 
-	budCmd := sliceutils.NewStringSlice(toolCmd, "bud", "--iidfile", imageIDFilePath)
+	budCmd := sliceutils.NewStrings(toolCmd, "bud", "--iidfile", imageIDFilePath)
 	if len(c.Dockerfile) != 0 {
 		budCmd = append(budCmd, "-f", c.Dockerfile)
 	}
@@ -133,7 +133,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		OutputAsReplace:     replaceTargetImageDigest,
 		FixOutputForReplace: bytes.TrimSpace,
 
-		Command: sliceutils.NewStringSlice(
+		Command: sliceutils.NewStrings(
 			toolCmd, "inspect", "--type", "image",
 			"--format", `"{{ .FromImageDigest }}"`,
 			replaceTargetImageID,
@@ -172,7 +172,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		localManifestName := getLocalManifestName(manifestName)
 		// ensure local manifest exists
 		steps = append(steps, tools.TaskExecSpec{
-			Command: sliceutils.NewStringSlice(
+			Command: sliceutils.NewStrings(
 				toolCmd, "manifest", "create", localManifestName,
 			),
 			IgnoreError: true,
@@ -183,14 +183,14 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			OutputAsReplace:     replaceTargetManifestSpec,
 			FixOutputForReplace: nil,
 
-			Command: sliceutils.NewStringSlice(
+			Command: sliceutils.NewStrings(
 				toolCmd, "manifest", "inspect", localManifestName,
 			),
 			// manifest may not exist
 			IgnoreError: true,
 		})
 
-		manifestAddCmd := sliceutils.NewStringSlice(toolCmd, "manifest", "add")
+		manifestAddCmd := sliceutils.NewStrings(toolCmd, "manifest", "add")
 		manifestAddCmd = append(manifestAddCmd, osArchVariantArgs...)
 		manifestAddCmd = append(manifestAddCmd, localManifestName, replaceTargetImageID)
 
@@ -207,13 +207,13 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 					return []tools.TaskExecSpec{
 						{
 							// do not ignore manifest create error this time
-							Command: sliceutils.NewStringSlice(
+							Command: sliceutils.NewStrings(
 								toolCmd, "manifest", "create", localManifestName,
 							),
 							IgnoreError: false,
 						},
 						{
-							Command:     sliceutils.NewStringSlice(manifestAddCmd),
+							Command:     sliceutils.NewStrings(manifestAddCmd),
 							IgnoreError: false,
 						},
 					}, nil
@@ -224,7 +224,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				if err != nil {
 					// no manifests entries, add this image directly
 					return []tools.TaskExecSpec{{
-						Command:     sliceutils.NewStringSlice(manifestAddCmd),
+						Command:     sliceutils.NewStrings(manifestAddCmd),
 						IgnoreError: false,
 					}}, nil
 				}
@@ -239,7 +239,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 					}
 
 					subSteps = append(subSteps, tools.TaskExecSpec{
-						Command: sliceutils.NewStringSlice(
+						Command: sliceutils.NewStrings(
 							toolCmd, "manifest", "remove", localManifestName, digest,
 						),
 						IgnoreError: false,
@@ -248,7 +248,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 				// add this image to manifest with correct os/arch/variant
 				subSteps = append(subSteps, tools.TaskExecSpec{
-					Command:     sliceutils.NewStringSlice(manifestAddCmd),
+					Command:     sliceutils.NewStrings(manifestAddCmd),
 					IgnoreError: false,
 				})
 

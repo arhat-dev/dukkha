@@ -46,7 +46,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 	var (
 		result []tools.TaskExecSpec
 
-		manifestCmd = sliceutils.NewStringSlice(toolCmd, "manifest")
+		manifestCmd = sliceutils.NewStrings(toolCmd, "manifest")
 	)
 
 	for _, spec := range targets {
@@ -58,7 +58,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		// docker push <image-name>
 		if buildah.ImageOrManifestHasFQDN(imageName) {
 			result = append(result, tools.TaskExecSpec{
-				Command: sliceutils.NewStringSlice(
+				Command: sliceutils.NewStrings(
 					toolCmd, "push", imageName,
 				),
 				IgnoreError: false,
@@ -73,7 +73,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		result = append(result,
 			// ensure manifest exists
 			tools.TaskExecSpec{
-				Command: sliceutils.NewStringSlice(
+				Command: sliceutils.NewStrings(
 					manifestCmd, "create", manifestName, imageName,
 				),
 				// may already exists
@@ -81,7 +81,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			},
 			// link manifest and image
 			tools.TaskExecSpec{
-				Command: sliceutils.NewStringSlice(
+				Command: sliceutils.NewStrings(
 					manifestCmd, "create", manifestName,
 					"--amend", imageName,
 				),
@@ -93,7 +93,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		// 		<manifest-list-name> <image-name> \
 		// 		--os <arch> --arch <arch> {--variant <variant>}
 		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-		annotateCmd := sliceutils.NewStringSlice(
+		annotateCmd := sliceutils.NewStrings(
 			manifestCmd, "annotate", manifestName, imageName,
 			"--os", constant.GetDockerOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
 			"--arch", constant.GetDockerArch(mArch),
@@ -112,7 +112,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		// docker manifest push <manifest-list-name>
 		if buildah.ImageOrManifestHasFQDN(manifestName) {
 			result = append(result, tools.TaskExecSpec{
-				Command:     sliceutils.NewStringSlice(toolCmd, "manifest", "push", spec.Manifest),
+				Command:     sliceutils.NewStrings(toolCmd, "manifest", "push", spec.Manifest),
 				IgnoreError: false,
 			})
 		}

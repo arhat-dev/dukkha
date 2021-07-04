@@ -53,7 +53,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 	for _, spec := range targets {
 		if ImageOrManifestHasFQDN(spec.Image) {
 			result = append(result, tools.TaskExecSpec{
-				Command: sliceutils.NewStringSlice(
+				Command: sliceutils.NewStrings(
 					buildahCmd, "push",
 					SetDefaultImageTagIfNoTagSet(ctx, spec.Image),
 				),
@@ -66,7 +66,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 			//   <manifest-list-name> <transport>:<transport-details>
 			manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
 			result = append(result, tools.TaskExecSpec{
-				Command: sliceutils.NewStringSlice(
+				Command: sliceutils.NewStrings(
 					buildahCmd, "manifest", "push", "--all",
 					getLocalManifestName(manifestName),
 					"docker://"+manifestName,

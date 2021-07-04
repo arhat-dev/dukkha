@@ -51,7 +51,7 @@ func (c *TaskPackage) TaskKind() string { return TaskKindPackage }
 
 func (c *TaskPackage) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) ([]tools.TaskExecSpec, error) {
 	pkgStep := &tools.TaskExecSpec{
-		Command: sliceutils.NewStringSlice(helmCmd, "package"),
+		Command: sliceutils.NewStrings(helmCmd, "package"),
 	}
 
 	matches, err := filepath.Glob(c.Chart)

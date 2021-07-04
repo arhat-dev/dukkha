@@ -68,7 +68,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 	doingCrossCompiling := ctx.Values().Env[constant.ENV_HOST_KERNEL] != mKernel ||
 		ctx.Values().Env[constant.ENV_HOST_ARCH] != mArch
 
-	env := sliceutils.NewStringSlice(c.Env, c.CGO.getEnv(
+	env := sliceutils.NewStrings(c.Env, c.CGO.getEnv(
 		doingCrossCompiling, mKernel, mArch,
 		ctx.Values().Env[constant.ENV_HOST_OS],
 		ctx.Values().Env[constant.ENV_MATRIX_LIBC],
@@ -95,8 +95,8 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		spec := &tools.TaskExecSpec{
 			Chdir: c.Chdir,
 
-			Env:     sliceutils.NewStringSlice(env),
-			Command: sliceutils.NewStringSlice(toolCmd, "build", "-o", output),
+			Env:     sliceutils.NewStrings(env),
+			Command: sliceutils.NewStrings(toolCmd, "build", "-o", output),
 		}
 
 		spec.Command = append(spec.Command, c.ExtraArgs...)

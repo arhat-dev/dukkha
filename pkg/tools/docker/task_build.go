@@ -45,7 +45,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 	}
 
 	var (
-		buildCmd = sliceutils.NewStringSlice(toolCmd, "build")
+		buildCmd = sliceutils.NewStrings(toolCmd, "build")
 	)
 
 	for _, spec := range targets {
