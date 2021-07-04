@@ -4,6 +4,7 @@ tools:
   - name: docker
     env:
     - DOCKER_BUILDKIT=1
+
   buildah:
   - name: buildah
   # $ docker volume create buildah-dukkha
@@ -23,22 +24,24 @@ tools:
 docker:build:
 - &dukkha_image_build
   name: dukkha
-  matrix@template_file: cicd/image-matrix.yml
-  image_names@template_file: cicd/image-names.yml
-  dockerfile@shell_file: cicd/get-dockerfile.sh
+  matrix@template_file: &dukkha_image_matrix cicd/image-matrix.yml
+  image_names: &dukkha_image_names
+  - image: ghcr.io/arhat-dev/dukkha
+    manifest: ghcr.io/arhat-dev/dukkha
+  dockerfile@env: cicd/docker/dukkha.${MATRIX_KERNEL}.dockerfile
   # yamllint disable-line rule:quoted-strings
   context: "."
   extra_args@template:
   - --pull
   - --no-cache
-  - --build-arg="IMAGE_ARCH={{ .Env.MATRIX_ARCH | trimSuffix "hf" }}"
   - --build-arg="MATRIX_ARCH={{ .Env.MATRIX_ARCH }}"
+  - --build-arg="MATRIX_ROOTFS={{ .Env.MATRIX_ROOTFS | default "alpine" }}"
 
 docker:push:
 - &dukkha_image_push
   name: dukkha
-  matrix@template_file: cicd/image-matrix.yml
-  image_names@template_file: cicd/image-names.yml
+  matrix@template_file: *dukkha_image_matrix
+  image_names: *dukkha_image_names
 
 buildah:bud:
 - *dukkha_image_build
