@@ -60,7 +60,7 @@ func (c *TaskLogin) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []strin
 	password := c.Password + "\n"
 	return []tools.TaskExecSpec{{
 		Stdin:       strings.NewReader(password),
-		Command:     loginCmd,
+		Command:     append(loginCmd, c.Registry),
 		IgnoreError: false,
 	}}, nil
 }
