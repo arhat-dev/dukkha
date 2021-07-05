@@ -82,6 +82,7 @@ func (s TaskExecStage) String() string {
 
 func (h *TaskHooks) Run(
 	ctx *field.RenderingContext,
+	rf field.RenderingFunc,
 	stage TaskExecStage,
 	prefix string,
 	prefixColor, outputColor *color.Color,
@@ -89,6 +90,12 @@ func (h *TaskHooks) Run(
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
+	// TODO: resolve specific hook only
+	err := h.ResolveFields(ctx, rf, 1, true)
+	if err != nil {
+		return fmt.Errorf("failed to resolve hooks: %w", err)
+	}
+
 	toRun, ok := map[TaskExecStage][]Hook{
 		StageBefore: h.Before,
 
@@ -106,7 +113,12 @@ func (h *TaskHooks) Run(
 	}
 
 	for i := range toRun {
-		err := toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
+		err := toRun[i].ResolveFields(ctx, rf, -1, false)
+		if err != nil {
+			return fmt.Errorf("failed to resolve fields: %w", err)
+		}
+
+		err = toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
 		if err != nil {
 			return fmt.Errorf("action #%d failed: %w", i, err)
 		}

@@ -42,7 +42,12 @@ func (f *BaseField) HasUnresolvedField() bool {
 	return len(f.unresolvedFields) != 0
 }
 
-func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc, depth int) error {
+func (f *BaseField) ResolveFields(
+	ctx *RenderingContext,
+	doRender RenderingFunc,
+	depth int,
+	ignoreRenderingError bool,
+) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
@@ -51,10 +56,11 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc,
 		return nil
 	}
 
+	structName := f._parentValue.Type().String()
 	logger := log.Log.WithName("BaseField").
 		WithFields(
 			log.String("func", "Render"),
-			log.String("struct", f._parentValue.Type().String()),
+			log.String("struct", structName),
 		)
 
 	logger.D("resolving",
@@ -81,7 +87,25 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc,
 		for i, rawData := range v.rawData {
 			resolvedValue, err := doRender(ctx, k.renderer, rawData)
 			if err != nil {
-				return fmt.Errorf("field: failed to render value of this base field %T: %w", target, err)
+				if ignoreRenderingError {
+					logger.D("ignored rendering error", log.Error(err))
+					break
+				}
+
+				input, ok := rawData.(string)
+				if !ok {
+					inputBytes, err2 := yaml.Marshal(rawData)
+					if err2 == nil {
+						input = string(inputBytes)
+					} else {
+						input = fmt.Sprint(rawData)
+					}
+				}
+
+				return fmt.Errorf(
+					"field: failed to render value of %s.%s from\n\n%s\n with error: %w",
+					structName, k.fieldName, input, err,
+				)
 			}
 
 			if target.Type() == stringPtrType {
@@ -113,7 +137,7 @@ func (f *BaseField) ResolveFields(ctx *RenderingContext, doRender RenderingFunc,
 				continue
 			}
 
-			err := innerF.ResolveFields(ctx, doRender, depth-1)
+			err := innerF.ResolveFields(ctx, doRender, depth-1, ignoreRenderingError)
 			if err != nil {
 				return fmt.Errorf("failed to resolve inner field: %w", err)
 			}

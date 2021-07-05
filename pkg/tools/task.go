@@ -107,13 +107,8 @@ func (t *BaseTask) RunHooks(
 	t.hookMU.Lock()
 	defer t.hookMU.Unlock()
 
-	err := t.Hooks.ResolveFields(ctx, rf, -1)
-	if err != nil {
-		return fmt.Errorf("failed to resolve hooks field: %w", err)
-	}
-
 	return t.Hooks.Run(
-		ctx, state,
+		ctx, rf, state,
 		prefix, prefixColor, outputColor,
 		thisTool, allTools, allShells,
 	)
@@ -125,12 +120,13 @@ func (t *BaseTask) GetMatrixSpecs(
 	filter map[string][]string,
 ) ([]MatrixSpec, error) {
 	// resolve matrix config first
-	err := t.ResolveFields(ctx, rf, 1)
+	// TODO: resolve matrix field only
+	err := t.ResolveFields(ctx, rf, 1, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve base task fields: %w", err)
 	}
 
-	err = t.Matrix.ResolveFields(ctx, rf, -1)
+	err = t.Matrix.ResolveFields(ctx, rf, -1, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
