@@ -62,14 +62,14 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 	// create an image id file
 	dukkhaCacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
-	imageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
+	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
 	}
-	imageIDFilePath := imageIDFile.Name()
-	_ = imageIDFile.Close()
+	tmpImageIDFilePath := tmpImageIDFile.Name()
+	_ = tmpImageIDFile.Close()
 
-	budCmd := sliceutils.NewStrings(toolCmd, "bud", "--iidfile", imageIDFilePath)
+	budCmd := sliceutils.NewStrings(toolCmd, "bud", "--iidfile", tmpImageIDFilePath)
 	if len(c.Dockerfile) != 0 {
 		budCmd = append(budCmd, "-f", c.Dockerfile)
 	}
@@ -85,7 +85,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	}
 
 	// set image names
-	var localImageIDFiles []string
+	var imageIDFiles []string
 	for _, spec := range targets {
 		if len(spec.Image) == 0 {
 			continue
@@ -97,7 +97,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		// FQDN image names
 		budCmd = append(budCmd, "-t", imageName)
 
-		filePath := getImageIDFilePathForImageName(
+		filePath := GetImageIDFileForImageName(
 			dukkhaCacheDir, imageName,
 		)
 		err = os.MkdirAll(filepath.Dir(filePath), 0750)
@@ -105,7 +105,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			return nil, fmt.Errorf("failed to ensure image id dir exists")
 		}
 
-		localImageIDFiles = append(localImageIDFiles, filePath)
+		imageIDFiles = append(imageIDFiles, filePath)
 	}
 
 	context := c.Context
@@ -129,12 +129,12 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			replace map[string][]byte,
 			stdin io.Reader, stdout, stderr io.Writer,
 		) ([]tools.TaskExecSpec, error) {
-			imageIDBytes, err := os.ReadFile(imageIDFilePath)
+			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
 			if err != nil {
 				return nil, err
 			}
 
-			for _, f := range localImageIDFiles {
+			for _, f := range imageIDFiles {
 				err = os.WriteFile(f, imageIDBytes, 0750)
 				if err != nil {
 					return nil, err
@@ -288,7 +288,7 @@ func getLocalManifestName(manifestName string) string {
 	return hex.EncodeToString(hashhelper.MD5Sum([]byte(manifestName)))
 }
 
-func getImageIDFilePathForImageName(dukkhaCacheDir, imageName string) string {
+func GetImageIDFileForImageName(dukkhaCacheDir, imageName string) string {
 	return filepath.Join(
 		dukkhaCacheDir,
 		"buildah",

@@ -59,7 +59,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 	for _, spec := range targets {
 		if len(spec.Image) != 0 {
 			imageName := SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
-			imageIDFile := getImageIDFilePathForImageName(
+			imageIDFile := GetImageIDFileForImageName(
 				dukkhaCacheDir, imageName,
 			)
 			imageIDBytes, err := os.ReadFile(imageIDFile)

@@ -15,6 +15,7 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
 const DefaultName = "template"
@@ -32,7 +33,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 	}
 
 	tplStr := string(tplBytes)
-	tpl, err := newTemplate().Parse(tplStr)
+	tpl, err := newTemplate(ctx).Parse(tplStr)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
 	}
@@ -46,7 +47,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 	return buf.String(), nil
 }
 
-func newTemplate() *template.Template {
+func newTemplate(rc *field.RenderingContext) *template.Template {
 	return template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
@@ -64,6 +65,13 @@ func newTemplate() *template.Template {
 
 			"filepath_Join": func(parts ...string) string {
 				return filepath.Join(parts...)
+			},
+
+			"getBuildahImageIDFile": func(imageName string) string {
+				return buildah.GetImageIDFileForImageName(
+					rc.Values().Env[constant.ENV_DUKKHA_CACHE_DIR],
+					buildah.SetDefaultImageTagIfNoTagSet(rc, imageName),
+				)
 			},
 
 			"jq":      textquery.JQ,

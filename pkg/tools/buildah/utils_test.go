@@ -51,7 +51,9 @@ func TestSetDefaultImageTag(t *testing.T) {
 		)
 
 		t.Run(spec.String()+"_image", func(t *testing.T) {
-			actual := SetDefaultImageTagIfNoTagSet(rc, "foo")
+			actual := SetDefaultImageTagIfNoTagSet(
+				rc, SetDefaultImageTagIfNoTagSet(rc, "foo"),
+			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):
 				assert.Equal(t, "foo:tag-amd64", actual)
@@ -67,7 +69,9 @@ func TestSetDefaultImageTag(t *testing.T) {
 		})
 
 		t.Run(spec.String()+"_manifest", func(t *testing.T) {
-			actual := SetDefaultManifestTagIfNoTagSet(rc, "foo")
+			actual := SetDefaultManifestTagIfNoTagSet(
+				rc, SetDefaultManifestTagIfNoTagSet(rc, "foo"),
+			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):
 				assert.Equal(t, "foo:tag", actual)
