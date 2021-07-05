@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"arhat.dev/pkg/envhelper"
 	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/tools"
 )
 
 // nolint:revive
@@ -77,7 +79,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 					renderer.RunShellScript(ctx, script, false, buf, d.getExecSpec),
 				)
 
-				return buf.String()
+				return strings.TrimRightFunc(buf.String(), unicode.IsSpace)
 			},
 		),
 	)
@@ -108,7 +110,7 @@ func createEnvExpandFunc(
 		lastAt += thisIdx
 
 		if strings.HasPrefix(origin, "$(") {
-			shellEval, err := parseShellEval(toExpand[lastAt+2:])
+			shellEval, err := tools.ParseShellEval(toExpand[lastAt+2:])
 			if err != nil {
 				lastAt += len(origin)
 			} else {
@@ -125,22 +127,4 @@ func createEnvExpandFunc(
 		result.WriteString(handleEnv(varName, origin, lastAt))
 		return ""
 	}
-}
-
-func parseShellEval(toEpand string) (string, error) {
-	leftBrackets := 0
-	for i := range toEpand {
-		switch toEpand[i] {
-		case '(':
-			leftBrackets++
-		case ')':
-			if leftBrackets == 0 {
-				return toEpand[:i], nil
-			}
-			leftBrackets--
-		}
-	}
-
-	// invalid data
-	return "", fmt.Errorf("unexpected non-terminated brackets")
 }
