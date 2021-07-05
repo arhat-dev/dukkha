@@ -2,9 +2,13 @@ package template
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
+	"os"
+	"path/filepath"
 	"text/template"
 
+	"arhat.dev/pkg/hashhelper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 
@@ -46,6 +50,22 @@ func newTemplate() *template.Template {
 	return template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
+			"md5sum": func(s string) string {
+				return hex.EncodeToString(hashhelper.MD5Sum([]byte(s)))
+			},
+			"os_ReadFile": func(filename string) (string, error) {
+				data, err := os.ReadFile(filename)
+				if err != nil {
+					return "", err
+				}
+
+				return string(data), nil
+			},
+
+			"filepath_Join": func(parts ...string) string {
+				return filepath.Join(parts...)
+			},
+
 			"jq":      textquery.JQ,
 			"jqBytes": textquery.JQBytes,
 
