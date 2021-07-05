@@ -135,7 +135,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 				return rawData.(string), nil
 			},
 			-1,
-			false,
+			"",
 		)
 
 		assert.EqualValues(t, "rendered-bar", out.Foo.Foo)

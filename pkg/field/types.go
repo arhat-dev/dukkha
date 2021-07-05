@@ -15,7 +15,7 @@ type Interface interface {
 		ctx *RenderingContext,
 		render RenderingFunc,
 		depth int,
-		ignoreRenderingError bool,
+		fieldName string,
 	) error
 }
 
