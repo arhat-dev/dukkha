@@ -63,9 +63,7 @@ func newTemplate(rc *field.RenderingContext) *template.Template {
 				return string(data), nil
 			},
 
-			"filepath_Join": func(parts ...string) string {
-				return filepath.Join(parts...)
-			},
+			"filepath_Join": filepath.Join,
 
 			"getBuildahImageIDFile": func(imageName string) string {
 				return buildah.GetImageIDFileForImageName(
