@@ -129,7 +129,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 
 		out.ResolveFields(
-			WithRenderingValues(context.TODO(), nil),
+			WithRenderingValues(context.TODO()),
 			func(ctx *RenderingContext, renderer string, rawData interface{}) (string, error) {
 				assert.Equal(t, "{ foo: rendered-bar }", rawData)
 				return rawData.(string), nil

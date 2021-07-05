@@ -2,7 +2,6 @@ package field
 
 import (
 	"context"
-	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -30,7 +29,7 @@ type (
 	}
 )
 
-func WithRenderingValues(ctx context.Context, extraEnv []string) *RenderingContext {
+func WithRenderingValues(ctx context.Context, extraEnv ...[]string) *RenderingContext {
 	ret := &RenderingContext{
 		ctx: ctx,
 		values: &RenderingValues{
@@ -38,8 +37,9 @@ func WithRenderingValues(ctx context.Context, extraEnv []string) *RenderingConte
 		},
 	}
 
-	ret.AddEnv(os.Environ()...)
-	ret.AddEnv(extraEnv...)
+	for i := range extraEnv {
+		ret.AddEnv(extraEnv[i]...)
+	}
 
 	return ret
 }

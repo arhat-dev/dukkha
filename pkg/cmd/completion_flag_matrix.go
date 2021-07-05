@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"sort"
 	"strings"
 
@@ -62,7 +63,7 @@ func handleMatrixFlagCompletion(
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	ctx := field.WithRenderingValues(*appCtx, tool.GetEnv())
+	ctx := field.WithRenderingValues(*appCtx, os.Environ(), tool.GetEnv())
 
 	// DO NOT apply existing filter, new filters with same key
 	// are merged together

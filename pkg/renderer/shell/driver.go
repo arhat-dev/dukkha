@@ -3,10 +3,6 @@ package shell
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"strings"
-
-	"arhat.dev/pkg/exechelper"
 
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
@@ -20,9 +16,7 @@ type Driver struct {
 	getExecSpec field.ExecSpecGetFunc
 }
 
-func (d *Driver) Name() string {
-	return DefaultName
-}
+func (d *Driver) Name() string { return DefaultName }
 
 func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
 	var scripts []string
@@ -46,39 +40,9 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 
 	buf := &bytes.Buffer{}
 	for _, script := range scripts {
-		env, cmd, err := d.getExecSpec([]string{script}, false)
+		err := renderer.RunShellScript(ctx, script, false, buf, d.getExecSpec)
 		if err != nil {
-			return "", fmt.Errorf(
-				"renderer.%s: failed to get exec spec: %w",
-				DefaultName, err,
-			)
-		}
-
-		execCtx := ctx.Clone()
-		execCtx.AddEnv(env...)
-
-		p, err := exechelper.Do(exechelper.Spec{
-			Context: execCtx.Context(),
-			Command: cmd,
-			Env:     execCtx.Values().Env,
-
-			Stdout: buf,
-			Stderr: os.Stderr,
-		})
-
-		if err != nil {
-			return "", fmt.Errorf(
-				"renderer.%s: failed to run script [%s]: %w",
-				DefaultName, strings.Join(cmd, " "), err,
-			)
-		}
-
-		_, err = p.Wait()
-		if err != nil {
-			return "", fmt.Errorf(
-				"renderer.%s: cmd failed: %w",
-				DefaultName, err,
-			)
+			return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
 		}
 	}
 

@@ -1,0 +1,200 @@
+package env
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/field"
+)
+
+func TestNewDriver(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    interface{}
+		expectErr bool
+	}{
+		{
+			name:      "Invalid Empty Config",
+			config:    nil,
+			expectErr: true,
+		},
+		{
+			name:      "Invalid Unexpected Config",
+			config:    "foo",
+			expectErr: true,
+		},
+		{
+			name:      "Invalid No GetExecFunc",
+			config:    &Config{},
+			expectErr: true,
+		},
+		{
+			name: "Valid",
+			config: &Config{
+				GetExecSpec: func(
+					toExec []string, isFilePath bool,
+				) (env []string, cmd []string, err error) {
+					return
+				},
+			},
+			expectErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			d, err := NewDriver(test.config)
+
+			if test.expectErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, DefaultName, d.Name())
+		})
+	}
+}
+
+func TestDriver_Render(t *testing.T) {
+	cmdPrintHello := []string{"sh", "-c", "printf hello"}
+	d, err := NewDriver(&Config{
+		GetExecSpec: func(
+			toExec []string, isFilePath bool,
+		) (env []string, cmd []string, err error) {
+			return []string{""}, cmdPrintHello, nil
+		},
+	})
+	if !assert.NoError(t, err, "failed to create driver for test") {
+		return
+	}
+
+	rc := field.WithRenderingValues(context.TODO(), []string{"FOO=bar"})
+
+	tests := []struct {
+		name     string
+		rawData  interface{}
+		expected string
+		errStr   string
+	}{
+		{
+			name:     "Valid Plain Text",
+			rawData:  "No env ref",
+			expected: "No env ref",
+		},
+		{
+			name:     "Valid Plain Data Bytes",
+			rawData:  []byte("No env ref"),
+			expected: "No env ref",
+		},
+		{
+			name:    "Valid String Sequence",
+			rawData: []string{"No env ref", "No env ref"},
+			expected: `- No env ref
+- No env ref
+`,
+		},
+		{
+			name:     "Valid Simple Expansion $FOO",
+			rawData:  "foo $FOO",
+			expected: "foo bar",
+		},
+		{
+			name:     "Valid Simple Expansion ${FOO}",
+			rawData:  "foo ${FOO}",
+			expected: "foo bar",
+		},
+		{
+			name:     "Valid Simple Shell Evaluation",
+			rawData:  "foo $(some command)",
+			expected: "foo hello",
+		},
+		{
+			name:     "Valid Shell Evaluation With Round Brackets",
+			rawData:  "foo $(s())))",
+			expected: "foo hello))",
+		},
+		{
+			name:     "Valid Multi Shell Evaluation With Round Brackets",
+			rawData:  "foo $(say-something() useful) $(say-something() useless)",
+			expected: "foo hello hello",
+		},
+		{
+			name:    "Invalid Env Not Found",
+			rawData: "${NO_SUCH_ENV}",
+			errStr:  "not found",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ret, err := d.Render(rc, test.rawData)
+			if len(test.errStr) != 0 {
+				if !assert.Error(t, err) {
+					return
+				}
+
+				assert.Contains(t, err.Error(), test.errStr)
+				return
+			}
+
+			assert.Equal(t, test.expected, ret)
+		})
+
+	}
+}
+
+func TestParseShellEval(t *testing.T) {
+	tests := []struct {
+		name      string
+		toExpand  string
+		expected  string
+		expectErr bool
+	}{
+		{
+			name:     "Valid Simple",
+			toExpand: "foo)(",
+			expected: "foo",
+		},
+		{
+			name:     "Valid Simple 2",
+			toExpand: "foo)))))",
+			expected: "foo",
+		},
+		{
+			name:     "Valid Empty",
+			toExpand: "))",
+			expected: "",
+		},
+		{
+			name:     "Valid One Pair",
+			toExpand: "foo())",
+			expected: "foo()",
+		},
+		{
+			name:     "Valid Many Pairs",
+			toExpand: "foo()()()())",
+			expected: "foo()()()()",
+		},
+		{
+			name:      "Invalid",
+			toExpand:  "foo",
+			expectErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := parseShellEval(test.toExpand)
+			if test.expectErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
