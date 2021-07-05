@@ -1,9 +1,13 @@
 package buildah
 
 import (
+	"bytes"
+	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -49,31 +53,47 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 		}
 	}
 
+	dukkhaCacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
+
 	var result []tools.TaskExecSpec
 	for _, spec := range targets {
-		if ImageOrManifestHasFQDN(spec.Image) {
+		if len(spec.Image) != 0 {
+			imageName := SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
+			imageIDFile := getImageIDFilePathForImageName(
+				dukkhaCacheDir, imageName,
+			)
+			imageIDBytes, err := os.ReadFile(imageIDFile)
+			if err != nil {
+				return nil, fmt.Errorf("image id file not found: %w", err)
+			}
+
 			result = append(result, tools.TaskExecSpec{
 				Command: sliceutils.NewStrings(
 					buildahCmd, "push",
-					SetDefaultImageTagIfNoTagSet(ctx, spec.Image),
+					string(bytes.TrimSpace(imageIDBytes)),
+					// TODO: support other destination
+					"docker://"+imageName,
 				),
 				IgnoreError: false,
 			})
 		}
 
-		if ImageOrManifestHasFQDN(spec.Manifest) {
-			// buildah manifest push --all \
-			//   <manifest-list-name> <transport>:<transport-details>
-			manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
-			result = append(result, tools.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					buildahCmd, "manifest", "push", "--all",
-					getLocalManifestName(manifestName),
-					"docker://"+manifestName,
-				),
-				IgnoreError: false,
-			})
+		if len(spec.Manifest) == 0 {
+			continue
 		}
+
+		// buildah manifest push --all \
+		//   <manifest-list-name> <transport>:<transport-details>
+		manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
+		result = append(result, tools.TaskExecSpec{
+			Command: sliceutils.NewStrings(
+				buildahCmd, "manifest", "push", "--all",
+				getLocalManifestName(manifestName),
+				// TODO: support other destination
+				"docker://"+manifestName,
+			),
+			IgnoreError: false,
+		})
 	}
 
 	return result, nil

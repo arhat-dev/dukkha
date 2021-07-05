@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -60,9 +61,8 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	var steps []tools.TaskExecSpec
 
 	// create an image id file
-	imageIDFile, err := ioutil.TempFile(
-		ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR], "buildah-bud-image-id-*",
-	)
+	dukkhaCacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
+	imageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
 	}
@@ -85,14 +85,27 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	}
 
 	// set image names
+	var localImageIDFiles []string
 	for _, spec := range targets {
 		if len(spec.Image) == 0 {
 			continue
 		}
 
-		budCmd = append(budCmd,
-			"-t", SetDefaultImageTagIfNoTagSet(ctx, spec.Image),
+		imageName := SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
+
+		// local image name is to handle bud regression bugs related to
+		// FQDN image names
+		budCmd = append(budCmd, "-t", imageName)
+
+		filePath := getImageIDFilePathForImageName(
+			dukkhaCacheDir, imageName,
 		)
+		err = os.MkdirAll(filepath.Dir(filePath), 0750)
+		if err != nil && !os.IsExist(err) {
+			return nil, fmt.Errorf("failed to ensure image id dir exists")
+		}
+
+		localImageIDFiles = append(localImageIDFiles, filePath)
 	}
 
 	context := c.Context
@@ -119,6 +132,13 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			imageIDBytes, err := os.ReadFile(imageIDFilePath)
 			if err != nil {
 				return nil, err
+			}
+
+			for _, f := range localImageIDFiles {
+				err = os.WriteFile(f, imageIDBytes, 0750)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			_, err = stdout.Write(imageIDBytes)
@@ -260,6 +280,20 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	return steps, nil
 }
 
+func getLocalImageName(imageName string) string {
+	return hex.EncodeToString(hashhelper.MD5Sum([]byte(imageName)))
+}
+
 func getLocalManifestName(manifestName string) string {
 	return hex.EncodeToString(hashhelper.MD5Sum([]byte(manifestName)))
+}
+
+func getImageIDFilePathForImageName(dukkhaCacheDir, imageName string) string {
+	return filepath.Join(
+		dukkhaCacheDir,
+		"buildah",
+		fmt.Sprintf(
+			"image-id-%s", getLocalImageName(imageName),
+		),
+	)
 }
