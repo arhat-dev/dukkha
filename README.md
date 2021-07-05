@@ -8,17 +8,27 @@
 
 Make YAML files Makefiles
 
-## The Idea
+## Goals
 
 - Type checked configuration (e.g. workflow definition for github actions)
-- Language or tool specific support (e.g. `goreleaser` for go/docker/npm builds)
-- Flexible scripting (e.g. Makefile, shell scripts)
+- Language and tool specific support (e.g. `goreleaser` for go/docker/npm builds)
+- Flexible scripting (e.g. `Makefile`, shell scripts)
 
 A typical build automation tool only take one or two from the above, but we'd take three in `dukkha`!
 
+## Non-Goals
+
+- To replace any existing tool
+  - `dukkha` only wraps other tools for common use cases to ease your life with devops pipelines
+- To build a custom cli tool to support all kinds of tasks
+
 ## Features
 
-- Rendering suffix (`@<renderer>`), get configuration updated dynamically at runtime
+- Rendering suffix, get configuration updated dynamically at runtime using
+  - [environment variables (support shell evaluation `$(some command)`)](./docs/renderers/env.md)
+  - [golang template](./docs/renderers/template.md)
+  - [shell scripts](./docs/renderers/shell.md)
+  - [files](./docs/renderers/file.md)
 - Customizable task matrix execution everywhere
 - Shell completion for tools, tasks and task matrix
 
