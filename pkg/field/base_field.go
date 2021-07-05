@@ -14,7 +14,15 @@ import (
 type (
 	unresolvedFieldKey struct {
 		fieldName string
-		renderer  string
+
+		// TODO: put renderer in key is to support fields with
+		// 		`dukkha:"other"` field tag, each item should be able
+		// 		to have its own renderer
+		// 		but the `other` fields get no rendering suffix support
+		// 		for the time being
+		//
+		// 		so we just keep it here for future
+		renderer string
 	}
 
 	unresolvedFieldValue struct {
