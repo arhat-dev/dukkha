@@ -46,7 +46,7 @@ func (f *BaseField) ResolveFields(
 	ctx *RenderingContext,
 	doRender RenderingFunc,
 	depth int,
-	ignoreRenderingError bool,
+	fieldName string,
 ) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
@@ -63,10 +63,148 @@ func (f *BaseField) ResolveFields(
 			log.String("struct", structName),
 		)
 
-	logger.D("resolving",
-		log.Int("unresolved_fields", len(f.unresolvedFields)),
+	if len(fieldName) != 0 {
+		// has target field
+		logger = logger.WithFields(
+			log.String("target", fieldName),
+		)
+
+		logger.D("trying to resolve specified single field")
+		for k, v := range f.unresolvedFields {
+			logger.V("looking up unresolved fields",
+				log.String("met", k.fieldName),
+			)
+
+			if k.fieldName != fieldName {
+				continue
+			}
+
+			logger = logger.WithFields(
+				log.String("field", k.fieldName),
+				log.String("type", v.fieldValue.Type().String()),
+				log.String("yaml_field", v.yamlFieldName),
+			)
+
+			logger.D("resolving specified single field")
+
+			return f.resolveSingleField(
+				ctx,
+				logger,
+				doRender,
+				depth,
+				structName,
+
+				k.fieldName,
+				k.renderer,
+
+				v,
+			)
+		}
+
+		logger.V("no such unresolved target single field")
+
+		return nil
+	}
+
+	logger.D("resolving all fields",
+		log.Int("count", len(f.unresolvedFields)),
 	)
 
+	return f.resolveAllFields(
+		ctx,
+		logger,
+		doRender,
+		depth,
+		structName,
+	)
+}
+
+func (f *BaseField) resolveSingleField(
+	ctx *RenderingContext,
+	logger log.Interface,
+	doRender RenderingFunc,
+	depth int,
+
+	structName string, // to make error message helpful
+	fieldName string, // to make error message helpful
+
+	renderer string,
+	v *unresolvedFieldValue,
+) error {
+	var target reflect.Value
+	switch v.fieldValue.Kind() {
+	case reflect.Ptr:
+		target = v.fieldValue
+	default:
+		target = v.fieldValue.Addr()
+	}
+
+	for i, rawData := range v.rawData {
+		resolvedValue, err := doRender(ctx, renderer, rawData)
+		if err != nil {
+			input, ok := rawData.(string)
+			if !ok {
+				inputBytes, err2 := yaml.Marshal(rawData)
+				if err2 == nil {
+					input = string(inputBytes)
+				} else {
+					input = fmt.Sprint(rawData)
+				}
+			}
+
+			return fmt.Errorf(
+				"field: failed to render value of %s.%s from\n\n%s\n with error: %w",
+				structName, fieldName, input, err,
+			)
+		}
+
+		if target.Type() == stringPtrType {
+			// resolved value is the target value
+			target.Elem().SetString(resolvedValue)
+			continue
+		}
+
+		var tmp interface{}
+		err = yaml.Unmarshal([]byte(resolvedValue), &tmp)
+		if err != nil {
+			logger.V("failed to unmarshal resolved value as interface",
+				log.String("value", resolvedValue),
+			)
+			return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
+		}
+
+		err = unmarshal(v.yamlFieldName, tmp, target, i != 0)
+		if err != nil {
+			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
+		}
+
+		logger.V("resolved field", log.Any("value", target))
+	}
+
+	if depth > 1 || depth < 0 {
+		innerF, canCallResolve := target.Interface().(Interface)
+		if !canCallResolve {
+			return nil
+		}
+
+		err := innerF.ResolveFields(
+			ctx, doRender, depth-1, "",
+		)
+		if err != nil {
+			return fmt.Errorf("failed to resolve inner field: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (f *BaseField) resolveAllFields(
+	ctx *RenderingContext,
+	logger log.Interface,
+	doRender RenderingFunc,
+	depth int,
+	structName string, // to make error message helpful
+) error {
 	for k, v := range f.unresolvedFields {
 		logger := logger.WithFields(
 			log.String("field", k.fieldName),
@@ -74,73 +212,22 @@ func (f *BaseField) ResolveFields(
 			log.String("yaml_field", v.yamlFieldName),
 		)
 
-		logger.V("resolving", log.Any("values", ctx.Values()))
+		logger.V("resolving single field", log.Any("values", ctx.Values()))
 
-		var target reflect.Value
-		switch v.fieldValue.Kind() {
-		case reflect.Ptr:
-			target = v.fieldValue
-		default:
-			target = v.fieldValue.Addr()
-		}
+		err := f.resolveSingleField(
+			ctx,
+			logger,
+			doRender,
+			depth,
 
-		for i, rawData := range v.rawData {
-			resolvedValue, err := doRender(ctx, k.renderer, rawData)
-			if err != nil {
-				if ignoreRenderingError {
-					logger.D("ignored rendering error", log.Error(err))
-					break
-				}
+			structName,
+			k.fieldName,
 
-				input, ok := rawData.(string)
-				if !ok {
-					inputBytes, err2 := yaml.Marshal(rawData)
-					if err2 == nil {
-						input = string(inputBytes)
-					} else {
-						input = fmt.Sprint(rawData)
-					}
-				}
-
-				return fmt.Errorf(
-					"field: failed to render value of %s.%s from\n\n%s\n with error: %w",
-					structName, k.fieldName, input, err,
-				)
-			}
-
-			if target.Type() == stringPtrType {
-				// resolved value is the target value
-				target.Elem().SetString(resolvedValue)
-				continue
-			}
-
-			var tmp interface{}
-			err = yaml.Unmarshal([]byte(resolvedValue), &tmp)
-			if err != nil {
-				logger.V("failed to unmarshal resolved value as interface",
-					log.String("value", resolvedValue),
-				)
-				return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
-			}
-
-			err = unmarshal(v.yamlFieldName, tmp, target, i != 0)
-			if err != nil {
-				return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
-			}
-
-			logger.V("resolved field", log.Any("value", target))
-		}
-
-		if depth > 1 || depth < 0 {
-			innerF, canCallResolve := target.Interface().(Interface)
-			if !canCallResolve {
-				continue
-			}
-
-			err := innerF.ResolveFields(ctx, doRender, depth-1, ignoreRenderingError)
-			if err != nil {
-				return fmt.Errorf("failed to resolve inner field: %w", err)
-			}
+			k.renderer,
+			v,
+		)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -252,8 +339,9 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			return false
 		}
 
-		fields[fieldKey{yamlKey: yamlKey}] = &fieldSpec{
-			fieldName:  fieldName,
+		fields[key] = &fieldSpec{
+			fieldName: fieldName,
+
 			fieldValue: fieldValue,
 			base:       base,
 		}
@@ -266,7 +354,7 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		}]
 	}
 
-	logger := log.Log.WithName("field.BaseField").WithFields(
+	logger := log.Log.WithName("BaseField").WithFields(
 		log.String("func", "UnmarshalYAML"),
 		log.String("struct", pt.String()),
 	)

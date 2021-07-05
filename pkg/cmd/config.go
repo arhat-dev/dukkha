@@ -150,7 +150,7 @@ func resolveConfig(
 	bootstrapCtx := field.WithRenderingValues(appCtx, os.Environ())
 
 	logger.D("resolving top level config")
-	err = config.ResolveFields(bootstrapCtx, renderingMgr.Render, 1, false)
+	err = config.ResolveFields(bootstrapCtx, renderingMgr.Render, 1, "")
 	if err != nil {
 		return fmt.Errorf("failed to resolve config: %w", err)
 	}
@@ -164,7 +164,7 @@ func resolveConfig(
 		)
 
 		logger.D("resolving shell config fields")
-		err = v.ResolveFields(bootstrapCtx, renderingMgr.Render, -1, false)
+		err = v.ResolveFields(bootstrapCtx, renderingMgr.Render, -1, "")
 		if err != nil {
 			return fmt.Errorf("failed to resolve config for shell %q #%d", v.ToolName(), i)
 		}
@@ -260,7 +260,7 @@ func resolveConfig(
 			toolID := toolKind + ":" + t.ToolName()
 
 			logger.D("resolving tool config fields")
-			err = t.ResolveFields(bootstrapCtx, renderingMgr.Render, -1, false)
+			err = t.ResolveFields(bootstrapCtx, renderingMgr.Render, -1, "")
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve config for tool %q: %w",

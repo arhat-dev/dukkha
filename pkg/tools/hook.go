@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/exechelper"
+	"arhat.dev/pkg/log"
 	"github.com/fatih/color"
 
 	"arhat.dev/dukkha/pkg/field"
@@ -50,6 +51,21 @@ type TaskHooks struct {
 	After []Hook `yaml:"after"`
 }
 
+func (TaskHooks) GetFieldNameByStage(stage TaskExecStage) string {
+	return map[TaskExecStage]string{
+		StageBefore: "Before",
+
+		StageBeforeMatrix:       "BeforeMatrix",
+		StageAfterMatrixSuccess: "AfterMatrixSuccess",
+		StageAfterMatrixFailure: "AfterMatrixFailure",
+		StageAfterMatrix:        "AfterMatrix",
+
+		StageAfterSuccess: "AfterSuccess",
+		StageAfterFailure: "AfterFailure",
+		StageAfter:        "After",
+	}[stage]
+}
+
 type TaskExecStage uint8
 
 const (
@@ -90,10 +106,14 @@ func (h *TaskHooks) Run(
 	allTools map[ToolKey]Tool,
 	allShells map[ToolKey]*BaseTool,
 ) error {
-	// TODO: resolve specific hook only
-	err := h.ResolveFields(ctx, rf, 1, true)
+	logger := log.Log.WithName("TaskHooks").WithFields(
+		log.String("stage", stage.String()),
+	)
+
+	logger.D("resolving hooks")
+	err := h.ResolveFields(ctx, rf, -1, h.GetFieldNameByStage(stage))
 	if err != nil {
-		return fmt.Errorf("failed to resolve hooks: %w", err)
+		return fmt.Errorf("failed to resolve hook spec: %w", err)
 	}
 
 	toRun, ok := map[TaskExecStage][]Hook{
@@ -113,11 +133,6 @@ func (h *TaskHooks) Run(
 	}
 
 	for i := range toRun {
-		err := toRun[i].ResolveFields(ctx, rf, -1, false)
-		if err != nil {
-			return fmt.Errorf("failed to resolve fields: %w", err)
-		}
-
 		err = toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
 		if err != nil {
 			return fmt.Errorf("action #%d failed: %w", i, err)

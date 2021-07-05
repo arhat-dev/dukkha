@@ -120,13 +120,7 @@ func (t *BaseTask) GetMatrixSpecs(
 	filter map[string][]string,
 ) ([]MatrixSpec, error) {
 	// resolve matrix config first
-	// TODO: resolve matrix field only
-	err := t.ResolveFields(ctx, rf, 1, true)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve base task fields: %w", err)
-	}
-
-	err = t.Matrix.ResolveFields(ctx, rf, -1, false)
+	err := t.ResolveFields(ctx, rf, -1, "Matrix")
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}

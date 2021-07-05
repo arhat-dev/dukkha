@@ -233,7 +233,7 @@ func (t *BaseTool) RunTask(
 			}
 
 			// tool may have reference to MATRIX_ values
-			err3 = t.ResolveFields(taskCtx, t.RenderingFunc, -1, false)
+			err3 = t.ResolveFields(taskCtx, t.RenderingFunc, -1, "")
 			if err3 != nil {
 				return fmt.Errorf("failed to resolve tool fields: %w", err3)
 			}
@@ -241,7 +241,7 @@ func (t *BaseTool) RunTask(
 			taskCtx.AddEnv(t.Env...)
 
 			// resolve task fields
-			err3 = task.ResolveFields(taskCtx, t.RenderingFunc, -1, false)
+			err3 = task.ResolveFields(taskCtx, t.RenderingFunc, -1, "")
 			if err3 != nil {
 				return fmt.Errorf("failed to resolve task fields: %w", err3)
 			}
