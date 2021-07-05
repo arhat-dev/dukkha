@@ -215,35 +215,10 @@ func (t *BaseTool) RunTask(
 				taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
 
-			// tool may have reference to MATRIX_ values
-			err3 := t.ResolveFields(taskCtx, t.RenderingFunc, -1)
-			if err3 != nil {
-				return fmt.Errorf("failed to resolve tool fields: %w", err3)
-			}
-
-			taskCtx.AddEnv(t.Env...)
-
-			// resolve tasks
-			err3 = task.ResolveFields(taskCtx, t.RenderingFunc, -1)
-			if err3 != nil {
-				return fmt.Errorf("failed to resolve task fields: %w", err3)
-			}
-
-			toolCmd := sliceutils.NewStrings(t.Cmd)
-			if len(toolCmd) == 0 {
-				toolCmd = append(toolCmd, t.defaultExecutable)
-			}
-
-			execSpecs, err3 := task.GetExecSpecs(taskCtx, toolCmd)
-			if err3 != nil {
-				return fmt.Errorf("failed to generate task args: %w", err3)
-			}
-
 			prefix := ms.BriefString() + ": "
 
 			prefixColor, outputColor := output.PickColor(i)
-
-			err3 = HandleHookRunError(
+			err3 := HandleHookRunError(
 				StageBeforeMatrix,
 				task.RunHooks(
 					taskCtx, t.RenderingFunc,
@@ -255,6 +230,31 @@ func (t *BaseTool) RunTask(
 			)
 			if err3 != nil {
 				return err3
+			}
+
+			// tool may have reference to MATRIX_ values
+			err3 = t.ResolveFields(taskCtx, t.RenderingFunc, -1, false)
+			if err3 != nil {
+				return fmt.Errorf("failed to resolve tool fields: %w", err3)
+			}
+
+			taskCtx.AddEnv(t.Env...)
+
+			// resolve task fields
+			err3 = task.ResolveFields(taskCtx, t.RenderingFunc, -1, false)
+			if err3 != nil {
+				return fmt.Errorf("failed to resolve task fields: %w", err3)
+			}
+
+			toolCmd := sliceutils.NewStrings(t.Cmd)
+			if len(toolCmd) == 0 {
+				toolCmd = append(toolCmd, t.defaultExecutable)
+			}
+
+			// produce a snapshot of what to do
+			execSpecs, err3 := task.GetExecSpecs(taskCtx, toolCmd)
+			if err3 != nil {
+				return fmt.Errorf("failed to generate task exec specs: %w", err3)
 			}
 
 			wg.Add(1)

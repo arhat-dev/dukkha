@@ -11,7 +11,12 @@ type Interface interface {
 	yaml.Unmarshaler
 
 	// ResolveFields resolves struct fields with rendering suffix
-	ResolveFields(ctx *RenderingContext, render RenderingFunc, depth int) error
+	ResolveFields(
+		ctx *RenderingContext,
+		render RenderingFunc,
+		depth int,
+		ignoreRenderingError bool,
+	) error
 }
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env, cmd []string, err error)
