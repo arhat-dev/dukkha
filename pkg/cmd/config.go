@@ -133,10 +133,13 @@ func resolveConfig(
 			&shell.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
 			shell.DefaultName,
 		),
+		renderingMgr.Add(
+			&env.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
+			env.DefaultName,
+		),
 		renderingMgr.Add(&template.Config{}, template.DefaultName),
 		renderingMgr.Add(&template_file.Config{}, template_file.DefaultName),
 		renderingMgr.Add(&file.Config{}, file.DefaultName),
-		renderingMgr.Add(&env.Config{}, env.DefaultName),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create essential renderers: %w", err)
@@ -144,7 +147,7 @@ func resolveConfig(
 
 	// no need to pass config.Bootstrap.Env as extraEnv
 	// they are already set with os.Setenv
-	bootstrapCtx := field.WithRenderingValues(appCtx, nil)
+	bootstrapCtx := field.WithRenderingValues(appCtx, os.Environ())
 
 	logger.D("resolving top level config")
 	err = config.ResolveFields(bootstrapCtx, renderingMgr.Render, 1)
@@ -176,8 +179,18 @@ func resolveConfig(
 
 			(*allShells)[tools.ToolKey{ToolKind: "shell", ToolName: ""}] = config.Shells[i]
 			err = multierr.Combine(err,
-				renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName),
-				renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName),
+				renderingMgr.Add(
+					&shell.Config{GetExecSpec: v.GetExecSpec},
+					shell.DefaultName,
+				),
+				renderingMgr.Add(
+					&shell_file.Config{GetExecSpec: v.GetExecSpec},
+					shell_file.DefaultName,
+				),
+				renderingMgr.Add(
+					&env.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
+					env.DefaultName,
+				),
 			)
 			if err != nil {
 				return fmt.Errorf("failed to add default shell renderer %q", v.ToolName())
@@ -187,8 +200,18 @@ func resolveConfig(
 		logger.V("adding shell")
 		(*allShells)[tools.ToolKey{ToolKind: "shell", ToolName: v.ToolName()}] = config.Shells[i]
 		err = multierr.Combine(err,
-			renderingMgr.Add(&shell.Config{GetExecSpec: v.GetExecSpec}, shell.DefaultName+":"+v.ToolName()),
-			renderingMgr.Add(&shell_file.Config{GetExecSpec: v.GetExecSpec}, shell_file.DefaultName+":"+v.ToolName()),
+			renderingMgr.Add(
+				&shell.Config{GetExecSpec: v.GetExecSpec},
+				shell.DefaultName+":"+v.ToolName(),
+			),
+			renderingMgr.Add(
+				&shell_file.Config{GetExecSpec: v.GetExecSpec},
+				shell_file.DefaultName+":"+v.ToolName(),
+			),
+			renderingMgr.Add(
+				&env.Config{GetExecSpec: config.Bootstrap.GetExecSpec},
+				env.DefaultName+":"+v.ToolName(),
+			),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to add shell renderer %q", v.ToolName())

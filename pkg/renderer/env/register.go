@@ -16,7 +16,9 @@ func NewDriver(config interface{}) (renderer.Interface, error) {
 		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
 	}
 
-	_ = cfg
+	if cfg.GetExecSpec == nil {
+		return nil, fmt.Errorf("required GetExecSpec func not set")
+	}
 
-	return &Driver{}, nil
+	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
 }

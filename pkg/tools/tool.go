@@ -100,7 +100,7 @@ func (t *BaseTool) RunTask(
 	)
 	defer cancelExec()
 
-	baseCtx := field.WithRenderingValues(ctx, t.Env)
+	baseCtx := field.WithRenderingValues(ctx, os.Environ(), t.Env)
 
 	matrixSpecs, err := task.GetMatrixSpecs(
 		baseCtx, t.RenderingFunc,
