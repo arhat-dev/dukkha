@@ -60,14 +60,14 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	rootCmd := &cobra.Command{
-		Use: "dukkha <tool-kind> {tool-name} <task-kind> <task-name>",
-		Example: `dukkha docker build my-image
-dukkha docker non-default-tool build my-image`,
+		Use: "dukkha <tool-kind> <tool-name> <task-kind> <task-name>",
+		Example: `dukkha buildah local build my-image
+dukkha buildah in-docker build my-image`,
 
 		SilenceErrors: true,
 		SilenceUsage:  true,
 
-		Args: cobra.RangeArgs(3, 4),
+		Args: cobra.ExactArgs(4),
 
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd:   true,
@@ -200,15 +200,14 @@ func run(
 		targetTool tools.ToolKey
 		targetTask taskKey
 	)
+
+	// defensive check, arg count should be guarded by cobra
 	switch n := len(args); n {
-	case 3:
-		targetTool.ToolKind, targetTool.ToolName = args[0], ""
-		targetTask.taskKind, targetTask.taskName = args[1], args[2]
 	case 4:
 		targetTool.ToolKind, targetTool.ToolName = args[0], args[1]
 		targetTask.taskKind, targetTask.taskName = args[2], args[3]
 	default:
-		return fmt.Errorf("expecting 3 or 4 args, got %d", n)
+		return fmt.Errorf("expecting 4 args, got %d", n)
 	}
 
 	tool, ok := allTools[targetTool]
