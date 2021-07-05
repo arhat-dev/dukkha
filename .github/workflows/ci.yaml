@@ -116,5 +116,5 @@ jobs:
       run: |
         make dukkha
 
-        ./build/dukkha buildah bud dukkha
-        ./build/dukkha buildah push dukkha
+        ./build/dukkha buildah local bud dukkha
+        ./build/dukkha buildah local push dukkha

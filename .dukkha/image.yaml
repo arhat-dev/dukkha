@@ -1,12 +1,12 @@
 tools:
   docker:
   # first tool in this kind will be the default tool
-  - name: docker
+  - name: local-buildkit
     env:
     - DOCKER_BUILDKIT=1
 
   buildah:
-  - name: buildah
+  - name: local
   # $ docker volume create buildah-dukkha
   - name: in-docker
     cmd:

@@ -31,25 +31,8 @@ func handleTaskCompletion(
 	case 1:
 		toolKind := args[0]
 		// case 1: trying to use default tool, expecting task kind
-		if len(toComplete) != 0 {
-			ret, alreadyComplete = tryFindDefaultToolTaskKinds(*toolSpecificTasks, toolKind, toComplete)
-			if len(ret) != 0 {
-				goto endCase1
-			}
-
-			ret, alreadyComplete = tryFindToolNames(*allTools, toolKind, toComplete)
-			goto endCase1
-		} else {
-			ret, alreadyComplete = tryFindToolNames(*allTools, toolKind, toComplete)
-			goto endCase1
-		}
-
-	endCase1:
-		if alreadyFallthrough {
-			break
-		}
-
-		if !alreadyComplete {
+		ret, alreadyComplete = tryFindToolNames(*allTools, toolKind, toComplete)
+		if alreadyFallthrough || !alreadyComplete {
 			break
 		}
 
@@ -59,27 +42,12 @@ func handleTaskCompletion(
 	case 2:
 		toolKind := args[0]
 
-		// case 1: arg1 is tool name, expecting task kind
+		// arg1 is tool name, expecting task kind
 		ret, alreadyComplete = tryFindTaskKindsWithToolName(
 			*toolSpecificTasks, toolKind, args[1], toComplete,
 		)
-		if len(ret) != 0 {
-			goto endCase2
-		}
 
-		// case 2: arg1 is task kind
-		ret, alreadyComplete = tryFindTaskNamesWithDefaultTool(
-			*toolSpecificTasks, toolKind, args[1], toComplete,
-		)
-		if len(ret) != 0 {
-			goto endCase2
-		}
-	endCase2:
-		if alreadyFallthrough {
-			break
-		}
-
-		if !alreadyComplete {
+		if alreadyFallthrough || !alreadyComplete {
 			break
 		}
 
@@ -87,28 +55,11 @@ func handleTaskCompletion(
 		args = append(args, toComplete)
 		fallthrough
 	case 3:
-		targetToolKind := args[0]
+		// missing task name
+		targetToolKind, targetToolName := args[0], args[1]
+		targetTaskKind := args[2]
 
-		// case 1: already a valid invocation
-		targetToolName := ""
-		targetTaskKind := args[1]
-		targetTaskName := args[2]
 		key := tools.ToolKey{ToolKind: targetToolKind, ToolName: targetToolName}
-
-		defaultToolTasks, ok := (*toolSpecificTasks)[key]
-		if ok {
-			for _, v := range defaultToolTasks {
-				if v.TaskKind() == targetTaskKind && v.TaskName() == targetTaskName {
-					return nil, cobra.ShellCompDirectiveNoFileComp
-				}
-			}
-		}
-
-		// case 2: missing task name
-		targetToolName = args[1]
-		targetTaskKind = args[2]
-
-		key = tools.ToolKey{ToolKind: targetToolKind, ToolName: targetToolName}
 		toolTasks, ok := (*toolSpecificTasks)[key]
 		if !ok {
 			// no such tasks
@@ -150,6 +101,7 @@ func handleTaskCompletion(
 	}
 
 	sort.Strings(ret)
+
 	return ret, cobra.ShellCompDirectiveNoFileComp
 }
 
@@ -177,43 +129,6 @@ func tryFindToolKinds(
 	}
 
 	if _, ok := visited[toComplete]; !ok {
-		return ret, false
-	}
-
-	return nil, true
-}
-
-func tryFindDefaultToolTaskKinds(
-	toolSpecificTasks map[tools.ToolKey][]tools.Task,
-	toolKind string,
-	toComplete string,
-) (ret []string, alreadyComplete bool) {
-	key := tools.ToolKey{ToolKind: toolKind, ToolName: ""}
-	toolTasks, ok := toolSpecificTasks[key]
-	if !ok {
-		return nil, false
-	}
-
-	hasLongerCanditates := false
-	visited := make(map[string]struct{})
-	for _, v := range toolTasks {
-		if _, ok := visited[v.TaskKind()]; ok {
-			continue
-		}
-
-		if !strings.HasPrefix(v.TaskKind(), toComplete) {
-			continue
-		}
-
-		if !hasLongerCanditates {
-			hasLongerCanditates = len(toComplete) < len(v.TaskKind())
-		}
-
-		ret = append(ret, v.TaskKind())
-		visited[v.TaskKind()] = struct{}{}
-	}
-
-	if _, ok := visited[toComplete]; !ok || hasLongerCanditates {
 		return ret, false
 	}
 
@@ -253,48 +168,6 @@ func tryFindToolNames(
 	}
 
 	if _, ok := visited[toComplete]; !ok {
-		return ret, false
-	}
-
-	return nil, true
-}
-
-func tryFindTaskNamesWithDefaultTool(
-	toolSpecificTasks map[tools.ToolKey][]tools.Task,
-	toolKind string,
-	taskKind string,
-	toComplete string,
-) (ret []string, alreadyComplete bool) {
-	key := tools.ToolKey{ToolKind: toolKind, ToolName: ""}
-	tasks, ok := toolSpecificTasks[key]
-	if !ok {
-		return nil, false
-	}
-
-	hasLongerCanditates := false
-	visited := make(map[string]struct{})
-	for _, v := range tasks {
-		if taskKind != v.TaskKind() {
-			continue
-		}
-
-		if _, ok := visited[v.TaskName()]; ok {
-			continue
-		}
-
-		if !strings.HasPrefix(v.TaskName(), toComplete) {
-			continue
-		}
-
-		if !hasLongerCanditates {
-			hasLongerCanditates = len(toComplete) < len(v.TaskName())
-		}
-
-		ret = append(ret, v.TaskName())
-		visited[v.TaskName()] = struct{}{}
-	}
-
-	if _, ok := visited[toComplete]; !ok || hasLongerCanditates {
 		return ret, false
 	}
 
