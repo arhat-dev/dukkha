@@ -9,6 +9,7 @@ import (
 	"arhat.dev/pkg/log"
 	"github.com/fatih/color"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/output"
 )
@@ -159,33 +160,28 @@ func (h *Hook) Run(
 	allShells map[ToolKey]*BaseTool,
 ) error {
 	if len(h.Task) != 0 {
-		parts := strings.Split(h.Task, ":")
-
-		var (
-			taskKind string
-			taskName string
-		)
-
-		key := ToolKey{
-			ToolKind: parts[0],
-			ToolName: "",
+		ref, err := ParseTaskReference(h.Task)
+		if err != nil {
+			return fmt.Errorf("invalid task reference %q: %w", h.Task, err)
 		}
 
-		switch len(parts) {
-		case 3:
-			taskKind = parts[1]
-			taskName = parts[2]
+		taskCtx := ctx.Context()
+		if len(ref.MatrixFilter) != 0 {
+			taskCtx = constant.WithMatrixFilter(taskCtx, ref.MatrixFilter)
+		}
 
-			if key.ToolKind == thisTool.ToolKind() {
-				// same kind, but no tool name provided, use same tool to handle it
-				return thisTool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
-			}
-		case 4:
-			key.ToolName = parts[1]
-			taskKind = parts[2]
-			taskName = parts[3]
-		default:
-			return fmt.Errorf("invalid task reference: %q", h.Task)
+		if !ref.HasToolName() && ref.ToolKind == thisTool.ToolKind() {
+			// same kind, but no tool name provided, use same tool to handle it
+			return thisTool.Run(
+				taskCtx,
+				allTools, allShells,
+				ref.TaskKind, ref.TaskName,
+			)
+		}
+
+		key := ToolKey{
+			ToolKind: ref.ToolKind,
+			ToolName: ref.ToolName,
 		}
 
 		// has tool name or using a different tool kind, find target tool to handle it
@@ -194,7 +190,11 @@ func (h *Hook) Run(
 			return fmt.Errorf("tool %q not found", key.ToolKind+":"+key.ToolName)
 		}
 
-		return tool.Run(ctx.Context(), allTools, allShells, taskKind, taskName)
+		return tool.Run(
+			taskCtx,
+			allTools, allShells,
+			ref.TaskKind, ref.TaskName,
+		)
 	}
 
 	switch {

@@ -12,81 +12,83 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type TaskReference struct {
+	ToolKind string
+	ToolName string
+	TaskKind string
+	TaskName string
+
+	MatrixFilter map[string][]string
+}
+
+func (r *TaskReference) HasToolName() bool {
+	return len(r.ToolName) != 0
+}
+
 // ParseTaskReference parse task ref
 //
 // <tool-kind>{:<tool-name>}:<task-kind>(<task-name>, ...)
 //
 // e.g. buildah:bud(dukkha) # use default matrix
-// 		buildah:bud(dukkha, {kernel: linux}) # use custom matrix
-//		buildah:in-docker:bud(dukkha, {kernel: linux}) # with tool-name
-func ParseTaskReference(
-	taskRef string,
-) (
-	toolKind string,
-	toolName string,
-	taskKind string,
-	taskName string,
-	ms MatrixSpec,
-	err error,
-) {
+// 		buildah:bud(dukkha, {kernel: [linux]}) # use custom matrix
+//		buildah:in-docker:bud(dukkha, {kernel: [linux]}) # with tool-name
+func ParseTaskReference(taskRef string) (*TaskReference, error) {
 	callStart := strings.IndexByte(taskRef, '(')
 	if callStart < 0 {
-		err = fmt.Errorf("invalid task reference: missing task call `()`")
-		return
+		return nil, fmt.Errorf("missing task call `()`")
 	}
 
-	call, err := ParseShellEval(taskRef[callStart+1:])
+	call, err := ParseBrackets(taskRef[callStart+1:])
 	if err != nil {
-		err = fmt.Errorf("invalid task call: %w", err)
-		return
+		return nil, fmt.Errorf("invalid task call: %w", err)
 	}
 
+	ref := &TaskReference{}
 	callArgs := strings.SplitN(call, ",", 2)
-	taskName = callArgs[0]
+	ref.TaskName = strings.TrimSpace(callArgs[0])
 
 	switch len(callArgs) {
 	case 1:
 		// default matrix spec
 	case 2:
-		spec := make(map[string]string)
-		err = yaml.Unmarshal([]byte(callArgs[1]), &spec)
+		ref.MatrixFilter = make(map[string][]string)
+		err = yaml.Unmarshal([]byte(callArgs[1]), &ref.MatrixFilter)
 		if err != nil {
-			err = fmt.Errorf("invalid matrix arg %q: %w", callArgs[1], err)
-			return
+			return nil, fmt.Errorf("invalid matrix arg %q: %w", callArgs[1], err)
 		}
-
-		ms = MatrixSpec(spec)
 	default:
-		err = fmt.Errorf("invalid number of task call args, expecting 1 or 2 args, got %q", call)
-		return
+		return nil, fmt.Errorf(
+			"invalid number of task call args, expecting 1 or 2 args, got %q (%d)",
+			call, len(callArgs),
+		)
 	}
 
 	parts := strings.Split(taskRef[:callStart], ":")
-	toolKind = parts[0]
+	ref.ToolKind = parts[0]
 
 	switch len(parts) {
 	case 2:
-		taskKind = parts[1]
+		ref.TaskKind = parts[1]
 	case 3:
-		toolName = parts[1]
-		taskKind = parts[2]
+		ref.ToolName = parts[1]
+		ref.TaskKind = parts[2]
 	default:
-		err = fmt.Errorf("invalid task reference %q", taskRef)
-		return
+		return nil, fmt.Errorf("invalid prefix %q", taskRef)
 	}
 
-	return
+	return ref, nil
 }
 
-func ParseShellEval(toEpand string) (string, error) {
+// ParseBrackets `()`
+func ParseBrackets(s string) (string, error) {
 	leftBrackets := 0
-	for i := range toEpand {
-		switch toEpand[i] {
+	for i := range s {
+		switch s[i] {
 		case '(':
 			leftBrackets++
 		case ')':
 			if leftBrackets == 0 {
-				return toEpand[:i], nil
+				return s[:i], nil
 			}
 			leftBrackets--
 		}
