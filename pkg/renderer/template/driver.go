@@ -20,6 +20,25 @@ import (
 
 const DefaultName = "template"
 
+func init() {
+	renderer.Register(&Config{}, NewDriver)
+}
+
+func NewDriver(config interface{}) (renderer.Interface, error) {
+	cfg, ok := config.(*Config)
+	if !ok {
+		return nil, fmt.Errorf("unexpected non template renderer config: %T", config)
+	}
+
+	_ = cfg
+
+	return &Driver{}, nil
+}
+
+var _ renderer.Config = (*Config)(nil)
+
+type Config struct{}
+
 var _ renderer.Interface = (*Driver)(nil)
 
 type Driver struct{}

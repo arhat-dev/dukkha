@@ -122,9 +122,25 @@ func TestDriver_Render(t *testing.T) {
 			expected: "foo hello hello",
 		},
 		{
+			name:     "Valid Multi Embedded Shell Evaluation With Round Brackets",
+			rawData:  "foo $(say-something() $(ok) useful) $(say-something() $(what) useless)",
+			expected: "foo hello hello",
+		},
+		{
+			name: "Valid Non-Terminated Shell Evaluation",
+			// envhelper.Expand handling func will just ignore it
+			rawData:  "some $(non-terminated evaluation ignored",
+			expected: "some $(non-terminated evaluation ignored",
+		},
+		{
 			name:    "Invalid Env Not Found",
 			rawData: "${NO_SUCH_ENV}",
 			errStr:  "not found",
+		},
+		{
+			name:    "Invalid Inner Non-Terminated Shell Evaluation",
+			rawData: "some $(inner(not-terminated)",
+			errStr:  "non-terminated",
 		},
 	}
 

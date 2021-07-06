@@ -19,6 +19,29 @@ const (
 	DefaultName = "env"
 )
 
+func init() {
+	renderer.Register(&Config{}, NewDriver)
+}
+
+func NewDriver(config interface{}) (renderer.Interface, error) {
+	cfg, ok := config.(*Config)
+	if !ok {
+		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
+	}
+
+	if cfg.GetExecSpec == nil {
+		return nil, fmt.Errorf("required GetExecSpec func not set")
+	}
+
+	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
+}
+
+var _ renderer.Config = (*Config)(nil)
+
+type Config struct {
+	GetExecSpec field.ExecSpecGetFunc
+}
+
 var _ renderer.Interface = (*Driver)(nil)
 
 type Driver struct {
@@ -45,7 +68,6 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 
 	var err error
 
-	buf := &bytes.Buffer{}
 	result := &bytes.Buffer{}
 	endAt := 0
 	_ = envhelper.Expand(toExpand,
@@ -73,10 +95,11 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 					return ""
 				}
 
-				buf.Reset()
-
+				buf := &bytes.Buffer{}
 				err = multierr.Append(err,
-					renderer.RunShellScript(ctx, script, false, buf, d.getExecSpec),
+					renderer.RunShellScript(
+						ctx, script, false, buf, d.getExecSpec,
+					),
 				)
 
 				return strings.TrimRightFunc(buf.String(), unicode.IsSpace)
@@ -102,7 +125,9 @@ func createEnvExpandFunc(
 	return func(varName, origin string) string {
 		thisIdx := strings.Index(toExpand[lastAt:], origin)
 		if thisIdx < 0 {
-			return ""
+			// shell evaluation overrides the default behavior
+			// of name matching
+			return origin
 		}
 
 		result.WriteString(toExpand[lastAt : lastAt+thisIdx])
@@ -110,21 +135,22 @@ func createEnvExpandFunc(
 		lastAt += thisIdx
 
 		if strings.HasPrefix(origin, "$(") {
-			shellEval, err := tools.ParseShellEval(toExpand[lastAt+2:])
+			shellEval, err := tools.ParseBrackets(toExpand[lastAt+2:])
 			if err != nil {
 				lastAt += len(origin)
 			} else {
+				// 3 -> '$', '(' , ')'
 				lastAt += len(shellEval) + 3
 			}
 
 			result.WriteString(handleExec(shellEval, err, lastAt))
-			return ""
+			return origin
 		}
 
 		// no special handling
 		lastAt += len(origin)
 
 		result.WriteString(handleEnv(varName, origin, lastAt))
-		return ""
+		return origin
 	}
 }

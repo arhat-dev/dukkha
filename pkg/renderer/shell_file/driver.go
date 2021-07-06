@@ -10,6 +10,29 @@ import (
 
 const DefaultName = "shell_file"
 
+func init() {
+	renderer.Register(&Config{}, NewDriver)
+}
+
+func NewDriver(config interface{}) (renderer.Interface, error) {
+	cfg, ok := config.(*Config)
+	if !ok {
+		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
+	}
+
+	if cfg.GetExecSpec == nil {
+		return nil, fmt.Errorf("required exec func not set")
+	}
+
+	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
+}
+
+var _ renderer.Config = (*Config)(nil)
+
+type Config struct {
+	GetExecSpec field.ExecSpecGetFunc
+}
+
 var _ renderer.Interface = (*Driver)(nil)
 
 type Driver struct {
