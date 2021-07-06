@@ -47,7 +47,7 @@ func TestParseShellEval(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := ParseShellEval(test.toExpand)
+			result, err := ParseBrackets(test.toExpand)
 			if test.expectErr {
 				assert.Error(t, err)
 				return
@@ -63,13 +63,8 @@ func TestParseTaskReference(t *testing.T) {
 	tests := []struct {
 		name string
 
-		input string
-
-		expectedToolKind   string
-		expectedToolName   string
-		expectedTaskKind   string
-		expectedTaskName   string
-		expectedMatrixSpec map[string]string
+		input    string
+		expected TaskReference
 
 		expectErr bool
 	}{
@@ -107,56 +102,66 @@ func TestParseTaskReference(t *testing.T) {
 			name:  "Valid Default Matrix",
 			input: "foo:bar(something)",
 
-			expectedToolKind: "foo",
-			expectedToolName: "",
-			expectedTaskKind: "bar",
-			expectedTaskName: "something",
+			expected: TaskReference{
+				ToolKind: "foo",
+				ToolName: "",
+				TaskKind: "bar",
+				TaskName: "something",
+			},
 		},
 		{
 			name:  "Valid With ToolName",
 			input: "foo:tool:bar(something)",
 
-			expectedToolKind: "foo",
-			expectedToolName: "tool",
-			expectedTaskKind: "bar",
-			expectedTaskName: "something",
+			expected: TaskReference{
+				ToolKind: "foo",
+				ToolName: "tool",
+				TaskKind: "bar",
+				TaskName: "something",
+			},
 		},
 		{
 			name:  "Valid Custom Matrix",
-			input: "foo:bar(something, {foo: bar, bar: foo})",
+			input: "foo:bar(something, {foo: [bar], bar: [foo, bar]})",
 
-			expectedToolKind:   "foo",
-			expectedToolName:   "",
-			expectedTaskKind:   "bar",
-			expectedTaskName:   "something",
-			expectedMatrixSpec: map[string]string{"foo": "bar", "bar": "foo"},
+			expected: TaskReference{
+				ToolKind: "foo",
+				ToolName: "",
+				TaskKind: "bar",
+				TaskName: "something",
+				MatrixFilter: map[string][]string{
+					"foo": {"bar"},
+					"bar": {"foo", "bar"},
+				},
+			},
 		},
 		{
 			name:  "Valid Custom Matrix With ToolName",
-			input: "foo:tool:bar(something, {foo: bar, bar: foo})",
+			input: "foo:tool:bar(something, {foo: [bar], bar: [foo, bar]})",
 
-			expectedToolKind:   "foo",
-			expectedToolName:   "tool",
-			expectedTaskKind:   "bar",
-			expectedTaskName:   "something",
-			expectedMatrixSpec: map[string]string{"foo": "bar", "bar": "foo"},
+			expected: TaskReference{
+				ToolKind: "foo",
+				ToolName: "tool",
+				TaskKind: "bar",
+				TaskName: "something",
+				MatrixFilter: map[string][]string{
+					"foo": {"bar"},
+					"bar": {"foo", "bar"},
+				},
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			toolKind, toolName, taskKind, taskName, ms, err := ParseTaskReference(test.input)
+			ref, err := ParseTaskReference(test.input)
 			if test.expectErr {
 				assert.Error(t, err)
 				return
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, test.expectedToolKind, toolKind)
-			assert.Equal(t, test.expectedToolName, toolName)
-			assert.Equal(t, test.expectedTaskKind, taskKind)
-			assert.Equal(t, test.expectedTaskName, taskName)
-			assert.EqualValues(t, test.expectedMatrixSpec, ms)
+			assert.EqualValues(t, &test.expected, ref)
 		})
 	}
 }
