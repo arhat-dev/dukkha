@@ -140,7 +140,7 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 			return fmt.Errorf("failed to resolve config for shell %q #%d", v.Name(), i)
 		}
 
-		err = v.InitBaseTool(string(v.Name()), appCtx.CacheDir())
+		err = v.InitBaseTool("shell", string(v.Name()), appCtx.CacheDir())
 		if err != nil {
 			return fmt.Errorf("failed to initialize shell %q", v.Name())
 		}
@@ -241,7 +241,7 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 			}
 
 			logger.V("initializing tool")
-			err = t.Init(appCtx.CacheDir())
+			err = t.Init(toolKind, appCtx.CacheDir())
 			if err != nil {
 				return fmt.Errorf(
 					"failed to initialize tool %q: %w",

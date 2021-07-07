@@ -26,8 +26,6 @@ type Tool struct {
 	tools.BaseTool `yaml:",inline"`
 }
 
-func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
-
-func (t *Tool) Init(cachdDir string) error {
-	return t.BaseTool.InitBaseTool("gh", cachdDir)
+func (t *Tool) Init(kind dukkha.ToolKind, cachdDir string) error {
+	return t.BaseTool.InitBaseTool(ToolKind, "gh", cachdDir)
 }

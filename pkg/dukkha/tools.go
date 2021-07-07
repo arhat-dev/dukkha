@@ -23,13 +23,11 @@ type Tool interface {
 
 	Name() ToolName
 
-	Init(cachdDir string) error
+	Init(kind ToolKind, cachdDir string) error
 
 	ResolveTasks(tasks []Task) error
 
 	Run(taskCtx TaskExecContext) error
-
-	GetEnv() []string
 }
 
 type ToolManager interface {

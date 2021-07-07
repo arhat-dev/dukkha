@@ -25,5 +25,3 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 }
-
-func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
