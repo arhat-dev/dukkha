@@ -25,17 +25,15 @@ var (
 	taskType = reflect.TypeOf((*Task)(nil)).Elem()
 )
 
-func RegisterTool(kind ToolKind, create ToolCreateFunc) error {
+func RegisterTool(kind ToolKind, create ToolCreateFunc) {
 	globalTypeManager.register(
 		toolType,
 		regexp.MustCompile(fmt.Sprintf(`^%s$`, string(kind))),
 		func(subMatches []string) interface{} { return create() },
 	)
-
-	return nil
 }
 
-func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) error {
+func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 	globalTypeManager.register(
 		taskType,
 		regexp.MustCompile(
@@ -49,7 +47,6 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) error {
 			return create("")
 		},
 	)
-	return nil
 }
 
 // nolint:revive
