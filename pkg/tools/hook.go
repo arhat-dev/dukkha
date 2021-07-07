@@ -116,21 +116,13 @@ type Hook struct {
 
 func (h *Hook) Run(hookCtx dukkha.Context) error {
 	if len(h.Task) != 0 {
-		ref, err := dukkha.ParseTaskReference(h.Task)
+		ref, err := dukkha.ParseTaskReference(h.Task, hookCtx.CurrentTool().Name)
 		if err != nil {
 			return fmt.Errorf("invalid task reference %q: %w", h.Task, err)
 		}
 
 		if len(ref.MatrixFilter) != 0 {
 			hookCtx.SetMatrixFilter(ref.MatrixFilter)
-		}
-
-		if !ref.HasToolName() && ref.ToolKind == hookCtx.CurrentTool().Kind {
-			toolName := hookCtx.CurrentTool().Name
-			return hookCtx.RunTask(
-				ref.ToolKind, toolName,
-				ref.TaskKind, ref.TaskName,
-			)
 		}
 
 		return hookCtx.RunTask(

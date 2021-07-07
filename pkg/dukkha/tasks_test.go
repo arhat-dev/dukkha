@@ -101,7 +101,7 @@ func TestParseTaskReference(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ref, err := ParseTaskReference(test.input)
+			ref, err := ParseTaskReference(test.input, "")
 			if test.expectErr {
 				assert.Error(t, err)
 				return
