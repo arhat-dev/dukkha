@@ -1,8 +1,6 @@
 package dukkha
 
 import (
-	"reflect"
-
 	"arhat.dev/dukkha/pkg/types"
 )
 
@@ -10,9 +8,6 @@ type (
 	ToolKind string
 	ToolName string
 )
-
-// ToolType for interface type registration
-var ToolType = reflect.TypeOf((*Tool)(nil)).Elem()
 
 // nolint:revive
 type Tool interface {

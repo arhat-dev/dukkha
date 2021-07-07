@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"arhat.dev/pkg/hashhelper"
@@ -25,14 +24,11 @@ import (
 const TaskKindBud = "bud"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^buildah(:.+){0,1}:bud$`),
-		func(params []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindBud,
+		func(toolName string) dukkha.Task {
 			t := &TaskBud{}
-			if len(params) != 0 {
-				t.SetToolName(strings.TrimPrefix(params[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

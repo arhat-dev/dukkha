@@ -1,11 +1,7 @@
 package docker
 
 import (
-	"regexp"
-	"strings"
-
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
 	"arhat.dev/dukkha/pkg/types"
@@ -14,14 +10,11 @@ import (
 const TaskKindBuild = "build"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^docker(:.+){0,1}:build$`),
-		func(params []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindBuild,
+		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			if len(params) != 0 {
-				t.SetToolName(strings.TrimPrefix(params[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

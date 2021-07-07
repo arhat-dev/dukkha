@@ -2,7 +2,6 @@ package helm
 
 import (
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -15,14 +14,11 @@ import (
 const TaskKindPackage = "package"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^helm(:.+){0,1}:package$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindPackage,
+		func(toolName string) dukkha.Task {
 			t := &TaskPackage{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

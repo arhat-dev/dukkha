@@ -46,6 +46,8 @@ type BaseField struct {
 	_parentValue reflect.Value
 
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
+
+	ifaceTypeHandler types.InterfaceTypeHandler
 }
 
 // UnmarshalYAML handles renderer suffix
@@ -106,7 +108,7 @@ fieldLoop:
 		fieldValue := self._parentValue.Elem().Field(i)
 
 		// initialize struct fields accepted by Init(), in case being used later
-		initAllStructCanCallInit(fieldValue)
+		self.initAllStructCanCallInit(fieldValue)
 
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
@@ -160,7 +162,7 @@ fieldLoop:
 				base := self
 				fVal, canCallInit := iface.(types.Field)
 				if canCallInit {
-					innerBaseF := reflect.ValueOf(Init(fVal)).Elem().Field(0)
+					innerBaseF := reflect.ValueOf(Init(fVal, base.ifaceTypeHandler)).Elem().Field(0)
 
 					if innerBaseF.Kind() == reflect.Struct {
 						if innerBaseF.Addr().Type() == baseFieldPtrType {
@@ -282,7 +284,7 @@ fieldLoop:
 
 			logger.V("working on plain field")
 
-			err = unmarshal(yamlKey, v, fSpec.fieldValue, true)
+			err = self.unmarshal(yamlKey, v, fSpec.fieldValue, true)
 			if err != nil {
 				return fmt.Errorf(
 					"field: failed to unmarshal yaml field %q to struct field %q: %w",
@@ -364,7 +366,7 @@ fieldLoop:
 	)
 }
 
-func initAllStructCanCallInit(fieldValue reflect.Value) {
+func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
 	if fieldValue.Kind() != reflect.Struct {
 		return
 	}
@@ -383,15 +385,15 @@ func initAllStructCanCallInit(fieldValue reflect.Value) {
 
 	iface, canCallInit := fieldValue.Addr().Interface().(types.Field)
 	if canCallInit {
-		_ = Init(iface)
+		_ = Init(iface, self.ifaceTypeHandler)
 	}
 
 	for i := 0; i < fieldValue.NumField(); i++ {
-		initAllStructCanCallInit(fieldValue.Field(i))
+		self.initAllStructCanCallInit(fieldValue.Field(i))
 	}
 }
 
-func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld bool) error {
+func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld bool) error {
 	oe := outField
 
 	for {
@@ -413,7 +415,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 			for i := 0; i < size; i++ {
 				itemVal := sliceVal.Index(i)
 
-				err := unmarshal(yamlKey, inSlice[i], itemVal, keepOld)
+				err := self.unmarshal(yamlKey, inSlice[i], itemVal, keepOld)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
 				}
@@ -437,7 +439,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 			iter := reflect.ValueOf(in).MapRange()
 			for iter.Next() {
 				valVal := reflect.New(valType)
-				err := unmarshal(
+				err := self.unmarshal(
 					iter.Key().String(),
 					iter.Value().Interface(),
 					valVal,
@@ -454,7 +456,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 
 			return nil
 		case reflect.Interface:
-			fVal, err := CreateInterfaceField(oe.Type(), yamlKey)
+			fVal, err := self.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				return fmt.Errorf("failed to create interface field: %w", err)
 			}
@@ -463,7 +465,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 			outField.Set(val)
 
 			// DO NOT use outField directly, which will always match reflect.Interface
-			return unmarshal(yamlKey, in, val, keepOld)
+			return self.unmarshal(yamlKey, in, val, keepOld)
 		case reflect.Ptr:
 			// process later
 		default:
@@ -491,7 +493,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 
 	fVal, canCallInit := out.(types.Field)
 	if canCallInit {
-		_ = Init(fVal)
+		_ = Init(fVal, self.ifaceTypeHandler)
 	}
 
 	dataBytes, err := yaml.Marshal(in)

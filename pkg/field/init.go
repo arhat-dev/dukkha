@@ -20,7 +20,7 @@ var (
 //
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
-func Init(in types.Field) types.Field {
+func Init(in types.Field, h types.InterfaceTypeHandler) types.Field {
 	v := reflect.ValueOf(in)
 	switch v.Kind() {
 	case reflect.Struct:
@@ -70,6 +70,7 @@ func Init(in types.Field) types.Field {
 	}
 
 	baseField._parentValue = v.Addr()
+	baseField.ifaceTypeHandler = h
 
 	return in
 }

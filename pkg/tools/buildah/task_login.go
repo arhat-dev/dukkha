@@ -1,7 +1,6 @@
 package buildah
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,14 +14,11 @@ import (
 const TaskKindLogin = "login"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^buildah(:.+){0,1}:login$`),
-		func(params []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindLogin,
+		func(toolName string) dukkha.Task {
 			t := &TaskLogin{}
-			if len(params) != 0 {
-				t.SetToolName(strings.TrimPrefix(params[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)
