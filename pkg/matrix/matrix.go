@@ -4,11 +4,12 @@ import (
 	"os"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/types"
 )
 
-type MatrixConfig struct {
-	types.Field
+type Spec struct {
+	field.BaseField
 
 	Include []map[string][]string `yaml:"include"`
 	Exclude []map[string][]string `yaml:"exclude"`
@@ -20,9 +21,9 @@ type MatrixConfig struct {
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []Spec {
+func (mc *Spec) GetSpecs(matchFilter map[string][]string) []types.MatrixSpec {
 	if mc == nil {
-		return []Spec{
+		return []types.MatrixSpec{
 			{
 				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
 				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
@@ -34,7 +35,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []Spec {
 	hasUserValue = hasUserValue || len(mc.Kernel) != 0 || len(mc.Arch) != 0 || len(mc.Custom) != 0
 
 	if !hasUserValue {
-		return []Spec{
+		return []types.MatrixSpec{
 			{
 				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
 				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
@@ -62,7 +63,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []Spec {
 		removeMatchList = append(removeMatchList, CartesianProduct(ex)...)
 	}
 
-	var result []Spec
+	var result []types.MatrixSpec
 
 	var mf []map[string]string
 	if len(matchFilter) != 0 {
@@ -71,7 +72,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []Spec {
 	mat := CartesianProduct(all)
 loop:
 	for i := range mat {
-		spec := Spec(mat[i])
+		spec := types.MatrixSpec(mat[i])
 
 		for _, toRemove := range removeMatchList {
 			if spec.Match(toRemove) {
@@ -98,7 +99,7 @@ loop:
 		mat := CartesianProduct(inc)
 	addInclude:
 		for i := range mat {
-			includeSpec := Spec(mat[i])
+			includeSpec := types.MatrixSpec(mat[i])
 
 			for _, spec := range result {
 				if spec.Equals(includeSpec) {

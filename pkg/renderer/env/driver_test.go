@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
+
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestNewDriver(t *testing.T) {
@@ -22,7 +23,8 @@ func TestDriver_Render(t *testing.T) {
 		return nil, cmdPrintHello, nil
 	})
 
-	// rc := field.WithRenderingValues(context.TODO(), []string{"FOO=bar"})
+	rv := dukkha_test.NewTestContext(context.TODO())
+	rv.AddEnv("FOO=bar")
 
 	tests := []struct {
 		name     string
@@ -95,11 +97,9 @@ func TestDriver_Render(t *testing.T) {
 		},
 	}
 
-	rc := dukkha_test.NewTestContext(context.TODO())
-
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ret, err := d.RenderYaml(rc, test.rawData)
+			ret, err := d.RenderYaml(rv, test.rawData)
 			if len(test.errStr) != 0 {
 				if !assert.Error(t, err) {
 					return

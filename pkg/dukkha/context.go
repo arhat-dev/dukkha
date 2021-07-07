@@ -6,9 +6,10 @@ import (
 	"os"
 	"sync"
 
+	"arhat.dev/pkg/exechelper"
+
 	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/dukkha/pkg/utils"
-	"arhat.dev/pkg/exechelper"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env, cmd []string, err error)
@@ -117,17 +118,16 @@ func (c *dukkhaContext) GetBootstrapExecSpec(toExec []string, isFilePath bool) (
 }
 
 func (c *dukkhaContext) DeriveNew() Context {
+	ctxStd := newContextStd(c.contextStd.ctx)
 	newCtx := &dukkhaContext{
-		contextStd:       newContextStd(c.ctx),
+		contextStd:       ctxStd,
 		cache:            c.cache,
 		bootstrapExecGen: c.bootstrapExecGen,
 
-		contextShells: c.contextShells,
-		contextTools:  c.contextTools,
-		contextTasks:  c.contextTasks,
-
-		// initalized later
-		contextRendering: c.contextRendering.clone(),
+		contextShells:    c.contextShells,
+		contextTools:     c.contextTools,
+		contextTasks:     c.contextTasks,
+		contextRendering: c.contextRendering.clone(ctxStd.ctx),
 
 		// initialized later
 		contextExec: nil,
@@ -154,9 +154,8 @@ func (c *dukkhaContext) RunTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName
 		return fmt.Errorf("invalid empty task name")
 	}
 
-	c.thisTool = tool
-	c.toolKind, c.toolName = k, n
-	c.taskKind, c.taskName = tK, tN
+	c.contextExec.thisTool = tool
+	c.contextExec.setTask(c.toolKind, c.toolName, c.taskKind, c.taskName)
 
 	return c.thisTool.Run(c)
 }
@@ -214,5 +213,5 @@ func (c *dukkhaContext) ClaimWorkers(n int) int {
 }
 
 func (c *dukkhaContext) AddCache(key, value string) {
-
+	// TBD
 }

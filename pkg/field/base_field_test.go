@@ -5,9 +5,10 @@ import (
 	"reflect"
 	"testing"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestBaseField_UnmarshalYAML(t *testing.T) {
@@ -123,17 +124,14 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 
 		out = Init(&T{}).(*T)
 
-		assert.NoError(t, yaml.Unmarshal([]byte(`foo@renderer: "{ foo: rendered-bar }"`), out))
+		assert.NoError(t, yaml.Unmarshal([]byte(`foo@echo: "{ foo: rendered-bar }"`), out))
 		assert.Equal(t, "", out.Foo.Foo)
 		assert.Len(t, out.BaseField.unresolvedFields, 1)
 		assert.Len(t, out.Foo.BaseField.unresolvedFields, 0)
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 
-		out.ResolveFields(
-			dukkha_test.NewTestContext(context.TODO()),
-			-1,
-			"",
-		)
+		rv := dukkha_test.NewTestContext(context.TODO())
+		out.ResolveFields(rv, -1, "")
 
 		assert.EqualValues(t, "rendered-bar", out.Foo.Foo)
 	})
@@ -153,7 +151,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 
 		out = Init(&T{}).(*T)
 
-		assert.NoError(t, yaml.Unmarshal([]byte(`foo@renderer: "{ foo: rendered-bar }"`), out))
+		assert.NoError(t, yaml.Unmarshal([]byte(`foo@echo: "{ foo: rendered-bar }"`), out))
 		assert.Equal(t, "", out.Foo.Foo)
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 		assert.Len(t, out.BaseField.unresolvedFields, 0)

@@ -4,8 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/types"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/types"
 )
 
 var _ types.Field = (*testFieldStruct)(nil)

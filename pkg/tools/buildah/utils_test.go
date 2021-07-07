@@ -9,6 +9,8 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
+	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 func TestSetDefaultImageTag(t *testing.T) {
@@ -43,9 +45,10 @@ func TestSetDefaultImageTag(t *testing.T) {
 
 	tests := matrix.CartesianProduct(testMatrix)
 	for _, mat := range tests {
-		spec := matrix.Spec(mat)
+		spec := types.MatrixSpec(mat)
 
-		rc := dukkha_test.NewTestContext(context.TODO())
+		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), mat)
+		rc.AddEnv(sliceutils.FormatStringMap(mat, "=")...)
 
 		t.Run(spec.String()+"_image", func(t *testing.T) {
 			actual := SetDefaultImageTagIfNoTagSet(

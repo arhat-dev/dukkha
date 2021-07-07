@@ -19,6 +19,9 @@ package conf
 import (
 	"fmt"
 
+	"arhat.dev/pkg/log"
+	"go.uber.org/multierr"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer/env"
@@ -28,8 +31,6 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/renderer/template_file"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/pkg/log"
-	"go.uber.org/multierr"
 )
 
 func NewConfig() *Config {

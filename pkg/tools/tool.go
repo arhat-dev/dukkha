@@ -10,9 +10,9 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 var _ dukkha.Tool = (*baseToolWithKind)(nil)
@@ -46,10 +46,11 @@ func (t *BaseTool) Init(cachdDir string) error {
 func (t *BaseTool) InitBaseTool(defaultExecutable, cacheDir string) error {
 	t.defaultExecutable = defaultExecutable
 	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
+	t.Tasks = make(map[dukkha.TaskKey]dukkha.Task)
 	return nil
 }
 
-// ResolveTasks accpets all tasks, override this function if your tool need
+// ResolveTasks accepts all tasks, override this function if your tool need
 // different handling of tasks
 func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
 	for i, tsk := range tasks {
@@ -61,9 +62,9 @@ func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
 
 // Run task
 func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
-	tsk, ok := t.Tasks[dukkha.TaskKey{Kind: "", Name: ""}]
+	tsk, ok := t.Tasks[taskCtx.CurrentTask()]
 	if !ok {
-		return fmt.Errorf("task %q not found")
+		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
 	}
 
 	return t.RunTask(taskCtx, tsk)
@@ -91,7 +92,7 @@ func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) err
 	}
 
 	type taskResult struct {
-		matrixSpec matrix.Spec
+		matrixSpec types.MatrixSpec
 		err        error
 	}
 
@@ -101,7 +102,7 @@ func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) err
 		resultMU = &sync.Mutex{}
 	)
 
-	appendErrorResult := func(spec matrix.Spec, err error) {
+	appendErrorResult := func(spec types.MatrixSpec, err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
@@ -154,7 +155,7 @@ matrixRun:
 				mCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
 
-			mCtx.SetOutputPrefix(ms.BriefString() + ":")
+			mCtx.SetOutputPrefix(ms.BriefString() + ": ")
 			mCtx.SetTaskColors(output.PickColor(i))
 
 			err3 := task.RunHooks(mCtx, dukkha.StageBeforeMatrix)
@@ -188,7 +189,7 @@ matrixRun:
 			}
 
 			wg.Add(1)
-			go func(ms matrix.Spec) {
+			go func(ms types.MatrixSpec) {
 				defer func() {
 					// TODO: handle hook error
 					_ = task.RunHooks(mCtx, dukkha.StageAfterMatrix)

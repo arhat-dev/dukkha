@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/matrix"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 func WriteTaskStart(
@@ -13,7 +13,7 @@ func WriteTaskStart(
 	toolName dukkha.ToolName,
 	taskKind dukkha.TaskKind,
 	taskName dukkha.TaskName,
-	matrixSpec matrix.Spec,
+	matrixSpec types.MatrixSpec,
 ) {
 	_, _ = fmt.Println(
 		"---",

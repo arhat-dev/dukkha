@@ -3,8 +3,9 @@ package buildah
 import (
 	"strings"
 
-	"arhat.dev/dukkha/pkg/types"
 	"github.com/huandu/xstrings"
+
+	"arhat.dev/dukkha/pkg/types"
 )
 
 func SetDefaultImageTagIfNoTagSet(rc types.RenderingContext, name string) string {

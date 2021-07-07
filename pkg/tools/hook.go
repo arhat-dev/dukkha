@@ -94,7 +94,7 @@ func (h *TaskHooks) Run(
 	}
 
 	hookCtx := taskCtx.DeriveNew()
-	hookCtx.SetOutputPrefix(taskCtx.OutputPrefix() + " " + stage.String())
+	hookCtx.SetOutputPrefix(taskCtx.OutputPrefix() + " " + stage.String() + ": ")
 
 	for i := range toRun {
 		err = toRun[i].Run(hookCtx.DeriveNew())
@@ -125,8 +125,8 @@ func (h *Hook) Run(hookCtx dukkha.Context) error {
 			hookCtx.SetMatrixFilter(ref.MatrixFilter)
 		}
 
-		if !ref.HasToolName() && ref.ToolKind == hookCtx.CurrentTool().Kind() {
-			toolName := hookCtx.CurrentTool().Name()
+		if !ref.HasToolName() && ref.ToolKind == hookCtx.CurrentTool().Kind {
+			toolName := hookCtx.CurrentTool().Name
 			return hookCtx.RunTask(
 				ref.ToolKind, toolName,
 				ref.TaskKind, ref.TaskName,

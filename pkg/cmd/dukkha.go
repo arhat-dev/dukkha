@@ -50,15 +50,10 @@ func NewRootCmd() *cobra.Command {
 	appBaseCtx, cancel := goctx.WithCancel(goctx.Background())
 
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, os.Kill)
+	signal.Notify(sigCh, os.Interrupt)
 	go func() {
-		for sig := range sigCh {
-			switch sig {
-			case os.Interrupt:
-				cancel()
-			case os.Kill:
-				os.Exit(128)
-			}
+		for range sigCh {
+			cancel()
 		}
 	}()
 
@@ -108,8 +103,9 @@ dukkha buildah in-docker build my-image`,
 			if err != nil {
 				return fmt.Errorf("failed to initialize dukkha: %w", err)
 			}
+			_appCtx.SetMatrixFilter(parseMatrixFilter(matrixFilter))
 
-			*appCtx = _appCtx
+			appCtx = &_appCtx
 
 			logger.D("dukkha initialized", log.Any("init_config", config))
 
@@ -146,9 +142,9 @@ dukkha buildah in-docker build my-image`,
 		"stderr", "file path to write log output, including `stdout` and `stderr`",
 	)
 
-	setupTaskCompletion(appCtx, rootCmd)
+	setupTaskCompletion(&appCtx, rootCmd)
 
-	err := setupMatrixCompletion(appCtx, rootCmd, "matrix")
+	err := setupMatrixCompletion(&appCtx, rootCmd, "matrix")
 	if err != nil {
 		panic(fmt.Errorf("failed to setup matrix flag completion: %w", err))
 	}

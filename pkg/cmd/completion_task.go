@@ -68,8 +68,8 @@ func handleTaskCompletion(
 		targetTaskKind := dukkha.TaskKind(args[2])
 
 		key := dukkha.ToolKey{
-			Kind: dukkha.ToolKind(targetToolKind),
-			Name: dukkha.ToolName(targetToolName),
+			Kind: targetToolKind,
+			Name: targetToolName,
 		}
 		toolTasks, ok := appCtx.GetToolSpecificTasks(key.Kind, key.Name)
 		if !ok {

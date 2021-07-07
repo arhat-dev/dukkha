@@ -13,9 +13,9 @@ import (
 type BaseTask struct {
 	field.BaseField
 
-	TaskName string              `yaml:"name"`
-	Matrix   matrix.MatrixConfig `yaml:"matrix"`
-	Hooks    TaskHooks           `yaml:"hooks"`
+	TaskName string      `yaml:"name"`
+	Matrix   matrix.Spec `yaml:"matrix"`
+	Hooks    TaskHooks   `yaml:"hooks"`
 
 	toolName dukkha.ToolName `yaml:"-"`
 
@@ -38,7 +38,7 @@ func (t *BaseTask) RunHooks(taskCtx dukkha.TaskExecContext, stage dukkha.TaskExe
 	return nil
 }
 
-func (t *BaseTask) GetMatrixSpecs(rc types.RenderingContext) ([]matrix.Spec, error) {
+func (t *BaseTask) GetMatrixSpecs(rc types.RenderingContext) ([]types.MatrixSpec, error) {
 	err := t.ResolveFields(rc, -1, "Matrix")
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)

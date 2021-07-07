@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"arhat.dev/dukkha/pkg/matrix"
+	"gopkg.in/yaml.v3"
+
 	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/dukkha/pkg/utils"
-	"gopkg.in/yaml.v3"
 )
 
 type TaskReference struct {
@@ -132,6 +132,7 @@ type TaskExecSpec struct {
 
 	IgnoreError bool
 }
+
 type Task interface {
 	types.Field
 
@@ -148,7 +149,7 @@ type Task interface {
 	Name() TaskName
 
 	// GetMatrixSpecs for matrix build
-	GetMatrixSpecs(rc types.RenderingContext) ([]matrix.Spec, error)
+	GetMatrixSpecs(rc types.RenderingContext) ([]types.MatrixSpec, error)
 
 	// GetExecSpecs generate commands using current field values
 	GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
@@ -191,20 +192,16 @@ type contextTasks struct {
 	toolSpecificTasks map[ToolKey][]Task
 }
 
-func (c *contextTasks) AddToolSpecificTasks(
-	toolKind ToolKind,
-	toolName ToolName,
-	tasks []Task,
-) {
-	toolKey := ToolKey{Kind: toolKind, Name: toolName}
+func (c *contextTasks) AddToolSpecificTasks(k ToolKind, n ToolName, tasks []Task) {
+	toolKey := ToolKey{Kind: k, Name: n}
 
 	c.toolSpecificTasks[toolKey] = append(
 		c.toolSpecificTasks[toolKey], tasks...,
 	)
 }
 
-func (c *contextTasks) GetToolSpecificTasks(kind ToolKind, name ToolName) ([]Task, bool) {
-	tasks, ok := c.toolSpecificTasks[ToolKey{Kind: kind, Name: name}]
+func (c *contextTasks) GetToolSpecificTasks(k ToolKind, n ToolName) ([]Task, bool) {
+	tasks, ok := c.toolSpecificTasks[ToolKey{Kind: k, Name: n}]
 	return tasks, ok
 }
 
