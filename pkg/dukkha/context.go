@@ -155,9 +155,9 @@ func (c *dukkhaContext) RunTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName
 	}
 
 	c.contextExec.thisTool = tool
-	c.contextExec.setTask(c.toolKind, c.toolName, c.taskKind, c.taskName)
+	c.contextExec.setTask(k, n, tK, tN)
 
-	return c.thisTool.Run(c)
+	return c.contextExec.thisTool.Run(c)
 }
 
 func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
@@ -213,5 +213,5 @@ func (c *dukkhaContext) ClaimWorkers(n int) int {
 }
 
 func (c *dukkhaContext) AddCache(key, value string) {
-	// TBD
+	// TBD: runtime cache https://github.com/arhat-dev/dukkha/issues/37
 }
