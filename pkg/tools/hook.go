@@ -94,7 +94,8 @@ func (h *TaskHooks) Run(
 	}
 
 	hookCtx := taskCtx.DeriveNew()
-	hookCtx.SetOutputPrefix(taskCtx.OutputPrefix() + " " + stage.String() + ": ")
+	prefix := taskCtx.OutputPrefix() + stage.String() + ": "
+	hookCtx.SetOutputPrefix(prefix)
 
 	for i := range toRun {
 		err = toRun[i].Run(hookCtx.DeriveNew())
