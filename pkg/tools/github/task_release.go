@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -18,14 +16,11 @@ import (
 const TaskKindRelease = "release"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^github(:.+){0,1}:release$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindRelease,
+		func(toolName string) dukkha.Task {
 			t := &TaskRelease{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

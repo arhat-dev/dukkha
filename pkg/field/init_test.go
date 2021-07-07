@@ -81,13 +81,13 @@ func TestInit(t *testing.T) {
 						assert.NotNil(t, recover())
 					}()
 
-					_ = Init(test.targetType)
+					_ = Init(test.targetType, nil)
 				}()
 
 				return
 			}
 
-			_ = Init(test.targetType)
+			_ = Init(test.targetType, nil)
 
 			if !assert.IsType(t, test.targetType, test.getBaseFieldParentValue().Interface()) {
 				return

@@ -3,8 +3,6 @@ package helm
 import (
 	"fmt"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -16,14 +14,11 @@ import (
 const TaskKindIndex = "index"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^helm(:.+){0,1}:index$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindIndex,
+		func(toolName string) dukkha.Task {
 			t := &TaskIndex{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

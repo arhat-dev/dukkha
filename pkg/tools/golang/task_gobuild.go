@@ -2,7 +2,6 @@ package golang
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -16,14 +15,11 @@ import (
 const TaskKindBuild = "build"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^golang(:.+){0,1}:build$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindBuild,
+		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

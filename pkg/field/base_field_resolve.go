@@ -138,7 +138,7 @@ func (f *BaseField) resolveSingleField(
 			return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
 		}
 
-		err = unmarshal(v.yamlFieldName, tmp, target, i != 0)
+		err = f.unmarshal(v.yamlFieldName, tmp, target, i != 0)
 		if err != nil {
 			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
 		}
@@ -221,7 +221,7 @@ func (f *BaseField) addUnresolvedField(
 		case reflect.Map:
 			oe.Set(reflect.MakeMap(oe.Type()))
 		case reflect.Interface:
-			fVal, err := CreateInterfaceField(oe.Type(), yamlKey)
+			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				return fmt.Errorf("failed to create interface field: %w", err)
 			}
@@ -255,7 +255,7 @@ func (f *BaseField) addUnresolvedField(
 
 	fVal, canCallInit := iface.(types.Field)
 	if canCallInit {
-		_ = Init(fVal)
+		_ = Init(fVal, f.ifaceTypeHandler)
 	}
 
 	if old, exists := f.unresolvedFields[key]; exists {

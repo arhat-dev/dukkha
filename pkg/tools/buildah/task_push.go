@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -17,14 +16,11 @@ import (
 const TaskKindPush = "push"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^buildah(:.+){0,1}:push$`),
-		func(params []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindPush,
+		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			if len(params) != 0 {
-				t.SetToolName(strings.TrimPrefix(params[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

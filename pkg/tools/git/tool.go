@@ -1,8 +1,6 @@
 package git
 
 import (
-	"regexp"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
@@ -11,11 +9,9 @@ import (
 const ToolKind = "git"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.ToolType,
-		regexp.MustCompile("^git$"),
-		func(_ []string) interface{} { return &Tool{} },
-	)
+	dukkha.RegisterTool(ToolKind, func() dukkha.Tool {
+		return &Tool{}
+	})
 }
 
 var _ dukkha.Tool = (*Tool)(nil)

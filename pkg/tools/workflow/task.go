@@ -3,7 +3,6 @@ package workflow
 import (
 	"fmt"
 	"io"
-	"regexp"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -14,11 +13,12 @@ import (
 const TaskKindRun = "run"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile("^workflow:run$"),
-		func(subMatches []string) interface{} {
-			return &TaskRun{}
+	dukkha.RegisterTask(
+		ToolKind, TaskKindRun,
+		func(toolName string) dukkha.Task {
+			t := &TaskRun{}
+			t.SetToolName(toolName)
+			return t
 		},
 	)
 }

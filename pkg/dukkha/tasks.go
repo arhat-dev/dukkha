@@ -3,7 +3,6 @@ package dukkha
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"strings"
 	"time"
 
@@ -105,9 +104,6 @@ func (s TaskExecStage) String() string {
 		StageAfter:        "after",
 	}[s]
 }
-
-// TaskType for interface type registration
-var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
 
 type TaskExecSpec struct {
 	// Delay execution

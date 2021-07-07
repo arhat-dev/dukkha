@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"path"
-	"regexp"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -16,14 +15,11 @@ import (
 const TaskKindClone = "clone"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^git(:.+){0,1}:clone$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindClone,
+		func(toolName string) dukkha.Task {
 			t := &TaskClone{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

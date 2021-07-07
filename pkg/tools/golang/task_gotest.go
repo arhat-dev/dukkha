@@ -1,9 +1,6 @@
 package golang
 
 import (
-	"regexp"
-	"strings"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
@@ -14,14 +11,11 @@ import (
 const TaskKindTest = "test"
 
 func init() {
-	field.RegisterInterfaceField(
-		dukkha.TaskType,
-		regexp.MustCompile(`^golang(:.+){0,1}:test$`),
-		func(subMatches []string) interface{} {
+	dukkha.RegisterTask(
+		ToolKind, TaskKindTest,
+		func(toolName string) dukkha.Task {
 			t := &TaskTest{}
-			if len(subMatches) != 0 {
-				t.SetToolName(strings.TrimPrefix(subMatches[0], ":"))
-			}
+			t.SetToolName(toolName)
 			return t
 		},
 	)

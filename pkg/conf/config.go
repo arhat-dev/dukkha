@@ -34,7 +34,10 @@ import (
 )
 
 func NewConfig() *Config {
-	return field.Init(&Config{}).(*Config)
+	return field.Init(
+		&Config{},
+		dukkha.GlobalInterfaceTypeHandler,
+	).(*Config)
 }
 
 type Config struct {
