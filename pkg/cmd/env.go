@@ -173,43 +173,50 @@ func createGlobalEnv(appBaseCtx goctx.Context) map[string]string {
 
 		// https://docs.github.com/en/actions/reference/environment-variables
 
-		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
+		if len(result[constant.ENV_GIT_COMMIT]) == 0 {
+			// not set by local git exec
 			commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
 			if len(commit) != 0 {
 				result[constant.ENV_GIT_COMMIT] = commit
 			}
 		}
 
-		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
-			branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
-			if len(branch) != 0 {
-				result[constant.ENV_GIT_BRANCH] = branch
+		ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
+		switch {
+		case strings.HasPrefix(ghRef, "refs/heads/"):
+			if len(result[constant.ENV_GIT_BRANCH]) != 0 {
+				break
 			}
+
+			result[constant.ENV_GIT_BRANCH] = strings.TrimPrefix(ghRef, "refs/heads/")
+		case strings.HasPrefix(ghRef, "refs/tags/"):
+			if len(result[constant.ENV_GIT_TAG]) == 0 {
+				break
+			}
+
+			result[constant.ENV_GIT_TAG] = strings.TrimPrefix(ghRef, "refs/tags/")
 		}
 	case os.Getenv("GITLAB_CI") == "true":
 		// gitlab-ci
 
 		// https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
 
-		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
-			commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
-			if len(commit) != 0 {
-				result[constant.ENV_GIT_COMMIT] = commit
-			}
+		if len(result[constant.ENV_GIT_COMMIT]) == 0 {
+			result[constant.ENV_GIT_COMMIT] = strings.TrimSpace(
+				os.Getenv("CI_COMMIT_SHA"),
+			)
 		}
 
-		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
-			branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
-			if len(branch) != 0 {
-				result[constant.ENV_GIT_BRANCH] = branch
-			}
+		if len(result[constant.ENV_GIT_BRANCH]) == 0 {
+			result[constant.ENV_GIT_BRANCH] = strings.TrimSpace(
+				os.Getenv("CI_COMMIT_BRANCH"),
+			)
 		}
 
-		if len(os.Getenv(constant.ENV_GIT_TAG)) == 0 {
-			tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
-			if len(tag) != 0 {
-				result[constant.ENV_GIT_TAG] = tag
-			}
+		if len(result[constant.ENV_GIT_TAG]) == 0 {
+			result[constant.ENV_GIT_TAG] = strings.TrimSpace(
+				os.Getenv("CI_COMMIT_TAG"),
+			)
 		}
 	default:
 	}

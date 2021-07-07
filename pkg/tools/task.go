@@ -44,5 +44,9 @@ func (t *BaseTask) GetMatrixSpecs(rc types.RenderingContext) ([]types.MatrixSpec
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
 
-	return t.Matrix.GetSpecs(rc.MatrixFilter()), nil
+	return t.Matrix.GetSpecs(
+		rc.MatrixFilter(),
+		rc.HostKernel(),
+		rc.HostArch(),
+	), nil
 }
