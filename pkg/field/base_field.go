@@ -366,6 +366,7 @@ fieldLoop:
 	)
 }
 
+// nolint:revive
 func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
 	if fieldValue.Kind() != reflect.Struct {
 		return
@@ -393,6 +394,7 @@ func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
 	}
 }
 
+// nolint:revive
 func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld bool) error {
 	oe := outField
 
