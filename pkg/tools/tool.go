@@ -15,11 +15,7 @@ import (
 	"arhat.dev/dukkha/pkg/types"
 )
 
-var _ dukkha.Tool = (*baseToolWithKind)(nil)
-
-type baseToolWithKind struct{ BaseTool }
-
-func (*baseToolWithKind) Kind() dukkha.ToolKind { return "" }
+var _ dukkha.Tool = (*BaseTool)(nil)
 
 type BaseTool struct {
 	field.BaseField
@@ -28,25 +24,38 @@ type BaseTool struct {
 	Env      []string `yaml:"env"`
 	Cmd      []string `yaml:"cmd"`
 
-	cacheDir          string `json:"-" yaml:"-"`
-	defaultExecutable string `json:"-" yaml:"-"`
-	stdoutIsTty       bool   `json:"-" yaml:"-"`
+	kind dukkha.ToolKind
 
-	Tasks map[dukkha.TaskKey]dukkha.Task `json:"-" yaml:"-"`
+	cacheDir          string
+	defaultExecutable string
+	stdoutIsTty       bool
+
+	tasks map[dukkha.TaskKey]dukkha.Task
 }
 
-// Init the tool, override it if your tool name is different from
-// its default executable name
-func (t *BaseTool) Init(cachdDir string) error {
-	return t.InitBaseTool(t.ToolName, cachdDir)
+// Init the tool, called when resolving tools config when dukkha start
+//
+// override it if the value of your tool kind is different from its
+// default executable
+func (t *BaseTool) Init(kind dukkha.ToolKind, cachdDir string) error {
+	return t.InitBaseTool(kind, string(kind), cachdDir)
 }
+
+func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
 
 // InitBaseTool must be called in your own version of Init()
 // with correct defaultExecutable name
-func (t *BaseTool) InitBaseTool(defaultExecutable, cacheDir string) error {
+//
+// MUST be called when in Init
+func (t *BaseTool) InitBaseTool(kind dukkha.ToolKind, defaultExecutable, cacheDir string) error {
+	t.kind = kind
+
+	t.cacheDir = cacheDir
 	t.defaultExecutable = defaultExecutable
 	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
-	t.Tasks = make(map[dukkha.TaskKey]dukkha.Task)
+
+	t.tasks = make(map[dukkha.TaskKey]dukkha.Task)
+
 	return nil
 }
 
@@ -54,7 +63,7 @@ func (t *BaseTool) InitBaseTool(defaultExecutable, cacheDir string) error {
 // different handling of tasks
 func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
 	for i, tsk := range tasks {
-		t.Tasks[dukkha.TaskKey{Kind: tsk.Kind(), Name: tsk.Name()}] = tasks[i]
+		t.tasks[dukkha.TaskKey{Kind: tsk.Kind(), Name: tsk.Name()}] = tasks[i]
 	}
 
 	return nil
@@ -62,7 +71,7 @@ func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
 
 // Run task
 func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
-	tsk, ok := t.Tasks[taskCtx.CurrentTask()]
+	tsk, ok := t.tasks[taskCtx.CurrentTask()]
 	if !ok {
 		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
 	}
@@ -92,8 +101,8 @@ func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) err
 	}
 
 	type taskResult struct {
-		matrixSpec types.MatrixSpec
-		err        error
+		matrixSpec string
+		errMsg     string
 	}
 
 	var (
@@ -107,8 +116,8 @@ func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) err
 		defer resultMU.Unlock()
 
 		errCollection = append(errCollection, taskResult{
-			matrixSpec: spec,
-			err:        err,
+			matrixSpec: spec.BriefString(),
+			errMsg:     err.Error(),
 		})
 	}
 
@@ -178,7 +187,7 @@ matrixRun:
 			}
 
 			toolCmd := sliceutils.NewStrings(t.Cmd)
-			if len(toolCmd) == 0 {
+			if len(toolCmd) == 0 && len(t.defaultExecutable) != 0 {
 				toolCmd = append(toolCmd, t.defaultExecutable)
 			}
 
