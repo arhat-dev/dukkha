@@ -15,7 +15,7 @@ var (
 	completionGuide string
 )
 
-func setupTaskCompletion(appCtx **dukkha.Context, rootCmd *cobra.Command) {
+func setupTaskCompletion(appCtx *dukkha.Context, rootCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
 		Short: "Generate completion script",
@@ -45,7 +45,7 @@ func setupTaskCompletion(appCtx **dukkha.Context, rootCmd *cobra.Command) {
 	rootCmd.ValidArgsFunction = func(
 		cmd *cobra.Command, args []string, toComplete string,
 	) ([]string, cobra.ShellCompDirective) {
-		return handleTaskCompletion(**appCtx, args, toComplete)
+		return handleTaskCompletion(*appCtx, args, toComplete)
 	}
 
 	rootCmd.SetHelpCommand(&cobra.Command{
@@ -55,7 +55,7 @@ func setupTaskCompletion(appCtx **dukkha.Context, rootCmd *cobra.Command) {
 }
 
 func setupMatrixCompletion(
-	appCtx **dukkha.Context,
+	appCtx *dukkha.Context,
 	rootCmd *cobra.Command,
 	matrixFlagName string,
 ) error {
@@ -66,7 +66,7 @@ func setupMatrixCompletion(
 		) ([]string, cobra.ShellCompDirective) {
 			filter, _ := rootCmd.Flags().GetStringSlice(matrixFlagName)
 			return handleMatrixFlagCompletion(
-				**appCtx, filter, args, toComplete,
+				*appCtx, filter, args, toComplete,
 			)
 		},
 	)

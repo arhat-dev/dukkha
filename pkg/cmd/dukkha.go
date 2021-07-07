@@ -44,7 +44,7 @@ func NewRootCmd() *cobra.Command {
 		// merged config
 		config = conf.NewConfig()
 
-		appCtx *dukkha.Context
+		appCtx dukkha.Context
 	)
 
 	appBaseCtx, cancel := goctx.WithCancel(goctx.Background())
@@ -105,14 +105,14 @@ dukkha buildah in-docker build my-image`,
 			}
 			_appCtx.SetMatrixFilter(parseMatrixFilter(matrixFilter))
 
-			appCtx = &_appCtx
+			appCtx = _appCtx
 
 			logger.D("dukkha initialized", log.Any("init_config", config))
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(*appCtx, args)
+			return run(appCtx, args)
 		},
 	}
 
