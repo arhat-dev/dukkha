@@ -1,14 +1,11 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 
-	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/dukkha"
 
 	_ "embed"
 )
@@ -18,13 +15,7 @@ var (
 	completionGuide string
 )
 
-func setupCompletion(
-	appCtx *context.Context,
-	rootCmd *cobra.Command,
-	rf field.RenderingFunc,
-	allTools *map[tools.ToolKey]tools.Tool,
-	toolSpecificTasks *map[tools.ToolKey][]tools.Task,
-) {
+func setupTaskCompletion(appCtx *dukkha.Context, rootCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
 		Short: "Generate completion script",
@@ -54,29 +45,29 @@ func setupCompletion(
 	rootCmd.ValidArgsFunction = func(
 		cmd *cobra.Command, args []string, toComplete string,
 	) ([]string, cobra.ShellCompDirective) {
-		return handleTaskCompletion(args, toComplete, allTools, toolSpecificTasks)
+		return handleTaskCompletion(*appCtx, args, toComplete)
 	}
 
 	rootCmd.SetHelpCommand(&cobra.Command{
 		SilenceUsage: true,
 		Hidden:       true,
 	})
+}
 
-	err := rootCmd.RegisterFlagCompletionFunc(
-		"matrix",
+func setupMatrixCompletion(
+	appCtx *dukkha.Context,
+	rootCmd *cobra.Command,
+	matrixFlagName string,
+) error {
+	return rootCmd.RegisterFlagCompletionFunc(
+		matrixFlagName,
 		func(
 			cmd *cobra.Command, args []string, toComplete string,
 		) ([]string, cobra.ShellCompDirective) {
-			filter, _ := rootCmd.PersistentFlags().GetStringSlice("matrix")
-
+			filter, _ := rootCmd.Flags().GetStringSlice(matrixFlagName)
 			return handleMatrixFlagCompletion(
-				appCtx, rf, filter,
-				*allTools, *toolSpecificTasks, args, toComplete,
+				*appCtx, filter, args, toComplete,
 			)
 		},
 	)
-
-	if err != nil {
-		panic(fmt.Errorf("failed to register flag completion for --matrix: %w", err))
-	}
 }

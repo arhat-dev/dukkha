@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
 )
@@ -51,8 +52,7 @@ func (f *BaseField) HasUnresolvedField() bool {
 }
 
 func (f *BaseField) ResolveFields(
-	ctx *RenderingContext,
-	doRender RenderingFunc,
+	rc types.RenderingContext,
 	depth int,
 	fieldName string,
 ) error {
@@ -96,9 +96,8 @@ func (f *BaseField) ResolveFields(
 			logger.D("resolving specified single field")
 
 			return f.resolveSingleField(
-				ctx,
+				rc,
 				logger,
-				doRender,
 				depth,
 				structName,
 
@@ -119,18 +118,16 @@ func (f *BaseField) ResolveFields(
 	)
 
 	return f.resolveAllFields(
-		ctx,
+		rc,
 		logger,
-		doRender,
 		depth,
 		structName,
 	)
 }
 
 func (f *BaseField) resolveSingleField(
-	ctx *RenderingContext,
+	rc types.RenderingContext,
 	logger log.Interface,
-	doRender RenderingFunc,
 	depth int,
 
 	structName string, // to make error message helpful
@@ -148,7 +145,7 @@ func (f *BaseField) resolveSingleField(
 	}
 
 	for i, rawData := range v.rawData {
-		resolvedValue, err := doRender(ctx, renderer, rawData)
+		resolvedValue, err := rc.RenderYaml(renderer, rawData)
 		if err != nil {
 			input, ok := rawData.(string)
 			if !ok {
@@ -161,7 +158,7 @@ func (f *BaseField) resolveSingleField(
 			}
 
 			return fmt.Errorf(
-				"field: failed to render value of %s.%s from\n\n%s\n with error: %w",
+				"field: failed to render value of %s.%s from\n\n%s\nerror: %w",
 				structName, fieldName, input, err,
 			)
 		}
@@ -190,13 +187,13 @@ func (f *BaseField) resolveSingleField(
 	}
 
 	if depth > 1 || depth < 0 {
-		innerF, canCallResolve := target.Interface().(Interface)
+		innerF, canCallResolve := target.Interface().(types.Field)
 		if !canCallResolve {
 			return nil
 		}
 
 		err := innerF.ResolveFields(
-			ctx, doRender, depth-1, "",
+			rc, depth-1, "",
 		)
 		if err != nil {
 			return fmt.Errorf("failed to resolve inner field: %w", err)
@@ -207,9 +204,8 @@ func (f *BaseField) resolveSingleField(
 }
 
 func (f *BaseField) resolveAllFields(
-	ctx *RenderingContext,
+	rc types.RenderingContext,
 	logger log.Interface,
-	doRender RenderingFunc,
 	depth int,
 	structName string, // to make error message helpful
 ) error {
@@ -220,12 +216,11 @@ func (f *BaseField) resolveAllFields(
 			log.String("yaml_field", v.yamlFieldName),
 		)
 
-		logger.V("resolving single field", log.Any("values", ctx.Values()))
+		logger.V("resolving single field", log.Any("values", rc))
 
 		err := f.resolveSingleField(
-			ctx,
+			rc,
 			logger,
-			doRender,
 			depth,
 
 			structName,
@@ -298,7 +293,7 @@ func (f *BaseField) addUnresolvedField(
 		iface = fieldValue.Addr().Interface()
 	}
 
-	fVal, canCallInit := iface.(Interface)
+	fVal, canCallInit := iface.(types.Field)
 	if canCallInit {
 		_ = Init(fVal)
 	}
@@ -427,7 +422,7 @@ fieldLoop:
 				}
 
 				base := self
-				fVal, canCallInit := iface.(Interface)
+				fVal, canCallInit := iface.(types.Field)
 				if canCallInit {
 					innerBaseF := reflect.ValueOf(Init(fVal)).Elem().Field(0)
 
@@ -650,7 +645,7 @@ func initAllStructCanCallInit(fieldValue reflect.Value) {
 		return
 	}
 
-	iface, canCallInit := fieldValue.Addr().Interface().(Interface)
+	iface, canCallInit := fieldValue.Addr().Interface().(types.Field)
 	if canCallInit {
 		_ = Init(iface)
 	}
@@ -758,7 +753,7 @@ func unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld b
 		out = outField.Interface()
 	}
 
-	fVal, canCallInit := out.(Interface)
+	fVal, canCallInit := out.(types.Field)
 	if canCallInit {
 		_ = Init(fVal)
 	}

@@ -153,7 +153,14 @@ golang:test:
     - shell: echo "hello"
     - shell:python: print("world")
     before:matrix:
-    - task: golang:local:build:dukkha-local
+    - task@env: |-
+        golang:local:build(
+          dukkha,
+          {
+            kernel: ["${HOST_KERNEL}"],
+            arch: ["${HOST_ARCH}"],
+          },
+        )
     after:success@shell: |-
       echo '- shell: echo "Done."'
     after:failure:

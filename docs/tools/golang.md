@@ -14,6 +14,20 @@ Run go build
 
 Run go test
 
+```yaml
+golang:test:
+- name: foo
+  packages:
+  - ./cmd/...
+  - ./pkg/...
+  run:
+  - ^Test.*$
+  coverage:
+    enabled: true
+    output: ./coverage.txt
+    mode: atomic
+```
+
 ### Task `golang:profile`
 
 Run go tool pprof

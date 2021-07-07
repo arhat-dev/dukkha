@@ -1,4 +1,4 @@
-package tools
+package matrix
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 		name string
 		in   MatrixConfig
 		// specs are sorted by name, put them in order
-		expected []MatrixSpec
+		expected []Spec
 	}{
 		{
 			name: "normal",
@@ -22,7 +22,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 					"foo": {"a", "b"},
 				},
 			},
-			expected: []MatrixSpec{
+			expected: []Spec{
 				// sort order: arch=amd64 foo=a,b, os=linux,windows,darwin
 				{
 					"kernel": "linux",
@@ -106,7 +106,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 				Kernel: []string{"linux"},
 				Arch:   []string{"amd64"},
 			},
-			expected: []MatrixSpec{
+			expected: []Spec{
 				{
 					"kernel": "linux",
 					"arch":   "amd64",

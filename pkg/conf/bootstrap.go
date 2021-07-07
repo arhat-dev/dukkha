@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -28,15 +27,16 @@ type BootstrapConfig struct {
 	ScriptCmd []string `yaml:"script_cmd"`
 }
 
-// Resolve bootstrap config
+// Resolve bootstrap config and update the globalEnv map
 //
 // 1. resolve env and set these environment variables as global env
 // 2. resolve cache_dir, set global env DUKKHA_CACHE_DIR to its absolute path
 // 3. resolve (expand) script_cmd with global env
-func (c *BootstrapConfig) Resolve() error {
+func (c *BootstrapConfig) Resolve(globalEnv *map[string]string) error {
 	logger := log.Log.WithName("bootstrap.resovle")
 
 	var err error
+
 	expandEnvFunc := func(varName, origin string) string {
 		logger.V("expanding env", log.String("origin", origin))
 
@@ -48,7 +48,7 @@ func (c *BootstrapConfig) Resolve() error {
 			return ""
 		}
 
-		val, ok := os.LookupEnv(varName)
+		val, ok := (*globalEnv)[varName]
 		if !ok {
 			err = multierr.Append(
 				err,
@@ -74,11 +74,12 @@ func (c *BootstrapConfig) Resolve() error {
 			value = parts[1]
 		}
 
-		logger.V("setting global env",
+		logger.V("setting global env in bootstrap config",
 			log.String("name", key),
 			log.String("value", value),
 		)
-		err = os.Setenv(key, value)
+
+		(*globalEnv)[key] = value
 		if err != nil {
 			return fmt.Errorf("bootstrap: failed to set global env %q: %w", key, err)
 		}
@@ -99,12 +100,6 @@ func (c *BootstrapConfig) Resolve() error {
 	}
 
 	logger.V("resolved dukkha cache dir", log.String("path", c.CacheDir))
-	err = os.Setenv(constant.ENV_DUKKHA_CACHE_DIR, c.CacheDir)
-	if err != nil {
-		return fmt.Errorf("bootstrap: failed to set cache dir global env %q: %w",
-			constant.ENV_DUKKHA_CACHE_DIR, err,
-		)
-	}
 
 	for i, cmdPart := range c.ScriptCmd {
 		c.ScriptCmd[i] = envhelper.Expand(cmdPart, expandEnvFunc)

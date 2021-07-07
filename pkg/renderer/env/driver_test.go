@@ -4,74 +4,25 @@ import (
 	"context"
 	"testing"
 
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
-
-	"arhat.dev/dukkha/pkg/field"
 )
 
 func TestNewDriver(t *testing.T) {
-	tests := []struct {
-		name      string
-		config    interface{}
-		expectErr bool
-	}{
-		{
-			name:      "Invalid Empty Config",
-			config:    nil,
-			expectErr: true,
-		},
-		{
-			name:      "Invalid Unexpected Config",
-			config:    "foo",
-			expectErr: true,
-		},
-		{
-			name:      "Invalid No GetExecFunc",
-			config:    &Config{},
-			expectErr: true,
-		},
-		{
-			name: "Valid",
-			config: &Config{
-				GetExecSpec: func(
-					toExec []string, isFilePath bool,
-				) (env []string, cmd []string, err error) {
-					return
-				},
-			},
-			expectErr: false,
-		},
-	}
+	ret := New(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+		return
+	})
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			d, err := NewDriver(test.config)
-
-			if test.expectErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.Equal(t, DefaultName, d.Name())
-		})
-	}
+	assert.NotNil(t, ret)
 }
 
 func TestDriver_Render(t *testing.T) {
 	cmdPrintHello := []string{"sh", "-c", "printf hello"}
-	d, err := NewDriver(&Config{
-		GetExecSpec: func(
-			toExec []string, isFilePath bool,
-		) (env []string, cmd []string, err error) {
-			return []string{""}, cmdPrintHello, nil
-		},
+	d := New(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+		return nil, cmdPrintHello, nil
 	})
-	if !assert.NoError(t, err, "failed to create driver for test") {
-		return
-	}
 
-	rc := field.WithRenderingValues(context.TODO(), []string{"FOO=bar"})
+	// rc := field.WithRenderingValues(context.TODO(), []string{"FOO=bar"})
 
 	tests := []struct {
 		name     string
@@ -144,9 +95,11 @@ func TestDriver_Render(t *testing.T) {
 		},
 	}
 
+	rc := dukkha_test.NewTestContext(context.TODO())
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ret, err := d.Render(rc, test.rawData)
+			ret, err := d.RenderYaml(rc, test.rawData)
 			if len(test.errStr) != 0 {
 				if !assert.Error(t, err) {
 					return

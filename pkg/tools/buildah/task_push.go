@@ -7,17 +7,18 @@ import (
 	"regexp"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindPush = "push"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^buildah(:.+){0,1}:push$`),
 		func(params []string) interface{} {
 			t := &TaskPush{}
@@ -29,7 +30,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskPush)(nil)
+var _ dukkha.Task = (*TaskPush)(nil)
 
 type TaskPush struct {
 	field.BaseField
@@ -39,26 +40,26 @@ type TaskPush struct {
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 }
 
-func (c *TaskPush) ToolKind() string { return ToolKind }
-func (c *TaskPush) TaskKind() string { return TaskKindPush }
+func (c *TaskPush) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskPush) Kind() dukkha.TaskKind     { return TaskKindPush }
 
-func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(rc types.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []ImageNameSpec{
 			{
-				Image:    c.Name,
+				Image:    c.TaskName,
 				Manifest: "",
 			},
 		}
 	}
 
-	dukkhaCacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
+	dukkhaCacheDir := rc.CacheDir()
 
-	var result []tools.TaskExecSpec
+	var result []dukkha.TaskExecSpec
 	for _, spec := range targets {
 		if len(spec.Image) != 0 {
-			imageName := SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
+			imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 			imageIDFile := GetImageIDFileForImageName(
 				dukkhaCacheDir, imageName,
 			)
@@ -67,7 +68,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 				return nil, fmt.Errorf("image id file not found: %w", err)
 			}
 
-			result = append(result, tools.TaskExecSpec{
+			result = append(result, dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
 					buildahCmd, "push",
 					string(bytes.TrimSpace(imageIDBytes)),
@@ -84,8 +85,8 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string
 
 		// buildah manifest push --all \
 		//   <manifest-list-name> <transport>:<transport-details>
-		manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
-		result = append(result, tools.TaskExecSpec{
+		manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+		result = append(result, dukkha.TaskExecSpec{
 			Command: sliceutils.NewStrings(
 				buildahCmd, "manifest", "push", "--all",
 				getLocalManifestName(manifestName),

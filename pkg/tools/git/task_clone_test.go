@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
@@ -22,7 +22,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		{
 			Name: "Valid Clone Using Default Branch",
 			Task: &git.TaskClone{URL: "example/foo.git"},
-			Expected: []tools.TaskExecSpec{
+			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin origin example/foo.git", " "),
 				},
@@ -40,7 +40,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		{
 			Name: "Valid Clone Changing Remote Name",
 			Task: &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
-			Expected: []tools.TaskExecSpec{
+			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin bar example/foo", " "),
 				},

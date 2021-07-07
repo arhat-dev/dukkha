@@ -9,7 +9,8 @@ import (
 	"arhat.dev/pkg/exechelper"
 	"gopkg.in/yaml.v3"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 func ToYamlBytes(in interface{}) ([]byte, error) {
@@ -30,24 +31,23 @@ func ToYamlBytes(in interface{}) ([]byte, error) {
 }
 
 func RunShellScript(
-	rc *field.RenderingContext,
+	rc types.RenderingContext,
 	script string,
 	isFilePath bool,
 	stdout io.Writer,
-	getExecSpec field.ExecSpecGetFunc,
+	getExecSpec dukkha.ExecSpecGetFunc,
 ) error {
 	env, cmd, err := getExecSpec([]string{script}, false)
 	if err != nil {
 		return fmt.Errorf("failed to get exec spec: %w", err)
 	}
 
-	execCtx := rc.Clone()
-	execCtx.AddEnv(env...)
+	rc.AddEnv(env...)
 
 	p, err := exechelper.Do(exechelper.Spec{
-		Context: execCtx.Context(),
+		Context: rc,
 		Command: cmd,
-		Env:     execCtx.Values().Env,
+		Env:     rc.Env(),
 
 		Stdout: stdout,
 		Stderr: os.Stderr,

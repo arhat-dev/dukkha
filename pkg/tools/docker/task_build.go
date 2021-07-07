@@ -4,17 +4,18 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/buildah"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBuild = "build"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^docker(:.+){0,1}:build$`),
 		func(params []string) interface{} {
 			t := &TaskBuild{}
@@ -26,20 +27,20 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskBuild)(nil)
+var _ dukkha.Task = (*TaskBuild)(nil)
 
 type TaskBuild buildah.TaskBud
 
-func (c *TaskBuild) ToolKind() string { return ToolKind }
-func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
+func (c *TaskBuild) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
-func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskBuild) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{
-			Image:    c.Name,
+			Image:    c.TaskName,
 			Manifest: "",
 		}}
 	}
@@ -68,7 +69,7 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 		buildCmd = append(buildCmd, c.Context)
 	}
 
-	return []tools.TaskExecSpec{
+	return []dukkha.TaskExecSpec{
 		{
 			Command:     buildCmd,
 			IgnoreError: false,

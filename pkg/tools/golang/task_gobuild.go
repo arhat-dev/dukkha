@@ -6,16 +6,18 @@ import (
 	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBuild = "build"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^golang(:.+){0,1}:build$`),
 		func(subMatches []string) interface{} {
 			t := &TaskBuild{}
@@ -27,7 +29,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskBuild)(nil)
+var _ dukkha.Task = (*TaskBuild)(nil)
 
 type TaskBuild struct {
 	field.BaseField
@@ -59,19 +61,19 @@ type CGOSepc struct {
 	TargetCXX string `yaml:"target_cxx"`
 }
 
-func (c *TaskBuild) ToolKind() string { return ToolKind }
-func (c *TaskBuild) TaskKind() string { return TaskKindBuild }
+func (c *TaskBuild) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
 
-func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	mKernel := ctx.Values().Env[constant.ENV_MATRIX_KERNEL]
-	mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
-	doingCrossCompiling := ctx.Values().Env[constant.ENV_HOST_KERNEL] != mKernel ||
-		ctx.Values().Env[constant.ENV_HOST_ARCH] != mArch
+func (c *TaskBuild) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+	mKernel := rc.MatrixKernel()
+	mArch := rc.MatrixArch()
+	doingCrossCompiling := rc.HostKernel() != mKernel ||
+		rc.HostArch() != mArch
 
 	env := sliceutils.NewStrings(c.Env, c.CGO.getEnv(
 		doingCrossCompiling, mKernel, mArch,
-		ctx.Values().Env[constant.ENV_HOST_OS],
-		ctx.Values().Env[constant.ENV_MATRIX_LIBC],
+		rc.HostOS(),
+		rc.MatrixLibc(),
 	)...)
 
 	env = append(env, "GOOS="+constant.GetGolangOS(mKernel))
@@ -87,12 +89,12 @@ func (c *TaskBuild) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) 
 
 	outputs := c.Outputs
 	if len(outputs) == 0 {
-		outputs = []string{c.Name}
+		outputs = []string{c.TaskName}
 	}
 
-	var buildSteps []tools.TaskExecSpec
+	var buildSteps []dukkha.TaskExecSpec
 	for _, output := range outputs {
-		spec := &tools.TaskExecSpec{
+		spec := &dukkha.TaskExecSpec{
 			Chdir: c.Chdir,
 
 			Env:     sliceutils.NewStrings(env),

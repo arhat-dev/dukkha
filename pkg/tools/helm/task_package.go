@@ -5,16 +5,18 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindPackage = "package"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^helm(:.+){0,1}:package$`),
 		func(subMatches []string) interface{} {
 			t := &TaskPackage{}
@@ -26,7 +28,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskPackage)(nil)
+var _ dukkha.Task = (*TaskPackage)(nil)
 
 type TaskPackage struct {
 	field.BaseField
@@ -46,11 +48,11 @@ type PackageSigningSpec struct {
 	GPGKeyPassphrase string `yaml:"gpg_key_passphrase"`
 }
 
-func (c *TaskPackage) ToolKind() string { return ToolKind }
-func (c *TaskPackage) TaskKind() string { return TaskKindPackage }
+func (c *TaskPackage) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskPackage) Kind() dukkha.TaskKind     { return TaskKindPackage }
 
-func (c *TaskPackage) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) ([]tools.TaskExecSpec, error) {
-	pkgStep := &tools.TaskExecSpec{
+func (c *TaskPackage) GetExecSpecs(rc types.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
+	pkgStep := &dukkha.TaskExecSpec{
 		Command: sliceutils.NewStrings(helmCmd, "package"),
 	}
 
@@ -86,5 +88,5 @@ func (c *TaskPackage) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string
 		}
 	}
 
-	return []tools.TaskExecSpec{*pkgStep}, nil
+	return []dukkha.TaskExecSpec{*pkgStep}, nil
 }

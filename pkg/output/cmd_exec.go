@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func WriteExecStart(ctx context.Context, name string, cmd []string, scriptName string) {
+func WriteExecStart(name string, cmd []string, scriptName string) {
 	fmt.Println(
 		">>>",
 		// task name
@@ -21,7 +23,10 @@ func WriteExecStart(ctx context.Context, name string, cmd []string, scriptName s
 
 func WriteExecResult(
 	ctx context.Context,
-	toolKind, toolName, taskKind, taskName string,
+	toolKind dukkha.ToolKind,
+	toolName dukkha.ToolName,
+	taskKind dukkha.TaskKind,
+	taskName dukkha.TaskName,
 	matrixSpec string,
 	err error,
 ) {

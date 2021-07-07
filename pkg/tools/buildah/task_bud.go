@@ -15,16 +15,18 @@ import (
 	"arhat.dev/pkg/textquery"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBud = "bud"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^buildah(:.+){0,1}:bud$`),
 		func(params []string) interface{} {
 			t := &TaskBud{}
@@ -36,7 +38,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskBud)(nil)
+var _ dukkha.Task = (*TaskBud)(nil)
 
 type TaskBud struct {
 	field.BaseField
@@ -54,14 +56,14 @@ type ImageNameSpec struct {
 	Manifest string `yaml:"manifest"`
 }
 
-func (c *TaskBud) ToolKind() string { return ToolKind }
-func (c *TaskBud) TaskKind() string { return TaskKindBud }
+func (c *TaskBud) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskBud) Kind() dukkha.TaskKind     { return TaskKindBud }
 
-func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	var steps []tools.TaskExecSpec
+func (c *TaskBud) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+	var steps []dukkha.TaskExecSpec
 
 	// create an image id file
-	dukkhaCacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
+	dukkhaCacheDir := rc.CacheDir()
 	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
@@ -79,7 +81,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []ImageNameSpec{{
-			Image:    c.Name,
+			Image:    c.TaskName,
 			Manifest: "",
 		}}
 	}
@@ -91,7 +93,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			continue
 		}
 
-		imageName := SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
+		imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 
 		// local image name is to handle bud regression bugs related to
 		// FQDN image names
@@ -114,21 +116,21 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	}
 
 	// buildah bud
-	steps = append(steps, tools.TaskExecSpec{
+	steps = append(steps, dukkha.TaskExecSpec{
 		Command:     append(budCmd, context),
 		IgnoreError: false,
 	})
 
 	// read image id file to get image id
 	const replaceTargetImageID = "<IMAGE_ID>"
-	steps = append(steps, tools.TaskExecSpec{
+	steps = append(steps, dukkha.TaskExecSpec{
 		OutputAsReplace:     replaceTargetImageID,
 		FixOutputForReplace: bytes.TrimSpace,
 
 		AlterExecFunc: func(
 			replace map[string][]byte,
 			stdin io.Reader, stdout, stderr io.Writer,
-		) ([]tools.TaskExecSpec, error) {
+		) ([]dukkha.TaskExecSpec, error) {
 			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
 			if err != nil {
 				return nil, err
@@ -149,7 +151,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 
 	// buildah inspect --type image to get image digest from image id
 	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
-	steps = append(steps, tools.TaskExecSpec{
+	steps = append(steps, dukkha.TaskExecSpec{
 		OutputAsReplace:     replaceTargetImageDigest,
 		FixOutputForReplace: bytes.TrimSpace,
 
@@ -162,9 +164,9 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 	})
 
 	// add to manifest, ensure same os/arch/variant only one exist
-	mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+	mArch := rc.MatrixArch()
 	arch := constant.GetOciArch(mArch)
-	os := constant.GetOciOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL])
+	os := constant.GetOciOS(rc.MatrixKernel())
 	variant := constant.GetOciArchVariant(mArch)
 
 	manifestOsArchVariantQueryForDigest := fmt.Sprintf(
@@ -188,10 +190,10 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 			continue
 		}
 
-		manifestName := SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
+		manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 		localManifestName := getLocalManifestName(manifestName)
 		// ensure local manifest exists
-		steps = append(steps, tools.TaskExecSpec{
+		steps = append(steps, dukkha.TaskExecSpec{
 			Command: sliceutils.NewStrings(
 				toolCmd, "manifest", "create", localManifestName,
 			),
@@ -199,7 +201,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		})
 
 		const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
-		steps = append(steps, tools.TaskExecSpec{
+		steps = append(steps, dukkha.TaskExecSpec{
 			OutputAsReplace:     replaceTargetManifestSpec,
 			FixOutputForReplace: nil,
 
@@ -215,16 +217,16 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 		manifestAddCmd = append(manifestAddCmd, localManifestName, replaceTargetImageID)
 
 		// find existing manifest entries with same os/arch/variant
-		steps = append(steps, tools.TaskExecSpec{
+		steps = append(steps, dukkha.TaskExecSpec{
 			IgnoreError: false,
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader, stdout, stderr io.Writer,
-			) ([]tools.TaskExecSpec, error) {
+			) ([]dukkha.TaskExecSpec, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
 				if !ok {
 					// manifest not created, usually should not happen since we just created before
-					return []tools.TaskExecSpec{
+					return []dukkha.TaskExecSpec{
 						{
 							// do not ignore manifest create error this time
 							Command: sliceutils.NewStrings(
@@ -243,13 +245,13 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				digestLines, err := textquery.JQBytes(manifestOsArchVariantQueryForDigest, manifestSpec)
 				if err != nil {
 					// no manifests entries, add this image directly
-					return []tools.TaskExecSpec{{
+					return []dukkha.TaskExecSpec{{
 						Command:     sliceutils.NewStrings(manifestAddCmd),
 						IgnoreError: false,
 					}}, nil
 				}
 
-				var subSteps []tools.TaskExecSpec
+				var subSteps []dukkha.TaskExecSpec
 
 				// remove existing entries with same os/arch/variant
 				for _, digest := range strings.Split(digestLines, "\n") {
@@ -258,7 +260,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 						continue
 					}
 
-					subSteps = append(subSteps, tools.TaskExecSpec{
+					subSteps = append(subSteps, dukkha.TaskExecSpec{
 						Command: sliceutils.NewStrings(
 							toolCmd, "manifest", "remove", localManifestName, digest,
 						),
@@ -267,7 +269,7 @@ func (c *TaskBud) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([
 				}
 
 				// add this image to manifest with correct os/arch/variant
-				subSteps = append(subSteps, tools.TaskExecSpec{
+				subSteps = append(subSteps, dukkha.TaskExecSpec{
 					Command:     sliceutils.NewStrings(manifestAddCmd),
 					IgnoreError: false,
 				})

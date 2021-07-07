@@ -1,111 +1,81 @@
 package tools
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 	"sync"
 
 	"golang.org/x/term"
 
-	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-// ToolType for interface type registration
-var ToolType = reflect.TypeOf((*Tool)(nil)).Elem()
+var _ dukkha.Tool = (*baseToolWithKind)(nil)
 
-type ToolKey struct {
-	ToolKind string
-	ToolName string
-}
+type baseToolWithKind struct{ BaseTool }
 
-// nolint:revive
-type Tool interface {
-	field.Interface
-
-	// Kind of the tool, e.g. golang, docker
-	ToolKind() string
-
-	ToolName() string
-
-	Init(
-		cacheDir string,
-		rf field.RenderingFunc,
-		getBaseExecSpec field.ExecSpecGetFunc,
-	) error
-
-	ResolveTasks(tasks []Task) error
-
-	Run(
-		ctx context.Context,
-		allTools map[ToolKey]Tool,
-		allShells map[ToolKey]*BaseTool,
-		taskKind, taskName string,
-	) error
-
-	GetEnv() []string
-}
+func (*baseToolWithKind) Kind() dukkha.ToolKind { return "" }
 
 type BaseTool struct {
 	field.BaseField
 
-	Name string   `yaml:"name"`
-	Env  []string `yaml:"env"`
-	Cmd  []string `yaml:"cmd"`
+	ToolName string   `yaml:"name"`
+	Env      []string `yaml:"env"`
+	Cmd      []string `yaml:"cmd"`
 
-	cacheDir             string                `json:"-" yaml:"-"`
-	defaultExecutable    string                `json:"-" yaml:"-"`
-	RenderingFunc        field.RenderingFunc   `json:"-" yaml:"-"`
-	getBootstrapExecSpec field.ExecSpecGetFunc `json:"-" yaml:"-"`
+	cacheDir          string `json:"-" yaml:"-"`
+	defaultExecutable string `json:"-" yaml:"-"`
+	stdoutIsTty       bool   `json:"-" yaml:"-"`
 
-	stdoutIsTty bool `json:"-" yaml:"-"`
+	Tasks map[dukkha.TaskKey]dukkha.Task `json:"-" yaml:"-"`
 }
 
-func (t *BaseTool) InitBaseTool(
-	cacheDir string,
-	defaultExecutable string,
-	rf field.RenderingFunc,
-	getBaseExecSpec field.ExecSpecGetFunc,
-) error {
-	t.cacheDir = cacheDir
-	t.defaultExecutable = defaultExecutable
-	t.RenderingFunc = rf
-	t.getBootstrapExecSpec = getBaseExecSpec
+// Init the tool, override it if your tool name is different from
+// its default executable name
+func (t *BaseTool) Init(cachdDir string) error {
+	return t.InitBaseTool(t.ToolName, cachdDir)
+}
 
+// InitBaseTool must be called in your own version of Init()
+// with correct defaultExecutable name
+func (t *BaseTool) InitBaseTool(defaultExecutable, cacheDir string) error {
+	t.defaultExecutable = defaultExecutable
 	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
+	return nil
+}
+
+// ResolveTasks accpets all tasks, override this function if your tool need
+// different handling of tasks
+func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
+	for i, tsk := range tasks {
+		t.Tasks[dukkha.TaskKey{Kind: tsk.Kind(), Name: tsk.Name()}] = tasks[i]
+	}
 
 	return nil
 }
 
-func (t *BaseTool) ToolName() string { return t.Name }
-func (t *BaseTool) GetEnv() []string { return sliceutils.NewStrings(t.Env) }
+// Run task
+func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
+	tsk, ok := t.Tasks[dukkha.TaskKey{Kind: "", Name: ""}]
+	if !ok {
+		return fmt.Errorf("task %q not found")
+	}
 
-func (t *BaseTool) RunTask(
-	ctx context.Context,
-	thisTool Tool,
-	allTools map[ToolKey]Tool,
-	allShells map[ToolKey]*BaseTool,
-	task Task,
-) error {
-	workerCount := constant.GetWorkerCount(ctx)
+	return t.RunTask(taskCtx, tsk)
+}
 
-	ctx, cancelExec := context.WithCancel(
-		// all sub tasks for this task should only have one worker
-		constant.WithWorkerCount(ctx, 1),
-	)
-	defer cancelExec()
+func (t *BaseTool) Name() dukkha.ToolName { return dukkha.ToolName(t.ToolName) }
+func (t *BaseTool) GetEnv() []string      { return sliceutils.NewStrings(t.Env) }
 
-	baseCtx := field.WithRenderingValues(ctx, os.Environ(), t.Env)
+func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) error {
+	defer taskCtx.Cancel()
 
-	matrixSpecs, err := task.GetMatrixSpecs(
-		baseCtx, t.RenderingFunc,
-		constant.GetMatrixFilter(baseCtx.Context()),
-	)
+	matrixSpecs, err := task.GetMatrixSpecs(taskCtx)
 	if err != nil {
 		return fmt.Errorf("failed to create build matrix: %w", err)
 	}
@@ -114,17 +84,14 @@ func (t *BaseTool) RunTask(
 		return fmt.Errorf("no matrix spec match")
 	}
 
-	if workerCount > len(matrixSpecs) {
-		workerCount = len(matrixSpecs)
-	}
-
+	workerCount := taskCtx.ClaimWorkers(len(matrixSpecs))
 	waitCh := make(chan struct{}, workerCount)
 	for i := 0; i < workerCount; i++ {
 		waitCh <- struct{}{}
 	}
 
 	type taskResult struct {
-		matrixSpec MatrixSpec
+		matrixSpec matrix.Spec
 		err        error
 	}
 
@@ -134,7 +101,7 @@ func (t *BaseTool) RunTask(
 		resultMU = &sync.Mutex{}
 	)
 
-	appendErrorResult := func(spec MatrixSpec, err error) {
+	appendErrorResult := func(spec matrix.Spec, err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
@@ -144,49 +111,22 @@ func (t *BaseTool) RunTask(
 		})
 	}
 
-	failFast := constant.IsFailFast(baseCtx.Context())
-
 	wg := &sync.WaitGroup{}
-
-	// ready
-
-	taskPrefix := fmt.Sprintf(
-		"%s [ %s ]",
-		output.AssembleTaskKindID(task.ToolKind(), task.ToolName(), task.TaskKind()),
-		task.TaskName(),
-	)
 
 	// ensure hook `after` always run
 	defer func() {
 		// TODO: handle hook error
-		_ = HandleHookRunError(
-			StageAfter,
-			task.RunHooks(
-				baseCtx, t.RenderingFunc,
-				StageAfter,
-				StageAfter.String()+" "+taskPrefix,
-				nil, nil,
-				thisTool, allTools, allShells,
-			),
-		)
+		_ = task.RunHooks(taskCtx, dukkha.StageAfter)
 	}()
 
 	// run hook `before`
-	err = HandleHookRunError(
-		StageBefore,
-		task.RunHooks(
-			baseCtx, t.RenderingFunc,
-			StageBefore,
-			StageBefore.String()+" "+taskPrefix,
-			nil, nil,
-			thisTool, allTools, allShells,
-		),
-	)
+	err = task.RunHooks(taskCtx, dukkha.StageBefore)
 	if err != nil {
 		// cancel task execution
 		return err
 	}
 
+matrixRun:
 	for i, ms := range matrixSpecs {
 		// set default matrix filter for referenced hook tasks
 		mFilter := make(map[string][]string)
@@ -194,54 +134,44 @@ func (t *BaseTool) RunTask(
 			mFilter[k] = []string{v}
 		}
 
-		ctx := constant.WithMatrixFilter(baseCtx.Context(), mFilter)
-		taskCtx := field.WithRenderingValues(ctx, nil)
-		taskCtx.SetEnv(baseCtx.Values().Env)
+		mCtx := taskCtx.DeriveNew()
+		mCtx.SetMatrixFilter(mFilter)
 
 		select {
-		case <-taskCtx.Context().Done():
-			return taskCtx.Context().Err()
+		case <-mCtx.Done():
+			break matrixRun
 		case <-waitCh:
 		}
 
 		err2 := func() error {
 			output.WriteTaskStart(
-				taskCtx.Context(),
-				task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
-				ms.String(),
+				task.ToolKind(), task.ToolName(),
+				task.Kind(), task.Name(),
+				ms,
 			)
 
 			for k, v := range ms {
-				taskCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
+				mCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
 
-			prefix := ms.BriefString() + ": "
+			mCtx.SetOutputPrefix(ms.BriefString() + ":")
+			mCtx.SetTaskColors(output.PickColor(i))
 
-			prefixColor, outputColor := output.PickColor(i)
-			err3 := HandleHookRunError(
-				StageBeforeMatrix,
-				task.RunHooks(
-					taskCtx, t.RenderingFunc,
-					StageBeforeMatrix,
-					StageBeforeMatrix.String()+" "+prefix,
-					prefixColor, outputColor,
-					thisTool, allTools, allShells,
-				),
-			)
+			err3 := task.RunHooks(mCtx, dukkha.StageBeforeMatrix)
 			if err3 != nil {
 				return err3
 			}
 
 			// tool may have reference to MATRIX_ values
-			err3 = t.ResolveFields(taskCtx, t.RenderingFunc, -1, "")
+			err3 = t.ResolveFields(mCtx, -1, "")
 			if err3 != nil {
 				return fmt.Errorf("failed to resolve tool fields: %w", err3)
 			}
 
-			taskCtx.AddEnv(t.Env...)
+			mCtx.AddEnv(t.Env...)
 
 			// resolve task fields
-			err3 = task.ResolveFields(taskCtx, t.RenderingFunc, -1, "")
+			err3 = task.ResolveFields(mCtx, -1, "")
 			if err3 != nil {
 				return fmt.Errorf("failed to resolve task fields: %w", err3)
 			}
@@ -252,66 +182,44 @@ func (t *BaseTool) RunTask(
 			}
 
 			// produce a snapshot of what to do
-			execSpecs, err3 := task.GetExecSpecs(taskCtx, toolCmd)
+			execSpecs, err3 := task.GetExecSpecs(mCtx, toolCmd)
 			if err3 != nil {
 				return fmt.Errorf("failed to generate task exec specs: %w", err3)
 			}
 
 			wg.Add(1)
-			go func(ms MatrixSpec) {
+			go func(ms matrix.Spec) {
 				defer func() {
 					// TODO: handle hook error
-					_ = HandleHookRunError(
-						StageAfterMatrix,
-						task.RunHooks(
-							taskCtx, t.RenderingFunc,
-							StageAfterMatrix,
-							StageAfterMatrix.String()+" "+prefix,
-							prefixColor, outputColor,
-							thisTool, allTools, allShells,
-						),
-					)
+					_ = task.RunHooks(mCtx, dukkha.StageAfterMatrix)
 
 					wg.Done()
 
 					select {
 					case waitCh <- struct{}{}:
-					case <-taskCtx.Context().Done():
+					case <-mCtx.Done():
 						return
 					}
 				}()
 
-				err4 := t.doRunTask(
-					taskCtx,
-					prefix,
-					prefixColor, outputColor,
-					execSpecs, nil,
-				)
+				err4 := t.doRunTask(mCtx, execSpecs, nil)
 
 				output.WriteExecResult(
-					taskCtx.Context(),
-					task.ToolKind(), task.ToolName(), task.TaskKind(), task.TaskName(),
+					taskCtx,
+					task.ToolKind(), task.ToolName(), task.Kind(), task.Name(),
 					ms.String(),
 					err4,
 				)
 
 				if err4 != nil {
-					if failFast {
-						cancelExec()
+					// cancel other tasks if in fail-fast mode
+					if taskCtx.FailFast() {
+						taskCtx.Cancel()
 					}
 
 					appendErrorResult(ms, err4)
 
-					err4 = HandleHookRunError(
-						StageAfterMatrixFailure,
-						task.RunHooks(
-							taskCtx, t.RenderingFunc,
-							StageAfterMatrixFailure,
-							StageAfterMatrixFailure.String()+" "+prefix,
-							prefixColor, outputColor,
-							thisTool, allTools, allShells,
-						),
-					)
+					err4 = task.RunHooks(mCtx, dukkha.StageAfterMatrixFailure)
 					if err4 != nil {
 						// TODO: handle hook error
 						_ = err4
@@ -320,16 +228,7 @@ func (t *BaseTool) RunTask(
 					return
 				}
 
-				err4 = HandleHookRunError(
-					StageAfterMatrixSuccess,
-					task.RunHooks(
-						taskCtx, t.RenderingFunc,
-						StageAfterMatrixSuccess,
-						StageAfterMatrixSuccess.String()+" "+prefix,
-						prefixColor, outputColor,
-						thisTool, allTools, allShells,
-					),
-				)
+				err4 = task.RunHooks(mCtx, dukkha.StageAfterMatrixSuccess)
 				if err4 != nil {
 					// TODO: handle hook error
 					_ = err4
@@ -341,25 +240,18 @@ func (t *BaseTool) RunTask(
 
 		if err2 != nil {
 			// failed before execution
-			if failFast {
-				return fmt.Errorf("failed to prepare task execution: %w", err2)
+			if taskCtx.FailFast() {
+				taskCtx.Cancel()
 			}
+
+			appendErrorResult(ms, err2)
 		}
 	}
 
 	wg.Wait()
 
 	if len(errCollection) != 0 {
-		err = HandleHookRunError(
-			StageAfterFailure,
-			task.RunHooks(
-				baseCtx, t.RenderingFunc,
-				StageAfterFailure,
-				StageAfterFailure.String()+" "+taskPrefix,
-				nil, nil,
-				thisTool, allTools, allShells,
-			),
-		)
+		err = task.RunHooks(taskCtx, dukkha.StageAfterFailure)
 		if err != nil {
 			// TODO: handle hook error
 			_ = err
@@ -369,16 +261,7 @@ func (t *BaseTool) RunTask(
 		return fmt.Errorf("task execution failed: %v", errCollection)
 	}
 
-	err = HandleHookRunError(
-		StageAfterSuccess,
-		task.RunHooks(
-			baseCtx, t.RenderingFunc,
-			StageAfterSuccess,
-			StageAfterSuccess.String()+" "+taskPrefix,
-			nil, nil,
-			thisTool, allTools, allShells,
-		),
-	)
+	err = task.RunHooks(taskCtx, dukkha.StageAfterSuccess)
 	if err != nil {
 		// TODO: handle hook error
 		_ = err
@@ -387,7 +270,7 @@ func (t *BaseTool) RunTask(
 	return nil
 }
 
-// GetExecSpec is a helper func for shell renderer
+// GetExecSpec is a helper func for shells
 func (t *BaseTool) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
 	if len(toExec) == 0 {
 		return nil, nil, fmt.Errorf("invalid empty exec spec")

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -129,11 +130,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 
 		out.ResolveFields(
-			WithRenderingValues(context.TODO()),
-			func(ctx *RenderingContext, renderer string, rawData interface{}) (string, error) {
-				assert.Equal(t, "{ foo: rendered-bar }", rawData)
-				return rawData.(string), nil
-			},
+			dukkha_test.NewTestContext(context.TODO()),
 			-1,
 			"",
 		)
