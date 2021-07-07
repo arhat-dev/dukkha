@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.5.8-0.20210703220537-5c6c1cbe5fdc
+# arhat.dev/pkg v0.5.8
 ## explicit
 arhat.dev/pkg/decodehelper
 arhat.dev/pkg/envhelper
@@ -51,7 +51,7 @@ github.com/pmezard/go-difflib/difflib
 github.com/shopspring/decimal
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
-# github.com/spf13/cobra v1.2.0
+# github.com/spf13/cobra v1.2.1
 ## explicit
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
@@ -76,7 +76,7 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
-# golang.org/x/sys v0.0.0-20210629170331-7dc0b73dc9fb
+# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
