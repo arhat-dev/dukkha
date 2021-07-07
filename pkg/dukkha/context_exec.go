@@ -38,7 +38,7 @@ type contextExec struct {
 func (c *contextExec) deriveNew() *contextExec {
 	return &contextExec{
 		thisTool: nil,
-		toolName: "",
+		toolName: c.toolName,
 		toolKind: "",
 
 		taskKind: "",

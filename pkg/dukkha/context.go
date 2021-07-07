@@ -131,10 +131,15 @@ func (c *dukkhaContext) DeriveNew() Context {
 
 		// initialized later
 		contextExec: nil,
+
+		failFast: c.failFast,
+		workers:  c.workers,
 	}
 
 	if c.contextExec != nil {
 		newCtx.contextExec = c.contextExec.deriveNew()
+	} else {
+		newCtx.contextExec = newContextExec()
 	}
 
 	return newCtx
@@ -209,6 +214,7 @@ func (c *dukkhaContext) ClaimWorkers(n int) int {
 		return n
 	}
 
+	// TODO: limit workers
 	return c.workers
 }
 

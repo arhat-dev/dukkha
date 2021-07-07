@@ -164,7 +164,16 @@ matrixRun:
 				mCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
 			}
 
-			mCtx.SetOutputPrefix(ms.BriefString() + ": ")
+			existingPrefix := mCtx.OutputPrefix()
+			if len(existingPrefix) != 0 {
+				if !strings.HasPrefix(existingPrefix, ms.BriefString()) {
+					// not same matrix, add this matrix prefix
+					mCtx.SetOutputPrefix(existingPrefix + ms.BriefString() + ": ")
+				}
+			} else {
+				mCtx.SetOutputPrefix(ms.BriefString() + ": ")
+			}
+
 			mCtx.SetTaskColors(output.PickColor(i))
 
 			err3 := task.RunHooks(mCtx, dukkha.StageBeforeMatrix)
@@ -274,7 +283,7 @@ matrixRun:
 	err = task.RunHooks(taskCtx, dukkha.StageAfterSuccess)
 	if err != nil {
 		// TODO: handle hook error
-		_ = err
+		return err
 	}
 
 	return nil

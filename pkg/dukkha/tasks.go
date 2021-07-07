@@ -31,40 +31,22 @@ type TaskReference struct {
 func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReference, error) {
 	callStart := strings.IndexByte(taskRef, '(')
 	if callStart < 0 {
-		return nil, fmt.Errorf("missing task call `()`")
-	}
-
-	call, err := utils.ParseBrackets(taskRef[callStart+1:])
-	if err != nil {
-		return nil, fmt.Errorf("invalid task call: %w", err)
+		return nil, fmt.Errorf("missing task call `(<task-name>)`")
 	}
 
 	ref := &TaskReference{}
-	callArgs := strings.SplitN(call, ",", 2)
-	ref.TaskName = TaskName(strings.TrimSpace(callArgs[0]))
 
-	switch len(callArgs) {
-	case 1:
-		// using default matrix spec, do nothing
-	case 2:
-		matrixFilterStr := strings.TrimRight(strings.TrimSpace(callArgs[1]), ",")
-		ref.MatrixFilter = make(map[string][]string)
-		err = yaml.Unmarshal([]byte(matrixFilterStr), &ref.MatrixFilter)
-		if err != nil {
-			return nil, fmt.Errorf("invalid matrix arg \n\n%s\nerror: %w", callArgs[1], err)
-		}
-	}
-
+	// <tool-kind>{:<tool-name>}:<task-kind>
 	parts := strings.Split(taskRef[:callStart], ":")
 	ref.ToolKind = ToolKind(parts[0])
 
 	switch len(parts) {
 	case 2:
-		// no tool name set, use the tool with same name
+		// no tool name set, use the default tool name
 		// no matter what kind the tool is
 		//
 		// current task
-		// 		buildah:in-docker:bud
+		// 		buildah:in-docker:bud 	# tool name is `in-docker`
 		// has task reference in hook:
 		// 		buildah:login(foo)    	# same kind
 		// 		golang:build(bar)		# different kind
@@ -78,7 +60,26 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 		ref.ToolName = ToolName(parts[1])
 		ref.TaskKind = TaskKind(parts[2])
 	default:
-		return nil, fmt.Errorf("invalid prefix %q", taskRef)
+		return nil, fmt.Errorf("invalid tool reference %q", taskRef)
+	}
+
+	call, err := utils.ParseBrackets(taskRef[callStart+1:])
+	if err != nil {
+		return nil, fmt.Errorf("invalid task call: %w", err)
+	}
+	callArgs := strings.SplitN(call, ",", 2)
+	ref.TaskName = TaskName(strings.TrimSpace(callArgs[0]))
+
+	switch len(callArgs) {
+	case 1:
+		// using default matrix spec, do nothing
+	case 2:
+		matrixFilterStr := strings.TrimRight(strings.TrimSpace(callArgs[1]), ",")
+		ref.MatrixFilter = make(map[string][]string)
+		err = yaml.Unmarshal([]byte(matrixFilterStr), &ref.MatrixFilter)
+		if err != nil {
+			return nil, fmt.Errorf("invalid matrix arg \n\n%s\nerror: %w", callArgs[1], err)
+		}
 	}
 
 	return ref, nil
