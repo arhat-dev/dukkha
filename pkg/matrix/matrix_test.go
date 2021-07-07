@@ -4,25 +4,27 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/types"
 )
 
 func TestMatrixConfig_GetSpecs(t *testing.T) {
 	tests := []struct {
 		name string
-		in   MatrixConfig
+		in   Spec
 		// specs are sorted by name, put them in order
-		expected []Spec
+		expected []types.MatrixSpec
 	}{
 		{
 			name: "normal",
-			in: MatrixConfig{
+			in: Spec{
 				Kernel: []string{"linux", "windows", "darwin"},
 				Arch:   []string{"amd64", "arm64"},
 				Custom: map[string][]string{
 					"foo": {"a", "b"},
 				},
 			},
-			expected: []Spec{
+			expected: []types.MatrixSpec{
 				// sort order: arch=amd64 foo=a,b, os=linux,windows,darwin
 				{
 					"kernel": "linux",
@@ -92,7 +94,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 		},
 		{
 			name: "include",
-			in: MatrixConfig{
+			in: Spec{
 				Include: []map[string][]string{
 					{
 						"kernel": []string{"windows"},
@@ -106,7 +108,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 				Kernel: []string{"linux"},
 				Arch:   []string{"amd64"},
 			},
-			expected: []Spec{
+			expected: []types.MatrixSpec{
 				{
 					"kernel": "linux",
 					"arch":   "amd64",
@@ -127,7 +129,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 		},
 		{
 			name: "exclude",
-			in: MatrixConfig{
+			in: Spec{
 				Exclude: []map[string][]string{
 					{
 						"kernel": []string{"linux"},

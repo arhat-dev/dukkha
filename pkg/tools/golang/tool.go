@@ -24,9 +24,6 @@ type Tool struct {
 	field.BaseField
 
 	tools.BaseTool `yaml:",inline"`
-
-	buildTasks map[string]*TaskBuild
-	testTasks  map[string]*TaskTest
 }
 
 func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }

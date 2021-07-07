@@ -10,7 +10,8 @@ type ExecValues interface {
 	PrefixColor() *color.Color
 	OutputColor() *color.Color
 
-	CurrentTool() Tool
+	CurrentTool() ToolKey
+	CurrentTask() TaskKey
 }
 
 func newContextExec() *contextExec {
@@ -65,7 +66,7 @@ func (c *contextExec) SetOutputPrefix(s string) {
 }
 
 func (c *contextExec) SetTaskColors(prefixColor, outputColor *color.Color) {
-	if c.prefixColor != nil || outputColor != nil {
+	if c.prefixColor != nil || c.outputColor != nil {
 		return
 	}
 
@@ -81,6 +82,10 @@ func (c *contextExec) OutputColor() *color.Color {
 	return c.outputColor
 }
 
-func (c *contextExec) CurrentTool() Tool {
-	return c.thisTool
+func (c *contextExec) CurrentTool() ToolKey {
+	return ToolKey{Kind: c.toolKind, Name: c.toolName}
+}
+
+func (c *contextExec) CurrentTask() TaskKey {
+	return TaskKey{Kind: c.taskKind, Name: c.taskName}
 }

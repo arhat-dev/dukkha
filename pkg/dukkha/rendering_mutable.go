@@ -1,6 +1,7 @@
 package dukkha
 
 import (
+	"os"
 	"strings"
 	"sync"
 
@@ -10,11 +11,15 @@ import (
 )
 
 func newContextMutableValues() *mutableValues {
-	return &mutableValues{
+	mv := &mutableValues{
 		matrixFilter: nil,
 		env:          make(map[string]string),
 		mu:           new(sync.RWMutex),
 	}
+
+	mv.AddEnv(os.Environ()...)
+
+	return mv
 }
 
 var _ types.MutableValues = (*mutableValues)(nil)

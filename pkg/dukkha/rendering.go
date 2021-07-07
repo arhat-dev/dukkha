@@ -43,8 +43,10 @@ type contextRendering struct {
 	renderers *sync.Map
 }
 
-func (c *contextRendering) clone() *contextRendering {
+func (c *contextRendering) clone(newCtx context.Context) *contextRendering {
 	return &contextRendering{
+		Context: newCtx,
+
 		immutableValues: c.immutableValues,
 		mutableValues:   c.mutableValues.clone(),
 		renderers:       c.renderers,

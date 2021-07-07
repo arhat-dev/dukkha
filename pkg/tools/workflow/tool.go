@@ -24,8 +24,6 @@ type Tool struct {
 	field.BaseField
 
 	tools.BaseTool `yaml:",inline"`
-
-	workflows map[string]*TaskRun
 }
 
 func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
