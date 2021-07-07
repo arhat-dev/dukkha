@@ -3,17 +3,17 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.5.8-0.20210703220537-5c6c1cbe5fdc
+	arhat.dev/pkg v0.5.8
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/fatih/color v1.12.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.2
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/spf13/cobra v1.2.0
+	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
-	golang.org/x/sys v0.0.0-20210629170331-7dc0b73dc9fb
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
