@@ -1,9 +1,6 @@
 package matrix
 
 import (
-	"os"
-
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/types"
 )
@@ -21,26 +18,28 @@ type Spec struct {
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func (mc *Spec) GetSpecs(matchFilter map[string][]string) []types.MatrixSpec {
+func defaultSpecs(hostKernel, hostArch string) []types.MatrixSpec {
+	return []types.MatrixSpec{
+		{
+			"kernel": hostKernel,
+			"arch":   hostArch,
+		},
+	}
+}
+
+func (mc *Spec) GetSpecs(
+	matchFilter map[string][]string,
+	hostKernel, hostArch string,
+) []types.MatrixSpec {
 	if mc == nil {
-		return []types.MatrixSpec{
-			{
-				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
-				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
-			},
-		}
+		return defaultSpecs(hostKernel, hostArch)
 	}
 
 	hasUserValue := len(mc.Include) != 0 || len(mc.Exclude) != 0
 	hasUserValue = hasUserValue || len(mc.Kernel) != 0 || len(mc.Arch) != 0 || len(mc.Custom) != 0
 
 	if !hasUserValue {
-		return []types.MatrixSpec{
-			{
-				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
-				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
-			},
-		}
+		return defaultSpecs(hostKernel, hostArch)
 	}
 
 	all := make(map[string][]string)
