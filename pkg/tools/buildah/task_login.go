@@ -5,16 +5,18 @@ import (
 	"strconv"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindLogin = "login"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^buildah(:.+){0,1}:login$`),
 		func(params []string) interface{} {
 			t := &TaskLogin{}
@@ -26,7 +28,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskLogin)(nil)
+var _ dukkha.Task = (*TaskLogin)(nil)
 
 type TaskLogin struct {
 	field.BaseField
@@ -40,10 +42,10 @@ type TaskLogin struct {
 	TLSSkipVerify *bool `yaml:"tls_skip_verify"`
 }
 
-func (c *TaskLogin) ToolKind() string { return ToolKind }
-func (c *TaskLogin) TaskKind() string { return TaskKindLogin }
+func (c *TaskLogin) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskLogin) Kind() dukkha.TaskKind     { return TaskKindLogin }
 
-func (c *TaskLogin) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskLogin) GetExecSpecs(rc types.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
 		buildahCmd, "login",
 		"--username", c.Username,
@@ -58,7 +60,7 @@ func (c *TaskLogin) GetExecSpecs(ctx *field.RenderingContext, buildahCmd []strin
 	}
 
 	password := c.Password + "\n"
-	return []tools.TaskExecSpec{{
+	return []dukkha.TaskExecSpec{{
 		Stdin:       strings.NewReader(password),
 		Command:     append(loginCmd, c.Registry),
 		IgnoreError: false,

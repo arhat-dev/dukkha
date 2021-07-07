@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 // nolint:revive
@@ -13,32 +13,17 @@ const (
 	DefaultName = "file"
 )
 
-func init() {
-	renderer.Register(&Config{}, NewDriver)
+func New() dukkha.Renderer {
+	return &driver{}
 }
 
-func NewDriver(config interface{}) (renderer.Interface, error) {
-	cfg, ok := config.(*Config)
-	if !ok {
-		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
-	}
+var _ dukkha.Renderer = (*driver)(nil)
 
-	_ = cfg
+type driver struct{}
 
-	return &Driver{}, nil
-}
+func (d *driver) Name() string { return DefaultName }
 
-var _ renderer.Config = (*Config)(nil)
-
-type Config struct{}
-
-var _ renderer.Interface = (*Driver)(nil)
-
-type Driver struct{}
-
-func (d *Driver) Name() string { return DefaultName }
-
-func (d *Driver) Render(_ *field.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(_ types.RenderingContext, rawData interface{}) (string, error) {
 	path, ok := rawData.(string)
 	if !ok {
 		return "", fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)

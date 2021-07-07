@@ -5,17 +5,18 @@ import (
 	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/buildah"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindPush = "push"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^docker(:.+){0,1}:push$`),
 		func(params []string) interface{} {
 			t := &TaskPush{}
@@ -27,24 +28,24 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskPush)(nil)
+var _ dukkha.Task = (*TaskPush)(nil)
 
 type TaskPush buildah.TaskPush
 
-func (c *TaskPush) ToolKind() string { return ToolKind }
-func (c *TaskPush) TaskKind() string { return TaskKindPush }
+func (c *TaskPush) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskPush) Kind() dukkha.TaskKind     { return TaskKindPush }
 
-func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{
-			Image:    c.Name,
+			Image:    c.TaskName,
 			Manifest: "",
 		}}
 	}
 
 	var (
-		result []tools.TaskExecSpec
+		result []dukkha.TaskExecSpec
 
 		manifestCmd = sliceutils.NewStrings(toolCmd, "manifest")
 	)
@@ -54,10 +55,10 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		imageName := buildah.SetDefaultImageTagIfNoTagSet(ctx, spec.Image)
+		imageName := buildah.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 		// docker push <image-name>
 		if buildah.ImageOrManifestHasFQDN(imageName) {
-			result = append(result, tools.TaskExecSpec{
+			result = append(result, dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
 					toolCmd, "push", imageName,
 				),
@@ -69,10 +70,10 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			continue
 		}
 
-		manifestName := buildah.SetDefaultManifestTagIfNoTagSet(ctx, spec.Manifest)
+		manifestName := buildah.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 		result = append(result,
 			// ensure manifest exists
-			tools.TaskExecSpec{
+			dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
 					manifestCmd, "create", manifestName, imageName,
 				),
@@ -80,7 +81,7 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 				IgnoreError: true,
 			},
 			// link manifest and image
-			tools.TaskExecSpec{
+			dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
 					manifestCmd, "create", manifestName,
 					"--amend", imageName,
@@ -92,10 +93,10 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 		// docker manifest annotate \
 		// 		<manifest-list-name> <image-name> \
 		// 		--os <arch> --arch <arch> {--variant <variant>}
-		mArch := ctx.Values().Env[constant.ENV_MATRIX_ARCH]
+		mArch := rc.MatrixArch()
 		annotateCmd := sliceutils.NewStrings(
 			manifestCmd, "annotate", manifestName, imageName,
-			"--os", constant.GetDockerOS(ctx.Values().Env[constant.ENV_MATRIX_KERNEL]),
+			"--os", constant.GetDockerOS(rc.MatrixKernel()),
 			"--arch", constant.GetDockerArch(mArch),
 		)
 
@@ -104,14 +105,14 @@ func (c *TaskPush) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) (
 			annotateCmd = append(annotateCmd, "--variant", variant)
 		}
 
-		result = append(result, tools.TaskExecSpec{
+		result = append(result, dukkha.TaskExecSpec{
 			Command:     annotateCmd,
 			IgnoreError: false,
 		})
 
 		// docker manifest push <manifest-list-name>
 		if buildah.ImageOrManifestHasFQDN(manifestName) {
-			result = append(result, tools.TaskExecSpec{
+			result = append(result, dukkha.TaskExecSpec{
 				Command:     sliceutils.NewStrings(toolCmd, "manifest", "push", spec.Manifest),
 				IgnoreError: false,
 			})

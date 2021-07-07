@@ -48,7 +48,7 @@ buildah:push:
   name: dukkha
   hooks:
     before:
-    - task: buildah:login:ghcr
+    - task: buildah:login(ghcr)
   matrix@template_file: *dukkha_image_matrix
   image_names: *dukkha_image_names
 

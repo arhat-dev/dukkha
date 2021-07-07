@@ -5,9 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/tools"
 )
 
 type ExecSpecGenerationTestCase struct {
@@ -15,14 +14,14 @@ type ExecSpecGenerationTestCase struct {
 	Prepare  func() error
 	Finalize func()
 
-	Task      tools.Task
-	Expected  []tools.TaskExecSpec
+	Task      dukkha.Task
+	Expected  []dukkha.TaskExecSpec
 	ExpectErr bool
 }
 
 func RunTaskExecSpecGenerationTests(
 	t *testing.T,
-	rc *field.RenderingContext,
+	taskCtx dukkha.TaskExecContext,
 	toolCmd []string,
 	tests []ExecSpecGenerationTestCase,
 ) {
@@ -40,13 +39,13 @@ func RunTaskExecSpecGenerationTests(
 			}
 
 			if test.ExpectErr {
-				_, err := test.Task.GetExecSpecs(rc, toolCmd)
+				_, err := test.Task.GetExecSpecs(taskCtx, toolCmd)
 				assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 				assert.Error(t, err)
 				return
 			}
 
-			specs, err := test.Task.GetExecSpecs(rc, toolCmd)
+			specs, err := test.Task.GetExecSpecs(taskCtx, toolCmd)
 			assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 			if !assert.NoError(t, err) {
 				return

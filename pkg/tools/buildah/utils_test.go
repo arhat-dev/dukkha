@@ -7,9 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/tools"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func TestSetDefaultImageTag(t *testing.T) {
@@ -42,13 +41,11 @@ func TestSetDefaultImageTag(t *testing.T) {
 		constant.ENV_GIT_WORKTREE_CLEAN: "false",
 	}
 
-	tests := tools.CartesianProduct(testMatrix)
+	tests := matrix.CartesianProduct(testMatrix)
 	for _, mat := range tests {
-		spec := tools.MatrixSpec(mat)
+		spec := matrix.Spec(mat)
 
-		rc := field.WithRenderingValues(
-			context.TODO(), sliceutils.FormatStringMap(spec, "="),
-		)
+		rc := dukkha_test.NewTestContext(context.TODO())
 
 		t.Run(spec.String()+"_image", func(t *testing.T) {
 			actual := SetDefaultImageTagIfNoTagSet(

@@ -4,16 +4,18 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindTest = "test"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^golang(:.+){0,1}:test$`),
 		func(subMatches []string) interface{} {
 			t := &TaskTest{}
@@ -25,7 +27,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskTest)(nil)
+var _ dukkha.Task = (*TaskTest)(nil)
 
 type TaskTest struct {
 	field.BaseField
@@ -35,13 +37,13 @@ type TaskTest struct {
 	Chdir string `yaml:"chdir"`
 }
 
-func (c *TaskTest) ToolKind() string { return ToolKind }
-func (c *TaskTest) TaskKind() string { return TaskKindTest }
+func (c *TaskTest) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskTest) Kind() dukkha.TaskKind     { return TaskKindTest }
 
-func (c *TaskTest) GetExecSpecs(ctx *field.RenderingContext, toolCmd []string) ([]tools.TaskExecSpec, error) {
-	spec := &tools.TaskExecSpec{
+func (c *TaskTest) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+	spec := &dukkha.TaskExecSpec{
 		Chdir:   c.Chdir,
 		Command: sliceutils.NewStrings(toolCmd, "test", "./..."),
 	}
-	return []tools.TaskExecSpec{*spec}, nil
+	return []dukkha.TaskExecSpec{*spec}, nil
 }

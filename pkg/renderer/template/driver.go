@@ -13,52 +13,38 @@ import (
 	"github.com/Masterminds/sprig/v3"
 
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/tools/buildah"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const DefaultName = "template"
 
-func init() {
-	renderer.Register(&Config{}, NewDriver)
+func New() dukkha.Renderer {
+	return &driver{}
 }
 
-func NewDriver(config interface{}) (renderer.Interface, error) {
-	cfg, ok := config.(*Config)
-	if !ok {
-		return nil, fmt.Errorf("unexpected non template renderer config: %T", config)
-	}
+var _ dukkha.Renderer = (*driver)(nil)
 
-	_ = cfg
+type driver struct{}
 
-	return &Driver{}, nil
-}
+func (d *driver) Name() string { return DefaultName }
 
-var _ renderer.Config = (*Config)(nil)
-
-type Config struct{}
-
-var _ renderer.Interface = (*Driver)(nil)
-
-type Driver struct{}
-
-func (d *Driver) Name() string { return DefaultName }
-
-func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
 	tplBytes, err := renderer.ToYamlBytes(rawData)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
 	}
 
 	tplStr := string(tplBytes)
-	tpl, err := newTemplate(ctx).Parse(tplStr)
+	tpl, err := newTemplate(rc).Parse(tplStr)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
 	}
 
 	buf := &bytes.Buffer{}
-	err = tpl.Execute(buf, ctx.Values())
+	err = tpl.Execute(buf, rc)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
 	}
@@ -66,7 +52,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 	return buf.String(), nil
 }
 
-func newTemplate(rc *field.RenderingContext) *template.Template {
+func newTemplate(rc types.RenderingContext) *template.Template {
 	return template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{
@@ -86,7 +72,7 @@ func newTemplate(rc *field.RenderingContext) *template.Template {
 
 			"getBuildahImageIDFile": func(imageName string) string {
 				return buildah.GetImageIDFileForImageName(
-					rc.Values().Env[constant.ENV_DUKKHA_CACHE_DIR],
+					rc.CacheDir(),
 					buildah.SetDefaultImageTagIfNoTagSet(rc, imageName),
 				)
 			},

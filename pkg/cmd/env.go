@@ -3,7 +3,7 @@ package cmd
 import (
 	"bufio"
 	"bytes"
-	"context"
+	goctx "context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"arhat.dev/pkg/exechelper"
-	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sysinfo"
@@ -22,7 +21,39 @@ import (
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func populateGlobalEnv(ctx context.Context) error {
+func createGlobalEnv(appBaseCtx goctx.Context) map[string]string {
+	now := time.Now()
+	result := map[string]string{
+		constant.ENV_DUKKHA_WORKING_DIR: func() string {
+			pwd, err2 := os.Getwd()
+			if err2 != nil {
+				return ""
+			}
+
+			pwd, err2 = filepath.Abs(pwd)
+			if err2 != nil {
+				panic(fmt.Errorf("failed to get dukkha working dir: %w", err2))
+			}
+
+			return pwd
+		}(),
+
+		constant.ENV_TIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
+		constant.ENV_TIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
+		constant.ENV_TIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),
+		constant.ENV_TIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
+		constant.ENV_TIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
+		constant.ENV_TIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
+
+		constant.ENV_HOST_KERNEL:         runtime.GOOS,
+		constant.ENV_HOST_KERNEL_VERSION: sysinfo.KernelVersion(),
+
+		constant.ENV_HOST_OS:         "",
+		constant.ENV_HOST_OS_VERSION: "",
+
+		constant.ENV_HOST_ARCH: sysinfo.Arch(),
+	}
+
 	envs := []struct {
 		name      string
 		command   []string
@@ -82,61 +113,26 @@ func populateGlobalEnv(ctx context.Context) error {
 		},
 	}
 
-	var err error
 	for _, e := range envs {
 		buf := &bytes.Buffer{}
 		cmd, err2 := exechelper.Do(exechelper.Spec{
-			Context: ctx,
+			Context: appBaseCtx,
 			Command: e.command,
 			Stdout:  buf,
 			Stderr:  ioutil.Discard,
 		})
 		if err2 != nil {
-			err = multierr.Append(err, os.Setenv(e.name, e.onError()))
+			result[e.name] = e.onError()
 			continue
 		}
 
 		_, err2 = cmd.Wait()
 		if err2 != nil {
-			err = multierr.Append(err, os.Setenv(e.name, e.onError()))
+			result[e.name] = e.onError()
 			continue
 		}
 
-		err = multierr.Append(err, os.Setenv(e.name, e.onSuccess(buf.String())))
-	}
-
-	now := time.Now()
-	for k, v := range map[string]string{
-		constant.ENV_DUKKHA_WORKING_DIR: func() string {
-			pwd, err2 := os.Getwd()
-			if err2 != nil {
-				return ""
-			}
-
-			pwd, err2 = filepath.Abs(pwd)
-			if err2 != nil {
-				panic(fmt.Errorf("failed to get dukkha working dir: %w", err2))
-			}
-
-			return pwd
-		}(),
-
-		constant.ENV_TIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
-		constant.ENV_TIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
-		constant.ENV_TIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),
-		constant.ENV_TIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
-		constant.ENV_TIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
-		constant.ENV_TIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
-
-		constant.ENV_HOST_KERNEL:         runtime.GOOS,
-		constant.ENV_HOST_KERNEL_VERSION: sysinfo.KernelVersion(),
-
-		constant.ENV_HOST_OS:         "",
-		constant.ENV_HOST_OS_VERSION: "",
-
-		constant.ENV_HOST_ARCH: sysinfo.Arch(),
-	} {
-		err = multierr.Append(err, os.Setenv(k, v))
+		result[e.name] = e.onSuccess(buf.String())
 	}
 
 	// set host os name and version
@@ -158,12 +154,12 @@ func populateGlobalEnv(ctx context.Context) error {
 				osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
 
 				// TODO: ubuntu has ID_LIKE=debian, check other platforms
-				err = multierr.Append(err, os.Setenv(constant.ENV_HOST_OS, osName))
+				result[constant.ENV_HOST_OS] = osName
 			case strings.HasPrefix(line, "VERSION_ID="):
 				osVersion := strings.TrimPrefix(line, "VERSION_ID=")
 				osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
 
-				err = multierr.Append(err, os.Setenv(constant.ENV_HOST_OS_VERSION, osVersion))
+				result[constant.ENV_HOST_OS_VERSION] = osVersion
 			}
 		}
 	default:
@@ -180,14 +176,14 @@ func populateGlobalEnv(ctx context.Context) error {
 		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
 			commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
 			if len(commit) != 0 {
-				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+				result[constant.ENV_GIT_COMMIT] = commit
 			}
 		}
 
 		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
 			branch := strings.TrimSpace(strings.TrimPrefix(os.Getenv("GITHUB_REF"), "refs/heads/"))
 			if len(branch) != 0 {
-				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+				result[constant.ENV_GIT_BRANCH] = branch
 			}
 		}
 	case os.Getenv("GITLAB_CI") == "true":
@@ -198,25 +194,25 @@ func populateGlobalEnv(ctx context.Context) error {
 		if len(os.Getenv(constant.ENV_GIT_COMMIT)) == 0 {
 			commit := strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
 			if len(commit) != 0 {
-				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_COMMIT, commit))
+				result[constant.ENV_GIT_COMMIT] = commit
 			}
 		}
 
 		if len(os.Getenv(constant.ENV_GIT_BRANCH)) == 0 {
 			branch := strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
 			if len(branch) != 0 {
-				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_BRANCH, branch))
+				result[constant.ENV_GIT_BRANCH] = branch
 			}
 		}
 
 		if len(os.Getenv(constant.ENV_GIT_TAG)) == 0 {
 			tag := strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
 			if len(tag) != 0 {
-				err = multierr.Append(err, os.Setenv(constant.ENV_GIT_TAG, tag))
+				result[constant.ENV_GIT_TAG] = tag
 			}
 		}
 	default:
 	}
 
-	return err
+	return result
 }

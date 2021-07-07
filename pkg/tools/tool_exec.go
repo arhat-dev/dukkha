@@ -11,18 +11,16 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
-	"github.com/fatih/color"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 func (t *BaseTool) doRunTask(
-	taskCtx *field.RenderingContext,
-	outputPrefix string,
-	prefixColor, outputColor *color.Color,
-	execSpecs []TaskExecSpec,
+	mCtx dukkha.TaskExecContext,
+	execSpecs []dukkha.TaskExecSpec,
 	_replaceEntries *map[string][]byte,
 ) error {
 	timer := time.NewTimer(0)
@@ -38,19 +36,19 @@ func (t *BaseTool) doRunTask(
 	}
 
 	for _, es := range execSpecs {
-		ctx := taskCtx.Clone()
+		ctx := mCtx.DeriveNew()
 
 		if es.Delay > 0 {
 			_ = timer.Reset(es.Delay)
 
 			select {
 			case <-timer.C:
-			case <-ctx.Context().Done():
+			case <-ctx.Done():
 				if !timer.Stop() {
 					<-timer.C
 				}
 
-				return ctx.Context().Err()
+				return ctx.Err()
 			}
 		}
 
@@ -66,11 +64,25 @@ func (t *BaseTool) doRunTask(
 		}
 
 		if t.stdoutIsTty {
-			stderr = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stderr)
-			stdout = output.PrefixWriter(outputPrefix, prefixColor, outputColor, os.Stdout)
+			stderr = utils.PrefixWriter(
+				mCtx.OutputPrefix(),
+				mCtx.PrefixColor(),
+				mCtx.OutputColor(),
+				os.Stderr,
+			)
+			stdout = utils.PrefixWriter(
+				mCtx.OutputPrefix(),
+				mCtx.PrefixColor(),
+				mCtx.OutputColor(),
+				os.Stdout,
+			)
 		} else {
-			stderr = output.PrefixWriter(outputPrefix, nil, nil, os.Stderr)
-			stdout = output.PrefixWriter(outputPrefix, nil, nil, os.Stdout)
+			stderr = utils.PrefixWriter(
+				mCtx.OutputPrefix(), nil, nil, os.Stderr,
+			)
+			stdout = utils.PrefixWriter(
+				mCtx.OutputPrefix(), nil, nil, os.Stdout,
+			)
 		}
 
 		var buf *bytes.Buffer
@@ -97,7 +109,7 @@ func (t *BaseTool) doRunTask(
 			}
 
 			if len(subSpecs) != 0 {
-				err = t.doRunTask(taskCtx, outputPrefix, prefixColor, outputColor, subSpecs, &replace)
+				err = t.doRunTask(mCtx, subSpecs, &replace)
 				if err != nil {
 					return fmt.Errorf("failed to run sub tasks: %w", err)
 				}
@@ -128,22 +140,21 @@ func (t *BaseTool) doRunTask(
 			cmd = sliceutils.NewStrings(es.Command)
 		}
 
-		_, runScriptCmd, err := t.getBootstrapExecSpec(cmd, false)
+		_, runScriptCmd, err := ctx.GetBootstrapExecSpec(cmd, false)
 		if err != nil {
 			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
 		}
 
 		output.WriteExecStart(
-			ctx.Context(),
-			t.ToolName(),
+			t.ToolName,
 			cmd,
 			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
 		)
 
 		p, err := exechelper.Do(exechelper.Spec{
-			Context: ctx.Context(),
+			Context: ctx,
 			Command: runScriptCmd,
-			Env:     ctx.Values().Env,
+			Env:     ctx.Env(),
 			Dir:     es.Chdir,
 
 			Stdin: stdin,

@@ -1,16 +1,14 @@
-package tools
+package matrix
 
 import (
 	"os"
-	"sort"
-	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 type MatrixConfig struct {
-	field.BaseField
+	types.Field
 
 	Include []map[string][]string `yaml:"include"`
 	Exclude []map[string][]string `yaml:"exclude"`
@@ -22,9 +20,9 @@ type MatrixConfig struct {
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
+func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []Spec {
 	if mc == nil {
-		return []MatrixSpec{
+		return []Spec{
 			{
 				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
 				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
@@ -36,7 +34,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
 	hasUserValue = hasUserValue || len(mc.Kernel) != 0 || len(mc.Arch) != 0 || len(mc.Custom) != 0
 
 	if !hasUserValue {
-		return []MatrixSpec{
+		return []Spec{
 			{
 				"kernel": os.Getenv(constant.ENV_HOST_KERNEL),
 				"arch":   os.Getenv(constant.ENV_HOST_ARCH),
@@ -64,7 +62,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
 		removeMatchList = append(removeMatchList, CartesianProduct(ex)...)
 	}
 
-	var result []MatrixSpec
+	var result []Spec
 
 	var mf []map[string]string
 	if len(matchFilter) != 0 {
@@ -73,7 +71,7 @@ func (mc *MatrixConfig) GetSpecs(matchFilter map[string][]string) []MatrixSpec {
 	mat := CartesianProduct(all)
 loop:
 	for i := range mat {
-		spec := MatrixSpec(mat[i])
+		spec := Spec(mat[i])
 
 		for _, toRemove := range removeMatchList {
 			if spec.Match(toRemove) {
@@ -100,7 +98,7 @@ loop:
 		mat := CartesianProduct(inc)
 	addInclude:
 		for i := range mat {
-			includeSpec := MatrixSpec(mat[i])
+			includeSpec := Spec(mat[i])
 
 			for _, spec := range result {
 				if spec.Equals(includeSpec) {
@@ -124,72 +122,4 @@ loop:
 	}
 
 	return result
-}
-
-type MatrixSpec map[string]string
-
-func (m MatrixSpec) String() string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var pairs []string
-	for _, k := range keys {
-		pairs = append(pairs, k+": "+m[k])
-	}
-
-	return strings.Join(pairs, ", ")
-}
-
-// BriefString return all values concatenated with slash
-func (m MatrixSpec) BriefString() string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var parts []string
-	for _, k := range keys {
-		parts = append(parts, m[k])
-	}
-
-	return strings.Join(parts, "/")
-}
-
-func (m MatrixSpec) Match(a map[string]string) bool {
-	if len(a) == 0 {
-		return len(m) == 0
-	}
-
-	for k, v := range a {
-		if m[k] != v {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (m MatrixSpec) Equals(a map[string]string) bool {
-	if a == nil {
-		return m == nil
-	}
-
-	if len(a) != len(m) {
-		return false
-	}
-
-	for k, v := range a {
-		mv, ok := m[k]
-		if !ok || mv != v {
-			return false
-		}
-	}
-
-	return true
 }

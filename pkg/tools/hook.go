@@ -2,16 +2,12 @@ package tools
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
-	"github.com/fatih/color"
 
-	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/output"
 )
 
 type TaskHooks struct {
@@ -52,89 +48,56 @@ type TaskHooks struct {
 	After []Hook `yaml:"after"`
 }
 
-func (TaskHooks) GetFieldNameByStage(stage TaskExecStage) string {
-	return map[TaskExecStage]string{
-		StageBefore: "Before",
+func (TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
+	return map[dukkha.TaskExecStage]string{
+		dukkha.StageBefore: "Before",
 
-		StageBeforeMatrix:       "BeforeMatrix",
-		StageAfterMatrixSuccess: "AfterMatrixSuccess",
-		StageAfterMatrixFailure: "AfterMatrixFailure",
-		StageAfterMatrix:        "AfterMatrix",
+		dukkha.StageBeforeMatrix:       "BeforeMatrix",
+		dukkha.StageAfterMatrixSuccess: "AfterMatrixSuccess",
+		dukkha.StageAfterMatrixFailure: "AfterMatrixFailure",
+		dukkha.StageAfterMatrix:        "AfterMatrix",
 
-		StageAfterSuccess: "AfterSuccess",
-		StageAfterFailure: "AfterFailure",
-		StageAfter:        "After",
+		dukkha.StageAfterSuccess: "AfterSuccess",
+		dukkha.StageAfterFailure: "AfterFailure",
+		dukkha.StageAfter:        "After",
 	}[stage]
 }
 
-type TaskExecStage uint8
-
-const (
-	StageBefore TaskExecStage = iota + 1
-
-	StageBeforeMatrix
-	StageAfterMatrixSuccess
-	StageAfterMatrixFailure
-	StageAfterMatrix
-
-	StageAfterSuccess
-	StageAfterFailure
-	StageAfter
-)
-
-func (s TaskExecStage) String() string {
-	return map[TaskExecStage]string{
-		StageBefore: "before",
-
-		StageBeforeMatrix:       "before:matrix",
-		StageAfterMatrixSuccess: "after:matrix:success",
-		StageAfterMatrixFailure: "after:matrix:failure",
-		StageAfterMatrix:        "after:matrix",
-
-		StageAfterSuccess: "after:success",
-		StageAfterFailure: "after:failure",
-		StageAfter:        "after",
-	}[s]
-}
-
 func (h *TaskHooks) Run(
-	ctx *field.RenderingContext,
-	rf field.RenderingFunc,
-	stage TaskExecStage,
-	prefix string,
-	prefixColor, outputColor *color.Color,
-	thisTool Tool,
-	allTools map[ToolKey]Tool,
-	allShells map[ToolKey]*BaseTool,
+	taskCtx dukkha.TaskExecContext,
+	stage dukkha.TaskExecStage,
 ) error {
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
 	)
 
 	logger.D("resolving hooks")
-	err := h.ResolveFields(ctx, rf, -1, h.GetFieldNameByStage(stage))
+	err := h.ResolveFields(taskCtx, -1, h.GetFieldNameByStage(stage))
 	if err != nil {
 		return fmt.Errorf("failed to resolve hook spec: %w", err)
 	}
 
-	toRun, ok := map[TaskExecStage][]Hook{
-		StageBefore: h.Before,
+	toRun, ok := map[dukkha.TaskExecStage][]Hook{
+		dukkha.StageBefore: h.Before,
 
-		StageBeforeMatrix:       h.BeforeMatrix,
-		StageAfterMatrixSuccess: h.AfterMatrixSuccess,
-		StageAfterMatrixFailure: h.AfterMatrixFailure,
-		StageAfterMatrix:        h.AfterMatrix,
+		dukkha.StageBeforeMatrix:       h.BeforeMatrix,
+		dukkha.StageAfterMatrixSuccess: h.AfterMatrixSuccess,
+		dukkha.StageAfterMatrixFailure: h.AfterMatrixFailure,
+		dukkha.StageAfterMatrix:        h.AfterMatrix,
 
-		StageAfterSuccess: h.AfterSuccess,
-		StageAfterFailure: h.AfterFailure,
-		StageAfter:        h.After,
+		dukkha.StageAfterSuccess: h.AfterSuccess,
+		dukkha.StageAfterFailure: h.AfterFailure,
+		dukkha.StageAfter:        h.After,
 	}[stage]
 	if !ok {
 		return fmt.Errorf("unknown task exec stage: %d", stage)
 	}
 
+	hookCtx := taskCtx.DeriveNew()
+	hookCtx.SetOutputPrefix(taskCtx.OutputPrefix() + " " + stage.String())
+
 	for i := range toRun {
-		err = toRun[i].Run(ctx, prefix, prefixColor, outputColor, thisTool, allTools, allShells)
+		err = toRun[i].Run(hookCtx.DeriveNew())
 		if err != nil {
 			return fmt.Errorf("action #%d failed: %w", i, err)
 		}
@@ -151,48 +114,27 @@ type Hook struct {
 	Other map[string]string `dukkha:"other"`
 }
 
-func (h *Hook) Run(
-	ctx *field.RenderingContext,
-	prefix string,
-	prefixColor, outputColor *color.Color,
-	thisTool Tool,
-	allTools map[ToolKey]Tool,
-	allShells map[ToolKey]*BaseTool,
-) error {
+func (h *Hook) Run(hookCtx dukkha.Context) error {
 	if len(h.Task) != 0 {
-		ref, err := ParseTaskReference(h.Task)
+		ref, err := dukkha.ParseTaskReference(h.Task)
 		if err != nil {
 			return fmt.Errorf("invalid task reference %q: %w", h.Task, err)
 		}
 
-		taskCtx := ctx.Context()
 		if len(ref.MatrixFilter) != 0 {
-			taskCtx = constant.WithMatrixFilter(taskCtx, ref.MatrixFilter)
+			hookCtx.SetMatrixFilter(ref.MatrixFilter)
 		}
 
-		if !ref.HasToolName() && ref.ToolKind == thisTool.ToolKind() {
-			// same kind, but no tool name provided, use same tool to handle it
-			return thisTool.Run(
-				taskCtx,
-				allTools, allShells,
+		if !ref.HasToolName() && ref.ToolKind == hookCtx.CurrentTool().Kind() {
+			toolName := hookCtx.CurrentTool().Name()
+			return hookCtx.RunTask(
+				ref.ToolKind, toolName,
 				ref.TaskKind, ref.TaskName,
 			)
 		}
 
-		key := ToolKey{
-			ToolKind: ref.ToolKind,
-			ToolName: ref.ToolName,
-		}
-
-		// has tool name or using a different tool kind, find target tool to handle it
-		tool, ok := allTools[key]
-		if !ok {
-			return fmt.Errorf("tool %q not found", key.ToolKind+":"+key.ToolName)
-		}
-
-		return tool.Run(
-			taskCtx,
-			allTools, allShells,
+		return hookCtx.RunTask(
+			ref.ToolKind, ref.ToolName,
 			ref.TaskKind, ref.TaskName,
 		)
 	}
@@ -207,7 +149,7 @@ func (h *Hook) Run(
 	}
 
 	var (
-		shellKey   *ToolKey
+		shell      string
 		script     string
 		isFilePath bool
 	)
@@ -217,56 +159,21 @@ func (h *Hook) Run(
 
 		switch {
 		case strings.HasPrefix(k, "shell_file:"):
-			shellKey = &ToolKey{ToolKind: "shell", ToolName: strings.SplitN(k, ":", 2)[1]}
+			shell = strings.SplitN(k, ":", 2)[1]
 			isFilePath = true
 		case k == "shell_file":
-			shellKey = &ToolKey{ToolKind: "shell", ToolName: ""}
+			shell = ""
 			isFilePath = true
 		case strings.HasPrefix(k, "shell:"):
-			shellKey = &ToolKey{ToolKind: "shell", ToolName: strings.SplitN(k, ":", 2)[1]}
+			shell = strings.SplitN(k, ":", 2)[1]
 			isFilePath = false
 		case k == "shell":
-			shellKey = &ToolKey{ToolKind: "shell", ToolName: ""}
+			shell = ""
 			isFilePath = false
 		default:
 			return fmt.Errorf("unknown action: %q", k)
 		}
 	}
 
-	if shellKey == nil {
-		return nil
-	}
-
-	sh, ok := allShells[*shellKey]
-	if !ok {
-		return fmt.Errorf("shell %q not found", shellKey.ToolName)
-	}
-
-	scriptCtx := ctx.Clone()
-	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
-	if err != nil {
-		return err
-	}
-
-	scriptCtx.AddEnv(env...)
-
-	p, err := exechelper.Do(exechelper.Spec{
-		Context: scriptCtx.Context(),
-		Command: cmd,
-		Env:     scriptCtx.Values().Env,
-
-		Stdin:  os.Stdin,
-		Stderr: output.PrefixWriter(prefix, prefixColor, outputColor, os.Stderr),
-		Stdout: output.PrefixWriter(prefix, prefixColor, outputColor, os.Stdout),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to run script: %w", err)
-	}
-
-	code, err := p.Wait()
-	if err != nil {
-		return fmt.Errorf("command exited with code %d: %w", code, err)
-	}
-
-	return nil
+	return hookCtx.RunShell(shell, script, isFilePath)
 }

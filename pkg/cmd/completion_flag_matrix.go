@@ -1,59 +1,39 @@
 package cmd
 
 import (
-	"context"
-	"os"
 	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func handleMatrixFlagCompletion(
-	appCtx *context.Context,
-	rf field.RenderingFunc,
+	appCtx dukkha.Context,
 	existingFilters []string,
-	allTools map[tools.ToolKey]tools.Tool,
-	toolSpecificTasks map[tools.ToolKey][]tools.Task,
 	args []string, toComplete string,
 ) ([]string, cobra.ShellCompDirective) {
-	type taskKey struct {
-		taskKind string
-		taskName string
-	}
-
-	var (
-		targetTool tools.ToolKey
-		targetTask taskKey
-	)
-
-	switch len(args) {
-	case 3:
-		targetTool.ToolKind, targetTool.ToolName = args[0], ""
-		targetTask.taskKind, targetTask.taskName = args[1], args[2]
-	case 4:
-		targetTool.ToolKind, targetTool.ToolName = args[0], args[1]
-		targetTask.taskKind, targetTask.taskName = args[2], args[3]
-	default:
+	if len(args) != 4 {
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	tasks, ok := toolSpecificTasks[targetTool]
+	toolKind, toolName := dukkha.ToolKind(args[0]), dukkha.ToolName(args[1])
+	taskKind, taskName := dukkha.TaskKind(args[2]), dukkha.TaskName(args[3])
+
+	tasks, ok := appCtx.GetToolSpecificTasks(toolKind, toolName)
 	if !ok {
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	tool, ok := allTools[targetTool]
+	_, ok = appCtx.GetTool(toolKind, toolName)
 	if !ok {
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	var task tools.Task
+	var task dukkha.Task
 	for i, v := range tasks {
-		if v.TaskKind() == targetTask.taskKind && v.TaskName() == targetTask.taskName {
+		if v.Kind() == taskKind && v.Name() == taskName {
 			task = tasks[i]
 			break
 		}
@@ -63,11 +43,9 @@ func handleMatrixFlagCompletion(
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	ctx := field.WithRenderingValues(*appCtx, os.Environ(), tool.GetEnv())
-
 	// DO NOT apply existing filter, new filters with same key
 	// are merged together
-	mSpecs, err := task.GetMatrixSpecs(ctx, rf, nil)
+	mSpecs, err := task.GetMatrixSpecs(appCtx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
 	}

@@ -3,22 +3,20 @@ package buildah
 import (
 	"strings"
 
+	"arhat.dev/dukkha/pkg/types"
 	"github.com/huandu/xstrings"
-
-	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/field"
 )
 
-func SetDefaultImageTagIfNoTagSet(rc *field.RenderingContext, name string) string {
+func SetDefaultImageTagIfNoTagSet(rc types.RenderingContext, name string) string {
 	return setDefaultTagIfNoTagSet(rc, name, false)
 }
 
-func SetDefaultManifestTagIfNoTagSet(rc *field.RenderingContext, manfiestName string) string {
+func SetDefaultManifestTagIfNoTagSet(rc types.RenderingContext, manfiestName string) string {
 	return setDefaultTagIfNoTagSet(rc, manfiestName, true)
 }
 
 func setDefaultTagIfNoTagSet(
-	rc *field.RenderingContext,
+	rc types.RenderingContext,
 	name string,
 	isManifest bool,
 ) string {
@@ -26,24 +24,24 @@ func setDefaultTagIfNoTagSet(
 		return name
 	}
 
-	rawBranch := rc.Values().Env[constant.ENV_GIT_BRANCH]
+	rawBranch := rc.GitBranch()
 	branch := xstrings.ToKebabCase(strings.ReplaceAll(rawBranch, "/", "-"))
 
-	workTreeClean := rc.Values().Env[constant.ENV_GIT_WORKTREE_CLEAN] == "true"
-	arch := rc.Values().Env[constant.ENV_MATRIX_ARCH]
+	workTreeClean := rc.GitWorkTreeClean()
+	arch := rc.MatrixArch()
 
 	var tag string
 	if workTreeClean {
-		gitTag := rc.Values().Env[constant.ENV_GIT_TAG]
+		gitTag := rc.GitTag()
 		switch {
 		case len(gitTag) != 0:
 			tag = gitTag
-		case rawBranch == rc.Values().Env[constant.ENV_GIT_DEFAULT_BRANCH]:
+		case rawBranch == rc.GitDefaultBranch():
 			tag = "latest"
 		default:
 			tag = branch
 			if !isManifest {
-				tag += "-" + rc.Values().Env[constant.ENV_GIT_COMMIT]
+				tag += "-" + rc.GitCommit()
 			}
 		}
 	} else {

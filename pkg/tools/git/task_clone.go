@@ -6,16 +6,18 @@ import (
 	"regexp"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindClone = "clone"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^git(:.+){0,1}:clone$`),
 		func(subMatches []string) interface{} {
 			t := &TaskClone{}
@@ -27,7 +29,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskClone)(nil)
+var _ dukkha.Task = (*TaskClone)(nil)
 
 type TaskClone struct {
 	field.BaseField
@@ -43,10 +45,10 @@ type TaskClone struct {
 	ExtraArgs []string `yaml:"extra_args"`
 }
 
-func (c *TaskClone) ToolKind() string { return ToolKind }
-func (c *TaskClone) TaskKind() string { return TaskKindClone }
+func (c *TaskClone) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskClone) Kind() dukkha.TaskKind     { return TaskKindClone }
 
-func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskClone) GetExecSpecs(rc types.RenderingContext, gitCmd []string) ([]dukkha.TaskExecSpec, error) {
 	if len(c.URL) == 0 {
 		return nil, fmt.Errorf("remote url not set")
 	}
@@ -64,7 +66,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 		localBranch = remoteBranch
 	}
 
-	var steps []tools.TaskExecSpec
+	var steps []dukkha.TaskExecSpec
 	cloneCmd := sliceutils.NewStrings(
 		gitCmd,
 		"clone", "--no-checkout", "--origin", remoteName,
@@ -80,7 +82,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 		cloneCmd = append(cloneCmd, c.Path)
 	}
 
-	steps = append(steps, tools.TaskExecSpec{
+	steps = append(steps, dukkha.TaskExecSpec{
 		Command:     cloneCmd,
 		IgnoreError: false,
 	})
@@ -98,7 +100,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 		localBranch = replaceTargetDefaultBranch
 		remoteBranch = replaceTargetDefaultBranch
 
-		steps = append(steps, tools.TaskExecSpec{
+		steps = append(steps, dukkha.TaskExecSpec{
 			Chdir:           localPath,
 			OutputAsReplace: replaceTargetDefaultBranch,
 
@@ -112,7 +114,7 @@ func (c *TaskClone) GetExecSpecs(ctx *field.RenderingContext, gitCmd []string) (
 	}
 
 	// checkout
-	steps = append(steps, tools.TaskExecSpec{
+	steps = append(steps, dukkha.TaskExecSpec{
 		IgnoreError: false,
 		Chdir:       localPath,
 		Command: sliceutils.NewStrings(

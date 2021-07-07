@@ -4,51 +4,33 @@ import (
 	"bytes"
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const DefaultName = "shell_file"
 
-func init() {
-	renderer.Register(&Config{}, NewDriver)
+func New(getExecSpec dukkha.ExecSpecGetFunc) dukkha.Renderer {
+	return &driver{getExecSpec: getExecSpec}
 }
 
-func NewDriver(config interface{}) (renderer.Interface, error) {
-	cfg, ok := config.(*Config)
-	if !ok {
-		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
-	}
+var _ dukkha.Renderer = (*driver)(nil)
 
-	if cfg.GetExecSpec == nil {
-		return nil, fmt.Errorf("required exec func not set")
-	}
-
-	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
+type driver struct {
+	getExecSpec dukkha.ExecSpecGetFunc
 }
 
-var _ renderer.Config = (*Config)(nil)
+func (d *driver) Name() string { return DefaultName }
 
-type Config struct {
-	GetExecSpec field.ExecSpecGetFunc
-}
-
-var _ renderer.Interface = (*Driver)(nil)
-
-type Driver struct {
-	getExecSpec field.ExecSpecGetFunc
-}
-
-func (d *Driver) Name() string { return DefaultName }
-
-func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
 	scriptPath, ok := rawData.(string)
 	if !ok {
 		return "", fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
 	}
 
 	buf := &bytes.Buffer{}
-	err := renderer.RunShellScript(ctx, scriptPath, true, buf, d.getExecSpec)
+	err := renderer.RunShellScript(rc, scriptPath, true, buf, d.getExecSpec)
 	if err != nil {
 		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
 	}

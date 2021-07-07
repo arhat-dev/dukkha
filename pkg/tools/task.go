@@ -2,128 +2,47 @@ package tools
 
 import (
 	"fmt"
-	"io"
-	"reflect"
 	"sync"
-	"time"
 
-	"github.com/fatih/color"
-
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/matrix"
+	"arhat.dev/dukkha/pkg/types"
 )
-
-// TaskType for interface type registration
-var TaskType = reflect.TypeOf((*Task)(nil)).Elem()
-
-type TaskExecSpec struct {
-	// Delay execution
-	Delay time.Duration
-
-	// OutputAsReplace to replace same string in following TaskExecSpecs
-	OutputAsReplace string
-
-	FixOutputForReplace func(newValue []byte) []byte
-
-	Chdir string
-
-	Env     []string
-	Command []string
-
-	AlterExecFunc func(
-		replace map[string][]byte,
-		stdin io.Reader, stdout, stderr io.Writer,
-	) ([]TaskExecSpec, error)
-
-	Stdin io.Reader
-
-	IgnoreError bool
-}
-
-type Task interface {
-	field.Interface
-
-	// Kind of the tool managing this task (e.g. docker)
-	ToolKind() string
-
-	// Name of the tool managing this task (e.g. my-tool)
-	ToolName() string
-
-	// Kind of the task (e.g. build)
-	TaskKind() string
-
-	// Name of the task
-	TaskName() string
-
-	// GetMatrixSpecs for matrix build
-	GetMatrixSpecs(
-		ctx *field.RenderingContext,
-		rf field.RenderingFunc,
-		filter map[string][]string,
-	) ([]MatrixSpec, error)
-
-	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(
-		ctx *field.RenderingContext, toolCmd []string,
-	) ([]TaskExecSpec, error)
-
-	RunHooks(
-		ctx *field.RenderingContext,
-		rf field.RenderingFunc,
-		state TaskExecStage,
-		prefix string,
-		prefixColor, outputColor *color.Color,
-		thisTool Tool,
-		allTools map[ToolKey]Tool,
-		allShells map[ToolKey]*BaseTool,
-	) error
-}
 
 type BaseTask struct {
 	field.BaseField
 
-	Name   string       `yaml:"name"`
-	Matrix MatrixConfig `yaml:"matrix"`
-	Hooks  TaskHooks    `yaml:"hooks"`
+	TaskName string              `yaml:"name"`
+	Matrix   matrix.MatrixConfig `yaml:"matrix"`
+	Hooks    TaskHooks           `yaml:"hooks"`
 
-	toolName string `yaml:"-"`
+	toolName dukkha.ToolName `yaml:"-"`
 
 	hookMU sync.Mutex
 }
 
-func (t *BaseTask) ToolName() string        { return t.toolName }
-func (t *BaseTask) SetToolName(name string) { t.toolName = name }
-func (t *BaseTask) TaskName() string        { return t.Name }
+func (t *BaseTask) ToolName() dukkha.ToolName { return t.toolName }
+func (t *BaseTask) SetToolName(name string)   { t.toolName = dukkha.ToolName(name) }
+func (t *BaseTask) Name() dukkha.TaskName     { return dukkha.TaskName(t.TaskName) }
 
-func (t *BaseTask) RunHooks(
-	ctx *field.RenderingContext,
-	rf field.RenderingFunc,
-	state TaskExecStage,
-	prefix string,
-	prefixColor, outputColor *color.Color,
-	thisTool Tool,
-	allTools map[ToolKey]Tool,
-	allShells map[ToolKey]*BaseTool,
-) error {
+func (t *BaseTask) RunHooks(taskCtx dukkha.TaskExecContext, stage dukkha.TaskExecStage) error {
 	t.hookMU.Lock()
 	defer t.hookMU.Unlock()
 
-	return t.Hooks.Run(
-		ctx, rf, state,
-		prefix, prefixColor, outputColor,
-		thisTool, allTools, allShells,
-	)
+	err := t.Hooks.Run(taskCtx, stage)
+	if err != nil {
+		return fmt.Errorf("hook `%s` failed: %w", stage.String(), err)
+	}
+
+	return nil
 }
 
-func (t *BaseTask) GetMatrixSpecs(
-	ctx *field.RenderingContext,
-	rf field.RenderingFunc,
-	filter map[string][]string,
-) ([]MatrixSpec, error) {
-	// resolve matrix config first
-	err := t.ResolveFields(ctx, rf, -1, "Matrix")
+func (t *BaseTask) GetMatrixSpecs(rc types.RenderingContext) ([]matrix.Spec, error) {
+	err := t.ResolveFields(rc, -1, "Matrix")
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
 	}
 
-	return t.Matrix.GetSpecs(filter), nil
+	return t.Matrix.GetSpecs(rc.MatrixFilter()), nil
 }

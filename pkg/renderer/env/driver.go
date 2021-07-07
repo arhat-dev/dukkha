@@ -9,9 +9,10 @@ import (
 	"arhat.dev/pkg/envhelper"
 	"go.uber.org/multierr"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 // nolint:revive
@@ -19,38 +20,19 @@ const (
 	DefaultName = "env"
 )
 
-func init() {
-	renderer.Register(&Config{}, NewDriver)
+func New(getExecSpec dukkha.ExecSpecGetFunc) dukkha.Renderer {
+	return &driver{getExecSpec: getExecSpec}
 }
 
-func NewDriver(config interface{}) (renderer.Interface, error) {
-	cfg, ok := config.(*Config)
-	if !ok {
-		return nil, fmt.Errorf("unexpected non %s renderer config: %T", DefaultName, config)
-	}
+var _ dukkha.Renderer = (*driver)(nil)
 
-	if cfg.GetExecSpec == nil {
-		return nil, fmt.Errorf("required GetExecSpec func not set")
-	}
-
-	return &Driver{getExecSpec: cfg.GetExecSpec}, nil
+type driver struct {
+	getExecSpec dukkha.ExecSpecGetFunc
 }
 
-var _ renderer.Config = (*Config)(nil)
+func (d *driver) Name() string { return DefaultName }
 
-type Config struct {
-	GetExecSpec field.ExecSpecGetFunc
-}
-
-var _ renderer.Interface = (*Driver)(nil)
-
-type Driver struct {
-	getExecSpec field.ExecSpecGetFunc
-}
-
-func (d *Driver) Name() string { return DefaultName }
-
-func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
 	var toExpand string
 
 	switch t := rawData.(type) {
@@ -75,7 +57,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 			toExpand, result,
 			func(name, origin string, at int) string {
 				endAt = at
-				v, ok := ctx.Values().Env[name]
+				v, ok := rc.Env()[name]
 				if ok {
 					return v
 				}
@@ -98,7 +80,7 @@ func (d *Driver) Render(ctx *field.RenderingContext, rawData interface{}) (strin
 				buf := &bytes.Buffer{}
 				err = multierr.Append(err,
 					renderer.RunShellScript(
-						ctx, script, false, buf, d.getExecSpec,
+						rc, script, false, buf, d.getExecSpec,
 					),
 				)
 
@@ -135,7 +117,7 @@ func createEnvExpandFunc(
 		lastAt += thisIdx
 
 		if strings.HasPrefix(origin, "$(") {
-			shellEval, err := tools.ParseBrackets(toExpand[lastAt+2:])
+			shellEval, err := utils.ParseBrackets(toExpand[lastAt+2:])
 			if err != nil {
 				lastAt += len(origin)
 			} else {

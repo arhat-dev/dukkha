@@ -1,63 +1,24 @@
 package file
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/field"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDriver(t *testing.T) {
-	tests := []struct {
-		name      string
-		config    interface{}
-		expectErr bool
-	}{
-		{
-			name:      "Invalid Empty Config",
-			config:    nil,
-			expectErr: true,
-		},
-		{
-			name:      "Invalid Unexpected Config",
-			config:    "foo",
-			expectErr: true,
-		},
-		{
-			name:      "Valid",
-			config:    &Config{},
-			expectErr: false,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			d, err := NewDriver(test.config)
-
-			if test.expectErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.Equal(t, DefaultName, d.Name())
-		})
-	}
+	assert.NotNil(t, New())
 }
 
 func TestDriver_Render(t *testing.T) {
-	d, err := NewDriver(&Config{})
-	if !assert.NoError(t, err, "failed to create driver for test") {
-		return
-	}
+	d := New()
 
 	buf := make([]byte, 32)
-	_, err = rand.Read(buf)
+	_, err := rand.Read(buf)
 	if !assert.NoError(t, err, "failed to generate random bytes") {
 		return
 	}
@@ -80,21 +41,19 @@ func TestDriver_Render(t *testing.T) {
 		return
 	}
 
-	rc := field.WithRenderingValues(context.TODO())
-
 	t.Run("Valid File Exists", func(t *testing.T) {
-		ret, err := d.Render(rc, tempFilePath)
+		ret, err := d.RenderYaml(nil, tempFilePath)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedData, ret)
 	})
 
 	t.Run("Invalid Input Type", func(t *testing.T) {
-		_, err := d.Render(rc, true)
+		_, err := d.RenderYaml(nil, true)
 		assert.Error(t, err)
 	})
 
 	t.Run("Invalid File Not Exists", func(t *testing.T) {
-		_, err := d.Render(rc, randomData)
+		_, err := d.RenderYaml(nil, randomData)
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
 }

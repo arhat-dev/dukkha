@@ -6,17 +6,18 @@ import (
 	"regexp"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindIndex = "index"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^helm(:.+){0,1}:index$`),
 		func(subMatches []string) interface{} {
 			t := &TaskIndex{}
@@ -28,7 +29,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskIndex)(nil)
+var _ dukkha.Task = (*TaskIndex)(nil)
 
 type TaskIndex struct {
 	field.BaseField
@@ -40,17 +41,17 @@ type TaskIndex struct {
 	Merge       string `yaml:"merge"`
 }
 
-func (c *TaskIndex) ToolKind() string { return ToolKind }
-func (c *TaskIndex) TaskKind() string { return TaskKindIndex }
+func (c *TaskIndex) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskIndex) Kind() dukkha.TaskKind     { return TaskKindIndex }
 
-func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskIndex) GetExecSpecs(rc types.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {
 		indexCmd = append(indexCmd, "--url", c.RepoURL)
 	}
 
-	dukkhaWorkingDir := ctx.Values().Env[constant.ENV_DUKKHA_WORKING_DIR]
+	dukkhaWorkingDir := rc.WorkingDir()
 	if len(c.PackagesDir) != 0 {
 		pkgDir, err2 := filepath.Abs(c.PackagesDir)
 		if err2 != nil {
@@ -66,7 +67,7 @@ func (c *TaskIndex) GetExecSpecs(ctx *field.RenderingContext, helmCmd []string) 
 		indexCmd = append(indexCmd, "--merge", c.Merge)
 	}
 
-	return []tools.TaskExecSpec{
+	return []dukkha.TaskExecSpec{
 		{
 			Command: indexCmd,
 		},

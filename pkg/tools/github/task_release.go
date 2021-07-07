@@ -8,17 +8,18 @@ import (
 	"strconv"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
+	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindRelease = "release"
 
 func init() {
 	field.RegisterInterfaceField(
-		tools.TaskType,
+		dukkha.TaskType,
 		regexp.MustCompile(`^github(:.+){0,1}:release$`),
 		func(subMatches []string) interface{} {
 			t := &TaskRelease{}
@@ -30,7 +31,7 @@ func init() {
 	)
 }
 
-var _ tools.Task = (*TaskRelease)(nil)
+var _ dukkha.Task = (*TaskRelease)(nil)
 
 type TaskRelease struct {
 	field.BaseField
@@ -54,10 +55,10 @@ type ReleaseFileSpec struct {
 	Label string `yaml:"label"`
 }
 
-func (c *TaskRelease) ToolKind() string { return ToolKind }
-func (c *TaskRelease) TaskKind() string { return TaskKindRelease }
+func (c *TaskRelease) ToolKind() dukkha.ToolKind { return ToolKind }
+func (c *TaskRelease) Kind() dukkha.TaskKind     { return TaskKindRelease }
 
-func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) ([]tools.TaskExecSpec, error) {
+func (c *TaskRelease) GetExecSpecs(rc types.RenderingContext, ghCmd []string) ([]dukkha.TaskExecSpec, error) {
 	createCmd := sliceutils.NewStrings(
 		ghCmd, "release", "create", c.Tag,
 	)
@@ -77,7 +78,7 @@ func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) 
 	}
 
 	if len(c.Notes) != 0 {
-		cacheDir := ctx.Values().Env[constant.ENV_DUKKHA_CACHE_DIR]
+		cacheDir := rc.CacheDir()
 		f, err := ioutil.TempFile(cacheDir, "github-release-note-*")
 		if err != nil {
 			return nil, fmt.Errorf("failed to create temporary release note file: %w", err)
@@ -116,7 +117,7 @@ func (c *TaskRelease) GetExecSpecs(ctx *field.RenderingContext, ghCmd []string) 
 		}
 	}
 
-	return []tools.TaskExecSpec{{
+	return []dukkha.TaskExecSpec{{
 		Command: createCmd,
 	}}, nil
 }

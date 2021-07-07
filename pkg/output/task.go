@@ -1,29 +1,37 @@
 package output
 
 import (
-	"context"
 	"fmt"
 	"strings"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func WriteTaskStart(
-	ctx context.Context,
-	toolKind, toolName, taskKind, taskName string,
-	matrixSpec string,
+	toolKind dukkha.ToolKind,
+	toolName dukkha.ToolName,
+	taskKind dukkha.TaskKind,
+	taskName dukkha.TaskName,
+	matrixSpec matrix.Spec,
 ) {
 	_, _ = fmt.Println(
 		"---",
 		AssembleTaskKindID(toolKind, toolName, taskKind),
 		"[", taskName, "]",
-		"{", matrixSpec, "}",
+		"{", matrixSpec.String(), "}",
 	)
 }
 
-func AssembleTaskKindID(toolKind, toolName, taskKind string) string {
-	kindParts := []string{toolKind}
+func AssembleTaskKindID(
+	toolKind dukkha.ToolKind,
+	toolName dukkha.ToolName,
+	taskKind dukkha.TaskKind,
+) string {
+	kindParts := []string{string(toolKind)}
 	if len(toolName) != 0 {
-		kindParts = append(kindParts, toolName)
+		kindParts = append(kindParts, string(toolName))
 	}
 
-	return strings.Join(append(kindParts, taskKind), ":")
+	return strings.Join(append(kindParts, string(taskKind)), ":")
 }

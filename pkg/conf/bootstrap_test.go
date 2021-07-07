@@ -99,12 +99,13 @@ func TestBootstrapResolve(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			emptyGlobalEnv := make(map[string]string)
 			if test.expectError {
-				assert.Error(t, test.config.Resolve())
+				assert.Error(t, test.config.Resolve(&emptyGlobalEnv))
 				return
 			}
 
-			if !assert.NoError(t, test.config.Resolve()) {
+			if !assert.NoError(t, test.config.Resolve(&emptyGlobalEnv)) {
 				return
 			}
 
