@@ -21,10 +21,6 @@ type TaskReference struct {
 	MatrixFilter map[string][]string
 }
 
-func (r *TaskReference) HasToolName() bool {
-	return len(r.ToolName) != 0
-}
-
 // ParseTaskReference parse task ref
 //
 // <tool-kind>{:<tool-name>}:<task-kind>(<task-name>, ...)
@@ -32,7 +28,7 @@ func (r *TaskReference) HasToolName() bool {
 // e.g. buildah:bud(dukkha) # use default matrix
 // 		buildah:bud(dukkha, {kernel: [linux]}) # use custom matrix
 //		buildah:in-docker:bud(dukkha, {kernel: [linux]}) # with tool-name
-func ParseTaskReference(taskRef string) (*TaskReference, error) {
+func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReference, error) {
 	callStart := strings.IndexByte(taskRef, '(')
 	if callStart < 0 {
 		return nil, fmt.Errorf("missing task call `()`")
@@ -64,6 +60,19 @@ func ParseTaskReference(taskRef string) (*TaskReference, error) {
 
 	switch len(parts) {
 	case 2:
+		// no tool name set, use the tool with same name
+		// no matter what kind the tool is
+		//
+		// current task
+		// 		buildah:in-docker:bud
+		// has task reference in hook:
+		// 		buildah:login(foo)    	# same kind
+		// 		golang:build(bar)		# different kind
+		// will actually be treated as
+		// 		buildah:in-docker:login(foo)	# same kind
+		//		golang:in-docker:build(bar)		# different kind
+
+		ref.ToolName = defaultToolName
 		ref.TaskKind = TaskKind(parts[1])
 	case 3:
 		ref.ToolName = ToolName(parts[1])

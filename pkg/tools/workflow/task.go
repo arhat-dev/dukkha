@@ -41,7 +41,7 @@ func (w *TaskRun) GetExecSpecs(rc types.RenderingContext, _ []string) ([]dukkha.
 	for i, job := range w.Jobs {
 		if len(job.Task) != 0 {
 			// do task
-			ref, err := dukkha.ParseTaskReference(job.Task)
+			ref, err := dukkha.ParseTaskReference(job.Task, "")
 			if err != nil {
 				return nil, fmt.Errorf("invalid task reference at job#%d: %w", i, err)
 			}
