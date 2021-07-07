@@ -38,9 +38,9 @@ func (c *mutableValues) clone() *mutableValues {
 	defer c.mu.RUnlock()
 
 	if len(c.matrixFilter) != 0 {
-		c.matrixFilter = make(map[string][]string)
+		newValues.matrixFilter = make(map[string][]string)
 		for k, v := range c.matrixFilter {
-			c.matrixFilter[k] = sliceutils.NewStrings(v)
+			newValues.matrixFilter[k] = sliceutils.NewStrings(v)
 		}
 	}
 

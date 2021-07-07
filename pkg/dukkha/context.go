@@ -185,21 +185,23 @@ func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
 
 		Stdin: os.Stdin,
 		Stderr: utils.PrefixWriter(
-			c.OutputPrefix(), c.PrefixColor(),
-			c.OutputColor(), os.Stderr,
+			c.OutputPrefix(),
+			c.PrefixColor(), c.OutputColor(),
+			os.Stderr,
 		),
 		Stdout: utils.PrefixWriter(
-			c.OutputPrefix(), c.PrefixColor(),
-			c.OutputColor(), os.Stdout,
+			c.OutputPrefix(),
+			c.PrefixColor(), c.OutputColor(),
+			os.Stdout,
 		),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to run script: %w", err)
 	}
 
-	code, err := p.Wait()
+	_, err = p.Wait()
 	if err != nil {
-		return fmt.Errorf("command exited with code %d: %w", code, err)
+		return fmt.Errorf("shell script exited with error: %w", err)
 	}
 
 	return nil
