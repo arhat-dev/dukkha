@@ -93,15 +93,17 @@ func CreateFetchFunc(
 				}
 			}
 			// fetch from remote
-		} else {
+		} else if len(entries) > 0 {
 			start := sort.Search(len(entries), func(i int) bool {
 				return strings.HasPrefix(entries[i].Name(), localCacheFilePrefix)
 			})
 
 			if start >= 0 {
-				latestAt := start + 1
-				for latestAt < len(entries) && strings.HasPrefix(entries[latestAt].Name(), localCacheFilePrefix) {
-					latestAt++
+				latestAt := start
+				for ; latestAt+1 < len(entries); latestAt++ {
+					if !strings.HasPrefix(entries[latestAt+1].Name(), localCacheFilePrefix) {
+						break
+					}
 				}
 
 				for _, info := range entries[start:latestAt] {
@@ -144,7 +146,7 @@ func CreateFetchFunc(
 		// pad timestamp to get sorted by os.ReadDir
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		// int64 can have at most 20 digits
-		timestamp = strings.Repeat("0", 20-len(timestamp))
+		timestamp = strings.Repeat("0", 20-len(timestamp)) + timestamp
 
 		localCacheFile := filepath.Join(
 			localCacheDir,
