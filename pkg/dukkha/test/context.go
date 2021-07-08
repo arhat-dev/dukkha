@@ -13,15 +13,15 @@ var _ dukkha.Renderer = (*echoRenderer)(nil)
 
 type echoRenderer struct{}
 
-func (*echoRenderer) RenderYaml(rc types.RenderingContext, rawData interface{}) (result string, err error) {
+func (*echoRenderer) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
 	switch t := rawData.(type) {
 	case string:
-		return t, nil
+		return []byte(t), nil
 	case []byte:
-		return string(t), nil
+		return t, nil
 	default:
 		data, err := yaml.Marshal(rawData)
-		return string(data), err
+		return data, err
 	}
 }
 

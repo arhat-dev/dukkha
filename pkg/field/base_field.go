@@ -9,8 +9,6 @@ import (
 
 	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/types"
 )
 
 type (
@@ -47,7 +45,7 @@ type BaseField struct {
 
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
 
-	ifaceTypeHandler types.InterfaceTypeHandler
+	ifaceTypeHandler InterfaceTypeHandler
 }
 
 // UnmarshalYAML handles renderer suffix
@@ -160,7 +158,7 @@ fieldLoop:
 				}
 
 				base := self
-				fVal, canCallInit := iface.(types.Field)
+				fVal, canCallInit := iface.(Field)
 				if canCallInit {
 					innerBaseF := reflect.ValueOf(Init(fVal, base.ifaceTypeHandler)).Elem().Field(0)
 
@@ -384,7 +382,7 @@ func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
 		return
 	}
 
-	iface, canCallInit := fieldValue.Addr().Interface().(types.Field)
+	iface, canCallInit := fieldValue.Addr().Interface().(Field)
 	if canCallInit {
 		_ = Init(iface, self.ifaceTypeHandler)
 	}
@@ -493,7 +491,7 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 		out = outField.Interface()
 	}
 
-	fVal, canCallInit := out.(types.Field)
+	fVal, canCallInit := out.(Field)
 	if canCallInit {
 		_ = Init(fVal, self.ifaceTypeHandler)
 	}

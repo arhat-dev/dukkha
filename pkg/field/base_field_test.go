@@ -1,15 +1,38 @@
 package field
 
 import (
-	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
+
+var _ RenderingHandler = (*testRenderingHandler)(nil)
+
+type testRenderingHandler struct{}
+
+func (h *testRenderingHandler) RenderYaml(r string, d interface{}) (result []byte, err error) {
+	switch r {
+	case "echo":
+		switch t := d.(type) {
+		case string:
+			return []byte(t), nil
+		case []byte:
+			return t, nil
+		}
+
+		data, err := yaml.Marshal(d)
+		return data, err
+	case "err":
+		return nil, fmt.Errorf("always error")
+	case "empty":
+		return []byte{}, nil
+	}
+
+	panic("unexpected renderer name")
+}
 
 func TestBaseField_UnmarshalYAML(t *testing.T) {
 	tests := []struct {
@@ -109,6 +132,8 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 		} `yaml:"deep"`
 	}
 
+	rh := &testRenderingHandler{}
+
 	t.Run("struct", func(t *testing.T) {
 		type T struct {
 			BaseField
@@ -130,8 +155,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 		assert.Len(t, out.Foo.BaseField.unresolvedFields, 0)
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 
-		rv := dukkha_test.NewTestContext(context.TODO())
-		out.ResolveFields(rv, -1, "")
+		out.ResolveFields(rh, -1, "")
 
 		assert.EqualValues(t, "rendered-bar", out.Foo.Foo)
 	})

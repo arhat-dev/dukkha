@@ -10,7 +10,7 @@ import (
 
 // Renderer to handle rendering suffix
 type Renderer interface {
-	RenderYaml(rc types.RenderingContext, rawData interface{}) (result string, err error)
+	RenderYaml(rc types.RenderingContext, rawData interface{}) (result []byte, err error)
 }
 
 // RendererManager to manage renderers
@@ -61,10 +61,10 @@ func (c *contextRendering) Env() map[string]string {
 	return c.mutableValues.env
 }
 
-func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) (string, error) {
+func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
 	v, ok := c.renderers.Load(renderer)
 	if !ok {
-		return "", fmt.Errorf("renderer %q not found", renderer)
+		return nil, fmt.Errorf("renderer %q not found", renderer)
 	}
 
 	return v.(Renderer).RenderYaml(c, rawData)

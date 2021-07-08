@@ -32,7 +32,7 @@ type driver struct {
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
 	var toExpand string
 
 	switch t := rawData.(type) {
@@ -43,7 +43,7 @@ func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (str
 	default:
 		dataBytes, err := renderer.ToYamlBytes(rawData)
 		if err != nil {
-			return "", fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+			return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
 		}
 		toExpand = string(dataBytes)
 	}
@@ -89,12 +89,12 @@ func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (str
 		),
 	)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
 	}
 
 	result.WriteString(toExpand[endAt:])
 
-	return result.String(), nil
+	return result.Bytes(), nil
 }
 
 func createEnvExpandFunc(

@@ -31,25 +31,25 @@ type driver struct{}
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
 	tplBytes, err := renderer.ToYamlBytes(rawData)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
 	}
 
 	tplStr := string(tplBytes)
 	tpl, err := newTemplate(rc).Parse(tplStr)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
+		return nil, fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
 	}
 
 	buf := &bytes.Buffer{}
 	err = tpl.Execute(buf, rc)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
+		return nil, fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
 	}
 
-	return buf.String(), nil
+	return buf.Bytes(), nil
 }
 
 func newTemplate(rc types.RenderingContext) *template.Template {
