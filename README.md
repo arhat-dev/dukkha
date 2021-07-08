@@ -28,11 +28,6 @@ A typical build automation tool only take one or two from the above, but we'd ta
 - Customizable task matrix execution everywhere
 - Shell completion for tools, tasks and task matrix
 
-## Known Limitations
-
-- Rendering suffix:
-  - Cannot render the value when applied in yaml file to a map key (in source code), see [#22](https://github.com/arhat-dev/dukkha/issues/22)
-
 ## LICENSE
 
 ```text
