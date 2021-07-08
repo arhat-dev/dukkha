@@ -153,8 +153,10 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 		appCtx.AddShell(string(v.Name()), c.Shells[i])
 	}
 
-	logger.D("resolving essential renderers", log.Int("count", len(c.Renderers)))
 	essentialRenderers := appCtx.AllRenderers()
+	logger.D("initializing essential renderers",
+		log.Int("count", len(essentialRenderers)),
+	)
 	for name, r := range essentialRenderers {
 		// using default config, no need to resolve fields
 
@@ -175,12 +177,16 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 		if err != nil {
 			return fmt.Errorf("failed to resolve config for renderer %q: %w", name, err)
 		}
+	}
 
+	logger.D("initializing user renderers", log.Int("count", len(c.Renderers)))
+	for name, r := range c.Renderers {
 		err = r.Init(appCtx)
 		if err != nil {
 			return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
 		}
 	}
+	logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
 
 	logger.V("groupping tasks by tool")
 	for _, tasks := range c.Tasks {
