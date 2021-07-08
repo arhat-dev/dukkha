@@ -5,6 +5,7 @@ go 1.16
 require (
 	arhat.dev/pkg v0.5.8
 	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/die-net/lrucache v0.0.0-20190707192454-883874fe3947
 	github.com/fatih/color v1.12.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.2
