@@ -30,33 +30,16 @@ type driver struct {
 
 	renderer.CacheConfig `yaml:",inline"`
 
-	fetch renderer.CacheRefreshFunc
 	cache *renderer.Cache
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	d.fetch = renderer.CreateFetchFunc(
-		ctx.CacheDir(), DefaultName, d.CacheMaxAge,
-		func(url string) ([]byte, error) {
-			// TODO: support more http features
-			resp, err := http.Get(url)
-			if err != nil {
-				return nil, err
-			}
-
-			respBody, err := io.ReadAll(resp.Body)
-			_ = resp.Body.Close()
-			if err != nil {
-				return nil, err
-			}
-
-			return respBody, nil
-		},
-	)
-
 	if d.EnableCache {
 		d.cache = renderer.NewCache(
-			int64(d.CacheSizeLimit), d.CacheMaxAge, d.fetch,
+			int64(d.CacheSizeLimit), d.CacheMaxAge,
+			renderer.CreateFetchFunc(
+				ctx.CacheDir(), DefaultName, d.CacheMaxAge, d.fetchRemote,
+			),
 		)
 	}
 
@@ -78,7 +61,7 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	if d.cache != nil {
 		data, err = d.cache.Get(path)
 	} else {
-		data, err = d.fetch(path)
+		data, err = d.fetchRemote(path)
 	}
 
 	if err != nil {
@@ -86,4 +69,20 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	}
 
 	return data, err
+}
+
+func (d *driver) fetchRemote(url string) ([]byte, error) {
+	// TODO: support more http features
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return respBody, nil
 }
