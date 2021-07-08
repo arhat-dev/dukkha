@@ -1,0 +1,129 @@
+- name: dukkha-local
+  matrix: &test_matrix
+    kernel:
+    - linux
+    - darwin
+    - windows
+    arch:
+    - x86
+    - arm64
+    - amd64
+    - armv7
+    - armv6
+    - armv5
+  path: ./cmd/dukkha
+  outputs: [build/dukkha-local]
+
+- name: dukkha
+  path: ./cmd/dukkha
+  env:
+  - CGO_CFLAGS_ALLOW="-W"
+  hooks:
+    before:matrix:
+    - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
+  cgo:
+    enabled: false
+    host_cc: gcc
+    host_cxx: g++
+
+    # target_cc and target_cxx will be set automatically for cross compiling when using cgo
+    # and of course you can customize
+
+    # target_cc@template: |-
+    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #   {{- else if eq .Env.HOST_OS "alpine" -}}
+    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- get -}}
+    #   -gcc
+
+    # target_cxx@template: |-
+    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #   {{- else if eq .Env.HOST_OS "alpine" -}}
+    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- get -}}
+    #   -g++
+
+    cflags@shell: |-
+      cat <<EOF
+      - -I/usr/include/glib-2.0
+      - -I/usr/include
+      EOF
+    ldflags@shell: |-
+      cat <<EOF
+      EOF
+  matrix:
+    kernel:
+    - windows
+    - linux
+    - freebsd
+    - netbsd
+    - openbsd
+    - plan9
+    arch:
+    - x86
+    - arm64
+    - amd64
+    - armv7
+    - armv6
+    - armv5
+    exclude:
+    - kernel:
+      - windows
+      - plan9
+      arch: [arm64]
+    include:
+    - kernel:
+      - darwin
+      arch:
+      - arm64
+      - amd64
+    - kernel:
+      - solaris
+      - dragonfly
+      arch: [amd64]
+    - kernel:
+      - aix
+      - linux
+      arch: [ppc64]
+    - kernel:
+      - linux
+      arch:
+      - mips
+      - mipshf
+      - mipsle
+      - mipslehf
+      - mips64
+      - mips64hf
+      - mips64le
+      - mips64lehf
+      - ppc64le
+      - s390x
+      - riscv64
+  tags:
+  - nokube
+  - nocloud
+  - netgo
+  ldflags:
+  - -X arhat.dev/dukkha/pkg/version.branch="${GIT_BRANCH}"
+  - -X arhat.dev/dukkha/pkg/version.commit="${GIT_COMMIT}"
+  - -X arhat.dev/dukkha/pkg/version.tag="${GIT_TAG}"
+  - -X arhat.dev/dukkha/pkg/version.arch="${MATRIX_ARCH}"
+  - -X arhat.dev/dukkha/pkg/version.workspaceClean="${GIT_WORKTREE_CLEAN}"
+  - -X arhat.dev/dukkha/pkg/version.goCompilerPlatform="$(go version | cut -d\  -f4)"
+  outputs@shell: |-
+    suffix=""
+    if [ "${MATRIX_KERNEL}" = "windows" ]; then
+      suffix="${suffix}.exe"
+    fi
+
+    if [ "${MATRIX_KERNEL}" = "${HOST_KERNEL}" ] && [ "${MATRIX_ARCH}" = "${HOST_ARCH}" ]; then
+      echo "- build/dukkha${suffix}"
+    fi
+
+    echo "- build/dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}${suffix}"
+  extra_args:
+  - -buildmode=default
+  - -mod=vendor
+  - -trimpath
