@@ -25,6 +25,9 @@ import (
 	"arhat.dev/dukkha/pkg/cmd"
 	"arhat.dev/dukkha/pkg/version"
 
+	// Add extra renderers
+	_ "arhat.dev/dukkha/pkg/renderer/http"
+
 	// Add tools
 	_ "arhat.dev/dukkha/pkg/tools/buildah"
 	_ "arhat.dev/dukkha/pkg/tools/docker"
