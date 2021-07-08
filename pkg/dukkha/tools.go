@@ -26,8 +26,6 @@ type Tool interface {
 }
 
 type ToolManager interface {
-	ToolUser
-
 	AddTool(kind ToolKind, name ToolName, impl Tool)
 }
 

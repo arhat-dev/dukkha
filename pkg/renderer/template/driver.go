@@ -14,21 +14,36 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
 const DefaultName = "template"
 
-func New() dukkha.Renderer {
+func init() {
+	dukkha.RegisterRenderer(
+		DefaultName,
+		func() dukkha.Renderer {
+			return NewDefault()
+		},
+	)
+}
+
+func NewDefault() dukkha.Renderer {
 	return &driver{}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
-type driver struct{}
+type driver struct {
+	field.BaseField
+}
 
-func (d *driver) Name() string { return DefaultName }
+func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
+	ctx.AddRenderer(DefaultName, d)
+	return nil
+}
 
 func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	tplBytes, err := renderer.ToYamlBytes(rawData)

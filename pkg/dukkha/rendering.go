@@ -3,7 +3,6 @@ package dukkha
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"arhat.dev/dukkha/pkg/field"
 )
@@ -21,12 +20,18 @@ type RenderingContext interface {
 
 // Renderer to handle rendering suffix
 type Renderer interface {
+	field.Field
+
+	// Init the renderer and add itself to the context
+	Init(ctx ConfigResolvingContext) error
+
 	RenderYaml(rc RenderingContext, rawData interface{}) (result []byte, err error)
 }
 
 // RendererManager to manage renderers
 type RendererManager interface {
-	AddRenderer(renderer Renderer, names ...string) error
+	AllRenderers() map[string]Renderer
+	AddRenderer(name string, renderer Renderer)
 }
 
 func newContextRendering(ctx context.Context, globalEnv map[string]string) *contextRendering {
@@ -36,7 +41,7 @@ func newContextRendering(ctx context.Context, globalEnv map[string]string) *cont
 		immutableValues: newContextImmutableValues(globalEnv),
 		mutableValues:   newContextMutableValues(),
 
-		renderers: new(sync.Map),
+		renderers: make(map[string]Renderer),
 	}
 }
 
@@ -51,7 +56,7 @@ type contextRendering struct {
 	*mutableValues
 	*immutableValues
 
-	renderers *sync.Map
+	renderers map[string]Renderer
 }
 
 func (c *contextRendering) clone(newCtx context.Context) *contextRendering {
@@ -73,7 +78,7 @@ func (c *contextRendering) Env() map[string]string {
 }
 
 func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
-	v, ok := c.renderers.Load(renderer)
+	v, ok := c.renderers[renderer]
 	if !ok {
 		return nil, fmt.Errorf("renderer %q not found", renderer)
 	}
@@ -81,10 +86,10 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 	return v.(Renderer).RenderYaml(c, rawData)
 }
 
-func (c *contextRendering) AddRenderer(renderer Renderer, names ...string) error {
-	for _, name := range names {
-		c.renderers.Store(name, renderer)
-	}
+func (c *contextRendering) AddRenderer(name string, renderer Renderer) {
+	c.renderers[name] = renderer
+}
 
-	return nil
+func (c *contextRendering) AllRenderers() map[string]Renderer {
+	return c.renderers
 }
