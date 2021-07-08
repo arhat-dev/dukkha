@@ -31,7 +31,7 @@ var (
 func RegisterRenderer(name string, create RendererCreateFunc) {
 	globalTypeManager.register(
 		rendererType,
-		regexp.MustCompile(`^%s(:.+)?$`),
+		regexp.MustCompile(fmt.Sprintf(`^%s$`, name)),
 		func(subMatches []string) interface{} {
 			return create()
 		},

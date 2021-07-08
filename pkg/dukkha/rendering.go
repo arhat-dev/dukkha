@@ -86,8 +86,8 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 	return v.RenderYaml(c, rawData)
 }
 
-func (c *contextRendering) AddRenderer(name string, renderer Renderer) {
-	c.renderers[name] = renderer
+func (c *contextRendering) AddRenderer(name string, r Renderer) {
+	c.renderers[name] = r
 }
 
 func (c *contextRendering) AllRenderers() map[string]Renderer {

@@ -436,7 +436,11 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 			}
 
 			val := reflect.ValueOf(fVal)
-			outField.Set(val)
+			if outField.CanSet() {
+				outField.Set(val)
+			} else {
+				outField.Elem().Set(val)
+			}
 
 			// DO NOT use outField directly, which will always match reflect.Interface
 			return self.unmarshal(yamlKey, in, val, keepOld)
