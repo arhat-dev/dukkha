@@ -187,6 +187,7 @@ func initDukkha(
 	appCtx := dukkha.NewConfigResolvingContext(
 		appBaseCtx, globalEnv,
 		config.Bootstrap.GetExecSpec,
+		dukkha.GlobalInterfaceTypeHandler,
 		failFast, workers,
 	)
 

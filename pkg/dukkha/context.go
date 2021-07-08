@@ -8,6 +8,7 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -90,6 +91,7 @@ func NewConfigResolvingContext(
 	parent context.Context,
 	globalEnv map[string]string,
 	bootstrapExecGen ExecSpecGetFunc,
+	ifaceTypeHandler field.InterfaceTypeHandler,
 	failFast bool,
 	workers int,
 ) ConfigResolvingContext {
@@ -104,7 +106,9 @@ func NewConfigResolvingContext(
 		contextTasks:  newContextTasks(),
 		contextExec:   newContextExec(),
 
-		contextRendering: newContextRendering(ctxStd.ctx, globalEnv),
+		contextRendering: newContextRendering(
+			ctxStd.ctx, globalEnv, ifaceTypeHandler,
+		),
 
 		failFast: failFast,
 		workers:  workers,

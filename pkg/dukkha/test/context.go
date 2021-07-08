@@ -42,7 +42,10 @@ func NewTestContext(ctx context.Context) dukkha.Context {
 
 func NewTestContextWithGlobalEnv(ctx context.Context, globalEnv map[string]string) dukkha.Context {
 	d := dukkha.NewConfigResolvingContext(
-		ctx, globalEnv, testBootstrapExec, true, 1,
+		ctx, globalEnv,
+		testBootstrapExec,
+		dukkha.GlobalInterfaceTypeHandler,
+		true, 1,
 	)
 	d.AddRenderer("echo", &echoRenderer{})
 
