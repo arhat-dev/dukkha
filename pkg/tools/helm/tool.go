@@ -9,9 +9,7 @@ import (
 const ToolKind = "helm"
 
 func init() {
-	dukkha.RegisterTool(ToolKind, func() dukkha.Tool {
-		return &Tool{}
-	})
+	dukkha.RegisterTool(ToolKind, func() dukkha.Tool { return &Tool{} })
 }
 
 var _ dukkha.Tool = (*Tool)(nil)
