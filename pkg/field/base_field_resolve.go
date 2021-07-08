@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"sync/atomic"
 
-	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,44 +17,21 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName stri
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
 
-	if depth == 0 {
+	if depth == 0 || !f.HasUnresolvedField() {
 		return nil
 	}
 
 	structName := f._parentValue.Type().String()
-	logger := log.Log.WithName("BaseField").
-		WithFields(
-			log.String("func", "Render"),
-			log.String("struct", structName),
-		)
 
 	if len(fieldName) != 0 {
-		// has target field
-		logger = logger.WithFields(
-			log.String("target", fieldName),
-		)
-
-		logger.D("trying to resolve specified single field")
+		// to resolve specific field
 		for k, v := range f.unresolvedFields {
-			logger.V("looking up unresolved fields",
-				log.String("met", k.fieldName),
-			)
-
 			if k.fieldName != fieldName {
 				continue
 			}
 
-			logger = logger.WithFields(
-				log.String("field", k.fieldName),
-				log.String("type", v.fieldValue.Type().String()),
-				log.String("yaml_field", v.yamlFieldName),
-			)
-
-			logger.D("resolving specified single field")
-
 			return f.resolveSingleField(
 				rc,
-				logger,
 				depth,
 				structName,
 
@@ -66,26 +42,21 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName stri
 			)
 		}
 
-		logger.V("no such unresolved target single field")
-
 		return nil
 	}
 
-	logger.D("resolving all fields",
-		log.Int("count", len(f.unresolvedFields)),
-	)
+	for k, v := range f.unresolvedFields {
+		err := f.resolveSingleField(rc, depth, structName, k.fieldName, k.renderer, v)
+		if err != nil {
+			return err
+		}
+	}
 
-	return f.resolveAllFields(
-		rc,
-		logger,
-		depth,
-		structName,
-	)
+	return nil
 }
 
 func (f *BaseField) resolveSingleField(
 	rc RenderingHandler,
-	logger log.Interface,
 	depth int,
 
 	structName string, // to make error message helpful
@@ -130,18 +101,16 @@ func (f *BaseField) resolveSingleField(
 		var tmp interface{}
 		err = yaml.Unmarshal(resolvedValue, &tmp)
 		if err != nil {
-			logger.V("failed to unmarshal resolved value as interface",
-				log.String("value", string(resolvedValue)),
+			return fmt.Errorf(
+				"field: failed to unmarshal resolved value to interface: %w",
+				err,
 			)
-			return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
 		}
 
 		err = f.unmarshal(v.yamlFieldName, tmp, target, i != 0)
 		if err != nil {
 			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
 		}
-
-		logger.V("resolved field", log.Any("value", target))
 	}
 
 	if depth > 1 || depth < 0 {
@@ -155,40 +124,6 @@ func (f *BaseField) resolveSingleField(
 		)
 		if err != nil {
 			return fmt.Errorf("failed to resolve inner field: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (f *BaseField) resolveAllFields(
-	rc RenderingHandler,
-	logger log.Interface,
-	depth int,
-	structName string, // to make error message helpful
-) error {
-	for k, v := range f.unresolvedFields {
-		logger := logger.WithFields(
-			log.String("field", k.fieldName),
-			log.String("type", v.fieldValue.Type().String()),
-			log.String("yaml_field", v.yamlFieldName),
-		)
-
-		logger.V("resolving single field", log.Any("values", rc))
-
-		err := f.resolveSingleField(
-			rc,
-			logger,
-			depth,
-
-			structName,
-			k.fieldName,
-
-			k.renderer,
-			v,
-		)
-		if err != nil {
-			return err
 		}
 	}
 
