@@ -25,20 +25,20 @@ func (d *driver) Name() string {
 	return DefaultName
 }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
 	path, ok := rawData.(string)
 	if !ok {
-		return "", fmt.Errorf("renderer.%s: unexpected non string input %T", DefaultName, rawData)
+		return nil, fmt.Errorf("renderer.%s: unexpected non string input %T", DefaultName, rawData)
 	}
 
 	tplBytes, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to read template file: %w", DefaultName, err)
+		return nil, fmt.Errorf("renderer.%s: failed to read template file: %w", DefaultName, err)
 	}
 
 	result, err := d.impl.RenderYaml(rc, tplBytes)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: failed to render file %q: %w", DefaultName, path, err)
+		return nil, fmt.Errorf("renderer.%s: failed to render file %q: %w", DefaultName, path, err)
 	}
 
 	return result, nil

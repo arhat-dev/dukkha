@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"regexp"
 
-	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type (
@@ -17,7 +17,7 @@ var globalTypeManager = &typeManager{
 	types: make(map[ifaceTypeKey]*ifaceFactory),
 }
 
-var GlobalInterfaceTypeHandler types.InterfaceTypeHandler = globalTypeManager
+var GlobalInterfaceTypeHandler field.InterfaceTypeHandler = globalTypeManager
 
 // type values for interface type registration
 var (
@@ -67,7 +67,7 @@ type (
 	}
 )
 
-var _ types.InterfaceTypeHandler = (*typeManager)(nil)
+var _ field.InterfaceTypeHandler = (*typeManager)(nil)
 
 type typeManager struct {
 	types map[ifaceTypeKey]*ifaceFactory

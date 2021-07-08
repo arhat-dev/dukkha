@@ -1,7 +1,7 @@
 package dukkha
 
 import (
-	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type (
@@ -11,7 +11,7 @@ type (
 
 // nolint:revive
 type Tool interface {
-	types.Field
+	field.Field
 
 	// Kind of the tool, e.g. golang, docker
 	Kind() ToolKind

@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"arhat.dev/dukkha/pkg/types"
 )
 
-var _ types.Field = (*testFieldStruct)(nil)
+var _ Field = (*testFieldStruct)(nil)
 
 type testFieldStruct struct {
 	BaseField
@@ -32,7 +30,7 @@ func TestInit(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		targetType  types.Field
+		targetType  Field
 		panicOnInit bool
 
 		getBaseFieldParentValue func() reflect.Value

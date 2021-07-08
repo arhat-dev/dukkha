@@ -3,8 +3,6 @@ package field
 import (
 	"reflect"
 	"sync/atomic"
-
-	"arhat.dev/dukkha/pkg/types"
 )
 
 var (
@@ -20,7 +18,7 @@ var (
 //
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
-func Init(in types.Field, h types.InterfaceTypeHandler) types.Field {
+func Init(in Field, h InterfaceTypeHandler) Field {
 	v := reflect.ValueOf(in)
 	switch v.Kind() {
 	case reflect.Struct:

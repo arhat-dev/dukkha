@@ -1,6 +1,10 @@
 package types
 
-import "context"
+import (
+	"context"
+
+	"arhat.dev/dukkha/pkg/field"
+)
 
 type RenderingContext interface {
 	context.Context
@@ -10,7 +14,7 @@ type RenderingContext interface {
 
 	Env() map[string]string
 
-	RenderYaml(renderer string, rawData interface{}) (result string, err error)
+	field.RenderingHandler
 }
 
 type ImmutableValues interface {

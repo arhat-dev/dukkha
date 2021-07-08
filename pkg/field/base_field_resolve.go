@@ -7,15 +7,13 @@ import (
 
 	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/types"
 )
 
 func (f *BaseField) HasUnresolvedField() bool {
 	return len(f.unresolvedFields) != 0
 }
 
-func (f *BaseField) ResolveFields(rc types.RenderingContext, depth int, fieldName string) error {
+func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName string) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
@@ -86,7 +84,7 @@ func (f *BaseField) ResolveFields(rc types.RenderingContext, depth int, fieldNam
 }
 
 func (f *BaseField) resolveSingleField(
-	rc types.RenderingContext,
+	rc RenderingHandler,
 	logger log.Interface,
 	depth int,
 
@@ -125,15 +123,15 @@ func (f *BaseField) resolveSingleField(
 
 		if target.Type() == stringPtrType {
 			// resolved value is the target value
-			target.Elem().SetString(resolvedValue)
+			target.Elem().SetString(string(resolvedValue))
 			continue
 		}
 
 		var tmp interface{}
-		err = yaml.Unmarshal([]byte(resolvedValue), &tmp)
+		err = yaml.Unmarshal(resolvedValue, &tmp)
 		if err != nil {
 			logger.V("failed to unmarshal resolved value as interface",
-				log.String("value", resolvedValue),
+				log.String("value", string(resolvedValue)),
 			)
 			return fmt.Errorf("field: failed to unmarshal resolved value to interface: %w", err)
 		}
@@ -147,7 +145,7 @@ func (f *BaseField) resolveSingleField(
 	}
 
 	if depth > 1 || depth < 0 {
-		innerF, canCallResolve := target.Interface().(types.Field)
+		innerF, canCallResolve := target.Interface().(Field)
 		if !canCallResolve {
 			return nil
 		}
@@ -164,7 +162,7 @@ func (f *BaseField) resolveSingleField(
 }
 
 func (f *BaseField) resolveAllFields(
-	rc types.RenderingContext,
+	rc RenderingHandler,
 	logger log.Interface,
 	depth int,
 	structName string, // to make error message helpful
@@ -253,7 +251,7 @@ func (f *BaseField) addUnresolvedField(
 		iface = fieldValue.Addr().Interface()
 	}
 
-	fVal, canCallInit := iface.(types.Field)
+	fVal, canCallInit := iface.(Field)
 	if canCallInit {
 		_ = Init(fVal, f.ifaceTypeHandler)
 	}

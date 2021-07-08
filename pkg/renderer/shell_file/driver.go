@@ -23,17 +23,17 @@ type driver struct {
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
 	scriptPath, ok := rawData.(string)
 	if !ok {
-		return "", fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
+		return nil, fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
 	}
 
 	buf := &bytes.Buffer{}
 	err := renderer.RunShellScript(rc, scriptPath, true, buf, d.getExecSpec)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
 	}
 
-	return buf.String(), nil
+	return buf.Bytes(), nil
 }

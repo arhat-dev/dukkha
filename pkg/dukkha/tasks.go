@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/dukkha/pkg/utils"
 )
@@ -140,7 +141,7 @@ type TaskExecSpec struct {
 }
 
 type Task interface {
-	types.Field
+	field.Field
 
 	// Kind of the tool managing this task (e.g. docker)
 	ToolKind() ToolKind

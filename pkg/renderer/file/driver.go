@@ -23,16 +23,16 @@ type driver struct{}
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(_ types.RenderingContext, rawData interface{}) (string, error) {
+func (d *driver) RenderYaml(_ types.RenderingContext, rawData interface{}) ([]byte, error) {
 	path, ok := rawData.(string)
 	if !ok {
-		return "", fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
+		return nil, fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
 	}
 
-	return string(data), err
+	return data, err
 }
