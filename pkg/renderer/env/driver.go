@@ -44,13 +44,13 @@ type driver struct {
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	allShells := ctx.AllShells()
 	for shellName := range allShells {
-		name := DefaultName
-		if len(shellName) == 0 {
-			name += ":" + shellName
+		rendererName := DefaultName
+		if len(shellName) != 0 {
+			rendererName += ":" + shellName
 		}
 
 		ctx.AddRenderer(
-			name, &driver{
+			rendererName, &driver{
 				getExecSpec: allShells[shellName].GetExecSpec,
 			},
 		)
