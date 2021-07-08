@@ -109,8 +109,7 @@ func TestDriver_Render(t *testing.T) {
 				return
 			}
 
-			assert.Equal(t, test.expected, ret)
+			assert.Equal(t, test.expected, string(ret))
 		})
-
 	}
 }
