@@ -7,8 +7,18 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/types"
 )
+
+type MutableValues interface {
+	SetMatrixFilter(mf map[string][]string)
+	MatrixFilter() map[string][]string
+
+	MatrixArch() string
+	MatrixKernel() string
+	MatrixLibc() string
+
+	AddEnv(env ...string)
+}
 
 func newContextMutableValues() *mutableValues {
 	mv := &mutableValues{
@@ -22,7 +32,7 @@ func newContextMutableValues() *mutableValues {
 	return mv
 }
 
-var _ types.MutableValues = (*mutableValues)(nil)
+var _ MutableValues = (*mutableValues)(nil)
 
 type mutableValues struct {
 	matrixFilter map[string][]string

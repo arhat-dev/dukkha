@@ -7,7 +7,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/matrix"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 type BaseTask struct {
@@ -38,7 +37,7 @@ func (t *BaseTask) RunHooks(taskCtx dukkha.TaskExecContext, stage dukkha.TaskExe
 	return nil
 }
 
-func (t *BaseTask) GetMatrixSpecs(rc types.RenderingContext) ([]types.MatrixSpec, error) {
+func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, error) {
 	err := t.ResolveFields(rc, -1, "Matrix")
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)

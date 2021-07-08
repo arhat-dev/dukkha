@@ -11,7 +11,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -32,7 +31,7 @@ type driver struct {
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	var toExpand string
 
 	switch t := rawData.(type) {

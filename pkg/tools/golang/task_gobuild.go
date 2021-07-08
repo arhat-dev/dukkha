@@ -9,7 +9,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBuild = "build"
@@ -60,7 +59,7 @@ type CGOSepc struct {
 func (c *TaskBuild) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
 
-func (c *TaskBuild) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
 	doingCrossCompiling := rc.HostKernel() != mKernel ||

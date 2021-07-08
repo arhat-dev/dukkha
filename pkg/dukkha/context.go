@@ -8,7 +8,6 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 
-	"arhat.dev/dukkha/pkg/types"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -30,7 +29,7 @@ type Context interface {
 	context.Context
 
 	// rendering
-	types.RenderingContext
+	RenderingContext
 
 	ToolUser
 	TaskUser

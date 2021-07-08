@@ -2,7 +2,6 @@ package matrix
 
 import (
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 type Spec struct {
@@ -18,8 +17,8 @@ type Spec struct {
 	Custom map[string][]string `dukkha:"other"`
 }
 
-func defaultSpecs(hostKernel, hostArch string) []types.MatrixSpec {
-	return []types.MatrixSpec{
+func defaultSpecs(hostKernel, hostArch string) []Entry {
+	return []Entry{
 		{
 			"kernel": hostKernel,
 			"arch":   hostArch,
@@ -30,7 +29,7 @@ func defaultSpecs(hostKernel, hostArch string) []types.MatrixSpec {
 func (mc *Spec) GetSpecs(
 	matchFilter map[string][]string,
 	hostKernel, hostArch string,
-) []types.MatrixSpec {
+) []Entry {
 	if mc == nil {
 		return defaultSpecs(hostKernel, hostArch)
 	}
@@ -62,7 +61,7 @@ func (mc *Spec) GetSpecs(
 		removeMatchList = append(removeMatchList, CartesianProduct(ex)...)
 	}
 
-	var result []types.MatrixSpec
+	var result []Entry
 
 	var mf []map[string]string
 	if len(matchFilter) != 0 {
@@ -71,7 +70,7 @@ func (mc *Spec) GetSpecs(
 	mat := CartesianProduct(all)
 loop:
 	for i := range mat {
-		spec := types.MatrixSpec(mat[i])
+		spec := Entry(mat[i])
 
 		for _, toRemove := range removeMatchList {
 			if spec.Match(toRemove) {
@@ -98,7 +97,7 @@ loop:
 		mat := CartesianProduct(inc)
 	addInclude:
 		for i := range mat {
-			includeSpec := types.MatrixSpec(mat[i])
+			includeSpec := Entry(mat[i])
 
 			for _, spec := range result {
 				if spec.Equals(includeSpec) {

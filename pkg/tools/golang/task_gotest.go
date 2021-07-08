@@ -5,7 +5,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindTest = "test"
@@ -34,7 +33,7 @@ type TaskTest struct {
 func (c *TaskTest) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskTest) Kind() dukkha.TaskKind     { return TaskKindTest }
 
-func (c *TaskTest) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskTest) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	spec := &dukkha.TaskExecSpec{
 		Chdir:   c.Chdir,
 		Command: sliceutils.NewStrings(toolCmd, "test", "./..."),

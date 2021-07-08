@@ -7,7 +7,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindRun = "run"
@@ -36,7 +35,7 @@ type TaskRun struct {
 func (w *TaskRun) ToolKind() dukkha.ToolKind { return ToolKind }
 func (w *TaskRun) Kind() dukkha.TaskKind     { return TaskKindRun }
 
-func (w *TaskRun) GetExecSpecs(rc types.RenderingContext, _ []string) ([]dukkha.TaskExecSpec, error) {
+func (w *TaskRun) GetExecSpecs(rc dukkha.RenderingContext, _ []string) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	for i, job := range w.Jobs {
 		if len(job.Task) != 0 {

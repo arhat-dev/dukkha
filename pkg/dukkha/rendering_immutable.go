@@ -2,8 +2,24 @@ package dukkha
 
 import (
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/types"
 )
+
+type ImmutableValues interface {
+	WorkingDir() string
+	CacheDir() string
+
+	GitBranch() string
+	GitWorkTreeClean() bool
+	GitTag() string
+	GitDefaultBranch() string
+	GitCommit() string
+
+	HostKernel() string
+	HostKernelVersion() string
+	HostArch() string
+	HostOS() string
+	HostOSVersion() string
+}
 
 func newContextImmutableValues(globalEnv map[string]string) *immutableValues {
 	return &immutableValues{
@@ -11,7 +27,7 @@ func newContextImmutableValues(globalEnv map[string]string) *immutableValues {
 	}
 }
 
-var _ types.ImmutableValues = (*immutableValues)(nil)
+var _ ImmutableValues = (*immutableValues)(nil)
 
 type immutableValues struct {
 	// pre-defined environment variables and bootstrap env

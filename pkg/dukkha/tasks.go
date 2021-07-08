@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -156,10 +156,10 @@ type Task interface {
 	Name() TaskName
 
 	// GetMatrixSpecs for matrix build
-	GetMatrixSpecs(rc types.RenderingContext) ([]types.MatrixSpec, error)
+	GetMatrixSpecs(rc RenderingContext) ([]matrix.Entry, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
+	GetExecSpecs(rc RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
 
 	RunHooks(taskCtx Context, state TaskExecStage) error
 }

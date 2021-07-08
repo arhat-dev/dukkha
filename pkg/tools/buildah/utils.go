@@ -5,19 +5,19 @@ import (
 
 	"github.com/huandu/xstrings"
 
-	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func SetDefaultImageTagIfNoTagSet(rc types.RenderingContext, name string) string {
+func SetDefaultImageTagIfNoTagSet(rc dukkha.RenderingContext, name string) string {
 	return setDefaultTagIfNoTagSet(rc, name, false)
 }
 
-func SetDefaultManifestTagIfNoTagSet(rc types.RenderingContext, manfiestName string) string {
+func SetDefaultManifestTagIfNoTagSet(rc dukkha.RenderingContext, manfiestName string) string {
 	return setDefaultTagIfNoTagSet(rc, manfiestName, true)
 }
 
 func setDefaultTagIfNoTagSet(
-	rc types.RenderingContext,
+	rc dukkha.RenderingContext,
 	name string,
 	isManifest bool,
 ) string {

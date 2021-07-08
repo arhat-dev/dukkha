@@ -18,7 +18,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBud = "bud"
@@ -55,7 +54,7 @@ type ImageNameSpec struct {
 func (c *TaskBud) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskBud) Kind() dukkha.TaskKind     { return TaskKindBud }
 
-func (c *TaskBud) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
 	// create an image id file

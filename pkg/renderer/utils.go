@@ -10,7 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 func ToYamlBytes(in interface{}) ([]byte, error) {
@@ -31,7 +30,7 @@ func ToYamlBytes(in interface{}) ([]byte, error) {
 }
 
 func RunShellScript(
-	rc types.RenderingContext,
+	rc dukkha.RenderingContext,
 	script string,
 	isFilePath bool,
 	stdout io.Writer,

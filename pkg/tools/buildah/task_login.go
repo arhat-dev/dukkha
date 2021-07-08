@@ -8,7 +8,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindLogin = "login"
@@ -41,7 +40,7 @@ type TaskLogin struct {
 func (c *TaskLogin) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskLogin) Kind() dukkha.TaskKind     { return TaskKindLogin }
 
-func (c *TaskLogin) GetExecSpecs(rc types.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
 		buildahCmd, "login",
 		"--username", c.Username,
