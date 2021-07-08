@@ -16,7 +16,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/tools/buildah"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const DefaultName = "template"
@@ -31,7 +30,7 @@ type driver struct{}
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	tplBytes, err := renderer.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
@@ -52,7 +51,7 @@ func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]b
 	return buf.Bytes(), nil
 }
 
-func newTemplate(rc types.RenderingContext) *template.Template {
+func newTemplate(rc dukkha.RenderingContext) *template.Template {
 	return template.New("template").
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(map[string]interface{}{

@@ -8,7 +8,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindIndex = "index"
@@ -39,7 +38,7 @@ type TaskIndex struct {
 func (c *TaskIndex) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskIndex) Kind() dukkha.TaskKind     { return TaskKindIndex }
 
-func (c *TaskIndex) GetExecSpecs(rc types.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskIndex) GetExecSpecs(rc dukkha.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {

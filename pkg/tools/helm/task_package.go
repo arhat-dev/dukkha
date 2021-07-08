@@ -8,7 +8,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindPackage = "package"
@@ -47,7 +46,7 @@ type PackageSigningSpec struct {
 func (c *TaskPackage) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskPackage) Kind() dukkha.TaskKind     { return TaskKindPackage }
 
-func (c *TaskPackage) GetExecSpecs(rc types.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskPackage) GetExecSpecs(rc dukkha.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Command: sliceutils.NewStrings(helmCmd, "package"),
 	}

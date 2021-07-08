@@ -6,7 +6,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindLogin = "login"
@@ -29,7 +28,7 @@ type TaskLogin buildah.TaskLogin
 func (c *TaskLogin) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskLogin) Kind() dukkha.TaskKind     { return TaskKindLogin }
 
-func (c *TaskLogin) GetExecSpecs(rc types.RenderingContext, dockerCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, dockerCmd []string) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
 		dockerCmd, "login",
 		"--username", c.Username,

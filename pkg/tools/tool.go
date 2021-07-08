@@ -10,9 +10,9 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 var _ dukkha.Tool = (*BaseTool)(nil)
@@ -111,7 +111,7 @@ func (t *BaseTool) RunTask(taskCtx dukkha.TaskExecContext, task dukkha.Task) err
 		resultMU = &sync.Mutex{}
 	)
 
-	appendErrorResult := func(spec types.MatrixSpec, err error) {
+	appendErrorResult := func(spec matrix.Entry, err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
@@ -207,7 +207,7 @@ matrixRun:
 			}
 
 			wg.Add(1)
-			go func(ms types.MatrixSpec) {
+			go func(ms matrix.Entry) {
 				defer func() {
 					// TODO: handle hook error
 					_ = task.RunHooks(mCtx, dukkha.StageAfterMatrix)

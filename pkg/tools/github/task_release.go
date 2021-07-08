@@ -10,7 +10,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindRelease = "release"
@@ -53,7 +52,7 @@ type ReleaseFileSpec struct {
 func (c *TaskRelease) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskRelease) Kind() dukkha.TaskKind     { return TaskKindRelease }
 
-func (c *TaskRelease) GetExecSpecs(rc types.RenderingContext, ghCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskRelease) GetExecSpecs(rc dukkha.RenderingContext, ghCmd []string) ([]dukkha.TaskExecSpec, error) {
 	createCmd := sliceutils.NewStrings(
 		ghCmd, "release", "create", c.Tag,
 	)

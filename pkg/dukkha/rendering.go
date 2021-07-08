@@ -5,12 +5,23 @@ import (
 	"fmt"
 	"sync"
 
-	"arhat.dev/dukkha/pkg/types"
+	"arhat.dev/dukkha/pkg/field"
 )
+
+type RenderingContext interface {
+	context.Context
+
+	ImmutableValues
+	MutableValues
+
+	Env() map[string]string
+
+	field.RenderingHandler
+}
 
 // Renderer to handle rendering suffix
 type Renderer interface {
-	RenderYaml(rc types.RenderingContext, rawData interface{}) (result []byte, err error)
+	RenderYaml(rc RenderingContext, rawData interface{}) (result []byte, err error)
 }
 
 // RendererManager to manage renderers
@@ -30,8 +41,8 @@ func newContextRendering(ctx context.Context, globalEnv map[string]string) *cont
 }
 
 var (
-	_ RendererManager        = (*contextRendering)(nil)
-	_ types.RenderingContext = (*contextRendering)(nil)
+	_ RendererManager  = (*contextRendering)(nil)
+	_ RenderingContext = (*contextRendering)(nil)
 )
 
 type contextRendering struct {

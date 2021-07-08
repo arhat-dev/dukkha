@@ -5,7 +5,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindPush = "push"
@@ -28,7 +27,7 @@ type TaskPush buildah.TaskPush
 func (c *TaskPush) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskPush) Kind() dukkha.TaskKind     { return TaskKindPush }
 
-func (c *TaskPush) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{

@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"arhat.dev/dukkha/pkg/types"
 )
 
 func TestMatrixConfig_GetSpecs(t *testing.T) {
@@ -13,7 +11,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 		name string
 		in   Spec
 		// specs are sorted by name, put them in order
-		expected []types.MatrixSpec
+		expected []Entry
 	}{
 		{
 			name: "normal",
@@ -24,7 +22,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 					"foo": {"a", "b"},
 				},
 			},
-			expected: []types.MatrixSpec{
+			expected: []Entry{
 				// sort order: arch=amd64 foo=a,b, os=linux,windows,darwin
 				{
 					"kernel": "linux",
@@ -108,7 +106,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 				Kernel: []string{"linux"},
 				Arch:   []string{"amd64"},
 			},
-			expected: []types.MatrixSpec{
+			expected: []Entry{
 				{
 					"kernel": "linux",
 					"arch":   "amd64",

@@ -9,7 +9,6 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindClone = "clone"
@@ -44,7 +43,7 @@ type TaskClone struct {
 func (c *TaskClone) ToolKind() dukkha.ToolKind { return ToolKind }
 func (c *TaskClone) Kind() dukkha.TaskKind     { return TaskKindClone }
 
-func (c *TaskClone) GetExecSpecs(rc types.RenderingContext, gitCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskClone) GetExecSpecs(rc dukkha.RenderingContext, gitCmd []string) ([]dukkha.TaskExecSpec, error) {
 	if len(c.URL) == 0 {
 		return nil, fmt.Errorf("remote url not set")
 	}

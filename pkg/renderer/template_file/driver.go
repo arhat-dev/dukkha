@@ -6,7 +6,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer/template"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const DefaultName = "template_file"
@@ -25,7 +24,7 @@ func (d *driver) Name() string {
 	return DefaultName
 }
 
-func (d *driver) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	path, ok := rawData.(string)
 	if !ok {
 		return nil, fmt.Errorf("renderer.%s: unexpected non string input %T", DefaultName, rawData)

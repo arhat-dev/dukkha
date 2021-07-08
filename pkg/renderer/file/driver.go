@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 // nolint:revive
@@ -23,7 +22,7 @@ type driver struct{}
 
 func (d *driver) Name() string { return DefaultName }
 
-func (d *driver) RenderYaml(_ types.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	path, ok := rawData.(string)
 	if !ok {
 		return nil, fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)

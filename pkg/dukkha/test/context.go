@@ -6,14 +6,13 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 var _ dukkha.Renderer = (*echoRenderer)(nil)
 
 type echoRenderer struct{}
 
-func (*echoRenderer) RenderYaml(rc types.RenderingContext, rawData interface{}) ([]byte, error) {
+func (*echoRenderer) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	switch t := rawData.(type) {
 	case string:
 		return []byte(t), nil

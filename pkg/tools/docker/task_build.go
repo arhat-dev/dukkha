@@ -4,7 +4,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
-	"arhat.dev/dukkha/pkg/types"
 )
 
 const TaskKindBuild = "build"
@@ -29,7 +28,7 @@ func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
-func (c *TaskBuild) GetExecSpecs(rc types.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{
