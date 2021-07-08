@@ -74,11 +74,6 @@ func (c *BootstrapConfig) Resolve(globalEnv *map[string]string) error {
 			value = parts[1]
 		}
 
-		logger.V("setting global env in bootstrap config",
-			log.String("name", key),
-			log.String("value", value),
-		)
-
 		(*globalEnv)[key] = value
 		if err != nil {
 			return fmt.Errorf("bootstrap: failed to set global env %q: %w", key, err)
