@@ -9,6 +9,8 @@ import (
 )
 
 type (
+	RendererCreateFunc func() Renderer
+
 	ToolCreateFunc func() Tool
 	TaskCreateFunc func(toolName string) Task
 )
@@ -21,9 +23,20 @@ var GlobalInterfaceTypeHandler field.InterfaceTypeHandler = globalTypeManager
 
 // type values for interface type registration
 var (
-	toolType = reflect.TypeOf((*Tool)(nil)).Elem()
-	taskType = reflect.TypeOf((*Task)(nil)).Elem()
+	rendererType = reflect.TypeOf((*Renderer)(nil)).Elem()
+	toolType     = reflect.TypeOf((*Tool)(nil)).Elem()
+	taskType     = reflect.TypeOf((*Task)(nil)).Elem()
 )
+
+func RegisterRenderer(name string, create RendererCreateFunc) {
+	globalTypeManager.register(
+		rendererType,
+		regexp.MustCompile(`^%s(:.+)?$`),
+		func(subMatches []string) interface{} {
+			return create()
+		},
+	)
+}
 
 func RegisterTool(kind ToolKind, create ToolCreateFunc) {
 	globalTypeManager.register(
@@ -99,12 +112,12 @@ func (h *typeManager) Create(typ reflect.Type, yamlKey string) (interface{}, err
 }
 
 func (h *typeManager) register(
-	interfaceType reflect.Type,
+	ifaceType reflect.Type,
 	yamlKeyMatch *regexp.Regexp,
 	createField ifaceFactoryFunc,
 ) {
 	key := ifaceTypeKey{
-		typ: interfaceType,
+		typ: ifaceType,
 	}
 
 	v, ok := h.types[key]

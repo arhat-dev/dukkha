@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	d := New(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+	d := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
 		return
 	})
 

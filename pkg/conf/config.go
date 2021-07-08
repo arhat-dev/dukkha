@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"arhat.dev/pkg/log"
-	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -48,6 +47,8 @@ type Config struct {
 
 	// Shells for rendering and command execution
 	Shells []*tools.BaseTool `yaml:"shells"`
+
+	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
 
 	// Language or tool specific tools
 	Tools map[string][]dukkha.Tool `yaml:"tools"`
@@ -101,30 +102,25 @@ func (c *Config) Merge(a *Config) {
 func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) error {
 	logger := log.Log.WithName("config")
 
-	logger.D("creating essential renderers")
-	err := multierr.Combine(
-		appCtx.AddRenderer(
-			shell_file.New(appCtx.GetBootstrapExecSpec),
-			shell_file.DefaultName,
-		),
-		appCtx.AddRenderer(
-			shell.New(appCtx.GetBootstrapExecSpec),
-			shell.DefaultName,
-		),
-		appCtx.AddRenderer(
-			env.New(appCtx.GetBootstrapExecSpec),
-			env.DefaultName,
-		),
-		appCtx.AddRenderer(template.New(), template.DefaultName),
-		appCtx.AddRenderer(template_file.New(), template_file.DefaultName),
-		appCtx.AddRenderer(file.New(), file.DefaultName),
+	logger.V("creating essential renderers")
+	appCtx.AddRenderer(
+		shell_file.DefaultName,
+		shell_file.NewDefault(appCtx.GetBootstrapExecSpec),
 	)
-	if err != nil {
-		return fmt.Errorf("failed to create essential renderers: %w", err)
-	}
+	appCtx.AddRenderer(
+		shell.DefaultName,
+		shell.NewDefault(appCtx.GetBootstrapExecSpec),
+	)
+	appCtx.AddRenderer(
+		env.DefaultName,
+		env.NewDefault(appCtx.GetBootstrapExecSpec),
+	)
+	appCtx.AddRenderer(template.DefaultName, template.NewDefault())
+	appCtx.AddRenderer(template_file.DefaultName, template_file.NewDefault())
+	appCtx.AddRenderer(file.DefaultName, file.NewDefault())
 
 	logger.D("resolving top level config")
-	err = c.ResolveFields(appCtx, 1, "")
+	err := c.ResolveFields(appCtx, 1, "")
 	if err != nil {
 		return fmt.Errorf("failed to resolve config: %w", err)
 	}
@@ -150,47 +146,39 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 
 		if i == 0 {
 			logger.V("adding default shell")
-
 			appCtx.AddShell("", c.Shells[i])
-
-			err = multierr.Combine(err,
-				appCtx.AddRenderer(
-					shell.New(c.Shells[i].GetExecSpec),
-					shell.DefaultName,
-				),
-				appCtx.AddRenderer(
-					shell_file.New(c.Shells[i].GetExecSpec),
-					shell_file.DefaultName,
-				),
-				appCtx.AddRenderer(
-					env.New(c.Shells[i].GetExecSpec),
-					env.DefaultName,
-				),
-			)
-			if err != nil {
-				return fmt.Errorf("failed to add default shell renderer %q", v.Name())
-			}
 		}
 
 		logger.V("adding shell")
-
 		appCtx.AddShell(string(v.Name()), c.Shells[i])
-		err = multierr.Combine(err,
-			appCtx.AddRenderer(
-				shell.New(c.Shells[i].GetExecSpec),
-				shell.DefaultName+":"+string(v.Name()),
-			),
-			appCtx.AddRenderer(
-				shell_file.New(c.Shells[i].GetExecSpec),
-				shell_file.DefaultName+":"+string(v.Name()),
-			),
-			appCtx.AddRenderer(
-				env.New(c.Shells[i].GetExecSpec),
-				env.DefaultName+":"+string(v.Name()),
-			),
-		)
+	}
+
+	logger.D("resolving essential renderers", log.Int("count", len(c.Renderers)))
+	essentialRenderers := appCtx.AllRenderers()
+	for name, r := range essentialRenderers {
+		// using default config, no need to resolve fields
+
+		err = r.Init(appCtx)
 		if err != nil {
-			return fmt.Errorf("failed to add shell renderer %q", v.Name())
+			return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
+		}
+	}
+
+	logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
+	for name, r := range c.Renderers {
+		logger := logger.WithFields(
+			log.Any("renderer", name),
+		)
+
+		logger.D("resolving renderer config fields")
+		err = r.ResolveFields(appCtx, -1, "")
+		if err != nil {
+			return fmt.Errorf("failed to resolve config for renderer %q: %w", name, err)
+		}
+
+		err = r.Init(appCtx)
+		if err != nil {
+			return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
 		}
 	}
 

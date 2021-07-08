@@ -31,6 +31,7 @@ type Context interface {
 	// rendering
 	RenderingContext
 
+	ShellUser
 	ToolUser
 	TaskUser
 
@@ -165,7 +166,7 @@ func (c *dukkhaContext) RunTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName
 }
 
 func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
-	sh, ok := c.allShells[ShellKey{shellName: shell}]
+	sh, ok := c.allShells[shell]
 	if !ok {
 		return fmt.Errorf("shell %q not found", shell)
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	ret := New(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+	ret := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
 		return
 	})
 
@@ -19,7 +19,7 @@ func TestNewDriver(t *testing.T) {
 
 func TestDriver_Render(t *testing.T) {
 	cmdPrintHello := []string{"sh", "-c", "printf hello"}
-	d := New(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+	d := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
 		return nil, cmdPrintHello, nil
 	})
 
@@ -111,5 +111,6 @@ func TestDriver_Render(t *testing.T) {
 
 			assert.Equal(t, test.expected, string(ret))
 		})
+
 	}
 }

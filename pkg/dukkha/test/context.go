@@ -6,11 +6,19 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/field"
 )
 
 var _ dukkha.Renderer = (*echoRenderer)(nil)
 
-type echoRenderer struct{}
+type echoRenderer struct {
+	field.BaseField
+}
+
+func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error {
+	ctx.AddRenderer("echo", r)
+	return nil
+}
 
 func (*echoRenderer) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	switch t := rawData.(type) {
@@ -36,7 +44,7 @@ func NewTestContextWithGlobalEnv(ctx context.Context, globalEnv map[string]strin
 	d := dukkha.NewConfigResolvingContext(
 		ctx, globalEnv, testBootstrapExec, true, 1,
 	)
-	_ = d.AddRenderer(&echoRenderer{}, "echo")
+	d.AddRenderer("echo", &echoRenderer{})
 
 	return d
 }

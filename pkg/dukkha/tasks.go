@@ -165,8 +165,6 @@ type Task interface {
 }
 
 type TaskManager interface {
-	TaskUser
-
 	AddToolSpecificTasks(kind ToolKind, name ToolName, tasks []Task)
 }
 
