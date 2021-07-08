@@ -24,9 +24,7 @@ const DefaultName = "template"
 func init() {
 	dukkha.RegisterRenderer(
 		DefaultName,
-		func() dukkha.Renderer {
-			return NewDefault()
-		},
+		NewDefault,
 	)
 }
 

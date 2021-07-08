@@ -15,12 +15,7 @@ const (
 )
 
 func init() {
-	dukkha.RegisterRenderer(
-		DefaultName,
-		func() dukkha.Renderer {
-			return NewDefault()
-		},
-	)
+	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
 func NewDefault() dukkha.Renderer {
