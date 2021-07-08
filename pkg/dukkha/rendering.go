@@ -3,6 +3,7 @@ package dukkha
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"arhat.dev/dukkha/pkg/field"
 )
@@ -15,6 +16,7 @@ type RenderingContext interface {
 
 	Env() map[string]string
 
+	field.InterfaceTypeHandler
 	field.RenderingHandler
 }
 
@@ -34,14 +36,19 @@ type RendererManager interface {
 	AddRenderer(name string, renderer Renderer)
 }
 
-func newContextRendering(ctx context.Context, globalEnv map[string]string) *contextRendering {
+func newContextRendering(
+	ctx context.Context,
+	globalEnv map[string]string,
+	ifaceTypeHandler field.InterfaceTypeHandler,
+) *contextRendering {
 	return &contextRendering{
 		Context: ctx,
 
 		immutableValues: newContextImmutableValues(globalEnv),
 		mutableValues:   newContextMutableValues(),
 
-		renderers: make(map[string]Renderer),
+		ifaceTypeHandler: ifaceTypeHandler,
+		renderers:        make(map[string]Renderer),
 	}
 }
 
@@ -56,7 +63,8 @@ type contextRendering struct {
 	*mutableValues
 	*immutableValues
 
-	renderers map[string]Renderer
+	ifaceTypeHandler field.InterfaceTypeHandler
+	renderers        map[string]Renderer
 }
 
 func (c *contextRendering) clone(newCtx context.Context) *contextRendering {
@@ -84,6 +92,10 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 	}
 
 	return v.RenderYaml(c, rawData)
+}
+
+func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
+	return c.ifaceTypeHandler.Create(typ, yamlKey)
 }
 
 func (c *contextRendering) AddRenderer(name string, r Renderer) {

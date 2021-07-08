@@ -34,9 +34,7 @@ type driver struct {
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	if d.EnableCache {
-		d.cache = renderer.NewCache(
-			int64(d.CacheSizeLimit), d.CacheMaxAge, os.ReadFile,
-		)
+		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
 	}
 
 	ctx.AddRenderer(DefaultName, d)
@@ -55,7 +53,7 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	)
 
 	if d.cache != nil {
-		data, err = d.cache.Get(path)
+		data, err = d.cache.Get(path, os.ReadFile)
 	} else {
 		data, err = os.ReadFile(path)
 	}

@@ -27,29 +27,23 @@ type CacheConfig struct {
 
 type CacheRefreshFunc func(key string) ([]byte, error)
 
-func NewCache(
-	limit int64,
-	expiry time.Duration,
-	refresh CacheRefreshFunc,
-) *Cache {
+func NewCache(limit int64, expiry time.Duration) *Cache {
 	return &Cache{
-		refresh: refresh,
-		cache:   lru.New(limit, int64(expiry.Seconds())),
+		cache: lru.New(limit, int64(expiry.Seconds())),
 	}
 }
 
 type Cache struct {
-	refresh CacheRefreshFunc
-	cache   *lru.LruCache
+	cache *lru.LruCache
 }
 
-func (c *Cache) Get(key string) ([]byte, error) {
+func (c *Cache) Get(key string, refresh CacheRefreshFunc) ([]byte, error) {
 	data, ok := c.cache.Get(key)
 	if ok {
 		return data, nil
 	}
 
-	data, err := c.refresh(key)
+	data, err := refresh(key)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +52,7 @@ func (c *Cache) Get(key string) ([]byte, error) {
 	return data, nil
 }
 
-func CreateFetchFunc(
+func CreateRefreshFuncForRemote(
 	dukkhaCacheDir, rendererName string,
 	maxCacheAge time.Duration,
 	doRemoteFetch CacheRefreshFunc,
