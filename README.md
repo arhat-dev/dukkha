@@ -24,11 +24,7 @@ A typical build automation tool only take one or two from the above, but we'd ta
 
 ## Features
 
-- Rendering suffix, get configuration updated dynamically at runtime using
-  - [environment variables (support shell evaluation `$(some command)`)](./docs/renderers/env.md)
-  - [golang template](./docs/renderers/template.md)
-  - [shell scripts](./docs/renderers/shell.md)
-  - [files](./docs/renderers/file.md)
+- Rendering suffix, get configuration updated dynamically at runtime
 - Customizable task matrix execution everywhere
 - Shell completion for tools, tasks and task matrix
 

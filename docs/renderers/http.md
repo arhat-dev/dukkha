@@ -26,4 +26,4 @@ None
 
 ## Suggested Use Cases
 
-Config reuse
+Organization to share build receipes using certral http service
