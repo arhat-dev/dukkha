@@ -83,7 +83,7 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 		return nil, fmt.Errorf("renderer %q not found", renderer)
 	}
 
-	return v.(Renderer).RenderYaml(c, rawData)
+	return v.RenderYaml(c, rawData)
 }
 
 func (c *contextRendering) AddRenderer(name string, renderer Renderer) {
