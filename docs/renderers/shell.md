@@ -1,24 +1,22 @@
 # Shell Renderer
 
-- `@shell`
-- `@shell_file`
+```yaml
+foo@shell: echo "Woo"
+```
 
-Run shell scripts and use the output to stdout as the real value
+Run embedded shell script and use the output to stdout as the real value
 
-- [Supported value types](#supported-value-types)
-- [Variants](#variants)
-  - [Variant `@shell:<shell-name>`](#variant-shellshell-name)
-- [Suggested Use Cases](#suggested-use-cases)
+## Config Options
+
+```yaml
+renderers:
+  # no options
+  shell: {}
+```
 
 ## Supported value types
 
-Both `@shell` and `@shell_file`
-
 - `string`
-
-`@shell_file` only:
-
-- `[]string`
 
 ## Variants
 

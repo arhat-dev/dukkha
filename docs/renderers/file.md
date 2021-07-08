@@ -1,16 +1,26 @@
 # File Renderer
 
-- `@file`
+```yaml
+foo@file: path/to/local/file
+```
 
-Read file content as the real value
+Read local file content as the real value
 
-- [Supported value types](#supported-value-types)
-- [Variants](#variants)
-- [Suggested Use Cases](#suggested-use-cases)
+## Config Options
+
+```yaml
+renderers:
+  file:
+    # enable in memory cache, or always read local file
+    enable_cache: true
+    cache_max_age: "0"
+    # in memory cache size limit
+    cache_size_limit: 100M
+```
 
 ## Supported value types
 
-- `string` (local file path)
+- `string`
 
 ## Variants
 
