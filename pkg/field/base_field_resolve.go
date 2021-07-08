@@ -66,15 +66,13 @@ func (f *BaseField) resolveSingleField(
 	for k, v := range f.unresolvedFields {
 		if k.fieldName == fieldName {
 			err := f.handleUnResolvedField(
-				rc, depth, structName, fieldName, k.renderer, v, false,
+				rc, depth, structName, fieldName, k.renderer, v, handled,
 			)
 			if err != nil {
 				return err
 			}
 
 			handled = true
-
-			break
 		}
 	}
 
@@ -227,7 +225,7 @@ func (f *BaseField) handleUnResolvedField(
 			}
 
 			return fmt.Errorf(
-				"field: failed to render value of %s.%s from\n\n%s\nerror: %w",
+				"field: failed to render value of %s.%s from\n\n%s\n\nerror: %w",
 				structName, fieldName, input, err,
 			)
 		}
@@ -294,9 +292,13 @@ func (f *BaseField) addUnresolvedField(
 	for {
 		switch oe.Kind() {
 		case reflect.Slice:
-			oe.Set(reflect.MakeSlice(oe.Type(), 0, 0))
+			if oe.IsNil() {
+				oe.Set(reflect.MakeSlice(oe.Type(), 0, 0))
+			}
 		case reflect.Map:
-			oe.Set(reflect.MakeMap(oe.Type()))
+			if oe.IsNil() {
+				oe.Set(reflect.MakeMap(oe.Type()))
+			}
 		case reflect.Interface:
 			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
@@ -337,6 +339,7 @@ func (f *BaseField) addUnresolvedField(
 
 	if old, exists := f.unresolvedFields[key]; exists {
 		old.rawData = append(old.rawData, rawData)
+		old.isCatchOtherField = isCatchOtherField
 		return nil
 	}
 
