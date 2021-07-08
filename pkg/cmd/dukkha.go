@@ -165,7 +165,7 @@ func initDukkha(
 	logger.V("creating global environment variables")
 	globalEnv := createGlobalEnv(appBaseCtx)
 
-	logger.D("resolving bootstrap config, populating bootstrap env to global env")
+	logger.D("resolving bootstrap config")
 	err := config.Bootstrap.Resolve(&globalEnv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve bootstrap config: %w", err)
