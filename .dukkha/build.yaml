@@ -147,7 +147,7 @@ golang:build:
 
 golang:test:
 - name: dukkha
-  matrix: *test_matrix
+  matrix@http: https://raw.githubusercontent.com/arhat-dev/dockerfile/master/.dukkha/specs/matrix-linux.yml
   hooks:
     before:
     - shell: echo "hello"
@@ -157,8 +157,8 @@ golang:test:
         golang:local:build(
           dukkha,
           {
-            kernel: ["${HOST_KERNEL}"],
-            arch: ["${HOST_ARCH}"],
+            kernel: [plan9],
+            arch: [arm64],
           },
         )
     after:success@shell: |-
