@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"arhat.dev/pkg/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -93,11 +92,6 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		}]
 	}
 
-	logger := log.Log.WithName("BaseField").WithFields(
-		log.String("func", "UnmarshalYAML"),
-		log.String("struct", pt.String()),
-	)
-
 	var catchOtherField *fieldSpec
 	// get expected fields first, the first field (myself)
 fieldLoop:
@@ -143,8 +137,6 @@ fieldLoop:
 						pt.String(), fieldType.Name,
 					)
 				}
-
-				logger.V("inspecting inline field", log.String("name", fieldType.Name))
 
 				inlineFv := fieldValue
 				inlineFt := self._parentValue.Type().Elem().Field(i).Type
@@ -214,7 +206,6 @@ fieldLoop:
 					)
 				}
 
-				logger.V("found catch other field", log.String("field", fieldType.Name))
 				catchOtherField = &fieldSpec{
 					fieldName:  fieldType.Name,
 					fieldValue: fieldValue,
@@ -249,10 +240,6 @@ fieldLoop:
 	for rawYamlKey, v := range m {
 		yamlKey := rawYamlKey
 
-		logger := logger.WithFields(log.String("raw_yaml_field", rawYamlKey))
-
-		logger.V("inspecting yaml field")
-
 		parts := strings.SplitN(rawYamlKey, "@", 2)
 		if len(parts) == 1 {
 			// no rendering suffix, fill value
@@ -278,10 +265,6 @@ fieldLoop:
 				}
 			}
 
-			logger := logger.WithFields(log.String("field", fSpec.fieldName))
-
-			logger.V("working on plain field")
-
 			err = self.unmarshal(yamlKey, v, fSpec.fieldValue, true)
 			if err != nil {
 				return fmt.Errorf(
@@ -296,11 +279,6 @@ fieldLoop:
 		// has rendering suffix
 
 		yamlKey, renderer := parts[0], parts[1]
-
-		logger = logger.WithFields(
-			log.String("yaml_field", yamlKey),
-			log.String("renderer", renderer),
-		)
 
 		if _, ok := handledYamlValues[yamlKey]; ok {
 			return fmt.Errorf(
@@ -318,8 +296,6 @@ fieldLoop:
 			fSpec = catchOtherField
 		}
 
-		logger = logger.WithFields(log.String("field", fSpec.fieldName))
-
 		// do not unmarshal now, we need to evaluate value and unmarshal
 		//
 		// 		err = unmarshal(v, fSpec.fieldValue)
@@ -328,8 +304,6 @@ fieldLoop:
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
 		handledYamlValues[rawYamlKey] = struct{}{}
-
-		logger.V("found field to be rendered")
 
 		err = fSpec.base.addUnresolvedField(
 			fSpec.fieldName, fSpec.fieldValue,
