@@ -69,6 +69,15 @@ func (c *Config) Merge(a *Config) {
 
 	c.Shells = append(c.Shells, a.Shells...)
 
+	if c.Renderers == nil {
+		c.Renderers = a.Renderers
+	} else {
+		// TODO: handle duplicated renderers
+		for k, v := range a.Renderers {
+			c.Renderers[k] = v
+		}
+	}
+
 	if len(a.Tools) != 0 {
 		if c.Tools == nil {
 			c.Tools = a.Tools
@@ -179,7 +188,9 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 		}
 	}
 
-	logger.D("initializing user renderers", log.Int("count", len(c.Renderers)))
+	logger.D("initializing user renderers",
+		log.Int("count", len(c.Renderers)),
+	)
 	for name, r := range c.Renderers {
 		err = r.Init(appCtx)
 		if err != nil {
