@@ -1,23 +1,23 @@
 # Template Renderer
 
-- `@template`
-- `@template_file`
+```yaml
+foo@template: |-
+  {{ .Env.MATRIX_ARCH }}
+```
 
-Execute a [golang template](https://golang.org/pkg/text/template/), use the result as the real value
+Execute an embedded [golang template](https://golang.org/pkg/text/template/) and use the result as the real value
 
-- [Supported value types](#supported-value-types)
-- [Variants](#variants)
-- [Suggested Use Cases](#suggested-use-cases)
+## Config Options
+
+```yaml
+renderers:
+  # no options
+  template: {}
+```
 
 ## Supported value types
 
-`@template`:
-
 Any valid yaml value
-
-`@template_file`:
-
-- `string`
 
 ## Variants
 

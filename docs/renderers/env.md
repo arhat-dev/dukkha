@@ -1,17 +1,18 @@
 # Env Renderer
 
+```yaml
+foo@env: some $ENV_NAME or ${REF} or $(shell command)
+```
+
 Expand environment variable references (`$env_name` or `${env_name}`) and evaluate shell command (`$(some command)`) to generate real value
 
-- [Usage](#usage)
-- [Supported value types](#supported-value-types)
-- [Variants](#variants)
-  - [Variant `@env:<shell-name>`](#variant-envshell-name)
-- [Suggested Use Cases](#suggested-use-cases)
-  - [Expand environment variables before task execution start](#expand-environment-variables-before-task-execution-start)
+## Config Options
 
-## Usage
-
-- `@env`
+```yaml
+renderers:
+  # no options
+  env: {}
+```
 
 ## Supported value types
 
