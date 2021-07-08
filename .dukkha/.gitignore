@@ -1,7 +1,1 @@
 cache
-*.yaml
-
-!/base\.yaml
-!/image\.yaml
-!/build\.yaml
-!/release\.yaml
