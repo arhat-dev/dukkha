@@ -3,6 +3,11 @@ bootstrap:
   - GIT_DEFAULT_BRANCH=master
   script_cmd: [sh]
 
+renderers:
+  http:
+    enable_cache: true
+    cache_max_age: 10s
+
 shells:
 - name: bash
 - name: python
