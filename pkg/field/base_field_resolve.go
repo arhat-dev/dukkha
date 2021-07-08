@@ -17,36 +17,33 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName stri
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
 
-	if depth == 0 || !f.HasUnresolvedField() {
+	if depth == 0 {
 		return nil
 	}
 
-	structName := f._parentValue.Type().String()
+	resolveAll := len(fieldName) == 0
 
-	if len(fieldName) != 0 {
-		// to resolve specific field
-		for k, v := range f.unresolvedFields {
-			if k.fieldName != fieldName {
-				continue
+	parentStruct := f._parentValue.Type().Elem()
+	structName := parentStruct.String()
+
+	for i := 1; i < f._parentValue.Elem().NumField(); i++ {
+		sf := parentStruct.Field(i)
+		fv := f._parentValue.Elem().Field(i)
+		if !resolveAll {
+			if sf.Name == fieldName {
+				// this is the target field to be resolved
+
+				return f.resolveSingleField(
+					rc, depth, structName, sf.Name, fv,
+				)
 			}
 
-			return f.resolveSingleField(
-				rc,
-				depth,
-				structName,
-
-				k.fieldName,
-				k.renderer,
-
-				v,
-			)
+			continue
 		}
 
-		return nil
-	}
+		// resolve all
 
-	for k, v := range f.unresolvedFields {
-		err := f.resolveSingleField(rc, depth, structName, k.fieldName, k.renderer, v)
+		err := f.resolveSingleField(rc, depth, structName, sf.Name, fv)
 		if err != nil {
 			return err
 		}
@@ -62,8 +59,146 @@ func (f *BaseField) resolveSingleField(
 	structName string, // to make error message helpful
 	fieldName string, // to make error message helpful
 
+	targetField reflect.Value,
+) error {
+
+	handled := false
+	for k, v := range f.unresolvedFields {
+		if k.fieldName == fieldName {
+			err := f.handleUnResolvedField(
+				rc, depth, structName, fieldName, k.renderer, v, false,
+			)
+			if err != nil {
+				return err
+			}
+
+			handled = true
+
+			break
+		}
+	}
+
+	for _, ext := range f.externalUnResolvedFields {
+		for k, v := range ext {
+			if k.fieldName == fieldName {
+				err := f.handleUnResolvedField(
+					rc, depth, structName, fieldName,
+					k.renderer, v, handled,
+				)
+				if err != nil {
+					return err
+				}
+
+				handled = true
+			}
+		}
+	}
+
+	return f.handleResolvedField(rc, depth, targetField)
+}
+
+// nolint:gocyclo
+func (f *BaseField) handleResolvedField(
+	rc RenderingHandler,
+	depth int,
+	targetField reflect.Value,
+) error {
+	switch targetField.Kind() {
+	case reflect.Map:
+		if targetField.IsNil() {
+			return nil
+		}
+
+		iter := targetField.MapRange()
+		for iter.Next() {
+			if iter.Value().CanInterface() {
+				fVal, canCallResolve := targetField.Interface().(Field)
+				if canCallResolve {
+					err := fVal.ResolveFields(rc, depth-1, "")
+					if err != nil {
+						return err
+					}
+				}
+			} else if targetField.CanAddr() && targetField.Addr().CanInterface() {
+				fVal, canCallResolve := targetField.Addr().Interface().(Field)
+				if canCallResolve {
+					err := fVal.ResolveFields(rc, depth-1, "")
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	case reflect.Array:
+		fallthrough
+	case reflect.Slice:
+		if targetField.IsNil() {
+			return nil
+		}
+
+		for i := 0; i < targetField.Len(); i++ {
+			tt := targetField.Index(i)
+			if tt.CanInterface() {
+				fVal, canCallResolve := tt.Interface().(Field)
+				if canCallResolve {
+					err := fVal.ResolveFields(rc, depth-1, "")
+					if err != nil {
+						return err
+					}
+				}
+			} else if tt.CanAddr() && tt.Addr().CanInterface() {
+				fVal, canCallResolve := tt.Addr().Interface().(Field)
+				if canCallResolve {
+					err := fVal.ResolveFields(rc, depth-1, "")
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	case reflect.Interface:
+		if targetField.CanInterface() {
+			fVal, canCallResolve := targetField.Interface().(Field)
+			if canCallResolve {
+				return fVal.ResolveFields(rc, depth-1, "")
+			}
+		} else if targetField.CanAddr() && targetField.Addr().CanInterface() {
+			fVal, canCallResolve := targetField.Addr().Interface().(Field)
+			if canCallResolve {
+				return fVal.ResolveFields(rc, depth-1, "")
+			}
+		}
+	case reflect.Struct:
+		if targetField.CanAddr() && targetField.Addr().CanInterface() {
+			fVal, canCallResolve := targetField.Addr().Interface().(Field)
+			if canCallResolve {
+				return fVal.ResolveFields(rc, depth-1, "")
+			}
+		}
+	case reflect.Ptr:
+		if targetField.CanInterface() {
+			fVal, canCallResolve := targetField.Interface().(Field)
+			if canCallResolve {
+				return fVal.ResolveFields(rc, depth-1, "")
+			}
+		}
+	default:
+		// scalar types, no action required
+		return nil
+	}
+	return nil
+}
+
+func (f *BaseField) handleUnResolvedField(
+	rc RenderingHandler,
+	depth int,
+
+	structName string, // to make error message helpful
+	fieldName string, // to make error message helpful
+
 	renderer string,
 	v *unresolvedFieldValue,
+	keepOld bool,
 ) error {
 	var target reflect.Value
 	switch v.fieldValue.Kind() {
@@ -74,15 +209,20 @@ func (f *BaseField) resolveSingleField(
 	}
 
 	for i, rawData := range v.rawData {
-		resolvedValue, err := rc.RenderYaml(renderer, rawData)
+		toResolve := rawData
+		if v.isCatchOtherField {
+			toResolve = rawData.(map[string]interface{})[v.yamlFieldName]
+		}
+
+		resolvedValue, err := rc.RenderYaml(renderer, toResolve)
 		if err != nil {
-			input, ok := rawData.(string)
+			input, ok := toResolve.(string)
 			if !ok {
-				inputBytes, err2 := yaml.Marshal(rawData)
+				inputBytes, err2 := yaml.Marshal(toResolve)
 				if err2 == nil {
 					input = string(inputBytes)
 				} else {
-					input = fmt.Sprint(rawData)
+					input = fmt.Sprint(toResolve)
 				}
 			}
 
@@ -107,24 +247,26 @@ func (f *BaseField) resolveSingleField(
 			)
 		}
 
-		err = f.unmarshal(v.yamlFieldName, tmp, target, i != 0)
+		if v.isCatchOtherField {
+			tmp = map[string]interface{}{
+				v.yamlFieldName: tmp,
+			}
+		}
+
+		err = f.unmarshal(v.yamlFieldName, tmp, target, keepOld || v.isCatchOtherField || i != 0)
 		if err != nil {
 			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
 		}
 	}
 
-	if depth > 1 || depth < 0 {
-		innerF, canCallResolve := target.Interface().(Field)
-		if !canCallResolve {
-			return nil
-		}
+	innerF, canCallResolve := target.Interface().(Field)
+	if !canCallResolve {
+		return nil
+	}
 
-		err := innerF.ResolveFields(
-			rc, depth-1, "",
-		)
-		if err != nil {
-			return fmt.Errorf("failed to resolve inner field: %w", err)
-		}
+	err := innerF.ResolveFields(rc, depth-1, "")
+	if err != nil {
+		return fmt.Errorf("failed to resolve inner field: %w", err)
 	}
 
 	return nil
@@ -133,6 +275,8 @@ func (f *BaseField) resolveSingleField(
 func (f *BaseField) addUnresolvedField(
 	fieldName string,
 	fieldValue reflect.Value,
+	isCatchOtherField bool,
+
 	yamlKey string,
 	renderer string,
 	rawData interface{},
@@ -200,6 +344,8 @@ func (f *BaseField) addUnresolvedField(
 		fieldValue:    fieldValue,
 		yamlFieldName: yamlKey,
 		rawData:       []interface{}{rawData},
+
+		isCatchOtherField: isCatchOtherField,
 	}
 
 	return nil

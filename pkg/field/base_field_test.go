@@ -81,7 +81,10 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldValue:    reflect.Value{},
 							yamlFieldName: "other_field_1",
-							rawData:       []interface{}{"foo"},
+							rawData: []interface{}{
+								map[string]interface{}{"other_field_1": "foo"},
+							},
+							isCatchOtherField: true,
 						},
 						{
 							fieldName: "Other",
@@ -89,7 +92,10 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldValue:    reflect.Value{},
 							yamlFieldName: "other_field_2",
-							rawData:       []interface{}{"bar"},
+							rawData: []interface{}{
+								map[string]interface{}{"other_field_2": "bar"},
+							},
+							isCatchOtherField: true,
 						},
 					},
 				},

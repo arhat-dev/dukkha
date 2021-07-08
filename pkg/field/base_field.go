@@ -28,6 +28,8 @@ type (
 		fieldValue    reflect.Value
 		yamlFieldName string
 		rawData       []interface{}
+
+		isCatchOtherField bool
 	}
 )
 
@@ -45,6 +47,19 @@ type BaseField struct {
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
 
 	ifaceTypeHandler InterfaceTypeHandler
+
+	externalUnResolvedFields []map[unresolvedFieldKey]*unresolvedFieldValue
+}
+
+// nolint:revive
+func (self *BaseField) Inherit(b *BaseField) {
+	self.externalUnResolvedFields = append(
+		self.externalUnResolvedFields, b.externalUnResolvedFields...,
+	)
+
+	self.externalUnResolvedFields = append(
+		self.externalUnResolvedFields, b.unresolvedFields,
+	)
 }
 
 // UnmarshalYAML handles renderer suffix
@@ -62,6 +77,8 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		fieldName  string
 		fieldValue reflect.Value
 		base       *BaseField
+
+		isCatchOther bool
 	}
 
 	fields := make(map[fieldKey]*fieldSpec)
@@ -93,7 +110,8 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	var catchOtherField *fieldSpec
-	// get expected fields first, the first field (myself)
+
+	// get expected fields first, skip the first field (the BaseField itself)
 fieldLoop:
 	for i := 1; i < pt.NumField(); i++ {
 		fieldType := pt.Field(i)
@@ -133,7 +151,7 @@ fieldLoop:
 				case kind == reflect.Ptr && fieldType.Type.Elem().Kind() == reflect.Struct:
 				default:
 					return fmt.Errorf(
-						"field: non struct nor struct pointer field %s.%s has inline tag",
+						"field: inline tag applied to non struct nor pointer field %s.%s",
 						pt.String(), fieldType.Name,
 					)
 				}
@@ -152,7 +170,9 @@ fieldLoop:
 				base := self
 				fVal, canCallInit := iface.(Field)
 				if canCallInit {
-					innerBaseF := reflect.ValueOf(Init(fVal, base.ifaceTypeHandler)).Elem().Field(0)
+					innerBaseF := reflect.ValueOf(
+						Init(fVal, base.ifaceTypeHandler),
+					).Elem().Field(0)
 
 					if innerBaseF.Kind() == reflect.Struct {
 						if innerBaseF.Addr().Type() == baseFieldPtrType {
@@ -210,6 +230,8 @@ fieldLoop:
 					fieldName:  fieldType.Name,
 					fieldValue: fieldValue,
 					base:       self,
+
+					isCatchOther: true,
 				}
 			case "":
 			default:
@@ -294,9 +316,13 @@ fieldLoop:
 			}
 
 			fSpec = catchOtherField
+			v = map[string]interface{}{
+				yamlKey: v,
+			}
 		}
 
 		// do not unmarshal now, we need to evaluate value and unmarshal
+		// at runtime
 		//
 		// 		err = unmarshal(v, fSpec.fieldValue)
 		//
@@ -306,10 +332,9 @@ fieldLoop:
 		handledYamlValues[rawYamlKey] = struct{}{}
 
 		err = fSpec.base.addUnresolvedField(
-			fSpec.fieldName, fSpec.fieldValue,
-			yamlKey,
-			renderer,
-			m[rawYamlKey],
+			fSpec.fieldName, fSpec.fieldValue, fSpec.isCatchOther,
+			// yamlKey@renderer: v
+			yamlKey, renderer, v,
 		)
 		if err != nil {
 			return fmt.Errorf("field: failed to add unresolved field: %w", err)

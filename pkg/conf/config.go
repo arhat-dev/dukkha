@@ -57,6 +57,8 @@ type Config struct {
 }
 
 func (c *Config) Merge(a *Config) {
+	c.BaseField.Inherit(&a.BaseField)
+
 	c.Bootstrap.Env = append(c.Bootstrap.Env, a.Bootstrap.Env...)
 	if len(a.Bootstrap.CacheDir) != 0 {
 		c.Bootstrap.CacheDir = a.Bootstrap.CacheDir
