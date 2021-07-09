@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"arhat.dev/pkg/log"
@@ -100,13 +101,14 @@ func (h *TaskHooks) GenSpecs(
 
 	var ret [][]dukkha.TaskExecSpec
 	for i := range toRun {
-		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew())
+		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew(), i)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"failed to generate action #%d exec specs: %w",
 				i, err,
 			)
 		}
+
 		ret = append(ret, specs)
 	}
 
@@ -116,16 +118,22 @@ func (h *TaskHooks) GenSpecs(
 type Hook struct {
 	field.BaseField
 
+	Name string `yaml:"name"`
 	Task string `yaml:"task"`
 
 	Other map[string]string `dukkha:"other"`
 }
 
-func (h *Hook) GenSpecs(ctx dukkha.Context) ([]dukkha.TaskExecSpec, error) {
+func (h *Hook) GenSpecs(ctx dukkha.Context, index int) ([]dukkha.TaskExecSpec, error) {
+	hookID := "#" + strconv.FormatInt(int64(index), 10)
+	if len(h.Name) != 0 {
+		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)
+	}
+
 	if len(h.Task) != 0 {
 		ref, err := dukkha.ParseTaskReference(h.Task, ctx.CurrentTool().Name)
 		if err != nil {
-			return nil, fmt.Errorf("invalid task reference %q: %w", h.Task, err)
+			return nil, fmt.Errorf("%q: invalid task reference %q: %w", hookID, h.Task, err)
 		}
 
 		if len(ref.MatrixFilter) != 0 {
@@ -134,17 +142,17 @@ func (h *Hook) GenSpecs(ctx dukkha.Context) ([]dukkha.TaskExecSpec, error) {
 
 		tool, ok := ctx.GetTool(ref.ToolKey())
 		if !ok {
-			return nil, fmt.Errorf("referenced tool %q not found", ref.ToolKey())
+			return nil, fmt.Errorf("%q: referenced tool %q not found", hookID, ref.ToolKey())
 		}
 
 		tsk, ok := tool.GetTask(ref.TaskKey())
 		if !ok {
-			return nil, fmt.Errorf("referenced task %q not found", ref.TaskKey())
+			return nil, fmt.Errorf("%q: referenced task %q not found", hookID, ref.TaskKey())
 		}
 
 		specs, err := tsk.GetExecSpecs(ctx, tool.UseShell(), tool.ShellName(), tool.GetCmd())
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate task exec specs: %w", err)
+			return nil, fmt.Errorf("%q: failed to generate task exec specs: %w", hookID, err)
 		}
 
 		return specs, nil
@@ -152,7 +160,10 @@ func (h *Hook) GenSpecs(ctx dukkha.Context) ([]dukkha.TaskExecSpec, error) {
 
 	switch {
 	case len(h.Other) > 1:
-		return nil, fmt.Errorf("unexpected multiple entries in one hook spec")
+		return nil, fmt.Errorf(
+			"%q: unexpected multiple shell entries in one spec",
+			hookID,
+		)
 	case len(h.Other) == 1:
 	default:
 		// no hook to run
@@ -182,18 +193,18 @@ func (h *Hook) GenSpecs(ctx dukkha.Context) ([]dukkha.TaskExecSpec, error) {
 			shell = ""
 			isFilePath = false
 		default:
-			return nil, fmt.Errorf("unknown action: %q", k)
+			return nil, fmt.Errorf("%q: unknown action: %q", hookID, k)
 		}
 	}
 
 	sh, ok := ctx.GetShell(shell)
 	if !ok {
-		return nil, fmt.Errorf("shell %q not found", shell)
+		return nil, fmt.Errorf("%q: shell %q not found", hookID, shell)
 	}
 
 	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate shell ")
+		return nil, fmt.Errorf("%q: failed to generate shell: %w", hookID, err)
 	}
 	ctx.AddEnv(env...)
 
