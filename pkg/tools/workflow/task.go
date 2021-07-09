@@ -42,6 +42,7 @@ func (w *TaskRun) next(
 ) ([]dukkha.TaskExecSpec, error) {
 	var (
 		thisAction dukkha.RunTaskOrRunShell
+		hasJob     = false
 	)
 
 	// depth = 1 to get job list only
@@ -50,6 +51,7 @@ func (w *TaskRun) next(
 			return nil
 		}
 
+		hasJob = true
 		// resolve single job (Hook)
 		var err error
 		err = w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
@@ -60,6 +62,10 @@ func (w *TaskRun) next(
 		return err
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	if !hasJob {
 		return nil, err
 	}
 
