@@ -48,9 +48,12 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 	var baseField *BaseField
 	switch firstField.Type() {
 	case baseFieldStructType:
+		// using BaseField
+
 		baseField = firstField.Addr().Interface().(*BaseField)
 	case baseFieldPtrType:
 		// using *BaseField
+
 		if firstField.IsZero() {
 			// not initialized
 			baseField = new(BaseField)
@@ -59,6 +62,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 			baseField = firstField.Interface().(*BaseField)
 		}
 	default:
+		// BaseField is not the first field
 		return in
 	}
 

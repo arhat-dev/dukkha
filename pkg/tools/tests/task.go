@@ -39,13 +39,13 @@ func RunTaskExecSpecGenerationTests(
 			}
 
 			if test.ExpectErr {
-				_, err := test.Task.GetExecSpecs(taskCtx, toolCmd)
+				_, err := test.Task.GetExecSpecs(taskCtx, false, "", toolCmd)
 				assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 				assert.Error(t, err)
 				return
 			}
 
-			specs, err := test.Task.GetExecSpecs(taskCtx, toolCmd)
+			specs, err := test.Task.GetExecSpecs(taskCtx, false, "", toolCmd)
 			assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 			if !assert.NoError(t, err) {
 				return

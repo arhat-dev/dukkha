@@ -14,13 +14,11 @@ func init() {
 		ToolKind, TaskKindTest,
 		func(toolName string) dukkha.Task {
 			t := &TaskTest{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindTest)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskTest)(nil)
 
 type TaskTest struct {
 	field.BaseField
@@ -30,13 +28,17 @@ type TaskTest struct {
 	Chdir string `yaml:"chdir"`
 }
 
-func (c *TaskTest) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskTest) Kind() dukkha.TaskKind     { return TaskKindTest }
-
-func (c *TaskTest) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskTest) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	spec := &dukkha.TaskExecSpec{
-		Chdir:   c.Chdir,
-		Command: sliceutils.NewStrings(toolCmd, "test", "./..."),
+		Chdir:     c.Chdir,
+		Command:   sliceutils.NewStrings(toolCmd, "test", "./..."),
+		UseShell:  useShell,
+		ShellName: shellName,
 	}
 	return []dukkha.TaskExecSpec{*spec}, nil
 }

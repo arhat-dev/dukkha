@@ -27,13 +27,11 @@ func init() {
 		ToolKind, TaskKindBud,
 		func(toolName string) dukkha.Task {
 			t := &TaskBud{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBud)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskBud)(nil)
 
 type TaskBud struct {
 	field.BaseField
@@ -47,16 +45,18 @@ type TaskBud struct {
 }
 
 type ImageNameSpec struct {
+	field.BaseField
+
 	Image    string `yaml:"image"`
 	Manifest string `yaml:"manifest"`
 }
 
-func (c *TaskBud) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskBud) Kind() dukkha.TaskKind     { return TaskKindBud }
-
-func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
-	var steps []dukkha.TaskExecSpec
-
+func (c *TaskBud) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
 	dukkhaCacheDir := rc.CacheDir()
 	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
@@ -110,10 +110,14 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 		context = "."
 	}
 
+	var steps []dukkha.TaskExecSpec
+
 	// buildah bud
 	steps = append(steps, dukkha.TaskExecSpec{
 		Command:     append(budCmd, context),
 		IgnoreError: false,
+		UseShell:    useShell,
+		ShellName:   shellName,
 	})
 
 	// read image id file to get image id
@@ -156,6 +160,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 			replaceTargetImageID,
 		),
 		IgnoreError: false,
+		UseShell:    useShell,
+		ShellName:   shellName,
 	})
 
 	// add to manifest, ensure same os/arch/variant only one exist
@@ -193,6 +199,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 				toolCmd, "manifest", "create", localManifestName,
 			),
 			IgnoreError: true,
+			UseShell:    useShell,
+			ShellName:   shellName,
 		})
 
 		const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
@@ -205,6 +213,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 			),
 			// manifest may not exist
 			IgnoreError: true,
+			UseShell:    useShell,
+			ShellName:   shellName,
 		})
 
 		manifestAddCmd := sliceutils.NewStrings(toolCmd, "manifest", "add")
@@ -228,10 +238,14 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 								toolCmd, "manifest", "create", localManifestName,
 							),
 							IgnoreError: false,
+							UseShell:    useShell,
+							ShellName:   shellName,
 						},
 						{
 							Command:     sliceutils.NewStrings(manifestAddCmd),
 							IgnoreError: false,
+							UseShell:    useShell,
+							ShellName:   shellName,
 						},
 					}, nil
 				}
@@ -243,6 +257,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 					return []dukkha.TaskExecSpec{{
 						Command:     sliceutils.NewStrings(manifestAddCmd),
 						IgnoreError: false,
+						UseShell:    useShell,
+						ShellName:   shellName,
 					}}, nil
 				}
 
@@ -260,6 +276,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 							toolCmd, "manifest", "remove", localManifestName, digest,
 						),
 						IgnoreError: false,
+						UseShell:    useShell,
+						ShellName:   shellName,
 					})
 				}
 
@@ -267,6 +285,8 @@ func (c *TaskBud) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]
 				subSteps = append(subSteps, dukkha.TaskExecSpec{
 					Command:     sliceutils.NewStrings(manifestAddCmd),
 					IgnoreError: false,
+					UseShell:    useShell,
+					ShellName:   shellName,
 				})
 
 				return subSteps, nil

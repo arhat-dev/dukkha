@@ -1,32 +1,43 @@
 package output
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"github.com/fatih/color"
 )
 
-func WriteExecStart(name string, cmd []string, scriptName string) {
-	fmt.Println(
+func WriteExecStart(
+	prefixColor *color.Color,
+	k dukkha.ToolKey,
+	cmd []string,
+	scriptName string,
+) {
+	output := []interface{}{
 		">>>",
 		// task name
-		name,
+		k.Name,
 		// commands
 		"[", strings.Join(cmd, " "), "]",
-		// script filename prefix
-		"@", scriptName[:7],
-	)
+	}
+
+	if len(scriptName) != 0 {
+		output = append(output, "@", scriptName)
+	}
+
+	if prefixColor != nil {
+		_, _ = prefixColor.Println(output...)
+	} else {
+		_, _ = fmt.Println(output...)
+	}
 }
 
 func WriteExecResult(
-	ctx context.Context,
-	toolKind dukkha.ToolKind,
-	toolName dukkha.ToolName,
-	taskKind dukkha.TaskKind,
-	taskName dukkha.TaskName,
+	prefixColor *color.Color,
+	k dukkha.ToolKey,
+	tk dukkha.TaskKey,
 	matrixSpec string,
 	err error,
 ) {
@@ -37,8 +48,8 @@ func WriteExecResult(
 
 	output := []interface{}{
 		resultKind,
-		AssembleTaskKindID(toolKind, toolName, taskKind),
-		"[", taskName, "]",
+		AssembleTaskKindID(k, tk.Kind),
+		"[", tk.Name, "]",
 		"{", matrixSpec,
 	}
 
@@ -48,5 +59,9 @@ func WriteExecResult(
 		output = append(output, "}")
 	}
 
-	_, _ = fmt.Fprintln(os.Stderr, output...)
+	if prefixColor != nil {
+		_, _ = prefixColor.Fprintln(os.Stderr, output...)
+	} else {
+		_, _ = fmt.Fprintln(os.Stderr, output...)
+	}
 }

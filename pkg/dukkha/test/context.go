@@ -45,7 +45,9 @@ func NewTestContextWithGlobalEnv(ctx context.Context, globalEnv map[string]strin
 		ctx, globalEnv,
 		testBootstrapExec,
 		dukkha.GlobalInterfaceTypeHandler,
-		true, 1,
+		true,
+		false, // turn off color output
+		1,
 	)
 	d.AddRenderer("echo", &echoRenderer{})
 

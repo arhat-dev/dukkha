@@ -18,8 +18,8 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
-func (t *BaseTool) doRunTask(
-	mCtx dukkha.TaskExecContext,
+func doRun(
+	ctx dukkha.TaskExecContext,
 	execSpecs []dukkha.TaskExecSpec,
 	_replaceEntries *map[string][]byte,
 ) error {
@@ -36,8 +36,6 @@ func (t *BaseTool) doRunTask(
 	}
 
 	for _, es := range execSpecs {
-		ctx := mCtx.DeriveNew()
-
 		if es.Delay > 0 {
 			_ = timer.Reset(es.Delay)
 
@@ -63,27 +61,20 @@ func (t *BaseTool) doRunTask(
 			stdin = os.Stdin
 		}
 
-		if t.stdoutIsTty {
-			stderr = utils.PrefixWriter(
-				mCtx.OutputPrefix(),
-				mCtx.PrefixColor(),
-				mCtx.OutputColor(),
-				os.Stderr,
-			)
-			stdout = utils.PrefixWriter(
-				mCtx.OutputPrefix(),
-				mCtx.PrefixColor(),
-				mCtx.OutputColor(),
-				os.Stdout,
-			)
-		} else {
-			stderr = utils.PrefixWriter(
-				mCtx.OutputPrefix(), nil, nil, os.Stderr,
-			)
-			stdout = utils.PrefixWriter(
-				mCtx.OutputPrefix(), nil, nil, os.Stdout,
-			)
-		}
+		stderr = utils.PrefixWriter(
+			ctx.OutputPrefix(),
+			ctx.ColorOutput(),
+			ctx.PrefixColor(),
+			ctx.OutputColor(),
+			os.Stderr,
+		)
+		stdout = utils.PrefixWriter(
+			ctx.OutputPrefix(),
+			ctx.ColorOutput(),
+			ctx.PrefixColor(),
+			ctx.OutputColor(),
+			os.Stdout,
+		)
 
 		var buf *bytes.Buffer
 		if len(es.OutputAsReplace) != 0 {
@@ -109,7 +100,7 @@ func (t *BaseTool) doRunTask(
 			}
 
 			if len(subSpecs) != 0 {
-				err = t.doRunTask(mCtx, subSpecs, &replace)
+				err = doRun(ctx, subSpecs, &replace)
 				if err != nil {
 					return fmt.Errorf("failed to run sub tasks: %w", err)
 				}
@@ -140,20 +131,40 @@ func (t *BaseTool) doRunTask(
 			cmd = sliceutils.NewStrings(es.Command)
 		}
 
-		_, runScriptCmd, err := ctx.GetBootstrapExecSpec(cmd, false)
-		if err != nil {
-			return fmt.Errorf("failed to get exec spec from bootstrap config: %w", err)
-		}
+		var err error
+		if es.UseShell {
+			var shellCmd []string
+			if es.ShellName == "bootstrap" {
+				_, shellCmd, err = ctx.GetBootstrapExecSpec(cmd, false)
+				if err != nil {
+					return fmt.Errorf("failed to get exec spec for bootstrap shell: %w", err)
+				}
+			} else {
+				sh, ok := ctx.GetShell(es.ShellName)
+				if !ok {
+					return fmt.Errorf("shell %q not found", es.ShellName)
+				}
 
-		output.WriteExecStart(
-			t.ToolName,
-			cmd,
-			filepath.Base(runScriptCmd[len(runScriptCmd)-1]),
-		)
+				_, shellCmd, err = sh.GetExecSpec(cmd, false)
+				if err != nil {
+					return fmt.Errorf("failed to get exec spec for shell %q: %w", es.ShellName, err)
+				}
+			}
+
+			output.WriteExecStart(
+				ctx.PrefixColor(),
+				ctx.CurrentTool(), cmd,
+				filepath.Base(shellCmd[len(shellCmd)-1])[:7],
+			)
+
+			cmd = shellCmd
+		} else {
+			output.WriteExecStart(ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
+		}
 
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx,
-			Command: runScriptCmd,
+			Command: cmd,
 			Env:     ctx.Env(),
 			Dir:     es.Chdir,
 

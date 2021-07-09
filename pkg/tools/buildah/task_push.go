@@ -19,13 +19,11 @@ func init() {
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskPush)(nil)
 
 type TaskPush struct {
 	field.BaseField
@@ -35,10 +33,12 @@ type TaskPush struct {
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 }
 
-func (c *TaskPush) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskPush) Kind() dukkha.TaskKind     { return TaskKindPush }
-
-func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	buildahCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []ImageNameSpec{
@@ -71,6 +71,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string)
 					"docker://"+imageName,
 				),
 				IgnoreError: false,
+				UseShell:    useShell,
+				ShellName:   shellName,
 			})
 		}
 
@@ -89,6 +91,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string)
 				"docker://"+manifestName,
 			),
 			IgnoreError: false,
+			UseShell:    useShell,
+			ShellName:   shellName,
 		})
 	}
 

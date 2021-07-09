@@ -17,13 +17,11 @@ func init() {
 		ToolKind, TaskKindLogin,
 		func(toolName string) dukkha.Task {
 			t := &TaskLogin{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindLogin)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskLogin)(nil)
 
 type TaskLogin struct {
 	field.BaseField
@@ -37,10 +35,12 @@ type TaskLogin struct {
 	TLSSkipVerify *bool `yaml:"tls_skip_verify"`
 }
 
-func (c *TaskLogin) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskLogin) Kind() dukkha.TaskKind     { return TaskKindLogin }
-
-func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskLogin) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	buildahCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
 		buildahCmd, "login",
 		"--username", c.Username,
@@ -55,9 +55,13 @@ func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, buildahCmd []string
 	}
 
 	password := c.Password + "\n"
-	return []dukkha.TaskExecSpec{{
-		Stdin:       strings.NewReader(password),
-		Command:     append(loginCmd, c.Registry),
-		IgnoreError: false,
-	}}, nil
+	return []dukkha.TaskExecSpec{
+		{
+			Stdin:       strings.NewReader(password),
+			Command:     append(loginCmd, c.Registry),
+			IgnoreError: false,
+			UseShell:    useShell,
+			ShellName:   shellName,
+		},
+	}, nil
 }

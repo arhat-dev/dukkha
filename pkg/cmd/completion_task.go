@@ -64,14 +64,13 @@ func handleTaskCompletion(
 		fallthrough
 	case 3:
 		// missing task name
-		targetToolKind, targetToolName := dukkha.ToolKind(args[0]), dukkha.ToolName(args[1])
 		targetTaskKind := dukkha.TaskKind(args[2])
 
 		key := dukkha.ToolKey{
-			Kind: targetToolKind,
-			Name: targetToolName,
+			Kind: dukkha.ToolKind(args[0]),
+			Name: dukkha.ToolName(args[1]),
 		}
-		toolTasks, ok := appCtx.GetToolSpecificTasks(key.Kind, key.Name)
+		toolTasks, ok := appCtx.GetToolSpecificTasks(key)
 		if !ok {
 			// no such tasks
 			return nil, cobra.ShellCompDirectiveNoSpace

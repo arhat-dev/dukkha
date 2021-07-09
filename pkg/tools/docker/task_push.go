@@ -14,20 +14,20 @@ func init() {
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush)
 			return t
 		},
 	)
 }
 
-var _ dukkha.Task = (*TaskPush)(nil)
-
 type TaskPush buildah.TaskPush
 
-func (c *TaskPush) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskPush) Kind() dukkha.TaskKind     { return TaskKindPush }
-
-func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskPush) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{
@@ -55,6 +55,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([
 					toolCmd, "push", imageName,
 				),
 				IgnoreError: false,
+				UseShell:    useShell,
+				ShellName:   shellName,
 			})
 		}
 
@@ -71,6 +73,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([
 				),
 				// may already exists
 				IgnoreError: true,
+				UseShell:    useShell,
+				ShellName:   shellName,
 			},
 			// link manifest and image
 			dukkha.TaskExecSpec{
@@ -79,6 +83,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([
 					"--amend", imageName,
 				),
 				IgnoreError: false,
+				UseShell:    useShell,
+				ShellName:   shellName,
 			},
 		)
 
@@ -100,6 +106,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([
 		result = append(result, dukkha.TaskExecSpec{
 			Command:     annotateCmd,
 			IgnoreError: false,
+			UseShell:    useShell,
+			ShellName:   shellName,
 		})
 
 		// docker manifest push <manifest-list-name>
@@ -107,6 +115,8 @@ func (c *TaskPush) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([
 			result = append(result, dukkha.TaskExecSpec{
 				Command:     sliceutils.NewStrings(toolCmd, "manifest", "push", spec.Manifest),
 				IgnoreError: false,
+				UseShell:    useShell,
+				ShellName:   shellName,
 			})
 		}
 	}

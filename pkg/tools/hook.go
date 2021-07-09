@@ -8,6 +8,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type TaskHooks struct {
@@ -63,10 +64,10 @@ func (TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
 	}[stage]
 }
 
-func (h *TaskHooks) Run(
+func (h *TaskHooks) GenSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
-) error {
+) ([][]dukkha.TaskExecSpec, error) {
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
 	)
@@ -74,7 +75,7 @@ func (h *TaskHooks) Run(
 	logger.D("resolving hooks")
 	err := h.ResolveFields(taskCtx, -1, h.GetFieldNameByStage(stage))
 	if err != nil {
-		return fmt.Errorf("failed to resolve hook spec: %w", err)
+		return nil, fmt.Errorf("failed to resolve hook spec: %w", err)
 	}
 
 	toRun, ok := map[dukkha.TaskExecStage][]Hook{
@@ -90,21 +91,26 @@ func (h *TaskHooks) Run(
 		dukkha.StageAfter:        h.After,
 	}[stage]
 	if !ok {
-		return fmt.Errorf("unknown task exec stage: %d", stage)
+		return nil, fmt.Errorf("unknown task exec stage: %d", stage)
 	}
 
 	hookCtx := taskCtx.DeriveNew()
 	prefix := taskCtx.OutputPrefix() + stage.String() + ": "
 	hookCtx.SetOutputPrefix(prefix)
 
+	var ret [][]dukkha.TaskExecSpec
 	for i := range toRun {
-		err = toRun[i].Run(hookCtx.DeriveNew())
+		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew())
 		if err != nil {
-			return fmt.Errorf("action #%d failed: %w", i, err)
+			return nil, fmt.Errorf(
+				"failed to generate action #%d exec specs: %w",
+				i, err,
+			)
 		}
+		ret = append(ret, specs)
 	}
 
-	return nil
+	return ret, nil
 }
 
 type Hook struct {
@@ -115,30 +121,42 @@ type Hook struct {
 	Other map[string]string `dukkha:"other"`
 }
 
-func (h *Hook) Run(hookCtx dukkha.Context) error {
+func (h *Hook) GenSpecs(ctx dukkha.Context) ([]dukkha.TaskExecSpec, error) {
 	if len(h.Task) != 0 {
-		ref, err := dukkha.ParseTaskReference(h.Task, hookCtx.CurrentTool().Name)
+		ref, err := dukkha.ParseTaskReference(h.Task, ctx.CurrentTool().Name)
 		if err != nil {
-			return fmt.Errorf("invalid task reference %q: %w", h.Task, err)
+			return nil, fmt.Errorf("invalid task reference %q: %w", h.Task, err)
 		}
 
 		if len(ref.MatrixFilter) != 0 {
-			hookCtx.SetMatrixFilter(ref.MatrixFilter)
+			ctx.SetMatrixFilter(ref.MatrixFilter)
 		}
 
-		return hookCtx.RunTask(
-			ref.ToolKind, ref.ToolName,
-			ref.TaskKind, ref.TaskName,
-		)
+		tool, ok := ctx.GetTool(ref.ToolKey())
+		if !ok {
+			return nil, fmt.Errorf("referenced tool %q not found", ref.ToolKey())
+		}
+
+		tsk, ok := tool.GetTask(ref.TaskKey())
+		if !ok {
+			return nil, fmt.Errorf("referenced task %q not found", ref.TaskKey())
+		}
+
+		specs, err := tsk.GetExecSpecs(ctx, tool.UseShell(), tool.ShellName(), tool.GetCmd())
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate task exec specs: %w", err)
+		}
+
+		return specs, nil
 	}
 
 	switch {
 	case len(h.Other) > 1:
-		return fmt.Errorf("unexpected multiple entries in one hook spec")
+		return nil, fmt.Errorf("unexpected multiple entries in one hook spec")
 	case len(h.Other) == 1:
 	default:
 		// no hook to run
-		return nil
+		return nil, nil
 	}
 
 	var (
@@ -164,9 +182,25 @@ func (h *Hook) Run(hookCtx dukkha.Context) error {
 			shell = ""
 			isFilePath = false
 		default:
-			return fmt.Errorf("unknown action: %q", k)
+			return nil, fmt.Errorf("unknown action: %q", k)
 		}
 	}
 
-	return hookCtx.RunShell(shell, script, isFilePath)
+	sh, ok := ctx.GetShell(shell)
+	if !ok {
+		return nil, fmt.Errorf("shell %q not found", shell)
+	}
+
+	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate shell ")
+	}
+	ctx.AddEnv(env...)
+
+	return []dukkha.TaskExecSpec{
+		{
+			Env:     sliceutils.FormatStringMap(ctx.Env(), "="),
+			Command: cmd,
+		},
+	}, nil
 }

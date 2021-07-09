@@ -48,6 +48,7 @@ type Context interface {
 
 	// dukkha application settings
 
+	ColorOutput() bool
 	FailFast() bool
 	ClaimWorkers(n int) int
 
@@ -83,8 +84,9 @@ type dukkhaContext struct {
 	*contextExec
 
 	// application settings
-	failFast bool
-	workers  int
+	failFast    bool
+	colorOutput bool
+	workers     int
 }
 
 func NewConfigResolvingContext(
@@ -93,6 +95,7 @@ func NewConfigResolvingContext(
 	bootstrapExecGen ExecSpecGetFunc,
 	ifaceTypeHandler field.InterfaceTypeHandler,
 	failFast bool,
+	colorOutput bool,
 	workers int,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
@@ -110,8 +113,9 @@ func NewConfigResolvingContext(
 			ctxStd.ctx, globalEnv, ifaceTypeHandler,
 		),
 
-		failFast: failFast,
-		workers:  workers,
+		failFast:    failFast,
+		colorOutput: colorOutput,
+		workers:     workers,
 	}
 
 	return dukkhaCtx
@@ -136,8 +140,9 @@ func (c *dukkhaContext) DeriveNew() Context {
 		// initialized later
 		contextExec: nil,
 
-		failFast: c.failFast,
-		workers:  c.workers,
+		failFast:    c.failFast,
+		colorOutput: c.colorOutput,
+		workers:     c.workers,
 	}
 
 	if c.contextExec != nil {
@@ -150,7 +155,7 @@ func (c *dukkhaContext) DeriveNew() Context {
 }
 
 func (c *dukkhaContext) RunTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName) error {
-	tool, ok := c.GetTool(k, n)
+	tool, ok := c.GetTool(ToolKey{Kind: k, Name: n})
 	if !ok {
 		return fmt.Errorf("tool %q with name %q not found", k, n)
 	}
@@ -189,12 +194,12 @@ func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
 
 		Stdin: os.Stdin,
 		Stderr: utils.PrefixWriter(
-			c.OutputPrefix(),
+			c.OutputPrefix(), c.ColorOutput(),
 			c.PrefixColor(), c.OutputColor(),
 			os.Stderr,
 		),
 		Stdout: utils.PrefixWriter(
-			c.OutputPrefix(),
+			c.OutputPrefix(), c.ColorOutput(),
 			c.PrefixColor(), c.OutputColor(),
 			os.Stdout,
 		),
@@ -213,6 +218,10 @@ func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
 
 func (c *dukkhaContext) FailFast() bool {
 	return c.failFast
+}
+
+func (c *dukkhaContext) ColorOutput() bool {
+	return c.colorOutput
 }
 
 func (c *dukkhaContext) ClaimWorkers(n int) int {

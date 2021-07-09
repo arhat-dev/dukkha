@@ -18,15 +18,19 @@ func handleMatrixFlagCompletion(
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	toolKind, toolName := dukkha.ToolKind(args[0]), dukkha.ToolName(args[1])
+	k := dukkha.ToolKey{
+		Kind: dukkha.ToolKind(args[0]),
+		Name: dukkha.ToolName(args[1]),
+	}
+
 	taskKind, taskName := dukkha.TaskKind(args[2]), dukkha.TaskName(args[3])
 
-	tasks, ok := appCtx.GetToolSpecificTasks(toolKind, toolName)
+	tasks, ok := appCtx.GetToolSpecificTasks(k)
 	if !ok {
 		return nil, cobra.ShellCompDirectiveError
 	}
 
-	_, ok = appCtx.GetTool(toolKind, toolName)
+	_, ok = appCtx.GetTool(k)
 	if !ok {
 		return nil, cobra.ShellCompDirectiveError
 	}

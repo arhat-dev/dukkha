@@ -15,20 +15,20 @@ func init() {
 		ToolKind, TaskKindLogin,
 		func(toolName string) dukkha.Task {
 			t := &TaskLogin{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindLogin)
 			return t
 		},
 	)
 }
 
-var _ dukkha.Task = (*TaskLogin)(nil)
-
 type TaskLogin buildah.TaskLogin
 
-func (c *TaskLogin) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskLogin) Kind() dukkha.TaskKind     { return TaskKindLogin }
-
-func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, dockerCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskLogin) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	dockerCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
 		dockerCmd, "login",
 		"--username", c.Username,
@@ -40,5 +40,7 @@ func (c *TaskLogin) GetExecSpecs(rc dukkha.RenderingContext, dockerCmd []string)
 		Stdin:       strings.NewReader(password),
 		Command:     append(loginCmd, c.Registry),
 		IgnoreError: false,
+		UseShell:    useShell,
+		ShellName:   shellName,
 	}}, nil
 }

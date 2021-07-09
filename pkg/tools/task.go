@@ -2,12 +2,26 @@ package tools
 
 import (
 	"fmt"
-	"sync"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/matrix"
 )
+
+var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
+
+type _baseTaskWithGetExecSpecs struct {
+	BaseTask
+}
+
+func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
+	return nil, nil
+}
 
 type BaseTask struct {
 	field.BaseField
@@ -17,24 +31,43 @@ type BaseTask struct {
 	Hooks    TaskHooks   `yaml:"hooks"`
 
 	toolName dukkha.ToolName `yaml:"-"`
+	toolKind dukkha.ToolKind `yaml:"-"`
+	taskKind dukkha.TaskKind `yaml:"-"`
+}
 
-	hookMU sync.Mutex
+func (t *BaseTask) InitBaseTask(k dukkha.ToolKind, n dukkha.ToolName, tk dukkha.TaskKind) {
+	t.toolKind = k
+	t.toolName = n
+
+	t.taskKind = tk
+}
+
+func (t *BaseTask) Kind() dukkha.TaskKind {
+	return t.taskKind
+}
+
+func (t *BaseTask) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: t.taskKind, Name: dukkha.TaskName(t.TaskName)}
 }
 
 func (t *BaseTask) ToolName() dukkha.ToolName { return t.toolName }
-func (t *BaseTask) SetToolName(name string)   { t.toolName = dukkha.ToolName(name) }
-func (t *BaseTask) Name() dukkha.TaskName     { return dukkha.TaskName(t.TaskName) }
+func (t *BaseTask) ToolKind() dukkha.ToolKind { return t.toolKind }
 
-func (t *BaseTask) RunHooks(taskCtx dukkha.TaskExecContext, stage dukkha.TaskExecStage) error {
-	t.hookMU.Lock()
-	defer t.hookMU.Unlock()
+func (t *BaseTask) Name() dukkha.TaskName { return dukkha.TaskName(t.TaskName) }
 
-	err := t.Hooks.Run(taskCtx, stage)
+func (t *BaseTask) GetHookExecSpecs(
+	taskCtx dukkha.TaskExecContext,
+	stage dukkha.TaskExecStage,
+) ([][]dukkha.TaskExecSpec, error) {
+	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
 	if err != nil {
-		return fmt.Errorf("hook `%s` failed: %w", stage.String(), err)
+		return nil, fmt.Errorf(
+			"failed to generate exec specs for hook %q: %w",
+			stage.String(), err,
+		)
 	}
 
-	return nil
+	return specs, nil
 }
 
 func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, error) {

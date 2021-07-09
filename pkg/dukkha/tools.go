@@ -7,7 +7,16 @@ import (
 type (
 	ToolKind string
 	ToolName string
+
+	ToolKey struct {
+		Kind ToolKind
+		Name ToolName
+	}
 )
+
+func (k *ToolKey) String() string {
+	return string(k.Kind) + ":" + string(k.Name)
+}
 
 // nolint:revive
 type Tool interface {
@@ -18,6 +27,18 @@ type Tool interface {
 
 	Name() ToolName
 
+	Key() ToolKey
+
+	GetCmd() []string
+
+	GetEnv() []string
+
+	UseShell() bool
+
+	ShellName() string
+
+	GetTask(TaskKey) (Task, bool)
+
 	Init(kind ToolKind, cachdDir string) error
 
 	ResolveTasks(tasks []Task) error
@@ -26,17 +47,12 @@ type Tool interface {
 }
 
 type ToolManager interface {
-	AddTool(kind ToolKind, name ToolName, impl Tool)
+	AddTool(k ToolKey, t Tool)
 }
 
 type ToolUser interface {
 	AllTools() map[ToolKey]Tool
-	GetTool(kind ToolKind, name ToolName) (Tool, bool)
-}
-
-type ToolKey struct {
-	Kind ToolKind
-	Name ToolName
+	GetTool(k ToolKey) (Tool, bool)
 }
 
 func newContextTools() *contextTools {
@@ -49,19 +65,15 @@ type contextTools struct {
 	tools map[ToolKey]Tool
 }
 
-func (c *contextTools) AddTool(
-	kind ToolKind,
-	name ToolName,
-	impl Tool,
-) {
-	c.tools[ToolKey{Kind: kind, Name: name}] = impl
+func (c *contextTools) AddTool(k ToolKey, t Tool) {
+	c.tools[k] = t
 }
 
 func (c *contextTools) AllTools() map[ToolKey]Tool {
 	return c.tools
 }
 
-func (c *contextTools) GetTool(kind ToolKind, name ToolName) (Tool, bool) {
-	t, ok := c.tools[ToolKey{Kind: kind, Name: name}]
+func (c *contextTools) GetTool(k ToolKey) (Tool, bool) {
+	t, ok := c.tools[k]
 	return t, ok
 }

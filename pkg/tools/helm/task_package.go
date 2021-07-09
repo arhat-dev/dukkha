@@ -17,13 +17,11 @@ func init() {
 		ToolKind, TaskKindPackage,
 		func(toolName string) dukkha.Task {
 			t := &TaskPackage{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPackage)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskPackage)(nil)
 
 type TaskPackage struct {
 	field.BaseField
@@ -43,12 +41,17 @@ type PackageSigningSpec struct {
 	GPGKeyPassphrase string `yaml:"gpg_key_passphrase"`
 }
 
-func (c *TaskPackage) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskPackage) Kind() dukkha.TaskKind     { return TaskKindPackage }
-
-func (c *TaskPackage) GetExecSpecs(rc dukkha.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskPackage) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	helmCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Command: sliceutils.NewStrings(helmCmd, "package"),
+
+		UseShell:  useShell,
+		ShellName: shellName,
 	}
 
 	matches, err := filepath.Glob(c.Chart)

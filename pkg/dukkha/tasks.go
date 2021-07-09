@@ -13,6 +13,20 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
+type (
+	TaskKind string
+	TaskName string
+
+	TaskKey struct {
+		Kind TaskKind
+		Name TaskName
+	}
+)
+
+func (k TaskKey) String() string {
+	return string(k.Kind) + ":" + string(k.Name)
+}
+
 type TaskReference struct {
 	ToolKind ToolKind
 	ToolName ToolName
@@ -20,6 +34,14 @@ type TaskReference struct {
 	TaskName TaskName
 
 	MatrixFilter map[string][]string
+}
+
+func (t *TaskReference) ToolKey() ToolKey {
+	return ToolKey{Kind: t.ToolKind, Name: t.ToolName}
+}
+
+func (t *TaskReference) TaskKey() TaskKey {
+	return TaskKey{Kind: t.TaskKind, Name: t.TaskName}
 }
 
 // ParseTaskReference parse task ref
@@ -138,6 +160,18 @@ type TaskExecSpec struct {
 	Stdin io.Reader
 
 	IgnoreError bool
+
+	// UseShell if true, write command to local script cache
+	// and execute with the target shell (as referenced by ShellName)
+	UseShell bool
+
+	// ShellName to reference a shell to execute command
+	// when `UseShell` is true
+	//
+	// the availability of the shells denpends on `shells` in dukkha config
+	// a special shell name is `bootstrap`, which will use the bootstrap
+	// section as shell interpreter
+	ShellName string
 }
 
 type Task interface {
@@ -155,13 +189,15 @@ type Task interface {
 	// Name of the task
 	Name() TaskName
 
-	// GetMatrixSpecs for matrix build
+	Key() TaskKey
+
+	// GetMatrixSpecs for matrix execution
 	GetMatrixSpecs(rc RenderingContext) ([]matrix.Entry, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(rc RenderingContext, toolCmd []string) ([]TaskExecSpec, error)
+	GetExecSpecs(rc RenderingContext, useShell bool, shellName string, toolCmd []string) ([]TaskExecSpec, error)
 
-	RunHooks(taskCtx Context, state TaskExecStage) error
+	GetHookExecSpecs(taskCtx Context, state TaskExecStage) ([][]TaskExecSpec, error)
 }
 
 type TaskManager interface {
@@ -169,22 +205,8 @@ type TaskManager interface {
 }
 
 type TaskUser interface {
-	GetToolSpecificTasks(kind ToolKind, name ToolName) ([]Task, bool)
+	GetToolSpecificTasks(k ToolKey) ([]Task, bool)
 	AllToolSpecificTasks() map[ToolKey][]Task
-}
-
-type (
-	TaskKind string
-	TaskName string
-)
-
-type TaskKey struct {
-	Kind TaskKind
-	Name TaskName
-}
-
-func (k TaskKey) String() string {
-	return string(k.Kind) + ":" + string(k.Name)
 }
 
 func newContextTasks() *contextTasks {
@@ -205,8 +227,8 @@ func (c *contextTasks) AddToolSpecificTasks(k ToolKind, n ToolName, tasks []Task
 	)
 }
 
-func (c *contextTasks) GetToolSpecificTasks(k ToolKind, n ToolName) ([]Task, bool) {
-	tasks, ok := c.toolSpecificTasks[ToolKey{Kind: k, Name: n}]
+func (c *contextTasks) GetToolSpecificTasks(k ToolKey) ([]Task, bool) {
+	tasks, ok := c.toolSpecificTasks[k]
 	return tasks, ok
 }
 

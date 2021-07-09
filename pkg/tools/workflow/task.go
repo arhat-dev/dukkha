@@ -16,26 +16,26 @@ func init() {
 		ToolKind, TaskKindRun,
 		func(toolName string) dukkha.Task {
 			t := &TaskRun{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRun)
 			return t
 		},
 	)
 }
 
-var _ dukkha.Task = (*TaskRun)(nil)
-
 type TaskRun struct {
 	field.BaseField
 
-	tools.BaseTask
+	tools.BaseTask `yaml:",inline"`
 
 	Jobs []tools.Hook `yaml:"jobs"`
 }
 
-func (w *TaskRun) ToolKind() dukkha.ToolKind { return ToolKind }
-func (w *TaskRun) Kind() dukkha.TaskKind     { return TaskKindRun }
-
-func (w *TaskRun) GetExecSpecs(rc dukkha.RenderingContext, _ []string) ([]dukkha.TaskExecSpec, error) {
+func (w *TaskRun) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	_useShell bool,
+	_shellName string,
+	_toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	for i, job := range w.Jobs {
 		if len(job.Task) != 0 {

@@ -18,13 +18,11 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskBuild)(nil)
 
 type TaskBuild struct {
 	field.BaseField
@@ -56,10 +54,12 @@ type CGOSepc struct {
 	TargetCXX string `yaml:"target_cxx"`
 }
 
-func (c *TaskBuild) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
-
-func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskBuild) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
 	doingCrossCompiling := rc.HostKernel() != mKernel ||
@@ -92,8 +92,10 @@ func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) (
 		spec := &dukkha.TaskExecSpec{
 			Chdir: c.Chdir,
 
-			Env:     sliceutils.NewStrings(env),
-			Command: sliceutils.NewStrings(toolCmd, "build", "-o", output),
+			Env:       sliceutils.NewStrings(env),
+			Command:   sliceutils.NewStrings(toolCmd, "build", "-o", output),
+			UseShell:  useShell,
+			ShellName: shellName,
 		}
 
 		spec.Command = append(spec.Command, c.ExtraArgs...)

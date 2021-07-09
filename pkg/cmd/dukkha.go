@@ -25,6 +25,7 @@ import (
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/constant"
@@ -38,6 +39,7 @@ func NewRootCmd() *cobra.Command {
 
 		workerCount  = int(1)
 		failFast     = false
+		forceColor   = false
 		matrixFilter []string
 
 		configPaths []string
@@ -99,7 +101,7 @@ dukkha buildah in-docker build my-image`,
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
-			_appCtx, err := initDukkha(appBaseCtx, config, failFast, workerCount)
+			_appCtx, err := initDukkha(appBaseCtx, config, failFast, forceColor, workerCount)
 			if err != nil {
 				return fmt.Errorf("failed to initialize dukkha: %w", err)
 			}
@@ -124,6 +126,7 @@ dukkha buildah in-docker build my-image`,
 
 	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
 	globalFlags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
+	globalFlags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
 	globalFlags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter, format: -m <name>=<value>")
 
 	// logging for debugging purpose
@@ -157,6 +160,7 @@ func initDukkha(
 	appBaseCtx goctx.Context,
 	config *conf.Config,
 	failFast bool,
+	forceColor bool,
 	workers int,
 ) (dukkha.Context, error) {
 	logger := log.Log.WithName("init")
@@ -188,7 +192,9 @@ func initDukkha(
 		appBaseCtx, globalEnv,
 		config.Bootstrap.GetExecSpec,
 		dukkha.GlobalInterfaceTypeHandler,
-		failFast, workers,
+		failFast,
+		term.IsTerminal(int(os.Stdout.Fd())) || forceColor,
+		workers,
 	)
 
 	err = config.ResolveAfterBootstrap(appCtx)

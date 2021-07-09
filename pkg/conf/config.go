@@ -233,20 +233,22 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 
 			visited[t.Name()] = struct{}{}
 
+			key := dukkha.ToolKey{
+				Kind: toolKind,
+				Name: t.Name(),
+			}
+
 			logger := logger.WithFields(
-				log.Any("kind", toolKind),
-				log.Any("name", t.Name()),
+				log.String("key", key.String()),
 				log.Int("index", i),
 			)
-
-			toolID := string(toolKind) + ":" + string(t.Name())
 
 			logger.D("resolving tool config fields")
 			err = t.ResolveFields(appCtx, -1, "")
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve config for tool %q: %w",
-					toolID, err,
+					key, err,
 				)
 			}
 
@@ -255,21 +257,21 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 			if err != nil {
 				return fmt.Errorf(
 					"failed to initialize tool %q: %w",
-					toolID, err,
+					key, err,
 				)
 			}
 
 			// append tasks without tool name
 			// they are meant for all tools in the same kind they belong to
 			noToolNameTasks, _ := appCtx.GetToolSpecificTasks(
-				toolKind, "",
+				dukkha.ToolKey{Kind: toolKind, Name: ""},
 			)
 			appCtx.AddToolSpecificTasks(
 				toolKind, t.Name(),
 				noToolNameTasks,
 			)
 
-			tasks, _ := appCtx.GetToolSpecificTasks(toolKind, t.Name())
+			tasks, _ := appCtx.GetToolSpecificTasks(key)
 
 			if logger.Enabled(log.LevelVerbose) {
 				logger.D("resolving tool tasks", log.Any("tasks", tasks))
@@ -281,11 +283,11 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tasks for tool %q: %w",
-					toolID, err,
+					key, err,
 				)
 			}
 
-			appCtx.AddTool(toolKind, t.Name(), c.Tools[string(toolKind)][i])
+			appCtx.AddTool(key, c.Tools[string(toolKind)][i])
 		}
 	}
 
