@@ -24,7 +24,7 @@ func init() {
 type TaskLogin buildah.TaskLogin
 
 func (c *TaskLogin) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	dockerCmd []string,

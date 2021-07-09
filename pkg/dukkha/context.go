@@ -23,36 +23,33 @@ type ConfigResolvingContext interface {
 	RendererManager
 }
 
-// TODO: separate task specific functions to make it a standalone type
-type TaskExecContext = Context
-
-type Context interface {
+type TaskExecContext interface {
 	context.Context
 
-	// rendering
 	RenderingContext
-
 	ShellUser
 	ToolUser
 	TaskUser
 
-	// DeriveNew Context from this Context
 	DeriveNew() Context
 
 	GetBootstrapExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error)
 
 	Cancel()
 
-	RunTask(ToolKind, ToolName, TaskKind, TaskName) error
-	RunShell(shell, script string, isFilePath bool) error
-
-	// dukkha application settings
-
 	ColorOutput() bool
 	FailFast() bool
 	ClaimWorkers(n int) int
 
 	ExecValues
+}
+
+// Context for user facing tasks
+type Context interface {
+	TaskExecContext
+
+	RunTask(ToolKind, ToolName, TaskKind, TaskName) error
+	RunShell(shell, script string, isFilePath bool) error
 }
 
 var (

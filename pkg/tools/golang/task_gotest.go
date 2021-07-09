@@ -29,7 +29,7 @@ type TaskTest struct {
 }
 
 func (c *TaskTest) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

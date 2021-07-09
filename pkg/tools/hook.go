@@ -124,7 +124,7 @@ type Hook struct {
 	Other map[string]string `dukkha:"other"`
 }
 
-func (h *Hook) GenSpecs(ctx dukkha.Context, index int) ([]dukkha.TaskExecSpec, error) {
+func (h *Hook) GenSpecs(ctx dukkha.TaskExecContext, index int) ([]dukkha.TaskExecSpec, error) {
 	hookID := "#" + strconv.FormatInt(int64(index), 10)
 	if len(h.Name) != 0 {
 		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)

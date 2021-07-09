@@ -39,7 +39,7 @@ type TaskClone struct {
 }
 
 func (c *TaskClone) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	gitCmd []string,

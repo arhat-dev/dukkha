@@ -55,7 +55,7 @@ type CGOSepc struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

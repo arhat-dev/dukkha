@@ -24,7 +24,7 @@ type TaskBuild buildah.TaskBud
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

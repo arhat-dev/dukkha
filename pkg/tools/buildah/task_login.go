@@ -36,7 +36,7 @@ type TaskLogin struct {
 }
 
 func (c *TaskLogin) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	buildahCmd []string,

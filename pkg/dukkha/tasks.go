@@ -195,9 +195,9 @@ type Task interface {
 	GetMatrixSpecs(rc RenderingContext) ([]matrix.Entry, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(rc RenderingContext, useShell bool, shellName string, toolCmd []string) ([]TaskExecSpec, error)
+	GetExecSpecs(rc TaskExecContext, useShell bool, shellName string, toolCmd []string) ([]TaskExecSpec, error)
 
-	GetHookExecSpecs(taskCtx Context, state TaskExecStage) ([][]TaskExecSpec, error)
+	GetHookExecSpecs(taskCtx TaskExecContext, state TaskExecStage) ([][]TaskExecSpec, error)
 }
 
 type TaskManager interface {
