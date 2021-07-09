@@ -25,10 +25,15 @@ pkg() {
 }
 
 cmd() {
-    go_test="${common_go_test_env} CGO_ENABLED=0 go test ${common_go_test_flags} -coverprofile=coverage.cmd.txt -coverpkg=./cmd/... ./cmd/..."
+    go_test="${common_go_test_env} CGO_ENABLED=0 go test ${common_go_test_flags} "
 
     set -ex
-    eval "${go_test}"
+    eval "${go_test} -c -o ./build/dukkha.test -coverpkg=./pkg/... ./cmd/..."
+
+    ./build/dukkha.test \
+      -test.coverprofile=coverage.cmd.txt \
+      -- \
+      workflow local run test
 }
 
 $1
