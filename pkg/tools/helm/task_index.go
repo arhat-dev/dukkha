@@ -34,12 +34,9 @@ type TaskIndex struct {
 }
 
 func (c *TaskIndex) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	helmCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
+	indexCmd := sliceutils.NewStrings(options.ToolCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {
 		indexCmd = append(indexCmd, "--url", c.RepoURL)
@@ -64,8 +61,8 @@ func (c *TaskIndex) GetExecSpecs(
 	return []dukkha.TaskExecSpec{
 		{
 			Command:   indexCmd,
-			UseShell:  useShell,
-			ShellName: shellName,
+			UseShell:  options.UseShell,
+			ShellName: options.ShellName,
 		},
 	}, nil
 }

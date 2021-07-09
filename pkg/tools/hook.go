@@ -68,6 +68,7 @@ func (TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
 func (h *TaskHooks) GenSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
+	options dukkha.TaskExecOptions,
 ) ([][]dukkha.TaskExecSpec, error) {
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
@@ -101,7 +102,7 @@ func (h *TaskHooks) GenSpecs(
 
 	var ret [][]dukkha.TaskExecSpec
 	for i := range toRun {
-		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew(), i)
+		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew(), options, i)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"failed to generate action #%d exec specs: %w",
@@ -121,10 +122,14 @@ type Hook struct {
 	Name string `yaml:"name"`
 	Task string `yaml:"task"`
 
+	ContinueOnError bool `yaml:"continue_on_error"`
+
 	Other map[string]string `dukkha:"other"`
 }
 
-func (h *Hook) GenSpecs(ctx dukkha.TaskExecContext, index int) ([]dukkha.TaskExecSpec, error) {
+func (h *Hook) GenSpecs(
+	ctx dukkha.TaskExecContext, options dukkha.TaskExecOptions, index int,
+) ([]dukkha.TaskExecSpec, error) {
 	hookID := "#" + strconv.FormatInt(int64(index), 10)
 	if len(h.Name) != 0 {
 		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)
@@ -150,7 +155,10 @@ func (h *Hook) GenSpecs(ctx dukkha.TaskExecContext, index int) ([]dukkha.TaskExe
 			return nil, fmt.Errorf("%q: referenced task %q not found", hookID, ref.TaskKey())
 		}
 
-		specs, err := tsk.GetExecSpecs(ctx, tool.UseShell(), tool.ShellName(), tool.GetCmd())
+		opts := options.Clone()
+		opts.ContinueOnError = opts.ContinueOnError || h.ContinueOnError
+
+		specs, err := tsk.GetExecSpecs(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("%q: failed to generate task exec specs: %w", hookID, err)
 		}
@@ -210,8 +218,9 @@ func (h *Hook) GenSpecs(ctx dukkha.TaskExecContext, index int) ([]dukkha.TaskExe
 
 	return []dukkha.TaskExecSpec{
 		{
-			Env:     sliceutils.FormatStringMap(ctx.Env(), "="),
-			Command: cmd,
+			Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
+			Command:     cmd,
+			IgnoreError: h.ContinueOnError || options.ContinueOnError,
 		},
 	}, nil
 }

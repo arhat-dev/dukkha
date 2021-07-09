@@ -15,10 +15,7 @@ type _baseTaskWithGetExecSpecs struct {
 }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	toolCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return nil, nil
 }
@@ -58,8 +55,9 @@ func (t *BaseTask) Name() dukkha.TaskName { return dukkha.TaskName(t.TaskName) }
 func (t *BaseTask) GetHookExecSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
+	options dukkha.TaskExecOptions,
 ) ([][]dukkha.TaskExecSpec, error) {
-	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
+	specs, err := t.Hooks.GenSpecs(taskCtx, stage, options)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to generate exec specs for hook %q: %w",

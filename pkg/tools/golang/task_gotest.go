@@ -29,16 +29,13 @@ type TaskTest struct {
 }
 
 func (c *TaskTest) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	toolCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	spec := &dukkha.TaskExecSpec{
 		Chdir:     c.Chdir,
-		Command:   sliceutils.NewStrings(toolCmd, "test", "./..."),
-		UseShell:  useShell,
-		ShellName: shellName,
+		Command:   sliceutils.NewStrings(options.ToolCmd, "test", "./..."),
+		UseShell:  options.UseShell,
+		ShellName: options.ShellName,
 	}
 	return []dukkha.TaskExecSpec{*spec}, nil
 }

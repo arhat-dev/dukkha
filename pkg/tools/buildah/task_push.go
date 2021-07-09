@@ -34,10 +34,7 @@ type TaskPush struct {
 }
 
 func (c *TaskPush) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	buildahCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
@@ -65,14 +62,14 @@ func (c *TaskPush) GetExecSpecs(
 
 			result = append(result, dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
-					buildahCmd, "push",
+					options.ToolCmd, "push",
 					string(bytes.TrimSpace(imageIDBytes)),
 					// TODO: support other destination
 					"docker://"+imageName,
 				),
 				IgnoreError: false,
-				UseShell:    useShell,
-				ShellName:   shellName,
+				UseShell:    options.UseShell,
+				ShellName:   options.ShellName,
 			})
 		}
 
@@ -85,14 +82,14 @@ func (c *TaskPush) GetExecSpecs(
 		manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 		result = append(result, dukkha.TaskExecSpec{
 			Command: sliceutils.NewStrings(
-				buildahCmd, "manifest", "push", "--all",
+				options.ToolCmd, "manifest", "push", "--all",
 				getLocalManifestName(manifestName),
 				// TODO: support other destination
 				"docker://"+manifestName,
 			),
 			IgnoreError: false,
-			UseShell:    useShell,
-			ShellName:   shellName,
+			UseShell:    options.UseShell,
+			ShellName:   options.ShellName,
 		})
 	}
 
