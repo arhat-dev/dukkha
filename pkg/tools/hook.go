@@ -192,12 +192,6 @@ func (h *Hook) GenSpecs(
 		script = v
 
 		switch {
-		case strings.HasPrefix(k, "shell_file:"):
-			shell = strings.SplitN(k, ":", 2)[1]
-			isFilePath = true
-		case k == "shell_file":
-			shell = ""
-			isFilePath = true
 		case strings.HasPrefix(k, "shell:"):
 			shell = strings.SplitN(k, ":", 2)[1]
 			isFilePath = false

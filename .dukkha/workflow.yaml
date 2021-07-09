@@ -1,0 +1,12 @@
+tools:
+  workflow:
+  - name: local
+
+workflow:run:
+- name: github-ci
+  jobs:
+  - name: test dukkha working
+    shell: echo test
+  - name: build
+    task: |-
+      golang:build(dukkha, { kernel: [linux] })
