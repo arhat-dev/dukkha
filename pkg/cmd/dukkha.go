@@ -17,7 +17,7 @@ limitations under the License.
 package cmd
 
 import (
-	goctx "context"
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -49,7 +49,7 @@ func NewRootCmd() *cobra.Command {
 		appCtx dukkha.Context
 	)
 
-	appBaseCtx, cancel := goctx.WithCancel(goctx.Background())
+	appBaseCtx, cancel := context.WithCancel(context.Background())
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -157,7 +157,7 @@ dukkha buildah in-docker build my-image`,
 
 // initialize dukkha runtime, create a context for any task execution
 func initDukkha(
-	appBaseCtx goctx.Context,
+	appBaseCtx context.Context,
 	config *conf.Config,
 	failFast bool,
 	forceColor bool,

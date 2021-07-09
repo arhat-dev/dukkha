@@ -3,7 +3,7 @@ package cmd
 import (
 	"bufio"
 	"bytes"
-	goctx "context"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,7 +21,7 @@ import (
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(appBaseCtx goctx.Context) map[string]string {
+func createGlobalEnv(appBaseCtx context.Context) map[string]string {
 	now := time.Now()
 	result := map[string]string{
 		constant.ENV_DUKKHA_WORKING_DIR: func() string {
