@@ -92,7 +92,10 @@ func CreateRefreshFuncForRemote(
 				return strings.HasPrefix(entries[i].Name(), localCacheFilePrefix)
 			})
 
-			if start >= 0 {
+			switch start {
+			case len(entries):
+				// (not found) do nothing
+			default:
 				latestAt := start
 				for ; latestAt+1 < len(entries); latestAt++ {
 					if !strings.HasPrefix(entries[latestAt+1].Name(), localCacheFilePrefix) {
@@ -111,8 +114,7 @@ func CreateRefreshFuncForRemote(
 				if len(parts) != 2 || parts[0] != localCacheFilePrefix {
 					// invalid cache file
 					return nil, fmt.Errorf(
-						"invalid cache file, please remove %q: %w",
-						targetPath, err,
+						"invalid cache file, please remove %q", targetPath,
 					)
 				}
 
