@@ -113,8 +113,9 @@ func createGlobalEnv(appBaseCtx goctx.Context) map[string]string {
 		},
 	}
 
+	buf := &bytes.Buffer{}
 	for _, e := range envs {
-		buf := &bytes.Buffer{}
+		buf.Reset()
 		cmd, err2 := exechelper.Do(exechelper.Spec{
 			Context: appBaseCtx,
 			Command: e.command,

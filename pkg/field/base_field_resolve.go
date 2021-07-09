@@ -340,6 +340,14 @@ func (f *BaseField) addUnresolvedField(
 		_ = Init(fVal, f.ifaceTypeHandler)
 	}
 
+	if isCatchOtherField {
+		if f.catchOtherFields == nil {
+			f.catchOtherFields = make(map[string]struct{})
+		}
+
+		f.catchOtherFields[yamlKey] = struct{}{}
+	}
+
 	if old, exists := f.unresolvedFields[key]; exists {
 		old.rawData = append(old.rawData, rawData)
 		old.isCatchOtherField = isCatchOtherField
@@ -356,4 +364,13 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	return nil
+}
+
+func (f *BaseField) isCatchOtherField(yamlKey string) bool {
+	if f.catchOtherFields == nil {
+		return false
+	}
+
+	_, ok := f.catchOtherFields[yamlKey]
+	return ok
 }

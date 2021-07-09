@@ -10,6 +10,8 @@ type Spec struct {
 	Include []map[string][]string `yaml:"include"`
 	Exclude []map[string][]string `yaml:"exclude"`
 
+	// TODO: validate kernel and arch values to ensure
+	// 		 tools get expected value set
 	Kernel []string `yaml:"kernel"`
 	Arch   []string `yaml:"arch"`
 
@@ -97,23 +99,24 @@ loop:
 		mat := CartesianProduct(inc)
 	addInclude:
 		for i := range mat {
-			includeSpec := Entry(mat[i])
+			includeEntry := Entry(mat[i])
 
 			for _, spec := range result {
-				if spec.Equals(includeSpec) {
+				if spec.Equals(includeEntry) {
+					// already included
 					continue addInclude
 				}
 			}
 
 			if len(mf) == 0 {
 				// no filter, add it
-				result = append(result, includeSpec)
+				result = append(result, includeEntry)
 				continue
 			}
 
 			for _, f := range mf {
-				if includeSpec.Match(f) {
-					result = append(result, includeSpec)
+				if includeEntry.Match(f) {
+					result = append(result, includeEntry)
 					continue addInclude
 				}
 			}

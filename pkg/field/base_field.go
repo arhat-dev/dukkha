@@ -46,7 +46,9 @@ type BaseField struct {
 
 	// yamlKey -> map value
 	// TODO: separate static data and runtime generated data
-	mapValueCache map[string]reflect.Value
+	catchOtherCache map[string]reflect.Value
+
+	catchOtherFields map[string]struct{}
 }
 
 // nolint:revive
@@ -83,6 +85,26 @@ func (self *BaseField) Inherit(b *BaseField) error {
 		}
 
 		existingV.rawData = append(existingV.rawData, v.rawData...)
+	}
+
+	if len(b.catchOtherCache) != 0 {
+		if self.catchOtherCache == nil {
+			self.catchOtherCache = make(map[string]reflect.Value)
+		}
+
+		for k, v := range b.catchOtherCache {
+			self.catchOtherCache[k] = v
+		}
+	}
+
+	if len(b.catchOtherFields) != 0 {
+		if self.catchOtherFields == nil {
+			self.catchOtherFields = make(map[string]struct{})
+		}
+
+		for k, v := range b.catchOtherFields {
+			self.catchOtherFields[k] = v
+		}
 	}
 
 	return nil
@@ -314,7 +336,9 @@ fieldLoop:
 				}
 			}
 
-			err = self.unmarshal(yamlKey, v, fSpec.fieldValue, true)
+			err = self.unmarshal(
+				yamlKey, v, fSpec.fieldValue, fSpec.isCatchOther,
+			)
 			if err != nil {
 				return fmt.Errorf(
 					"field: failed to unmarshal yaml field %q to struct field %q: %w",
@@ -349,8 +373,8 @@ fieldLoop:
 			}
 		}
 
-		// do not unmarshal now, we need to evaluate value and unmarshal
-		// at runtime
+		// do not unmarshal now, we will render the value
+		// and unmarshal at runtime
 
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
@@ -379,7 +403,6 @@ fieldLoop:
 	for k := range m {
 		unknownFields = append(unknownFields, k)
 	}
-
 	sort.Strings(unknownFields)
 
 	return fmt.Errorf(
@@ -417,7 +440,12 @@ func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
 }
 
 // nolint:revive
-func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflect.Value, keepOld bool) error {
+func (self *BaseField) unmarshal(
+	yamlKey string,
+	in interface{},
+	outField reflect.Value,
+	keepOld bool,
+) error {
 	oe := outField
 
 	for {
@@ -439,7 +467,12 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 			for i := 0; i < size; i++ {
 				itemVal := sliceVal.Index(i)
 
-				err := self.unmarshal(yamlKey, inSlice[i], itemVal, keepOld)
+				err := self.unmarshal(
+					yamlKey, inSlice[i], itemVal,
+					// always drop existing inner data
+					// (actually doesn't matter since it's new)
+					false,
+				)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
 				}
@@ -460,41 +493,51 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 
 			valType := oe.Type().Elem()
 
-			iter := reflect.ValueOf(in).MapRange()
-			for iter.Next() {
+			iterIn := reflect.ValueOf(in).MapRange()
+
+			isCatchOtherField := self.isCatchOtherField(yamlKey)
+			if isCatchOtherField {
+				if self.catchOtherCache == nil {
+					self.catchOtherCache = make(map[string]reflect.Value)
+				}
+			}
+
+			for iterIn.Next() {
 				// since indexed map value is not addressable
 				// we have to keep the original data in BaseField cache
 
 				// TODO: test keepOld behavior with cached data
-				if self.mapValueCache == nil {
-					self.mapValueCache = make(map[string]reflect.Value)
-				}
 
 				var val reflect.Value
-				cachedData, ok := self.mapValueCache[iter.Key().String()]
-				if ok && keepOld {
-					val = cachedData
+
+				if isCatchOtherField {
+					cachedData, ok := self.catchOtherCache[iterIn.Key().String()]
+					if ok {
+						val = cachedData
+					} else {
+						val = reflect.New(valType)
+						self.catchOtherCache[iterIn.Key().String()] = val
+					}
 				} else {
 					val = reflect.New(valType)
-					self.mapValueCache[iter.Key().String()] = val
 				}
 
 				err := self.unmarshal(
 					// use iter.Key() rather than `yamlKey`
 					// because it can be the field catching other
 					// (field tag: `dukkha:"other"`)
-					iter.Key().String(),
-					iter.Value().Interface(),
+					iterIn.Key().String(),
+					iterIn.Value().Interface(),
 					val,
 					keepOld,
 				)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
-						valType.String(), iter.Key().String(), err,
+						valType.String(), iterIn.Key().String(), err,
 					)
 				}
 
-				oe.SetMapIndex(iter.Key(), val.Elem())
+				oe.SetMapIndex(iterIn.Key(), val.Elem())
 			}
 
 			return nil
