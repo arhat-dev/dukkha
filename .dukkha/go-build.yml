@@ -89,13 +89,14 @@
   - nokube
   - nocloud
   - netgo
-  ldflags:
-  - -X arhat.dev/dukkha/pkg/version.branch="${GIT_BRANCH}"
-  - -X arhat.dev/dukkha/pkg/version.commit="${GIT_COMMIT}"
-  - -X arhat.dev/dukkha/pkg/version.tag="${GIT_TAG}"
-  - -X arhat.dev/dukkha/pkg/version.arch="${MATRIX_ARCH}"
-  - -X arhat.dev/dukkha/pkg/version.workspaceClean="${GIT_WORKTREE_CLEAN}"
-  - -X arhat.dev/dukkha/pkg/version.goCompilerPlatform="$(go version | cut -d\  -f4)"
+  ldflags@env:
+  - -s -w
+  - -X "arhat.dev/dukkha/pkg/version.branch=${GIT_BRANCH}"
+  - -X "arhat.dev/dukkha/pkg/version.commit=${GIT_COMMIT}"
+  - -X "arhat.dev/dukkha/pkg/version.tag=${GIT_TAG}"
+  - -X "arhat.dev/dukkha/pkg/version.arch=${MATRIX_ARCH}"
+  - -X "arhat.dev/dukkha/pkg/version.workspaceClean=${GIT_WORKTREE_CLEAN}"
+  - -X "arhat.dev/dukkha/pkg/version.goCompilerPlatform=$(go version | cut -d\  -f4)"
   outputs@shell: |-
     suffix=""
     if [ "${MATRIX_KERNEL}" = "windows" ]; then

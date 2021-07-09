@@ -100,21 +100,25 @@ func (c *TaskBuild) GetExecSpecs(
 			spec.Command = append(spec.Command, c.ExtraArgs...)
 
 			if len(c.LDFlags) != 0 {
-				spec.Command = append(spec.Command,
-					fmt.Sprintf("-ldflags=\"%s\"", strings.Join(c.LDFlags, " ")),
+				spec.Command = append(
+					spec.Command,
+					"-ldflags",
+					formatArgs(c.LDFlags, options.UseShell),
 				)
 			}
 
 			if len(c.Tags) != 0 {
-				spec.Command = append(spec.Command,
-					fmt.Sprintf("-tags=\"%s\"", strings.Join(c.Tags, " ")),
+				spec.Command = append(
+					spec.Command,
+					"-tags",
+					formatArgs(c.Tags, options.UseShell),
 				)
 			}
 
 			if len(c.Path) != 0 {
 				spec.Command = append(spec.Command, c.Path)
 			} else {
-				spec.Command = append(spec.Command, ".")
+				spec.Command = append(spec.Command, "./")
 			}
 
 			buildSteps = append(buildSteps, *spec)
@@ -209,6 +213,15 @@ func (c *CGOSepc) getEnv(doingCrossCompiling bool, mKernel, mArch, hostOS, targe
 		ret = append(ret, "CXX_FOR_TARGET="+c.TargetCXX)
 	} else if doingCrossCompiling {
 		ret = append(ret, "CC_FOR_TARGET="+targetCXX)
+	}
+
+	return ret
+}
+
+func formatArgs(args []string, useShell bool) string {
+	ret := strings.Join(args, " ")
+	if useShell {
+		ret = `"` + ret + `"`
 	}
 
 	return ret

@@ -6,7 +6,7 @@ tools:
     - GO_PROXY=direct
     - GO_SUMDB=off
     cmd: [go]
-  - name: linux-container
+  - name: in-docker
     # when using shell, you can leave environment variables unexpanded
     # and do extra scripting before actually run the tool
     use_shell: true
