@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
-	"github.com/fatih/color"
 )
 
 func WriteTaskStart(

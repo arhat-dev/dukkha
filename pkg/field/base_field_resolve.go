@@ -3,6 +3,7 @@ package field
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"sync/atomic"
 
 	"gopkg.in/yaml.v3"
@@ -196,22 +197,32 @@ func (f *BaseField) handleUnResolvedField(
 			toResolve = rawData.(map[string]interface{})[key.yamlKey]
 		}
 
-		resolvedValue, err := rc.RenderYaml(key.renderer, toResolve)
-		if err != nil {
-			input, ok := toResolve.(string)
-			if !ok {
-				inputBytes, err2 := yaml.Marshal(toResolve)
-				if err2 == nil {
-					input = string(inputBytes)
-				} else {
-					input = fmt.Sprint(toResolve)
+		var (
+			resolvedValue []byte
+			err           error
+		)
+
+		for _, renderer := range v.renderers {
+			resolvedValue, err = rc.RenderYaml(renderer, toResolve)
+			if err != nil {
+				// create a human readable error message
+				input, ok := toResolve.(string)
+				if !ok {
+					inputBytes, err2 := yaml.Marshal(toResolve)
+					if err2 == nil {
+						input = string(inputBytes)
+					} else {
+						input = fmt.Sprint(toResolve)
+					}
 				}
+
+				return fmt.Errorf(
+					"field: failed to render value of %s.%s from\n\n%s\n\nerror: %w",
+					structName, fieldName, input, err,
+				)
 			}
 
-			return fmt.Errorf(
-				"field: failed to render value of %s.%s from\n\n%s\n\nerror: %w",
-				structName, fieldName, input, err,
-			)
+			toResolve = resolvedValue
 		}
 
 		if target.Type() == stringPtrType {
@@ -237,7 +248,7 @@ func (f *BaseField) handleUnResolvedField(
 
 		// TODO: currently we alway keepOld when the filed has tag
 		// 		 `dukkha:"other"`, need to ensure this behavior won't
-		// 	     leave inconsistant data
+		// 	     leave inconsistent data
 
 		actualKeepOld := keepOld || v.isCatchOtherField || i != 0
 		err = f.unmarshal(key.yamlKey, tmp, target, actualKeepOld)
@@ -260,12 +271,14 @@ func (f *BaseField) handleUnResolvedField(
 }
 
 func (f *BaseField) addUnresolvedField(
+	// key part
+	yamlKey string,
+	suffix string,
+
+	// value part
 	fieldName string,
 	fieldValue reflect.Value,
 	isCatchOtherField bool,
-
-	yamlKey string,
-	renderer string,
 	rawData interface{},
 ) error {
 	if f.unresolvedFields == nil {
@@ -273,9 +286,9 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	key := unresolvedFieldKey{
-		// yamlKey@renderer: ...
-		yamlKey:  yamlKey,
-		renderer: renderer,
+		// yamlKey@suffix: ...
+		yamlKey: yamlKey,
+		suffix:  suffix,
 	}
 
 	oe := fieldValue
@@ -337,6 +350,7 @@ func (f *BaseField) addUnresolvedField(
 		fieldName:  fieldName,
 		fieldValue: fieldValue,
 		rawData:    []interface{}{rawData},
+		renderers:  strings.Split(suffix, "|"),
 
 		isCatchOtherField: isCatchOtherField,
 	}

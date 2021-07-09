@@ -11,7 +11,7 @@ tools:
     # and do extra scripting before actually run the tool
     use_shell: true
     shell_name: bootstrap
-    cmd@template:
+    cmd@template|env:
     - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
     - ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
     - go

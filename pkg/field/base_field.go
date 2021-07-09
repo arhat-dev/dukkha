@@ -12,17 +12,18 @@ import (
 
 type (
 	unresolvedFieldKey struct {
-		// NOTE: put `renderer` and `yamlKey` in key is to support fields with
+		// NOTE: put `suffix` and `yamlKey` in key is to support fields with
 		// 		 `dukkha:"other"` field tag, each item should be able
 		// 		 to have its own renderer
-		yamlKey  string
-		renderer string
+		yamlKey string
+		suffix  string
 	}
 
 	unresolvedFieldValue struct {
 		fieldName  string
 		fieldValue reflect.Value
 		rawData    []interface{}
+		renderers  []string
 
 		isCatchOtherField bool
 	}
@@ -66,6 +67,7 @@ func (self *BaseField) Inherit(b *BaseField) error {
 				fieldValue:        self._parentValue.Elem().FieldByName(v.fieldName),
 				isCatchOtherField: v.isCatchOtherField,
 				rawData:           v.rawData,
+				renderers:         v.renderers,
 			}
 
 			continue
@@ -86,7 +88,8 @@ func (self *BaseField) Inherit(b *BaseField) error {
 	return nil
 }
 
-// UnmarshalYAML handles renderer suffix
+// UnmarshalYAML handles parsing of rendering suffix and normal yaml
+// unmarshaling
 // nolint:gocyclo,revive
 func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&self._initialized) == 0 {
@@ -324,11 +327,12 @@ fieldLoop:
 
 		// has rendering suffix
 
-		yamlKey, renderer := parts[0], parts[1]
+		yamlKey, suffix := parts[0], parts[1]
 
 		if _, ok := handledYamlValues[yamlKey]; ok {
 			return fmt.Errorf(
-				"field: duplicate yaml field name %q, rendering suffix won't change the field name",
+				"field: duplicate yaml field name %q, please note"+
+					" rendering suffix won't change the field name",
 				yamlKey,
 			)
 		}
@@ -347,18 +351,15 @@ fieldLoop:
 
 		// do not unmarshal now, we need to evaluate value and unmarshal
 		// at runtime
-		//
-		// 		err = unmarshal(v, fSpec.fieldValue)
-		//
 
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
 		handledYamlValues[rawYamlKey] = struct{}{}
 
 		err = fSpec.base.addUnresolvedField(
+			yamlKey, suffix,
 			fSpec.fieldName, fSpec.fieldValue, fSpec.isCatchOther,
-			// yamlKey@renderer: v
-			yamlKey, renderer, v,
+			v,
 		)
 		if err != nil {
 			return fmt.Errorf("field: failed to add unresolved field: %w", err)

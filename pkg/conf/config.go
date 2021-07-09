@@ -57,7 +57,10 @@ type Config struct {
 }
 
 func (c *Config) Merge(a *Config) {
-	c.BaseField.Inherit(&a.BaseField)
+	err := c.BaseField.Inherit(&a.BaseField)
+	if err != nil {
+		panic(fmt.Errorf("failed to inherit other top level base field: %w", err))
+	}
 
 	c.Bootstrap.Env = append(c.Bootstrap.Env, a.Bootstrap.Env...)
 	if len(a.Bootstrap.CacheDir) != 0 {
