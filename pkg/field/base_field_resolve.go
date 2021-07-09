@@ -29,6 +29,11 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName stri
 
 	for i := 1; i < f._parentValue.Elem().NumField(); i++ {
 		sf := parentStruct.Field(i)
+		if !(sf.Name[0] >= 'A' && sf.Name[0] <= 'Z') {
+			// unexported
+			continue
+		}
+
 		fv := f._parentValue.Elem().Field(i)
 		if !resolveAll {
 			if sf.Name == fieldName {
@@ -62,7 +67,6 @@ func (f *BaseField) resolveSingleField(
 
 	targetField reflect.Value,
 ) error {
-
 	handled := false
 	for k, v := range f.unresolvedFields {
 		if v.fieldName == fieldName {
@@ -86,6 +90,10 @@ func (f *BaseField) handleResolvedField(
 	depth int,
 	targetField reflect.Value,
 ) error {
+	if depth == 0 {
+		return nil
+	}
+
 	switch targetField.Kind() {
 	case reflect.Map:
 		if targetField.IsNil() {
@@ -94,22 +102,9 @@ func (f *BaseField) handleResolvedField(
 
 		iter := targetField.MapRange()
 		for iter.Next() {
-			if iter.Value().CanInterface() {
-				fVal, canCallResolve := targetField.Interface().(Field)
-				if canCallResolve {
-					err := fVal.ResolveFields(rc, depth-1, "")
-					if err != nil {
-						return err
-					}
-				}
-			} else if targetField.CanAddr() && targetField.Addr().CanInterface() {
-				fVal, canCallResolve := targetField.Addr().Interface().(Field)
-				if canCallResolve {
-					err := fVal.ResolveFields(rc, depth-1, "")
-					if err != nil {
-						return err
-					}
-				}
+			err := f.handleResolvedField(rc, depth-1, iter.Value())
+			if err != nil {
+				return err
 			}
 		}
 	case reflect.Array:
@@ -121,54 +116,33 @@ func (f *BaseField) handleResolvedField(
 
 		for i := 0; i < targetField.Len(); i++ {
 			tt := targetField.Index(i)
-			if tt.CanInterface() {
-				fVal, canCallResolve := tt.Interface().(Field)
-				if canCallResolve {
-					err := fVal.ResolveFields(rc, depth-1, "")
-					if err != nil {
-						return err
-					}
-				}
-			} else if tt.CanAddr() && tt.Addr().CanInterface() {
-				fVal, canCallResolve := tt.Addr().Interface().(Field)
-				if canCallResolve {
-					err := fVal.ResolveFields(rc, depth-1, "")
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-	case reflect.Interface:
-		if targetField.CanInterface() {
-			fVal, canCallResolve := targetField.Interface().(Field)
-			if canCallResolve {
-				return fVal.ResolveFields(rc, depth-1, "")
-			}
-		} else if targetField.CanAddr() && targetField.Addr().CanInterface() {
-			fVal, canCallResolve := targetField.Addr().Interface().(Field)
-			if canCallResolve {
-				return fVal.ResolveFields(rc, depth-1, "")
+			err := f.handleResolvedField(rc, depth-1, tt)
+			if err != nil {
+				return err
 			}
 		}
 	case reflect.Struct:
-		if targetField.CanAddr() && targetField.Addr().CanInterface() {
-			fVal, canCallResolve := targetField.Addr().Interface().(Field)
-			if canCallResolve {
-				return fVal.ResolveFields(rc, depth-1, "")
-			}
-		}
 	case reflect.Ptr:
-		if targetField.CanInterface() {
-			fVal, canCallResolve := targetField.Interface().(Field)
-			if canCallResolve {
-				return fVal.ResolveFields(rc, depth-1, "")
-			}
-		}
+	case reflect.Interface:
 	default:
 		// scalar types, no action required
 		return nil
 	}
+
+	if targetField.CanInterface() {
+		fVal, canCallResolve := targetField.Interface().(Field)
+		if canCallResolve {
+			return fVal.ResolveFields(rc, depth-1, "")
+		}
+	}
+
+	if targetField.CanAddr() && targetField.Addr().CanInterface() {
+		fVal, canCallResolve := targetField.Addr().Interface().(Field)
+		if canCallResolve {
+			return fVal.ResolveFields(rc, depth-1, "")
+		}
+	}
+
 	return nil
 }
 
