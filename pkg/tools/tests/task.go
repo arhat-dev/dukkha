@@ -1,11 +1,13 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type ExecSpecGenerationTestCase struct {
@@ -35,6 +37,8 @@ func RunTaskExecSpecGenerationTests(
 					return
 				}
 			}
+
+			field.InitRecursively(reflect.ValueOf(test.Task), nil)
 
 			if test.ExpectErr {
 				_, err := test.Task.GetExecSpecs(taskCtx, test.Options)
