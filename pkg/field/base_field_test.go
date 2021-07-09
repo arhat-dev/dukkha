@@ -57,12 +57,12 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 				BaseField: BaseField{
 					unresolvedFields: map[unresolvedFieldKey]*unresolvedFieldValue{
 						{
-							fieldName: "Foo",
-							renderer:  "a",
+							yamlKey:  "foo",
+							renderer: "a",
 						}: {
-							fieldValue:    reflect.Value{},
-							yamlFieldName: "foo",
-							rawData:       []interface{}{"echo bar"},
+							fieldName:  "Foo",
+							fieldValue: reflect.Value{},
+							rawData:    []interface{}{"echo bar"},
 						},
 					},
 				},
@@ -76,22 +76,22 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 				BaseField: BaseField{
 					unresolvedFields: map[unresolvedFieldKey]*unresolvedFieldValue{
 						{
-							fieldName: "Other",
-							renderer:  "a",
+							yamlKey:  "other_field_1",
+							renderer: "a",
 						}: {
-							fieldValue:    reflect.Value{},
-							yamlFieldName: "other_field_1",
+							fieldName:  "Other",
+							fieldValue: reflect.Value{},
 							rawData: []interface{}{
 								map[string]interface{}{"other_field_1": "foo"},
 							},
 							isCatchOtherField: true,
 						},
 						{
-							fieldName: "Other",
-							renderer:  "b",
+							yamlKey:  "other_field_2",
+							renderer: "b",
 						}: {
-							fieldValue:    reflect.Value{},
-							yamlFieldName: "other_field_2",
+							fieldName:  "Other",
+							fieldValue: reflect.Value{},
 							rawData: []interface{}{
 								map[string]interface{}{"other_field_2": "bar"},
 							},

@@ -82,21 +82,21 @@ func (c *Config) Merge(a *Config) {
 
 	if len(a.Tools) != 0 {
 		if c.Tools == nil {
-			c.Tools = a.Tools
-		} else {
-			for k := range a.Tools {
-				c.Tools[k] = append(c.Tools[k], a.Tools[k]...)
-			}
+			c.Tools = make(map[string][]dukkha.Tool)
+		}
+
+		for k := range a.Tools {
+			c.Tools[k] = append(c.Tools[k], a.Tools[k]...)
 		}
 	}
 
 	if len(a.Tasks) != 0 {
 		if c.Tasks == nil {
-			c.Tasks = a.Tasks
-		} else {
-			for k := range a.Tasks {
-				c.Tasks[k] = append(c.Tasks[k], a.Tasks[k]...)
-			}
+			c.Tasks = make(map[string][]dukkha.Task)
+		}
+
+		for k := range a.Tasks {
+			c.Tasks[k] = append(c.Tasks[k], a.Tasks[k]...)
 		}
 	}
 }
