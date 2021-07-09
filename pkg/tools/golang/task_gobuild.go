@@ -18,7 +18,7 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
 			return t
 		},
 	)
@@ -79,46 +79,50 @@ func (c *TaskBuild) GetExecSpecs(
 		env = append(env, "GOARM="+envGOARM)
 	}
 
-	outputs := c.Outputs
-	if len(outputs) == 0 {
-		outputs = []string{c.TaskName}
-	}
-
 	var buildSteps []dukkha.TaskExecSpec
-	for _, output := range outputs {
-		spec := &dukkha.TaskExecSpec{
-			Chdir: c.Chdir,
 
-			Env:       sliceutils.NewStrings(env),
-			Command:   sliceutils.NewStrings(options.ToolCmd, "build", "-o", output),
-			UseShell:  options.UseShell,
-			ShellName: options.ShellName,
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		outputs := c.Outputs
+		if len(outputs) == 0 {
+			outputs = []string{c.BaseTask.TaskName}
 		}
 
-		spec.Command = append(spec.Command, c.ExtraArgs...)
+		for _, output := range outputs {
+			spec := &dukkha.TaskExecSpec{
+				Chdir: c.Chdir,
 
-		if len(c.LDFlags) != 0 {
-			spec.Command = append(spec.Command,
-				fmt.Sprintf("-ldflags=\"%s\"", strings.Join(c.LDFlags, " ")),
-			)
+				Env:       sliceutils.NewStrings(env),
+				Command:   sliceutils.NewStrings(options.ToolCmd, "build", "-o", output),
+				UseShell:  options.UseShell,
+				ShellName: options.ShellName,
+			}
+
+			spec.Command = append(spec.Command, c.ExtraArgs...)
+
+			if len(c.LDFlags) != 0 {
+				spec.Command = append(spec.Command,
+					fmt.Sprintf("-ldflags=\"%s\"", strings.Join(c.LDFlags, " ")),
+				)
+			}
+
+			if len(c.Tags) != 0 {
+				spec.Command = append(spec.Command,
+					fmt.Sprintf("-tags=\"%s\"", strings.Join(c.Tags, " ")),
+				)
+			}
+
+			if len(c.Path) != 0 {
+				spec.Command = append(spec.Command, c.Path)
+			} else {
+				spec.Command = append(spec.Command, ".")
+			}
+
+			buildSteps = append(buildSteps, *spec)
 		}
+		return nil
+	})
 
-		if len(c.Tags) != 0 {
-			spec.Command = append(spec.Command,
-				fmt.Sprintf("-tags=\"%s\"", strings.Join(c.Tags, " ")),
-			)
-		}
-
-		if len(c.Path) != 0 {
-			spec.Command = append(spec.Command, c.Path)
-		} else {
-			spec.Command = append(spec.Command, ".")
-		}
-
-		buildSteps = append(buildSteps, *spec)
-	}
-
-	return buildSteps, nil
+	return buildSteps, err
 }
 
 func (c *TaskBuild) getGOARM(mArch string) string {

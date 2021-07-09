@@ -44,6 +44,8 @@ type Tool interface {
 	ResolveTasks(tasks []Task) error
 
 	Run(taskCtx TaskExecContext) error
+
+	DoAfterFieldsResolved(mCtx TaskExecContext, do func() error) error
 }
 
 type ToolManager interface {

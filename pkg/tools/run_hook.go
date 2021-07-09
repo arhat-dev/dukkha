@@ -16,7 +16,7 @@ func runHook(
 		var err error
 		switch t := execSpec.(type) {
 		case *CompleteTaskExecSpecs:
-			err = RunTask(t)
+			err = RunTask(t.Context, t.Tool, t.Task)
 		case []dukkha.TaskExecSpec:
 			err = doRun(ctx, t, nil)
 		default:

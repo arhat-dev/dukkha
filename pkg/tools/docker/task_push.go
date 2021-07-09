@@ -14,7 +14,7 @@ func init() {
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
 			return t
 		},
 	)
@@ -25,98 +25,102 @@ type TaskPush buildah.TaskPush
 func (c *TaskPush) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	targets := c.ImageNames
-	if len(targets) == 0 {
-		targets = []buildah.ImageNameSpec{{
-			Image:    c.TaskName,
-			Manifest: "",
-		}}
-	}
+	var result []dukkha.TaskExecSpec
 
-	var (
-		result []dukkha.TaskExecSpec
-
-		manifestCmd = sliceutils.NewStrings(options.ToolCmd, "manifest")
-	)
-
-	for _, spec := range targets {
-		if len(spec.Image) == 0 {
-			continue
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		targets := c.ImageNames
+		if len(targets) == 0 {
+			targets = []buildah.ImageNameSpec{{
+				Image:    c.TaskName,
+				Manifest: "",
+			}}
 		}
 
-		imageName := buildah.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
-		// docker push <image-name>
-		if buildah.ImageOrManifestHasFQDN(imageName) {
+		var (
+			manifestCmd = sliceutils.NewStrings(options.ToolCmd, "manifest")
+		)
+
+		for _, spec := range targets {
+			if len(spec.Image) == 0 {
+				continue
+			}
+
+			imageName := buildah.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+			// docker push <image-name>
+			if buildah.ImageOrManifestHasFQDN(imageName) {
+				result = append(result, dukkha.TaskExecSpec{
+					Command: sliceutils.NewStrings(
+						options.ToolCmd, "push", imageName,
+					),
+					IgnoreError: false,
+					UseShell:    options.UseShell,
+					ShellName:   options.ShellName,
+				})
+			}
+
+			if len(spec.Manifest) == 0 {
+				continue
+			}
+
+			manifestName := buildah.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			result = append(result,
+				// ensure manifest exists
+				dukkha.TaskExecSpec{
+					Command: sliceutils.NewStrings(
+						manifestCmd, "create", manifestName, imageName,
+					),
+					// may already exists
+					IgnoreError: true,
+					UseShell:    options.UseShell,
+					ShellName:   options.ShellName,
+				},
+				// link manifest and image
+				dukkha.TaskExecSpec{
+					Command: sliceutils.NewStrings(
+						manifestCmd, "create", manifestName,
+						"--amend", imageName,
+					),
+					IgnoreError: false,
+					UseShell:    options.UseShell,
+					ShellName:   options.ShellName,
+				},
+			)
+
+			// docker manifest annotate \
+			// 		<manifest-list-name> <image-name> \
+			// 		--os <arch> --arch <arch> {--variant <variant>}
+			mArch := rc.MatrixArch()
+			annotateCmd := sliceutils.NewStrings(
+				manifestCmd, "annotate", manifestName, imageName,
+				"--os", constant.GetDockerOS(rc.MatrixKernel()),
+				"--arch", constant.GetDockerArch(mArch),
+			)
+
+			variant := constant.GetDockerArchVariant(mArch)
+			if len(variant) != 0 {
+				annotateCmd = append(annotateCmd, "--variant", variant)
+			}
+
 			result = append(result, dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					options.ToolCmd, "push", imageName,
-				),
+				Command:     annotateCmd,
 				IgnoreError: false,
 				UseShell:    options.UseShell,
 				ShellName:   options.ShellName,
 			})
+
+			// docker manifest push <manifest-list-name>
+			if buildah.ImageOrManifestHasFQDN(manifestName) {
+				result = append(result, dukkha.TaskExecSpec{
+					Command:     sliceutils.NewStrings(options.ToolCmd, "manifest", "push", spec.Manifest),
+					IgnoreError: false,
+					UseShell:    options.UseShell,
+					ShellName:   options.ShellName,
+				})
+			}
 		}
 
-		if len(spec.Manifest) == 0 {
-			continue
-		}
+		return nil
+	})
 
-		manifestName := buildah.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
-		result = append(result,
-			// ensure manifest exists
-			dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					manifestCmd, "create", manifestName, imageName,
-				),
-				// may already exists
-				IgnoreError: true,
-				UseShell:    options.UseShell,
-				ShellName:   options.ShellName,
-			},
-			// link manifest and image
-			dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					manifestCmd, "create", manifestName,
-					"--amend", imageName,
-				),
-				IgnoreError: false,
-				UseShell:    options.UseShell,
-				ShellName:   options.ShellName,
-			},
-		)
-
-		// docker manifest annotate \
-		// 		<manifest-list-name> <image-name> \
-		// 		--os <arch> --arch <arch> {--variant <variant>}
-		mArch := rc.MatrixArch()
-		annotateCmd := sliceutils.NewStrings(
-			manifestCmd, "annotate", manifestName, imageName,
-			"--os", constant.GetDockerOS(rc.MatrixKernel()),
-			"--arch", constant.GetDockerArch(mArch),
-		)
-
-		variant := constant.GetDockerArchVariant(mArch)
-		if len(variant) != 0 {
-			annotateCmd = append(annotateCmd, "--variant", variant)
-		}
-
-		result = append(result, dukkha.TaskExecSpec{
-			Command:     annotateCmd,
-			IgnoreError: false,
-			UseShell:    options.UseShell,
-			ShellName:   options.ShellName,
-		})
-
-		// docker manifest push <manifest-list-name>
-		if buildah.ImageOrManifestHasFQDN(manifestName) {
-			result = append(result, dukkha.TaskExecSpec{
-				Command:     sliceutils.NewStrings(options.ToolCmd, "manifest", "push", spec.Manifest),
-				IgnoreError: false,
-				UseShell:    options.UseShell,
-				ShellName:   options.ShellName,
-			})
-		}
-	}
-
-	return result, nil
+	return result, err
 }

@@ -14,7 +14,7 @@ func init() {
 		ToolKind, TaskKindTest,
 		func(toolName string) dukkha.Task {
 			t := &TaskTest{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindTest)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindTest, t)
 			return t
 		},
 	)
@@ -31,11 +31,16 @@ type TaskTest struct {
 func (c *TaskTest) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	spec := &dukkha.TaskExecSpec{
-		Chdir:     c.Chdir,
-		Command:   sliceutils.NewStrings(options.ToolCmd, "test", "./..."),
-		UseShell:  options.UseShell,
-		ShellName: options.ShellName,
-	}
-	return []dukkha.TaskExecSpec{*spec}, nil
+	var steps []dukkha.TaskExecSpec
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		steps = append(steps, dukkha.TaskExecSpec{
+			Chdir:     c.Chdir,
+			Command:   sliceutils.NewStrings(options.ToolCmd, "test", "./..."),
+			UseShell:  options.UseShell,
+			ShellName: options.ShellName,
+		})
+		return nil
+	})
+
+	return steps, err
 }

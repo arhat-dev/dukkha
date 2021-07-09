@@ -13,7 +13,7 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
 			return t
 		},
 	)
@@ -26,44 +26,47 @@ type TaskBuild buildah.TaskBud
 func (c *TaskBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	targets := c.ImageNames
-	if len(targets) == 0 {
-		targets = []buildah.ImageNameSpec{{
-			Image:    c.TaskName,
-			Manifest: "",
-		}}
-	}
+	var steps []dukkha.TaskExecSpec
 
-	var (
-		buildCmd = sliceutils.NewStrings(options.ToolCmd, "build")
-	)
-
-	for _, spec := range targets {
-		if len(spec.Image) == 0 {
-			continue
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		targets := c.ImageNames
+		if len(targets) == 0 {
+			targets = []buildah.ImageNameSpec{{
+				Image:    c.TaskName,
+				Manifest: "",
+			}}
 		}
 
-		buildCmd = append(buildCmd, "-t", spec.Image)
-	}
+		buildCmd := sliceutils.NewStrings(options.ToolCmd, "build")
+		for _, spec := range targets {
+			if len(spec.Image) == 0 {
+				continue
+			}
 
-	if len(c.Dockerfile) != 0 {
-		buildCmd = append(buildCmd, "-f", c.Dockerfile)
-	}
+			buildCmd = append(buildCmd, "-t", spec.Image)
+		}
 
-	buildCmd = append(buildCmd, c.ExtraArgs...)
+		if len(c.Dockerfile) != 0 {
+			buildCmd = append(buildCmd, "-f", c.Dockerfile)
+		}
 
-	if len(c.Context) == 0 {
-		buildCmd = append(buildCmd, ".")
-	} else {
-		buildCmd = append(buildCmd, c.Context)
-	}
+		buildCmd = append(buildCmd, c.ExtraArgs...)
 
-	return []dukkha.TaskExecSpec{
-		{
+		if len(c.Context) == 0 {
+			buildCmd = append(buildCmd, ".")
+		} else {
+			buildCmd = append(buildCmd, c.Context)
+		}
+
+		steps = append(steps, dukkha.TaskExecSpec{
 			Command:     buildCmd,
 			IgnoreError: options.ContinueOnError,
 			UseShell:    options.UseShell,
 			ShellName:   options.ShellName,
-		},
-	}, nil
+		})
+
+		return nil
+	})
+
+	return steps, err
 }

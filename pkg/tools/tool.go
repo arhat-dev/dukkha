@@ -2,17 +2,49 @@ package tools
 
 import (
 	"fmt"
-	"os"
 	"strings"
-
-	"golang.org/x/term"
+	"sync"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-var _ dukkha.Tool = (*BaseTool)(nil)
+var _ dukkha.Tool = (*BaseToolWithInit)(nil)
+
+type BaseToolWithInit struct {
+	field.BaseField
+
+	BaseTool `yaml:",inline"`
+}
+
+func (t *BaseToolWithInit) Init(kind dukkha.ToolKind, cacheDir string) error {
+	return t.InitBaseTool(kind, "", cacheDir, t)
+}
+
+// GetExecSpec is a helper func for shells
+func (t *BaseToolWithInit) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
+	if len(toExec) == 0 {
+		return nil, nil, fmt.Errorf("invalid empty exec spec")
+	}
+
+	scriptPath := ""
+	if !isFilePath {
+		scriptPath, err = GetScriptCache(t.cacheDir, strings.Join(toExec, " "))
+		if err != nil {
+			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
+		}
+	} else {
+		scriptPath = toExec[0]
+	}
+
+	cmd = sliceutils.NewStrings(t.Cmd)
+	if len(cmd) == 0 {
+		cmd = append(cmd, t.defaultExecutable)
+	}
+
+	return t.Env, append(cmd, scriptPath), nil
+}
 
 type BaseTool struct {
 	field.BaseField
@@ -29,30 +61,17 @@ type BaseTool struct {
 
 	cacheDir          string
 	defaultExecutable string
-	stdoutIsTty       bool
 
 	impl  dukkha.Tool
 	tasks map[dukkha.TaskKey]dukkha.Task
-}
 
-// Init the tool, called when resolving tools config when dukkha start
-//
-// override it if the value of your tool kind is different from its
-// default executable
-func (t *BaseTool) Init(kind dukkha.ToolKind, cachdDir string) error {
-	return t.InitBaseTool(kind, string(kind), cachdDir, t)
+	mu sync.Mutex
 }
 
 func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
 func (t *BaseTool) Name() dukkha.ToolName { return dukkha.ToolName(t.ToolName) }
-
-func (t *BaseTool) UseShell() bool {
-	return t.UsingShell
-}
-
-func (t *BaseTool) ShellName() string {
-	return t.UsingShellName
-}
+func (t *BaseTool) UseShell() bool        { return t.UsingShell }
+func (t *BaseTool) ShellName() string     { return t.UsingShellName }
 
 func (t *BaseTool) GetCmd() []string {
 	toolCmd := sliceutils.NewStrings(t.Cmd)
@@ -88,7 +107,6 @@ func (t *BaseTool) InitBaseTool(
 
 	t.cacheDir = cacheDir
 	t.defaultExecutable = defaultExecutable
-	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
 
 	t.impl = impl
 	t.tasks = make(map[dukkha.TaskKey]dukkha.Task)
@@ -113,34 +131,17 @@ func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
 		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
 	}
 
-	specs, err := GenCompleteTaskExecSpecs(taskCtx, t.impl, tsk)
-	if err != nil {
-		return fmt.Errorf("failed to get complete task exec specs: %w", err)
-	}
-
-	return RunTask(specs)
+	return RunTask(taskCtx, t.impl, tsk)
 }
 
-// GetExecSpec is a helper func for shells
-func (t *BaseTool) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
-	if len(toExec) == 0 {
-		return nil, nil, fmt.Errorf("invalid empty exec spec")
+func (t *BaseTool) DoAfterFieldsResolved(mCtx dukkha.TaskExecContext, do func() error) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	err := t.impl.ResolveFields(mCtx, -1, "")
+	if err != nil {
+		return fmt.Errorf("failed to resolve tool fields: %w", err)
 	}
 
-	scriptPath := ""
-	if !isFilePath {
-		scriptPath, err = GetScriptCache(t.cacheDir, strings.Join(toExec, " "))
-		if err != nil {
-			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
-		}
-	} else {
-		scriptPath = toExec[0]
-	}
-
-	cmd = sliceutils.NewStrings(t.Cmd)
-	if len(cmd) == 0 {
-		cmd = append(cmd, t.defaultExecutable)
-	}
-
-	return t.Env, append(cmd, scriptPath), nil
+	return do()
 }

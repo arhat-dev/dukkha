@@ -17,7 +17,7 @@ func init() {
 		ToolKind, TaskKindLogin,
 		func(toolName string) dukkha.Task {
 			t := &TaskLogin{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindLogin)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindLogin, t)
 			return t
 		},
 	)
@@ -39,27 +39,34 @@ func (c *TaskLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	loginCmd := sliceutils.NewStrings(
-		options.ToolCmd, "login",
-		"--username", c.Username,
-		"--password-stdin",
-	)
+	var steps []dukkha.TaskExecSpec
 
-	if c.TLSSkipVerify != nil {
-		loginCmd = append(
-			loginCmd,
-			"--tls-verify", strconv.FormatBool(!*c.TLSSkipVerify),
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		loginCmd := sliceutils.NewStrings(
+			options.ToolCmd, "login",
+			"--username", c.Username,
+			"--password-stdin",
 		)
-	}
 
-	password := c.Password + "\n"
-	return []dukkha.TaskExecSpec{
-		{
+		if c.TLSSkipVerify != nil {
+			loginCmd = append(
+				loginCmd,
+				"--tls-verify", strconv.FormatBool(!*c.TLSSkipVerify),
+			)
+		}
+
+		password := c.Password + "\n"
+
+		steps = append(steps, dukkha.TaskExecSpec{
 			Stdin:       strings.NewReader(password),
 			Command:     append(loginCmd, c.Registry),
 			IgnoreError: false,
 			UseShell:    options.UseShell,
 			ShellName:   options.ShellName,
-		},
-	}, nil
+		})
+
+		return nil
+	})
+
+	return steps, err
 }

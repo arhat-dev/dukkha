@@ -19,7 +19,7 @@ func init() {
 		ToolKind, TaskKindRelease,
 		func(toolName string) dukkha.Task {
 			t := &TaskRelease{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRelease)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRelease, t)
 			return t
 		},
 	)
@@ -50,69 +50,75 @@ type ReleaseFileSpec struct {
 func (c *TaskRelease) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	createCmd := sliceutils.NewStrings(
-		options.ToolCmd, "release", "create", c.Tag,
-	)
 
-	if c.Draft {
-		createCmd = append(createCmd, "--draft")
-	}
-
-	if c.PreRelease {
-		createCmd = append(createCmd, "--prerelease")
-	}
-
-	if len(c.Title) != 0 {
-		createCmd = append(createCmd,
-			"--title", fmt.Sprintf("%q", c.Title),
+	var steps []dukkha.TaskExecSpec
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		createCmd := sliceutils.NewStrings(
+			options.ToolCmd, "release", "create", c.Tag,
 		)
-	}
 
-	if len(c.Notes) != 0 {
-		cacheDir := rc.CacheDir()
-		f, err := ioutil.TempFile(cacheDir, "github-release-note-*")
-		if err != nil {
-			return nil, fmt.Errorf("failed to create temporary release note file: %w", err)
+		if c.Draft {
+			createCmd = append(createCmd, "--draft")
 		}
 
-		noteFile := f.Name()
-		_, err = f.Write([]byte(c.Notes))
-		_ = f.Close()
-		if err != nil {
-			return nil, fmt.Errorf("failed to write release note: %w", err)
+		if c.PreRelease {
+			createCmd = append(createCmd, "--prerelease")
 		}
 
-		createCmd = append(createCmd, "--notes-file", noteFile)
-	}
-
-	for _, spec := range c.Files {
-		matches, err := filepath.Glob(spec.Path)
-		if err != nil {
-			matches = []string{spec.Path}
+		if len(c.Title) != 0 {
+			createCmd = append(createCmd,
+				"--title", fmt.Sprintf("%q", c.Title),
+			)
 		}
 
-		for i, file := range matches {
-			var arg string
-			if len(spec.Label) != 0 {
-				arg = `'` + file + `#` + spec.Label
-				if i != 0 {
-					arg += " " + strconv.FormatInt(int64(i), 10)
-				}
-
-				arg += `'`
-			} else {
-				arg = `'` + file + `#` + filepath.Base(file) + `'`
+		if len(c.Notes) != 0 {
+			cacheDir := rc.CacheDir()
+			f, err := ioutil.TempFile(cacheDir, "github-release-note-*")
+			if err != nil {
+				return fmt.Errorf("failed to create temporary release note file: %w", err)
 			}
 
-			createCmd = append(createCmd, arg)
-		}
-	}
+			noteFile := f.Name()
+			_, err = f.Write([]byte(c.Notes))
+			_ = f.Close()
+			if err != nil {
+				return fmt.Errorf("failed to write release note: %w", err)
+			}
 
-	return []dukkha.TaskExecSpec{
-		{
+			createCmd = append(createCmd, "--notes-file", noteFile)
+		}
+
+		for _, spec := range c.Files {
+			matches, err := filepath.Glob(spec.Path)
+			if err != nil {
+				matches = []string{spec.Path}
+			}
+
+			for i, file := range matches {
+				var arg string
+				if len(spec.Label) != 0 {
+					arg = `'` + file + `#` + spec.Label
+					if i != 0 {
+						arg += " " + strconv.FormatInt(int64(i), 10)
+					}
+
+					arg += `'`
+				} else {
+					arg = `'` + file + `#` + filepath.Base(file) + `'`
+				}
+
+				createCmd = append(createCmd, arg)
+			}
+		}
+
+		steps = append(steps, dukkha.TaskExecSpec{
 			Command:   createCmd,
 			UseShell:  options.UseShell,
 			ShellName: options.ShellName,
-		},
-	}, nil
+		})
+
+		return nil
+	})
+
+	return steps, err
 }

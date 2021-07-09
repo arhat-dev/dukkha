@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"arhat.dev/pkg/log"
 
@@ -48,9 +49,11 @@ type TaskHooks struct {
 	// After any condition of the task execution
 	// including success, failure, canceled (hook `before` failure)
 	After []Hook `yaml:"after"`
+
+	mu sync.Mutex
 }
 
-func (TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
+func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
 	return map[dukkha.TaskExecStage]string{
 		dukkha.StageBefore: "Before",
 
@@ -73,6 +76,9 @@ func (h *TaskHooks) GenSpecs(
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
 	)
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	logger.D("resolving hooks")
 	err := h.ResolveFields(taskCtx, -1, h.GetFieldNameByStage(stage))
@@ -125,6 +131,20 @@ type Hook struct {
 	ContinueOnError bool `yaml:"continue_on_error"`
 
 	Other map[string]string `dukkha:"other"`
+
+	mu sync.Mutex
+}
+
+func (h *Hook) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *Hook) error) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	err := h.ResolveFields(mCtx, -1, "")
+	if err != nil {
+		return fmt.Errorf("failed to resolve fields: %w", err)
+	}
+
+	return do(h)
 }
 
 func (h *Hook) GenSpecs(
@@ -162,12 +182,11 @@ func (h *Hook) GenSpecs(
 		opts.UseShell = tool.UseShell()
 		opts.ContinueOnError = opts.ContinueOnError || h.ContinueOnError
 
-		completeSpec, err := GenCompleteTaskExecSpecs(ctx, tool, tsk)
-		if err != nil {
-			return nil, fmt.Errorf("%q: %w", hookID, err)
-		}
-
-		return completeSpec, nil
+		return &CompleteTaskExecSpecs{
+			Context: ctx,
+			Tool:    tool,
+			Task:    tsk,
+		}, nil
 	}
 
 	switch {
