@@ -16,7 +16,7 @@ github:release:
   tag: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
-  notes@template_file: .dukkha/release-notes.md
+  notes@file|template: .dukkha/release-notes.md
   files:
   - path: build/dukkha.*
   # checksums

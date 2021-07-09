@@ -17,4 +17,4 @@ tools:
     - go
 
 golang:build@file: .dukkha/go-build.yml
-golang:test@template_file: .dukkha/go-test.yml
+golang:test@file|template: .dukkha/go-test.yml

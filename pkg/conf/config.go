@@ -26,9 +26,7 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/shell_file"
 	"arhat.dev/dukkha/pkg/renderer/template"
-	"arhat.dev/dukkha/pkg/renderer/template_file"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -118,10 +116,6 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 
 	logger.V("creating essential renderers")
 	appCtx.AddRenderer(
-		shell_file.DefaultName,
-		shell_file.NewDefault(appCtx.GetBootstrapExecSpec),
-	)
-	appCtx.AddRenderer(
 		shell.DefaultName,
 		shell.NewDefault(appCtx.GetBootstrapExecSpec),
 	)
@@ -130,7 +124,6 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 		env.NewDefault(appCtx.GetBootstrapExecSpec),
 	)
 	appCtx.AddRenderer(template.DefaultName, template.NewDefault())
-	appCtx.AddRenderer(template_file.DefaultName, template_file.NewDefault())
 	appCtx.AddRenderer(file.DefaultName, file.NewDefault())
 
 	logger.D("resolving top level config")
