@@ -7,7 +7,7 @@ import (
 )
 
 func TestTaskRelease_GetExecSpecs(t *testing.T) {
-	toolCmd := []string{"gh"}
+	// toolCmd := []string{"gh"}
 	testCases := []tests.ExecSpecGenerationTestCase{}
-	tests.RunTaskExecSpecGenerationTests(t, nil, toolCmd, testCases)
+	tests.RunTaskExecSpecGenerationTests(t, nil, testCases)
 }

@@ -18,10 +18,16 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			Name:      "Invalid Empty",
 			Task:      &git.TaskClone{},
 			ExpectErr: true,
+			Options: dukkha.TaskExecOptions{
+				ToolCmd: toolCmd,
+			},
 		},
 		{
 			Name: "Valid Clone Using Default Branch",
 			Task: &git.TaskClone{URL: "example/foo.git"},
+			Options: dukkha.TaskExecOptions{
+				ToolCmd: toolCmd,
+			},
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin origin example/foo.git", " "),
@@ -40,6 +46,9 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		{
 			Name: "Valid Clone Changing Remote Name",
 			Task: &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
+			Options: dukkha.TaskExecOptions{
+				ToolCmd: toolCmd,
+			},
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin bar example/foo", " "),
@@ -57,7 +66,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 	}
 
-	tests.RunTaskExecSpecGenerationTests(t, nil, toolCmd, testCases)
+	tests.RunTaskExecSpecGenerationTests(t, nil, testCases)
 
 	assert.EqualValues(t, []string{"git"}, toolCmd)
 }
