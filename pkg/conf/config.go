@@ -153,7 +153,9 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 			return fmt.Errorf("failed to resolve config for shell %q #%d", v.Name(), i)
 		}
 
-		err = v.InitBaseTool("shell", string(v.Name()), appCtx.CacheDir())
+		err = v.InitBaseTool(
+			"shell", string(v.Name()), appCtx.CacheDir(), v,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to initialize shell %q", v.Name())
 		}

@@ -19,9 +19,5 @@ type Tool struct {
 }
 
 func (t *Tool) Init(kind dukkha.ToolKind, cachdDir string) error {
-	return t.BaseTool.InitBaseTool(ToolKind, "gh", cachdDir)
-}
-
-func (t *Tool) ResolveFields(rc field.RenderingHandler, depth int, fieldName string) error {
-	return t.BaseField.ResolveFields(rc, depth, fieldName)
+	return t.BaseTool.InitBaseTool(ToolKind, "gh", cachdDir, t)
 }

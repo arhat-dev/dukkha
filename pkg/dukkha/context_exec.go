@@ -12,6 +12,8 @@ type ExecValues interface {
 
 	CurrentTool() ToolKey
 	CurrentTask() TaskKey
+
+	SetTask(k ToolKey, tK TaskKey)
 }
 
 func newContextExec() *contextExec {
@@ -21,10 +23,8 @@ func newContextExec() *contextExec {
 var _ ExecValues = (*contextExec)(nil)
 
 type contextExec struct {
-	thisTool Tool
-
-	toolName ToolName
 	toolKind ToolKind
+	toolName ToolName
 
 	taskKind TaskKind
 	taskName TaskName
@@ -37,9 +37,8 @@ type contextExec struct {
 
 func (c *contextExec) deriveNew() *contextExec {
 	return &contextExec{
-		thisTool: nil,
-		toolName: c.toolName,
 		toolKind: "",
+		toolName: c.toolName,
 
 		taskKind: "",
 		taskName: "",
@@ -50,11 +49,11 @@ func (c *contextExec) deriveNew() *contextExec {
 	}
 }
 
-func (c *contextExec) setTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName) {
-	c.toolKind = k
-	c.toolName = n
-	c.taskKind = tK
-	c.taskName = tN
+func (c *contextExec) SetTask(k ToolKey, tK TaskKey) {
+	c.toolKind = k.Kind
+	c.toolName = k.Name
+	c.taskKind = tK.Kind
+	c.taskName = tK.Name
 }
 
 func (c *contextExec) OutputPrefix() string {

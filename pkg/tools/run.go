@@ -100,11 +100,19 @@ func doRun(
 				replace[es.OutputAsReplace] = newValue
 			}
 
-			if len(subSpecs) != 0 {
-				err = doRun(ctx, subSpecs, &replace)
-				if err != nil {
-					return fmt.Errorf("failed to run sub tasks: %w", err)
-				}
+			switch t := subSpecs.(type) {
+			case []dukkha.TaskExecSpec:
+				err = doRun(ctx, t, &replace)
+			case *CompleteTaskExecSpecs:
+				err = RunTask(t)
+			case nil:
+			default:
+				// TODO: log error instead of panic?
+				panic(fmt.Errorf("unexpected sub specs type: %T", t))
+			}
+
+			if err != nil {
+				return fmt.Errorf("failed to run sub tasks: %w", err)
 			}
 
 			continue

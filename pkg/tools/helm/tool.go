@@ -19,7 +19,3 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 }
-
-func (t *Tool) ResolveFields(rc field.RenderingHandler, depth int, fieldName string) error {
-	return t.BaseField.ResolveFields(rc, depth, fieldName)
-}

@@ -126,7 +126,7 @@ func (c *TaskBud) GetExecSpecs(
 		AlterExecFunc: func(
 			replace map[string][]byte,
 			stdin io.Reader, stdout, stderr io.Writer,
-		) ([]dukkha.TaskExecSpec, error) {
+		) (dukkha.RunTaskOrRunShell, error) {
 			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
 			if err != nil {
 				return nil, err
@@ -224,7 +224,7 @@ func (c *TaskBud) GetExecSpecs(
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader, stdout, stderr io.Writer,
-			) ([]dukkha.TaskExecSpec, error) {
+			) (dukkha.RunTaskOrRunShell, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
 				if !ok {
 					// manifest not created, usually should not happen since we just created before
