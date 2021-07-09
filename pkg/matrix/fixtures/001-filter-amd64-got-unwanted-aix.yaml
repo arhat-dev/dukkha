@@ -1,0 +1,22 @@
+# description: run dukkha with -m arch=amd64, got unexpected "aix" included
+#
+# source cause: field.BaseField.UnmarshalYAML
+#  1. using self.unmarshal(yamlKey, v, fSpec.fieldValue, true)
+#     fix: changed to self.unmarshal(yamlKey, v, fSpec.fieldValue, false)
+#  2. cached data mixed with data resolved from plain yaml data
+#     fix: only use cached data when the map field is catch other field
+kernel:
+- linux
+arch:
+- amd64
+- armv5
+include:
+- kernel:
+  - darwin
+  arch:
+  - arm64
+  - amd64
+- kernel:
+  - aix
+  - linux
+  arch: [ppc64]

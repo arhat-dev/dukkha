@@ -3,7 +3,11 @@ package matrix
 import (
 	"testing"
 
+	"arhat.dev/dukkha/pkg/field"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
+
+	_ "embed"
 )
 
 func TestMatrixConfig_GetSpecs(t *testing.T) {
@@ -12,25 +16,22 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 		in   Spec
 		// specs are sorted by name, put them in order
 		expected []Entry
+
+		filter map[string][]string
 	}{
 		{
 			name: "normal",
 			in: Spec{
-				Kernel: []string{"linux", "windows", "darwin"},
+				Kernel: []string{"linux", "darwin"},
 				Arch:   []string{"amd64", "arm64"},
 				Custom: map[string][]string{
 					"foo": {"a", "b"},
 				},
 			},
 			expected: []Entry{
-				// sort order: arch=amd64 foo=a,b, os=linux,windows,darwin
+				// sort order: arch=amd64 foo=a,b, os=linux,darwin
 				{
 					"kernel": "linux",
-					"arch":   "amd64",
-					"foo":    "a",
-				},
-				{
-					"kernel": "windows",
 					"arch":   "amd64",
 					"foo":    "a",
 				},
@@ -45,25 +46,15 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 					"foo":    "b",
 				},
 				{
-					"kernel": "windows",
-					"arch":   "amd64",
-					"foo":    "b",
-				},
-				{
 					"kernel": "darwin",
 					"arch":   "amd64",
 					"foo":    "b",
 				},
 
-				// sort order: arch=arm64 foo=a,b, os=linux,windows,darwin
+				// sort order: arch=arm64 foo=a,b, os=linux,darwin
 
 				{
 					"kernel": "linux",
-					"arch":   "arm64",
-					"foo":    "a",
-				},
-				{
-					"kernel": "windows",
 					"arch":   "arm64",
 					"foo":    "a",
 				},
@@ -75,11 +66,6 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 
 				{
 					"kernel": "linux",
-					"arch":   "arm64",
-					"foo":    "b",
-				},
-				{
-					"kernel": "windows",
 					"arch":   "arm64",
 					"foo":    "b",
 				},
@@ -126,7 +112,33 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 			},
 		},
 		{
-			name: "exclude",
+			name: "include+filter",
+			in: Spec{
+				Include: []map[string][]string{
+					{
+						"kernel": []string{"aix"},
+						"arch":   []string{"ppc64le"},
+					},
+					{
+						"kernel": []string{"darwin"},
+						"arch":   []string{"arm64"},
+					},
+				},
+				Kernel: []string{"linux"},
+				Arch:   []string{"amd64", "arm64"},
+			},
+			filter: map[string][]string{
+				"arch": {"amd64"},
+			},
+			expected: []Entry{
+				{
+					"kernel": "linux",
+					"arch":   "amd64",
+				},
+			},
+		},
+		{
+			name: "exclude-all-full-match",
 			in: Spec{
 				Exclude: []map[string][]string{
 					{
@@ -139,11 +151,65 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 			},
 			expected: nil,
 		},
+		{
+			name: "exclude-all-single-match",
+			in: Spec{
+				Exclude: []map[string][]string{
+					{
+						"kernel": []string{"linux"},
+					},
+				},
+				Kernel: []string{"linux"},
+				Arch:   []string{"amd64", "arm64"},
+			},
+			expected: nil,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.EqualValues(t, test.expected, test.in.GetSpecs(nil, "", ""))
+			assert.EqualValues(
+				t,
+				test.expected,
+				test.in.GetSpecs(test.filter, "", ""),
+			)
+		})
+	}
+}
+
+var (
+	//go:embed fixtures/001-filter-amd64-got-unwanted-aix.yaml
+	fitlerAMD64GotUnwantedAIX []byte
+)
+
+func TestMatrixConfig_GetSpecs_Fixture(t *testing.T) {
+	tests := []struct {
+		name           string
+		yamlMatrixSpec []byte
+		filter         map[string][]string
+		expected       []Entry
+	}{
+		{
+			name:           "001-filter-amd64-got-unwanted-aix",
+			yamlMatrixSpec: fitlerAMD64GotUnwantedAIX,
+			filter:         map[string][]string{"arch": {"amd64"}},
+			expected: []Entry{
+				{"arch": "amd64", "kernel": "linux"},
+				{"arch": "amd64", "kernel": "darwin"},
+				// {"arch": "amd64", "kernel": "aix"},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			spec := field.Init(&Spec{}, nil).(*Spec)
+			if !assert.NoError(t, yaml.Unmarshal(test.yamlMatrixSpec, spec)) {
+				return
+			}
+
+			entries := spec.GetSpecs(test.filter, "", "")
+			assert.EqualValues(t, test.expected, entries)
 		})
 	}
 }
