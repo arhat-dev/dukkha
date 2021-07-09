@@ -179,20 +179,9 @@ func (f *BaseField) handleUnResolvedField(
 		for _, renderer := range v.renderers {
 			resolvedValue, err = rc.RenderYaml(renderer, toResolve)
 			if err != nil {
-				// create a human readable error message
-				input, ok := toResolve.(string)
-				if !ok {
-					inputBytes, err2 := yaml.Marshal(toResolve)
-					if err2 == nil {
-						input = string(inputBytes)
-					} else {
-						input = fmt.Sprint(toResolve)
-					}
-				}
-
 				return fmt.Errorf(
-					"field: failed to render value of %s.%s from\n\n%s\n\nerror: %w",
-					structName, fieldName, input, err,
+					"field: failed to render value of %s.%s: %w",
+					structName, fieldName, err,
 				)
 			}
 
