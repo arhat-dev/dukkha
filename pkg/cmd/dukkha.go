@@ -212,7 +212,13 @@ func run(appCtx dukkha.Context, args []string) error {
 	}
 
 	return appCtx.RunTask(
-		dukkha.ToolKind(args[0]), dukkha.ToolName(args[1]),
-		dukkha.TaskKind(args[2]), dukkha.TaskName(args[3]),
+		dukkha.ToolKey{
+			Kind: dukkha.ToolKind(args[0]),
+			Name: dukkha.ToolName(args[1]),
+		},
+		dukkha.TaskKey{
+			Kind: dukkha.TaskKind(args[2]),
+			Name: dukkha.TaskName(args[3]),
+		},
 	)
 }

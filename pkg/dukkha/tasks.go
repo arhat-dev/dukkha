@@ -155,6 +155,8 @@ func (opts TaskExecOptions) Clone() TaskExecOptions {
 	}
 }
 
+type RunTaskOrRunShell interface{}
+
 type TaskExecSpec struct {
 	// Delay execution
 	Delay time.Duration
@@ -172,7 +174,7 @@ type TaskExecSpec struct {
 	AlterExecFunc func(
 		replace map[string][]byte,
 		stdin io.Reader, stdout, stderr io.Writer,
-	) ([]TaskExecSpec, error)
+	) (RunTaskOrRunShell, error)
 
 	Stdin io.Reader
 
@@ -218,7 +220,7 @@ type Task interface {
 
 	GetHookExecSpecs(
 		ctx TaskExecContext, state TaskExecStage, options TaskExecOptions,
-	) ([][]TaskExecSpec, error)
+	) ([]RunTaskOrRunShell, error)
 }
 
 type TaskManager interface {

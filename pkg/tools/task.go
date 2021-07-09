@@ -56,7 +56,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
 	options dukkha.TaskExecOptions,
-) ([][]dukkha.TaskExecSpec, error) {
+) ([]dukkha.RunTaskOrRunShell, error) {
 	specs, err := t.Hooks.GenSpecs(taskCtx, stage, options)
 	if err != nil {
 		return nil, fmt.Errorf(

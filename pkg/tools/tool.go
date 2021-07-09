@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 
 	"golang.org/x/term"
 
@@ -32,16 +31,8 @@ type BaseTool struct {
 	defaultExecutable string
 	stdoutIsTty       bool
 
+	impl  dukkha.Tool
 	tasks map[dukkha.TaskKey]dukkha.Task
-
-	mu sync.Mutex
-}
-
-func (t *BaseTool) ResolveFields(rc field.RenderingHandler, depth int, fieldName string) error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	return t.BaseField.ResolveFields(rc, depth, fieldName)
 }
 
 // Init the tool, called when resolving tools config when dukkha start
@@ -49,7 +40,7 @@ func (t *BaseTool) ResolveFields(rc field.RenderingHandler, depth int, fieldName
 // override it if the value of your tool kind is different from its
 // default executable
 func (t *BaseTool) Init(kind dukkha.ToolKind, cachdDir string) error {
-	return t.InitBaseTool(kind, string(kind), cachdDir)
+	return t.InitBaseTool(kind, string(kind), cachdDir, t)
 }
 
 func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
@@ -87,13 +78,19 @@ func (t *BaseTool) GetEnv() []string { return sliceutils.NewStrings(t.Env) }
 // with correct defaultExecutable name
 //
 // MUST be called when in Init
-func (t *BaseTool) InitBaseTool(kind dukkha.ToolKind, defaultExecutable, cacheDir string) error {
+func (t *BaseTool) InitBaseTool(
+	kind dukkha.ToolKind,
+	defaultExecutable,
+	cacheDir string,
+	impl dukkha.Tool,
+) error {
 	t.kind = kind
 
 	t.cacheDir = cacheDir
 	t.defaultExecutable = defaultExecutable
 	t.stdoutIsTty = term.IsTerminal(int(os.Stdout.Fd()))
 
+	t.impl = impl
 	t.tasks = make(map[dukkha.TaskKey]dukkha.Task)
 
 	return nil
@@ -116,7 +113,12 @@ func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
 		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
 	}
 
-	return runTask(taskCtx, t, tsk)
+	specs, err := GenCompleteTaskExecSpecs(taskCtx, t.impl, tsk)
+	if err != nil {
+		return fmt.Errorf("failed to get complete task exec specs: %w", err)
+	}
+
+	return RunTask(specs)
 }
 
 // GetExecSpec is a helper func for shells

@@ -69,7 +69,7 @@ func (h *TaskHooks) GenSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
 	options dukkha.TaskExecOptions,
-) ([][]dukkha.TaskExecSpec, error) {
+) ([]dukkha.RunTaskOrRunShell, error) {
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
 	)
@@ -100,7 +100,7 @@ func (h *TaskHooks) GenSpecs(
 	prefix := taskCtx.OutputPrefix() + stage.String() + ": "
 	hookCtx.SetOutputPrefix(prefix)
 
-	var ret [][]dukkha.TaskExecSpec
+	var ret []dukkha.RunTaskOrRunShell
 	for i := range toRun {
 		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew(), options, i)
 		if err != nil {
@@ -129,7 +129,7 @@ type Hook struct {
 
 func (h *Hook) GenSpecs(
 	ctx dukkha.TaskExecContext, options dukkha.TaskExecOptions, index int,
-) ([]dukkha.TaskExecSpec, error) {
+) (dukkha.RunTaskOrRunShell, error) {
 	hookID := "#" + strconv.FormatInt(int64(index), 10)
 	if len(h.Name) != 0 {
 		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)
@@ -156,14 +156,18 @@ func (h *Hook) GenSpecs(
 		}
 
 		opts := options.Clone()
+		// update tool specific values
+		opts.ToolCmd = tool.GetCmd()
+		opts.ShellName = tool.ShellName()
+		opts.UseShell = tool.UseShell()
 		opts.ContinueOnError = opts.ContinueOnError || h.ContinueOnError
 
-		specs, err := tsk.GetExecSpecs(ctx, opts)
+		completeSpec, err := GenCompleteTaskExecSpecs(ctx, tool, tsk)
 		if err != nil {
-			return nil, fmt.Errorf("%q: failed to generate task exec specs: %w", hookID, err)
+			return nil, fmt.Errorf("%q: %w", hookID, err)
 		}
 
-		return specs, nil
+		return completeSpec, nil
 	}
 
 	switch {

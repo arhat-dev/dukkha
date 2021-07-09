@@ -48,7 +48,7 @@ type TaskExecContext interface {
 type Context interface {
 	TaskExecContext
 
-	RunTask(ToolKind, ToolName, TaskKind, TaskName) error
+	RunTask(ToolKey, TaskKey) error
 	RunShell(shell, script string, isFilePath bool) error
 }
 
@@ -151,24 +151,14 @@ func (c *dukkhaContext) DeriveNew() Context {
 	return newCtx
 }
 
-func (c *dukkhaContext) RunTask(k ToolKind, n ToolName, tK TaskKind, tN TaskName) error {
-	tool, ok := c.GetTool(ToolKey{Kind: k, Name: n})
+func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
+	tool, ok := c.GetTool(k)
 	if !ok {
-		return fmt.Errorf("tool %q with name %q not found", k, n)
+		return fmt.Errorf("tool %q not found", k)
 	}
 
-	if len(tK) == 0 {
-		return fmt.Errorf("invalid empty task kind")
-	}
-
-	if len(tN) == 0 {
-		return fmt.Errorf("invalid empty task name")
-	}
-
-	c.contextExec.thisTool = tool
-	c.contextExec.setTask(k, n, tK, tN)
-
-	return c.contextExec.thisTool.Run(c)
+	c.contextExec.SetTask(k, tK)
+	return tool.Run(c)
 }
 
 func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
