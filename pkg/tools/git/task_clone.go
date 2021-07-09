@@ -39,10 +39,7 @@ type TaskClone struct {
 }
 
 func (c *TaskClone) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	gitCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	if len(c.URL) == 0 {
 		return nil, fmt.Errorf("remote url not set")
@@ -63,7 +60,7 @@ func (c *TaskClone) GetExecSpecs(
 
 	var steps []dukkha.TaskExecSpec
 	cloneCmd := sliceutils.NewStrings(
-		gitCmd,
+		options.ToolCmd,
 		"clone", "--no-checkout", "--origin", remoteName,
 	)
 
@@ -80,8 +77,8 @@ func (c *TaskClone) GetExecSpecs(
 	steps = append(steps, dukkha.TaskExecSpec{
 		Command:     cloneCmd,
 		IgnoreError: false,
-		UseShell:    useShell,
-		ShellName:   shellName,
+		UseShell:    options.UseShell,
+		ShellName:   options.ShellName,
 	})
 
 	localPath := c.Path
@@ -103,12 +100,12 @@ func (c *TaskClone) GetExecSpecs(
 
 			IgnoreError: false,
 			Command: sliceutils.NewStrings(
-				gitCmd,
+				options.ToolCmd,
 				"symbolic-ref",
 				fmt.Sprintf("refs/remotes/%s/HEAD", remoteName),
 			),
-			UseShell:  useShell,
-			ShellName: shellName,
+			UseShell:  options.UseShell,
+			ShellName: options.ShellName,
 		})
 	}
 
@@ -117,11 +114,11 @@ func (c *TaskClone) GetExecSpecs(
 		IgnoreError: false,
 		Chdir:       localPath,
 		Command: sliceutils.NewStrings(
-			gitCmd, "checkout", "-b", localBranch,
+			options.ToolCmd, "checkout", "-b", localBranch,
 			fmt.Sprintf("%s/%s", remoteName, remoteBranch),
 		),
-		UseShell:  useShell,
-		ShellName: shellName,
+		UseShell:  options.UseShell,
+		ShellName: options.ShellName,
 	})
 
 	return steps, nil

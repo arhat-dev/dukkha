@@ -42,16 +42,13 @@ type PackageSigningSpec struct {
 }
 
 func (c *TaskPackage) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	helmCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
-		Command: sliceutils.NewStrings(helmCmd, "package"),
+		Command: sliceutils.NewStrings(options.ToolCmd, "package"),
 
-		UseShell:  useShell,
-		ShellName: shellName,
+		UseShell:  options.UseShell,
+		ShellName: options.ShellName,
 	}
 
 	matches, err := filepath.Glob(c.Chart)

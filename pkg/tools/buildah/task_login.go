@@ -37,12 +37,10 @@ type TaskLogin struct {
 
 func (c *TaskLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	buildahCmd []string,
+	options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	loginCmd := sliceutils.NewStrings(
-		buildahCmd, "login",
+		options.ToolCmd, "login",
 		"--username", c.Username,
 		"--password-stdin",
 	)
@@ -60,8 +58,8 @@ func (c *TaskLogin) GetExecSpecs(
 			Stdin:       strings.NewReader(password),
 			Command:     append(loginCmd, c.Registry),
 			IgnoreError: false,
-			UseShell:    useShell,
-			ShellName:   shellName,
+			UseShell:    options.UseShell,
+			ShellName:   options.ShellName,
 		},
 	}, nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/matrix"
+	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -138,6 +139,22 @@ func (s TaskExecStage) String() string {
 	}[s]
 }
 
+type TaskExecOptions struct {
+	UseShell        bool
+	ShellName       string
+	ToolCmd         []string
+	ContinueOnError bool
+}
+
+func (opts TaskExecOptions) Clone() TaskExecOptions {
+	return TaskExecOptions{
+		UseShell:        opts.UseShell,
+		ShellName:       opts.ShellName,
+		ToolCmd:         sliceutils.NewStrings(opts.ToolCmd),
+		ContinueOnError: opts.ContinueOnError,
+	}
+}
+
 type TaskExecSpec struct {
 	// Delay execution
 	Delay time.Duration
@@ -195,9 +212,13 @@ type Task interface {
 	GetMatrixSpecs(rc RenderingContext) ([]matrix.Entry, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(rc TaskExecContext, useShell bool, shellName string, toolCmd []string) ([]TaskExecSpec, error)
+	GetExecSpecs(
+		rc TaskExecContext, options TaskExecOptions,
+	) ([]TaskExecSpec, error)
 
-	GetHookExecSpecs(taskCtx TaskExecContext, state TaskExecStage) ([][]TaskExecSpec, error)
+	GetHookExecSpecs(
+		ctx TaskExecContext, state TaskExecStage, options TaskExecOptions,
+	) ([][]TaskExecSpec, error)
 }
 
 type TaskManager interface {

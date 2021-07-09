@@ -14,6 +14,7 @@ type ExecSpecGenerationTestCase struct {
 	Prepare  func() error
 	Finalize func()
 
+	Options   dukkha.TaskExecOptions
 	Task      dukkha.Task
 	Expected  []dukkha.TaskExecSpec
 	ExpectErr bool
@@ -39,13 +40,13 @@ func RunTaskExecSpecGenerationTests(
 			}
 
 			if test.ExpectErr {
-				_, err := test.Task.GetExecSpecs(taskCtx, false, "", toolCmd)
+				_, err := test.Task.GetExecSpecs(taskCtx, test.Options)
 				assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 				assert.Error(t, err)
 				return
 			}
 
-			specs, err := test.Task.GetExecSpecs(taskCtx, false, "", toolCmd)
+			specs, err := test.Task.GetExecSpecs(taskCtx, test.Options)
 			assert.EqualValues(t, originalToolCmd, toolCmd, "task is not allowed to changed tool cmd")
 			if !assert.NoError(t, err) {
 				return

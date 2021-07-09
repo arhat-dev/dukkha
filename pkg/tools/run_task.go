@@ -54,23 +54,37 @@ func runTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 	wg := &sync.WaitGroup{}
 
 	// resolve hooks for whole task
+	options := dukkha.TaskExecOptions{
+		UseShell:        tool.UseShell(),
+		ShellName:       tool.ShellName(),
+		ToolCmd:         tool.GetCmd(),
+		ContinueOnError: !ctx.FailFast(),
+	}
 
-	hookBefore, err := task.GetHookExecSpecs(ctx, dukkha.StageBefore)
+	hookBefore, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageBefore, options,
+	)
 	if err != nil {
 		return err
 	}
 
-	hookAfterSuccess, err := task.GetHookExecSpecs(ctx, dukkha.StageAfterSuccess)
+	hookAfterSuccess, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageAfterSuccess, options,
+	)
 	if err != nil {
 		return err
 	}
 
-	hookAfterFailure, err := task.GetHookExecSpecs(ctx, dukkha.StageAfterFailure)
+	hookAfterFailure, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageAfterFailure, options,
+	)
 	if err != nil {
 		return err
 	}
 
-	hookAfter, err := task.GetHookExecSpecs(ctx, dukkha.StageAfter)
+	hookAfter, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageAfter, options,
+	)
 	if err != nil {
 		return err
 	}
@@ -141,27 +155,36 @@ matrixRun:
 			}
 
 			// produce a snapshot of what to do
-			execSpecs, err3 := task.GetExecSpecs(mCtx, tool.UseShell(), tool.ShellName(), tool.GetCmd())
+			execSpecs, err3 := task.GetExecSpecs(mCtx, options)
+
 			if err3 != nil {
 				return fmt.Errorf("failed to generate task exec specs: %w", err3)
 			}
 
-			hookBeforeMatrix, err3 := task.GetHookExecSpecs(mCtx, dukkha.StageBeforeMatrix)
+			hookBeforeMatrix, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageBeforeMatrix, options,
+			)
 			if err3 != nil {
 				return err3
 			}
 
-			hookAfterMatrixSuccess, err3 := task.GetHookExecSpecs(mCtx, dukkha.StageAfterMatrixSuccess)
+			hookAfterMatrixSuccess, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageAfterMatrixSuccess, options,
+			)
 			if err3 != nil {
 				return err3
 			}
 
-			hookAfterMatrixFailure, err3 := task.GetHookExecSpecs(mCtx, dukkha.StageAfterMatrixFailure)
+			hookAfterMatrixFailure, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageAfterMatrixFailure, options,
+			)
 			if err3 != nil {
 				return err3
 			}
 
-			hookAfterMatrix, err3 := task.GetHookExecSpecs(mCtx, dukkha.StageAfterMatrix)
+			hookAfterMatrix, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageAfterMatrix, options,
+			)
 			if err3 != nil {
 				return err3
 			}

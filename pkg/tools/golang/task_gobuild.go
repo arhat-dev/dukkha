@@ -55,10 +55,7 @@ type CGOSepc struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext,
-	useShell bool,
-	shellName string,
-	toolCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
@@ -93,9 +90,9 @@ func (c *TaskBuild) GetExecSpecs(
 			Chdir: c.Chdir,
 
 			Env:       sliceutils.NewStrings(env),
-			Command:   sliceutils.NewStrings(toolCmd, "build", "-o", output),
-			UseShell:  useShell,
-			ShellName: shellName,
+			Command:   sliceutils.NewStrings(options.ToolCmd, "build", "-o", output),
+			UseShell:  options.UseShell,
+			ShellName: options.ShellName,
 		}
 
 		spec.Command = append(spec.Command, c.ExtraArgs...)
