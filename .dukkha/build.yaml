@@ -7,36 +7,14 @@ tools:
     - GO_SUMDB=off
     cmd: [go]
   - name: linux-container
+    # when using shell, you can leave environment variables unexpanded
+    # and do extra scripting before actually run the tool
+    use_shell: true
+    shell_name: bootstrap
     cmd@template:
-    - |-
-      docker run -it --rm \
-        -v $(pwd):$(pwd) \
-        -w $(pwd) \
-        ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }} \
-        go
+    - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
+    - ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
+    - go
 
 golang:build@file: .dukkha/go-build.yml
-
-golang:test:
-- name: dukkha
-  matrix@http:
-    url: https://raw.githubusercontent.com/arhat-dev/dockerfile/master/.dukkha/specs/matrix-linux.yml
-    user@env: hi-$(echo hello)
-    password@shell: echo "test"
-  hooks:
-    before:
-    - shell: echo "hello"
-    - shell:python: print("world")
-    before:matrix:
-    - task@env: |-
-        golang:local:build(
-          dukkha,
-          {
-            kernel: [plan9],
-            arch: [arm64],
-          },
-        )
-    after:success@shell: |-
-      echo '- shell: echo "Done."'
-    after:failure:
-    - shell: echo "failed"
+golang:test@template_file: .dukkha/go-test.yml

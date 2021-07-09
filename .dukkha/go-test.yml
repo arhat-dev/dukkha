@@ -1,0 +1,22 @@
+- name: dukkha
+  matrix@http:
+    url: https://raw.githubusercontent.com/arhat-dev/dockerfile/master/.dukkha/specs/matrix-linux.yml
+    user@env: hi-$(echo hello)
+    password@shell: echo "test"
+  hooks:
+    before:
+    - shell: echo "hello"
+    - shell:python: print("world")
+    before:matrix:
+    - task@env: |-
+        golang:local:build(
+          dukkha,
+          {
+            kernel: [plan9],
+            arch: [arm64],
+          },
+        )
+    after:success@shell: |-
+      echo '- shell: echo "Done."'
+    after:failure:
+    - shell: echo "failed"
