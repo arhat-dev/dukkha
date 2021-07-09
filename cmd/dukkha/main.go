@@ -35,6 +35,7 @@ import (
 	_ "arhat.dev/dukkha/pkg/tools/github"
 	_ "arhat.dev/dukkha/pkg/tools/golang"
 	_ "arhat.dev/dukkha/pkg/tools/helm"
+	_ "arhat.dev/dukkha/pkg/tools/workflow"
 )
 
 func main() {
