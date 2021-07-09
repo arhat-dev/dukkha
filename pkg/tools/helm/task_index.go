@@ -17,7 +17,7 @@ func init() {
 		ToolKind, TaskKindIndex,
 		func(toolName string) dukkha.Task {
 			t := &TaskIndex{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindIndex)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindIndex, t)
 			return t
 		},
 	)
@@ -38,25 +38,32 @@ func (c *TaskIndex) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := sliceutils.NewStrings(options.ToolCmd, "repo", "index")
 
-	if len(c.RepoURL) != 0 {
-		indexCmd = append(indexCmd, "--url", c.RepoURL)
-	}
-
-	dukkhaWorkingDir := rc.WorkingDir()
-	if len(c.PackagesDir) != 0 {
-		pkgDir, err2 := filepath.Abs(c.PackagesDir)
-		if err2 != nil {
-			return nil, fmt.Errorf("failed to determine absolute path of package_dir: %w", err2)
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		if len(c.RepoURL) != 0 {
+			indexCmd = append(indexCmd, "--url", c.RepoURL)
 		}
 
-		indexCmd = append(indexCmd, pkgDir)
-	} else {
-		indexCmd = append(indexCmd, dukkhaWorkingDir)
-	}
+		dukkhaWorkingDir := rc.WorkingDir()
+		if len(c.PackagesDir) != 0 {
+			pkgDir, err := filepath.Abs(c.PackagesDir)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to determine absolute path of package_dir: %w",
+					err,
+				)
+			}
 
-	if len(c.Merge) != 0 {
-		indexCmd = append(indexCmd, "--merge", c.Merge)
-	}
+			indexCmd = append(indexCmd, pkgDir)
+		} else {
+			indexCmd = append(indexCmd, dukkhaWorkingDir)
+		}
+
+		if len(c.Merge) != 0 {
+			indexCmd = append(indexCmd, "--merge", c.Merge)
+		}
+
+		return nil
+	})
 
 	return []dukkha.TaskExecSpec{
 		{
@@ -64,5 +71,5 @@ func (c *TaskIndex) GetExecSpecs(
 			UseShell:  options.UseShell,
 			ShellName: options.ShellName,
 		},
-	}, nil
+	}, err
 }

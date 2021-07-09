@@ -27,7 +27,7 @@ func init() {
 		ToolKind, TaskKindBud,
 		func(toolName string) dukkha.Task {
 			t := &TaskBud{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBud)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBud, t)
 			return t
 		},
 	)
@@ -52,6 +52,19 @@ type ImageNameSpec struct {
 }
 
 func (c *TaskBud) GetExecSpecs(
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+) ([]dukkha.TaskExecSpec, error) {
+	var steps []dukkha.TaskExecSpec
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		ret, err := c.createExecSpecs(rc, options)
+		steps = ret
+		return err
+	})
+
+	return steps, err
+}
+
+func (c *TaskBud) createExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file

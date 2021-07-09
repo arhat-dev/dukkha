@@ -15,7 +15,7 @@ func init() {
 		ToolKind, TaskKindRun,
 		func(toolName string) dukkha.Task {
 			t := &TaskRun{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRun)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRun, t)
 			return t
 		},
 	)
@@ -32,22 +32,56 @@ type TaskRun struct {
 func (w *TaskRun) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	var ret []dukkha.TaskExecSpec
-	for i, job := range w.Jobs {
-		specs, err := job.GenSpecs(rc, dukkha.TaskExecOptions{}, i)
-		if err != nil {
-			return nil, err
+	return w.next(rc, options, 0)
+}
+
+func (w *TaskRun) next(
+	mCtx dukkha.TaskExecContext,
+	options dukkha.TaskExecOptions,
+	index int,
+) ([]dukkha.TaskExecSpec, error) {
+	var (
+		thisAction dukkha.RunTaskOrRunShell
+	)
+
+	// depth = 1 to get job list only
+	err := w.DoAfterFieldsResolved(mCtx, 1, func() error {
+		if index >= len(w.Jobs) {
+			return nil
 		}
 
-		ret = append(ret, dukkha.TaskExecSpec{
-			AlterExecFunc: func(
-				replace map[string][]byte,
-				stdin io.Reader, stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunShell, error) {
-				return specs, nil
-			},
+		// resolve single job (Hook)
+		var err error
+		err = w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
+			thisAction, err = h.GenSpecs(mCtx, options, index)
+			return err
 		})
+
+		return err
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return ret, nil
+	return []dukkha.TaskExecSpec{
+		{
+			AlterExecFunc: func(
+				replace map[string][]byte,
+				stdin io.Reader,
+				stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunShell, error) {
+				return thisAction, nil
+			},
+		},
+		{
+			AlterExecFunc: func(
+				replace map[string][]byte,
+				stdin io.Reader,
+				stdout,
+				stderr io.Writer,
+			) (dukkha.RunTaskOrRunShell, error) {
+				return w.next(mCtx, options, index+1)
+			},
+		},
+	}, nil
 }

@@ -17,3 +17,7 @@ type Tool struct {
 
 	tools.BaseTool `yaml:",inline"`
 }
+
+func (t *Tool) Init(kind dukkha.ToolKind, cacheDir string) error {
+	return t.InitBaseTool(kind, "git", cacheDir, t)
+}

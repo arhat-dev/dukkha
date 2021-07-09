@@ -17,7 +17,7 @@ func init() {
 		ToolKind, TaskKindPackage,
 		func(toolName string) dukkha.Task {
 			t := &TaskPackage{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPackage)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPackage, t)
 			return t
 		},
 	)
@@ -51,37 +51,41 @@ func (c *TaskPackage) GetExecSpecs(
 		ShellName: options.ShellName,
 	}
 
-	matches, err := filepath.Glob(c.Chart)
-	if err != nil {
-		pkgStep.Command = append(pkgStep.Command, c.Chart)
-	} else {
-		pkgStep.Command = append(pkgStep.Command, matches...)
-	}
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		matches, err := filepath.Glob(c.Chart)
+		if err != nil {
+			pkgStep.Command = append(pkgStep.Command, c.Chart)
+		} else {
+			pkgStep.Command = append(pkgStep.Command, matches...)
+		}
 
-	if len(c.PackagesDir) != 0 {
-		pkgStep.Command = append(pkgStep.Command,
-			"--destination", c.PackagesDir,
-		)
-	}
-
-	if c.Signing.Enabled {
-		pkgStep.Command = append(pkgStep.Command, "--sign",
-			"--key", c.Signing.GPGKeyName,
-		)
-
-		if len(c.Signing.GPGKeyring) != 0 {
+		if len(c.PackagesDir) != 0 {
 			pkgStep.Command = append(pkgStep.Command,
-				"--keyring", c.Signing.GPGKeyring,
+				"--destination", c.PackagesDir,
 			)
 		}
 
-		if len(c.Signing.GPGKeyPassphrase) != 0 {
-			pkgStep.Command = append(pkgStep.Command, "--passphrase-file", "-")
+		if c.Signing.Enabled {
+			pkgStep.Command = append(pkgStep.Command, "--sign",
+				"--key", c.Signing.GPGKeyName,
+			)
 
-			input := c.Signing.GPGKeyPassphrase
-			pkgStep.Stdin = strings.NewReader(input)
+			if len(c.Signing.GPGKeyring) != 0 {
+				pkgStep.Command = append(pkgStep.Command,
+					"--keyring", c.Signing.GPGKeyring,
+				)
+			}
+
+			if len(c.Signing.GPGKeyPassphrase) != 0 {
+				pkgStep.Command = append(pkgStep.Command, "--passphrase-file", "-")
+
+				input := c.Signing.GPGKeyPassphrase
+				pkgStep.Stdin = strings.NewReader(input)
+			}
 		}
-	}
 
-	return []dukkha.TaskExecSpec{*pkgStep}, nil
+		return nil
+	})
+
+	return []dukkha.TaskExecSpec{*pkgStep}, err
 }

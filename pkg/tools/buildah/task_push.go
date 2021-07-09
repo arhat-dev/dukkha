@@ -19,7 +19,7 @@ func init() {
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
 			return t
 		},
 	)
@@ -36,36 +36,58 @@ type TaskPush struct {
 func (c *TaskPush) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	targets := c.ImageNames
-	if len(targets) == 0 {
-		targets = []ImageNameSpec{
-			{
-				Image:    c.TaskName,
-				Manifest: "",
-			},
-		}
-	}
-
-	dukkhaCacheDir := rc.CacheDir()
-
 	var result []dukkha.TaskExecSpec
-	for _, spec := range targets {
-		if len(spec.Image) != 0 {
-			imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
-			imageIDFile := GetImageIDFileForImageName(
-				dukkhaCacheDir, imageName,
-			)
-			imageIDBytes, err := os.ReadFile(imageIDFile)
-			if err != nil {
-				return nil, fmt.Errorf("image id file not found: %w", err)
+
+	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+		targets := c.ImageNames
+		if len(targets) == 0 {
+			targets = []ImageNameSpec{
+				{
+					Image:    c.TaskName,
+					Manifest: "",
+				},
+			}
+		}
+
+		dukkhaCacheDir := rc.CacheDir()
+
+		for _, spec := range targets {
+			if len(spec.Image) != 0 {
+				imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+				imageIDFile := GetImageIDFileForImageName(
+					dukkhaCacheDir, imageName,
+				)
+				imageIDBytes, err := os.ReadFile(imageIDFile)
+				if err != nil {
+					return fmt.Errorf("image id file not found: %w", err)
+				}
+
+				result = append(result, dukkha.TaskExecSpec{
+					Command: sliceutils.NewStrings(
+						options.ToolCmd, "push",
+						string(bytes.TrimSpace(imageIDBytes)),
+						// TODO: support other destination
+						"docker://"+imageName,
+					),
+					IgnoreError: false,
+					UseShell:    options.UseShell,
+					ShellName:   options.ShellName,
+				})
 			}
 
+			if len(spec.Manifest) == 0 {
+				continue
+			}
+
+			// buildah manifest push --all \
+			//   <manifest-list-name> <transport>:<transport-details>
+			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 			result = append(result, dukkha.TaskExecSpec{
 				Command: sliceutils.NewStrings(
-					options.ToolCmd, "push",
-					string(bytes.TrimSpace(imageIDBytes)),
+					options.ToolCmd, "manifest", "push", "--all",
+					getLocalManifestName(manifestName),
 					// TODO: support other destination
-					"docker://"+imageName,
+					"docker://"+manifestName,
 				),
 				IgnoreError: false,
 				UseShell:    options.UseShell,
@@ -73,27 +95,10 @@ func (c *TaskPush) GetExecSpecs(
 			})
 		}
 
-		if len(spec.Manifest) == 0 {
-			continue
-		}
+		return nil
+	})
 
-		// buildah manifest push --all \
-		//   <manifest-list-name> <transport>:<transport-details>
-		manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
-		result = append(result, dukkha.TaskExecSpec{
-			Command: sliceutils.NewStrings(
-				options.ToolCmd, "manifest", "push", "--all",
-				getLocalManifestName(manifestName),
-				// TODO: support other destination
-				"docker://"+manifestName,
-			),
-			IgnoreError: false,
-			UseShell:    options.UseShell,
-			ShellName:   options.ShellName,
-		})
-	}
-
-	return result, nil
+	return result, err
 }
 
 func ImageOrManifestHasFQDN(s string) bool {

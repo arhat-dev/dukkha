@@ -104,7 +104,7 @@ func doRun(
 			case []dukkha.TaskExecSpec:
 				err = doRun(ctx, t, &replace)
 			case *CompleteTaskExecSpecs:
-				err = RunTask(t)
+				err = RunTask(t.Context, t.Tool, t.Task)
 			case nil:
 			default:
 				// TODO: log error instead of panic?

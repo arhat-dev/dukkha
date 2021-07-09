@@ -1,195 +1,24 @@
 package tools
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"sync"
-
-	"go.uber.org/multierr"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
 )
 
-type TaskExecSpecWithContext struct {
-	Matrix  matrix.Entry
+type CompleteTaskExecSpecs struct {
 	Context dukkha.TaskExecContext
 
-	HookBeofreMatrix []dukkha.RunTaskOrRunShell
-
-	Specs []dukkha.TaskExecSpec
-
-	HookAfterMatrixSuccess []dukkha.RunTaskOrRunShell
-	HookAfterMatrixFailure []dukkha.RunTaskOrRunShell
-	HookAfterMatrix        []dukkha.RunTaskOrRunShell
-}
-
-type CompleteTaskExecSpecs struct {
-	Context    dukkha.TaskExecContext
-	CancelTask context.CancelFunc
-
-	HookBefore []dukkha.RunTaskOrRunShell
-
-	TaskExec []TaskExecSpecWithContext
-
-	HookAfterSuccess []dukkha.RunTaskOrRunShell
-	hookAfterFailure []dukkha.RunTaskOrRunShell
-	HookAfter        []dukkha.RunTaskOrRunShell
-}
-
-func GenCompleteTaskExecSpecs(
-	_ctx dukkha.TaskExecContext,
-	tool dukkha.Tool,
-	task dukkha.Task,
-) (*CompleteTaskExecSpecs, error) {
-	ctx := _ctx.DeriveNew()
-
-	matrixSpecs, err := task.GetMatrixSpecs(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get execution matrix: %w", err)
-	}
-
-	if len(matrixSpecs) == 0 {
-		return nil, fmt.Errorf("no matrix spec match")
-	}
-
-	// resolve hooks for whole task
-	options := dukkha.TaskExecOptions{
-		UseShell:        tool.UseShell(),
-		ShellName:       tool.ShellName(),
-		ToolCmd:         tool.GetCmd(),
-		ContinueOnError: !ctx.FailFast(),
-	}
-
-	var err2 error
-
-	ret := &CompleteTaskExecSpecs{
-		Context:    ctx,
-		CancelTask: ctx.Cancel,
-	}
-
-	ret.Context.SetTask(tool.Key(), task.Key())
-
-	ret.HookBefore, err2 = task.GetHookExecSpecs(
-		ctx, dukkha.StageBefore, options,
-	)
-	err = multierr.Append(err, err2)
-
-	ret.HookAfterSuccess, err2 = task.GetHookExecSpecs(
-		ctx, dukkha.StageAfterSuccess, options,
-	)
-	err = multierr.Append(err, err2)
-
-	ret.hookAfterFailure, err2 = task.GetHookExecSpecs(
-		ctx, dukkha.StageAfterFailure, options,
-	)
-	err = multierr.Append(err, err2)
-
-	ret.HookAfter, err2 = task.GetHookExecSpecs(
-		ctx, dukkha.StageAfter, options,
-	)
-	err = multierr.Append(err, err2)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get task hooks exec specs: %w", err)
-	}
-
-	for i, ms := range matrixSpecs {
-		// set default matrix filter for referenced hook tasks
-		mFilter := make(map[string][]string)
-		for k, v := range ms {
-			mFilter[k] = []string{v}
-		}
-
-		// mCtx is the matrix execution context
-
-		mCtx := ctx.DeriveNew()
-		mCtx.SetMatrixFilter(mFilter)
-
-		mSpec := &TaskExecSpecWithContext{
-			Matrix:  ms,
-			Context: mCtx,
-		}
-
-		for k, v := range ms {
-			mCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
-		}
-
-		existingPrefix := mCtx.OutputPrefix()
-		if len(existingPrefix) != 0 {
-			if !strings.HasPrefix(existingPrefix, ms.BriefString()) {
-				// not same matrix, add this matrix prefix
-				mCtx.SetOutputPrefix(existingPrefix + ms.BriefString() + ": ")
-			}
-		} else {
-			mCtx.SetOutputPrefix(ms.BriefString() + ": ")
-		}
-
-		mCtx.SetTaskColors(output.PickColor(i))
-
-		// tool may have reference to MATRIX_ values
-		err = tool.ResolveFields(mCtx, -1, "")
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve tool fields: %w", err)
-		}
-
-		mCtx.AddEnv(tool.GetEnv()...)
-
-		// resolve task fields
-		err = task.ResolveFields(mCtx, -1, "")
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve task fields: %w", err)
-		}
-
-		// produce a snapshot of what to do
-		mSpec.Specs, err = task.GetExecSpecs(mCtx, options)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate task exec specs: %w", err)
-		}
-
-		mSpec.HookBeofreMatrix, err2 = task.GetHookExecSpecs(
-			mCtx, dukkha.StageBeforeMatrix, options,
-		)
-		err = multierr.Append(err, err2)
-
-		mSpec.HookAfterMatrixSuccess, err2 = task.GetHookExecSpecs(
-			mCtx, dukkha.StageAfterMatrixSuccess, options,
-		)
-		err = multierr.Append(err, err2)
-
-		mSpec.HookAfterMatrixFailure, err2 = task.GetHookExecSpecs(
-			mCtx, dukkha.StageAfterMatrixFailure, options,
-		)
-		err = multierr.Append(err, err2)
-
-		mSpec.HookAfterMatrix, err2 = task.GetHookExecSpecs(
-			mCtx, dukkha.StageAfterMatrix, options,
-		)
-		err = multierr.Append(err, err2)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to get task matrix hooks exec specs: %w", err)
-		}
-
-		ret.TaskExec = append(ret.TaskExec, *mSpec)
-	}
-
-	return ret, nil
+	Tool dukkha.Tool
+	Task dukkha.Task
 }
 
 // nolint:gocyclo
-func RunTask(specs *CompleteTaskExecSpecs) error {
-	defer specs.CancelTask()
-
-	// TODO: do real global limit
-	workerCount := specs.Context.ClaimWorkers(len(specs.TaskExec))
-	waitCh := make(chan struct{}, workerCount)
-	for i := 0; i < workerCount; i++ {
-		waitCh <- struct{}{}
-	}
-
+func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) error {
 	type taskResult struct {
 		matrixSpec string
 		errMsg     string
@@ -211,126 +40,277 @@ func RunTask(specs *CompleteTaskExecSpecs) error {
 		})
 	}
 
+	matrixSpecs, err := task.GetMatrixSpecs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get execution matrix: %w", err)
+	}
+
+	if len(matrixSpecs) == 0 {
+		return fmt.Errorf("no matrix spec match")
+	}
+
+	// TODO: do real global limit
+	workerCount := ctx.ClaimWorkers(len(matrixSpecs))
+	waitCh := make(chan struct{}, workerCount)
+	for i := 0; i < workerCount; i++ {
+		waitCh <- struct{}{}
+	}
+
+	// resolve hooks for whole task
+	options := dukkha.TaskExecOptions{
+		UseShell:        tool.UseShell(),
+		ShellName:       tool.ShellName(),
+		ToolCmd:         tool.GetCmd(),
+		ContinueOnError: !ctx.FailFast(),
+	}
+
+	ctx.SetTask(tool.Key(), task.Key())
+
 	wg := &sync.WaitGroup{}
 
 	// ensure hook `after` always run
 	defer func() {
 		// TODO: handle hook error
-		_ = runHook(specs.Context, dukkha.StageAfter, specs.HookAfter)
+		hookAfter, err2 := task.GetHookExecSpecs(
+			ctx, dukkha.StageAfter, options,
+		)
+		if err2 != nil {
+			appendErrorResult(make(matrix.Entry), err2)
+		}
+
+		err2 = runHook(ctx, dukkha.StageAfter, hookAfter)
+		if err2 != nil {
+			appendErrorResult(make(matrix.Entry), err2)
+		}
 	}()
 
 	// run hook `before`
-	err := runHook(specs.Context, dukkha.StageBefore, specs.HookBefore)
+	hookBefore, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageBefore, options,
+	)
+	if err != nil {
+		// cancel task execution
+		return err
+	}
+
+	err = runHook(ctx, dukkha.StageBefore, hookBefore)
 	if err != nil {
 		// cancel task execution
 		return err
 	}
 
 matrixRun:
-	for _, mSpec := range specs.TaskExec {
+	for i, ms := range matrixSpecs {
+		mCtx, err3 := createTaskMatrixContext(ctx, i, ms, tool)
+
+		if err3 != nil {
+			appendErrorResult(ms, err3)
+			if ctx.FailFast() {
+				ctx.Cancel()
+				break matrixRun
+			}
+
+			continue
+		}
+
 		select {
-		case <-mSpec.Context.Done():
+		case <-mCtx.Done():
 			break matrixRun
 		case <-waitCh:
 		}
 
 		output.WriteTaskStart(
-			mSpec.Context.PrefixColor(),
-			mSpec.Context.CurrentTool(),
-			mSpec.Context.CurrentTask(),
-			mSpec.Matrix,
+			mCtx.PrefixColor(),
+			mCtx.CurrentTool(),
+			mCtx.CurrentTask(),
+			ms,
 		)
 
 		wg.Add(1)
-		go func(mSpec TaskExecSpecWithContext) {
+
+		go func(ms matrix.Entry) {
 			defer func() {
-				// TODO: handle hook error
-				_ = runHook(
-					mSpec.Context,
-					dukkha.StageAfterMatrix,
-					mSpec.HookAfterMatrix,
+				if err != nil && ctx.FailFast() {
+					ctx.Cancel()
+				}
+
+				hookAfterMatrix, err3 := task.GetHookExecSpecs(
+					mCtx, dukkha.StageAfterMatrix, options,
 				)
+				if err3 != nil {
+					appendErrorResult(ms, err3)
+					return
+				}
+
+				// TODO: handle hook error
+				err3 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
+				if err3 != nil {
+					appendErrorResult(ms, err3)
+					return
+				}
 
 				wg.Done()
 
 				select {
 				case waitCh <- struct{}{}:
-				case <-mSpec.Context.Done():
+				case <-mCtx.Done():
 					return
 				}
 			}()
 
-			err2 := runHook(
-				mSpec.Context,
-				dukkha.StageBeforeMatrix,
-				mSpec.HookBeofreMatrix,
+			hookBeofreMatrix, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageBeforeMatrix, options,
 			)
-			if err2 != nil {
-				appendErrorResult(mSpec.Matrix, err2)
+			if err3 != nil {
+				appendErrorResult(ms, err3)
 				return
 			}
 
-			err2 = doRun(mSpec.Context, mSpec.Specs, nil)
+			err3 = runHook(mCtx, dukkha.StageBeforeMatrix, hookBeofreMatrix)
+			if err3 != nil {
+				appendErrorResult(ms, err3)
+				return
+			}
+
+			// produce a snapshot of what to do
+			execSpecs, err3 := task.GetExecSpecs(mCtx, options)
+			if err3 != nil {
+				appendErrorResult(
+					ms,
+					fmt.Errorf("failed to generate task exec specs: %w", err3),
+				)
+				return
+			}
+
+			err3 = doRun(mCtx, execSpecs, nil)
 
 			output.WriteExecResult(
-				mSpec.Context.PrefixColor(),
-				mSpec.Context.CurrentTool(),
-				mSpec.Context.CurrentTask(),
-				mSpec.Matrix.String(),
-				err2,
+				mCtx.PrefixColor(),
+				mCtx.CurrentTool(),
+				mCtx.CurrentTask(),
+				ms.String(),
+				err3,
 			)
 
-			if err2 != nil {
+			if err3 != nil {
 				// cancel other tasks if in fail-fast mode
-				if specs.Context.FailFast() {
-					specs.CancelTask()
+				if ctx.FailFast() {
+					ctx.Cancel()
 				}
 
-				appendErrorResult(mSpec.Matrix, err2)
+				appendErrorResult(ms, err3)
 
-				err2 = runHook(
-					mSpec.Context,
-					dukkha.StageAfterMatrixFailure,
-					mSpec.HookAfterMatrixFailure,
+				hookAfterMatrixFailure, err4 := task.GetHookExecSpecs(
+					mCtx, dukkha.StageAfterMatrixFailure, options,
 				)
-				if err2 != nil {
-					// TODO: handle hook error
-					_ = err2
+				if err4 != nil {
+					appendErrorResult(ms, err4)
+					return
+				}
+
+				err4 = runHook(
+					mCtx,
+					dukkha.StageAfterMatrixFailure,
+					hookAfterMatrixFailure,
+				)
+				if err4 != nil {
+					appendErrorResult(ms, err4)
+					return
 				}
 
 				return
 			}
 
-			err2 = runHook(
-				mSpec.Context,
-				dukkha.StageAfterMatrixSuccess,
-				mSpec.HookAfterMatrixSuccess,
+			hookAfterMatrixSuccess, err3 := task.GetHookExecSpecs(
+				mCtx, dukkha.StageAfterMatrixSuccess, options,
 			)
-			if err2 != nil {
-				// TODO: handle hook error
-				_ = err2
+			if err3 != nil {
+				appendErrorResult(ms, err3)
+				return
 			}
-		}(mSpec)
+
+			err3 = runHook(mCtx, dukkha.StageAfterMatrixSuccess, hookAfterMatrixSuccess)
+			if err3 != nil {
+				appendErrorResult(ms, err3)
+				return
+			}
+		}(ms)
 	}
 
 	wg.Wait()
 
 	if len(errCollection) != 0 {
-		err = runHook(specs.Context, dukkha.StageAfterFailure, specs.hookAfterFailure)
-		if err != nil {
-			// TODO: handle hook error
-			_ = err
+		hookAfterFailure, err2 := task.GetHookExecSpecs(
+			ctx, dukkha.StageAfterFailure, options,
+		)
+		if err2 != nil {
+			appendErrorResult(make(matrix.Entry), err2)
 		}
 
-		// TODO: handle execution error
+		err2 = runHook(ctx, dukkha.StageAfterFailure, hookAfterFailure)
+		if err2 != nil {
+			appendErrorResult(make(matrix.Entry), err2)
+		}
+
 		return fmt.Errorf("task execution failed: %v", errCollection)
 	}
 
-	err = runHook(specs.Context, dukkha.StageAfterSuccess, specs.HookAfterSuccess)
+	hookAfterSuccess, err := task.GetHookExecSpecs(
+		ctx, dukkha.StageAfterSuccess, options,
+	)
 	if err != nil {
-		// TODO: handle hook error
-		return err
+		appendErrorResult(make(matrix.Entry), err)
+	}
+
+	err = runHook(ctx, dukkha.StageAfterSuccess, hookAfterSuccess)
+	if err != nil {
+		appendErrorResult(make(matrix.Entry), err)
 	}
 
 	return nil
+}
+
+func createTaskMatrixContext(
+	ctx dukkha.TaskExecContext,
+	i int,
+	ms matrix.Entry,
+	tool dukkha.Tool,
+) (dukkha.TaskExecContext, error) {
+	// set default matrix filter for referenced hook tasks
+	mFilter := make(map[string][]string)
+	for k, v := range ms {
+		mFilter[k] = []string{v}
+	}
+
+	// mCtx is the matrix execution context
+
+	mCtx := ctx.DeriveNew()
+	mCtx.SetMatrixFilter(mFilter)
+
+	for k, v := range ms {
+		mCtx.AddEnv("MATRIX_" + strings.ToUpper(k) + "=" + v)
+	}
+
+	existingPrefix := mCtx.OutputPrefix()
+	if len(existingPrefix) != 0 {
+		if !strings.HasPrefix(existingPrefix, ms.BriefString()) {
+			// not same matrix, add this matrix prefix
+			mCtx.SetOutputPrefix(existingPrefix + ms.BriefString() + ": ")
+		}
+	} else {
+		mCtx.SetOutputPrefix(ms.BriefString() + ": ")
+	}
+
+	mCtx.SetTaskColors(output.PickColor(i))
+
+	// tool may have reference to MATRIX_ values
+	err := tool.DoAfterFieldsResolved(mCtx, func() error {
+		mCtx.AddEnv(tool.GetEnv()...)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add tool env: %w", err)
+	}
+
+	return mCtx, nil
 }

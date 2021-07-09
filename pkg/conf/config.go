@@ -44,7 +44,7 @@ type Config struct {
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
 
 	// Shells for rendering and command execution
-	Shells []*tools.BaseTool `yaml:"shells"`
+	Shells []*tools.BaseToolWithInit `yaml:"shells"`
 
 	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
 
