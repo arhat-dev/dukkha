@@ -52,7 +52,7 @@ type ImageNameSpec struct {
 }
 
 func (c *TaskBud) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

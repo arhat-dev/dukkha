@@ -42,7 +42,7 @@ type PackageSigningSpec struct {
 }
 
 func (c *TaskPackage) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	helmCmd []string,

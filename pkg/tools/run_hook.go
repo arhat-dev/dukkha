@@ -7,7 +7,7 @@ import (
 )
 
 func runHook(
-	ctx dukkha.Context,
+	ctx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
 	specs [][]dukkha.TaskExecSpec,
 ) error {

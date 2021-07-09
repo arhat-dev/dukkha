@@ -48,7 +48,7 @@ type ReleaseFileSpec struct {
 }
 
 func (c *TaskRelease) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	ghCmd []string,

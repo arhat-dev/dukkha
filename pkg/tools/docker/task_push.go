@@ -23,7 +23,7 @@ func init() {
 type TaskPush buildah.TaskPush
 
 func (c *TaskPush) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

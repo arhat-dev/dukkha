@@ -34,7 +34,7 @@ type TaskPush struct {
 }
 
 func (c *TaskPush) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	buildahCmd []string,

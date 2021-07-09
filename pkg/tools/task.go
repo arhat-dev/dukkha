@@ -15,7 +15,7 @@ type _baseTaskWithGetExecSpecs struct {
 }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	toolCmd []string,

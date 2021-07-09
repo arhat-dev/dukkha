@@ -34,7 +34,7 @@ type TaskIndex struct {
 }
 
 func (c *TaskIndex) GetExecSpecs(
-	rc dukkha.RenderingContext,
+	rc dukkha.TaskExecContext,
 	useShell bool,
 	shellName string,
 	helmCmd []string,
