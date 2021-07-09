@@ -25,8 +25,26 @@ A typical build automation tool only take one or two from the above, but we'd ta
 ## Features
 
 - Rendering suffix, get configuration updated dynamically at runtime
+  - Just `@some-renderer` in your yaml field key
+    - e.g. `foo@env: ${FOO}` will expand all referenced the environment variable
+  - Also supports renderer chaning
+    - e.g. `foo@http|template|env` first to fetch content from remote http server, then execute it as a go template, and finally expand environment variables in the resulted data
+- Flexible yet strict typing, not always string value for renderer input
+  - Some Renderer can accept any kind of value to keep your yaml file highlighted as it should be
 - Customizable task matrix execution everywhere
 - Shell completion for tools, tasks and task matrix
+
+```yaml
+workflow:run:
+- name@env: ${WORKFLOW_NAME}
+  matrix:
+    kernel: [linux]
+    arch: [amd64]
+  jobs@template:
+  - shell@env: |-
+      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
+  - shell@http: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
+```
 
 ## LICENSE
 
