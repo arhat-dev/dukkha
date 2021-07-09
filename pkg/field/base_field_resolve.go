@@ -64,31 +64,15 @@ func (f *BaseField) resolveSingleField(
 
 	handled := false
 	for k, v := range f.unresolvedFields {
-		if k.fieldName == fieldName {
+		if v.fieldName == fieldName {
 			err := f.handleUnResolvedField(
-				rc, depth, structName, fieldName, k.renderer, v, handled,
+				rc, depth, structName, fieldName, k, v, handled,
 			)
 			if err != nil {
 				return err
 			}
 
 			handled = true
-		}
-	}
-
-	for _, ext := range f.externalUnResolvedFields {
-		for k, v := range ext {
-			if k.fieldName == fieldName {
-				err := f.handleUnResolvedField(
-					rc, depth, structName, fieldName,
-					k.renderer, v, handled,
-				)
-				if err != nil {
-					return err
-				}
-
-				handled = true
-			}
 		}
 	}
 
@@ -194,7 +178,7 @@ func (f *BaseField) handleUnResolvedField(
 	structName string, // to make error message helpful
 	fieldName string, // to make error message helpful
 
-	renderer string,
+	key unresolvedFieldKey,
 	v *unresolvedFieldValue,
 	keepOld bool,
 ) error {
@@ -209,10 +193,10 @@ func (f *BaseField) handleUnResolvedField(
 	for i, rawData := range v.rawData {
 		toResolve := rawData
 		if v.isCatchOtherField {
-			toResolve = rawData.(map[string]interface{})[v.yamlFieldName]
+			toResolve = rawData.(map[string]interface{})[key.yamlKey]
 		}
 
-		resolvedValue, err := rc.RenderYaml(renderer, toResolve)
+		resolvedValue, err := rc.RenderYaml(key.renderer, toResolve)
 		if err != nil {
 			input, ok := toResolve.(string)
 			if !ok {
@@ -247,11 +231,16 @@ func (f *BaseField) handleUnResolvedField(
 
 		if v.isCatchOtherField {
 			tmp = map[string]interface{}{
-				v.yamlFieldName: tmp,
+				key.yamlKey: tmp,
 			}
 		}
 
-		err = f.unmarshal(v.yamlFieldName, tmp, target, keepOld || v.isCatchOtherField || i != 0)
+		// TODO: currently we alway keepOld when the filed has tag
+		// 		 `dukkha:"other"`, need to ensure this behavior won't
+		// 	     leave inconsistant data
+
+		actualKeepOld := keepOld || v.isCatchOtherField || i != 0
+		err = f.unmarshal(key.yamlKey, tmp, target, actualKeepOld)
 		if err != nil {
 			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
 		}
@@ -284,8 +273,9 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	key := unresolvedFieldKey{
-		fieldName: fieldName,
-		renderer:  renderer,
+		// yamlKey@renderer: ...
+		yamlKey:  yamlKey,
+		renderer: renderer,
 	}
 
 	oe := fieldValue
@@ -344,9 +334,9 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	f.unresolvedFields[key] = &unresolvedFieldValue{
-		fieldValue:    fieldValue,
-		yamlFieldName: yamlKey,
-		rawData:       []interface{}{rawData},
+		fieldName:  fieldName,
+		fieldValue: fieldValue,
+		rawData:    []interface{}{rawData},
 
 		isCatchOtherField: isCatchOtherField,
 	}

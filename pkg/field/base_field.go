@@ -12,18 +12,17 @@ import (
 
 type (
 	unresolvedFieldKey struct {
-		fieldName string
-
-		// NOTE: put `renderer` in key is to support fields with
+		// NOTE: put `renderer` and `yamlKey` in key is to support fields with
 		// 		 `dukkha:"other"` field tag, each item should be able
 		// 		 to have its own renderer
+		yamlKey  string
 		renderer string
 	}
 
 	unresolvedFieldValue struct {
-		fieldValue    reflect.Value
-		yamlFieldName string
-		rawData       []interface{}
+		fieldName  string
+		fieldValue reflect.Value
+		rawData    []interface{}
 
 		isCatchOtherField bool
 	}
@@ -44,20 +43,47 @@ type BaseField struct {
 
 	ifaceTypeHandler InterfaceTypeHandler
 
-	externalUnResolvedFields []map[unresolvedFieldKey]*unresolvedFieldValue
+	// yamlKey -> map value
+	// TODO: separate static data and runtime generated data
+	mapValueCache map[string]reflect.Value
 }
 
 // nolint:revive
-func (self *BaseField) Inherit(b *BaseField) {
-	self.externalUnResolvedFields = append(
-		self.externalUnResolvedFields, b.externalUnResolvedFields...,
-	)
-
-	if len(b.unresolvedFields) != 0 {
-		self.externalUnResolvedFields = append(
-			self.externalUnResolvedFields, b.unresolvedFields,
-		)
+func (self *BaseField) Inherit(b *BaseField) error {
+	if len(b.unresolvedFields) == 0 {
+		return nil
 	}
+
+	if self.unresolvedFields == nil {
+		self.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
+	}
+
+	for k, v := range b.unresolvedFields {
+		existingV, ok := self.unresolvedFields[k]
+		if !ok {
+			self.unresolvedFields[k] = &unresolvedFieldValue{
+				fieldName:         v.fieldName,
+				fieldValue:        self._parentValue.Elem().FieldByName(v.fieldName),
+				isCatchOtherField: v.isCatchOtherField,
+				rawData:           v.rawData,
+			}
+
+			continue
+		}
+
+		switch {
+		case existingV.fieldName != v.fieldName,
+			existingV.isCatchOtherField != v.isCatchOtherField:
+			return fmt.Errorf(
+				"invalid not match for same target, want %q, got %q",
+				existingV.fieldName, v.fieldName,
+			)
+		}
+
+		existingV.rawData = append(existingV.rawData, v.rawData...)
+	}
+
+	return nil
 }
 
 // UnmarshalYAML handles renderer suffix
@@ -427,7 +453,7 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 			return nil
 		case reflect.Map:
 			// map key MUST be string
-			if oe.IsZero() || !keepOld {
+			if oe.IsNil() || !keepOld {
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 
@@ -435,11 +461,30 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 
 			iter := reflect.ValueOf(in).MapRange()
 			for iter.Next() {
-				valVal := reflect.New(valType)
+				// since indexed map value is not addressable
+				// we have to keep the original data in BaseField cache
+
+				// TODO: test keepOld behavior with cached data
+				if self.mapValueCache == nil {
+					self.mapValueCache = make(map[string]reflect.Value)
+				}
+
+				var val reflect.Value
+				cachedData, ok := self.mapValueCache[iter.Key().String()]
+				if ok && keepOld {
+					val = cachedData
+				} else {
+					val = reflect.New(valType)
+					self.mapValueCache[iter.Key().String()] = val
+				}
+
 				err := self.unmarshal(
+					// use iter.Key() rather than `yamlKey`
+					// because it can be the field catching other
+					// (field tag: `dukkha:"other"`)
 					iter.Key().String(),
 					iter.Value().Interface(),
-					valVal,
+					val,
 					keepOld,
 				)
 				if err != nil {
@@ -448,7 +493,7 @@ func (self *BaseField) unmarshal(yamlKey string, in interface{}, outField reflec
 					)
 				}
 
-				oe.SetMapIndex(iter.Key(), valVal.Elem())
+				oe.SetMapIndex(iter.Key(), val.Elem())
 			}
 
 			return nil
