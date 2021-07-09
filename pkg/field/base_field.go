@@ -14,13 +14,9 @@ type (
 	unresolvedFieldKey struct {
 		fieldName string
 
-		// TODO: put renderer in key is to support fields with
-		// 		`dukkha:"other"` field tag, each item should be able
-		// 		to have its own renderer
-		// 		but the `other` fields get no rendering suffix support
-		// 		for the time being
-		//
-		// 		so we just keep it here for future
+		// NOTE: put `renderer` in key is to support fields with
+		// 		 `dukkha:"other"` field tag, each item should be able
+		// 		 to have its own renderer
 		renderer string
 	}
 
@@ -57,9 +53,11 @@ func (self *BaseField) Inherit(b *BaseField) {
 		self.externalUnResolvedFields, b.externalUnResolvedFields...,
 	)
 
-	self.externalUnResolvedFields = append(
-		self.externalUnResolvedFields, b.unresolvedFields,
-	)
+	if len(b.unresolvedFields) != 0 {
+		self.externalUnResolvedFields = append(
+			self.externalUnResolvedFields, b.unresolvedFields,
+		)
+	}
 }
 
 // UnmarshalYAML handles renderer suffix
