@@ -127,10 +127,20 @@ matrixRun:
 		)
 
 		wg.Add(1)
-
 		go func(ms matrix.Entry) {
+			var err3 error
 			defer func() {
-				if err != nil && ctx.FailFast() {
+				defer func() {
+					wg.Done()
+
+					select {
+					case waitCh <- struct{}{}:
+					case <-mCtx.Done():
+						return
+					}
+				}()
+
+				if err3 != nil && ctx.FailFast() {
 					ctx.Cancel()
 				}
 
@@ -146,14 +156,6 @@ matrixRun:
 				err3 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
 				if err3 != nil {
 					appendErrorResult(ms, err3)
-					return
-				}
-
-				wg.Done()
-
-				select {
-				case waitCh <- struct{}{}:
-				case <-mCtx.Done():
 					return
 				}
 			}()
