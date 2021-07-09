@@ -18,6 +18,7 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
+// nolint:gocyclo
 func doRun(
 	ctx dukkha.TaskExecContext,
 	execSpecs []dukkha.TaskExecSpec,

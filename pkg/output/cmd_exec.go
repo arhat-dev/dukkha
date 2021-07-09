@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/fatih/color"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func WriteExecStart(
