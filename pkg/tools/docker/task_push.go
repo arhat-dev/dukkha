@@ -49,6 +49,7 @@ func (c *TaskPush) GetExecSpecs(
 			// docker push <image-name>
 			if buildah.ImageOrManifestHasFQDN(imageName) {
 				result = append(result, dukkha.TaskExecSpec{
+					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
 						options.ToolCmd, "push", imageName,
 					),
@@ -66,6 +67,7 @@ func (c *TaskPush) GetExecSpecs(
 			result = append(result,
 				// ensure manifest exists
 				dukkha.TaskExecSpec{
+					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
 						manifestCmd, "create", manifestName, imageName,
 					),
@@ -102,6 +104,7 @@ func (c *TaskPush) GetExecSpecs(
 			}
 
 			result = append(result, dukkha.TaskExecSpec{
+				Env:         sliceutils.NewStrings(c.Env),
 				Command:     annotateCmd,
 				IgnoreError: false,
 				UseShell:    options.UseShell,
@@ -111,6 +114,7 @@ func (c *TaskPush) GetExecSpecs(
 			// docker manifest push <manifest-list-name>
 			if buildah.ImageOrManifestHasFQDN(manifestName) {
 				result = append(result, dukkha.TaskExecSpec{
+					Env:         sliceutils.NewStrings(c.Env),
 					Command:     sliceutils.NewStrings(options.ToolCmd, "manifest", "push", spec.Manifest),
 					IgnoreError: false,
 					UseShell:    options.UseShell,

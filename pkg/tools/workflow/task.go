@@ -1,10 +1,13 @@
 package workflow
 
 import (
+	"fmt"
 	"io"
+	"sync"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -27,6 +30,8 @@ type TaskRun struct {
 	tools.BaseTask `yaml:",inline"`
 
 	Jobs []tools.Hook `yaml:"jobs"`
+
+	mu sync.Mutex
 }
 
 func (w *TaskRun) GetExecSpecs(
@@ -45,32 +50,42 @@ func (w *TaskRun) next(
 		hasJob     = false
 	)
 
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	var env []string
+	err := w.DoAfterFieldsResolved(mCtx, -1, func() error {
+		env = sliceutils.NewStrings(w.Env)
+		return nil
+	}, "BaseTask.Env")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve env: %w", err)
+	}
+
+	mCtx.AddEnv(env...)
+
 	// depth = 1 to get job list only
-	err := w.DoAfterFieldsResolved(mCtx, 1, func() error {
+	err = w.DoAfterFieldsResolved(mCtx, 1, func() error {
 		if index >= len(w.Jobs) {
 			return nil
 		}
 
 		hasJob = true
+
 		// resolve single job (Hook)
-		var err error
-		err = w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
+		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
 			thisAction, err = h.GenSpecs(mCtx, options, index)
 			return err
 		})
-
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if !hasJob {
+	}, "Jobs")
+	if err != nil || !hasJob {
 		return nil, err
 	}
 
 	return []dukkha.TaskExecSpec{
 		{
+			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader,
@@ -80,6 +95,7 @@ func (w *TaskRun) next(
 			},
 		},
 		{
+			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader,

@@ -112,6 +112,7 @@ func (c *TaskRelease) GetExecSpecs(
 		}
 
 		steps = append(steps, dukkha.TaskExecSpec{
+			Env:       sliceutils.NewStrings(c.Env),
 			Command:   createCmd,
 			UseShell:  options.UseShell,
 			ShellName: options.ShellName,

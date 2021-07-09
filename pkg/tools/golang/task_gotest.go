@@ -34,6 +34,7 @@ func (c *TaskTest) GetExecSpecs(
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
 		steps = append(steps, dukkha.TaskExecSpec{
+			Env:       sliceutils.NewStrings(c.Env),
 			Chdir:     c.Chdir,
 			Command:   sliceutils.NewStrings(options.ToolCmd, "test", "./..."),
 			UseShell:  options.UseShell,
