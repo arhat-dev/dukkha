@@ -101,10 +101,10 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 matrixRun:
 	for i, ms := range matrixSpecs {
-		mCtx, err3 := createTaskMatrixContext(ctx, i, ms, tool)
+		mCtx, err2 := createTaskMatrixContext(ctx, i, ms, tool)
 
-		if err3 != nil {
-			appendErrorResult(ms, err3)
+		if err2 != nil {
+			appendErrorResult(ms, err2)
 			if ctx.FailFast() {
 				ctx.Cancel()
 				break matrixRun
@@ -144,18 +144,18 @@ matrixRun:
 					ctx.Cancel()
 				}
 
-				hookAfterMatrix, err3 := task.GetHookExecSpecs(
+				hookAfterMatrix, err4 := task.GetHookExecSpecs(
 					mCtx, dukkha.StageAfterMatrix, options,
 				)
-				if err3 != nil {
-					appendErrorResult(ms, err3)
+				if err4 != nil {
+					appendErrorResult(ms, err4)
 					return
 				}
 
 				// TODO: handle hook error
-				err3 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
-				if err3 != nil {
-					appendErrorResult(ms, err3)
+				err4 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
+				if err4 != nil {
+					appendErrorResult(ms, err4)
 					return
 				}
 			}()
