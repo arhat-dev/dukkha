@@ -82,6 +82,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	_ = envhelper.Expand(toExpand,
 		createEnvExpandFunc(
 			toExpand, result,
+			func(at int) { endAt = at },
 			func(name, origin string, at int) string {
 				endAt = at
 				v, ok := rc.Env()[name]
@@ -127,6 +128,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 func createEnvExpandFunc(
 	toExpand string,
 	result *bytes.Buffer,
+	handleUpdate func(at int),
 	handleEnv func(name, origin string, at int) string,
 	handleExec func(script string, err error, at int) string,
 ) func(varName, origin string) string {
@@ -136,6 +138,17 @@ func createEnvExpandFunc(
 		if thisIdx < 0 {
 			// shell evaluation overrides the default behavior
 			// of name matching
+			return origin
+		}
+
+		if lastAt+thisIdx > 0 && toExpand[lastAt+thisIdx-1] == '\\' {
+			// do not expand escaped env `\${SOME_ENV}`
+			result.WriteString(toExpand[lastAt : lastAt+thisIdx-1])
+			result.WriteString(origin)
+			lastAt = lastAt + thisIdx + len(origin)
+
+			handleUpdate(lastAt)
+
 			return origin
 		}
 

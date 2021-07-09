@@ -95,6 +95,21 @@ func TestDriver_Render(t *testing.T) {
 			rawData: "some $(inner(not-terminated)",
 			errStr:  "non-terminated",
 		},
+		{
+			name:     "Valid Keep Reference Untouched",
+			rawData:  `some \${ESCAPED_DATA}`,
+			expected: `some ${ESCAPED_DATA}`,
+		},
+		{
+			name:     "Valid Multiple Keep Reference Untouched",
+			rawData:  `some \${ESCAPED_DATA} \${FOO} not expanded`,
+			expected: `some ${ESCAPED_DATA} ${FOO} not expanded`,
+		},
+		{
+			name:     "Valid Mixed Reference",
+			rawData:  `{{- \$base_image_name := "${FOO}" -}}`,
+			expected: `{{- $base_image_name := "bar" -}}`,
+		},
 	}
 
 	for _, test := range tests {
