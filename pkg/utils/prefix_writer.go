@@ -51,6 +51,7 @@ func (p *prefixWriter) Write(data []byte) (n int, err error) {
 
 func PrefixWriter(
 	prefix string,
+	useColor bool,
 	prefixColor, outputColor *color.Color,
 	w io.Writer,
 ) io.Writer {
@@ -59,19 +60,23 @@ func PrefixWriter(
 		_, err := w.Write(prefixBytes)
 		return err
 	}
-	if prefixColor != nil {
-		writePrefix = func() error {
-			_, err := prefixColor.Fprint(w, prefix)
-			return err
-		}
-	}
 
 	writeOutput := func(p []byte) (int, error) {
 		return w.Write(p)
 	}
-	if outputColor != nil {
-		writeOutput = func(p []byte) (int, error) {
-			return outputColor.Fprint(w, string(p))
+
+	if useColor {
+		if prefixColor != nil {
+			writePrefix = func() error {
+				_, err := prefixColor.Fprint(w, prefix)
+				return err
+			}
+		}
+
+		if outputColor != nil {
+			writeOutput = func(p []byte) (int, error) {
+				return outputColor.Fprint(w, string(p))
+			}
 		}
 	}
 

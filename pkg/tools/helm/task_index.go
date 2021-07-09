@@ -17,13 +17,11 @@ func init() {
 		ToolKind, TaskKindIndex,
 		func(toolName string) dukkha.Task {
 			t := &TaskIndex{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindIndex)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskIndex)(nil)
 
 type TaskIndex struct {
 	field.BaseField
@@ -35,10 +33,12 @@ type TaskIndex struct {
 	Merge       string `yaml:"merge"`
 }
 
-func (c *TaskIndex) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskIndex) Kind() dukkha.TaskKind     { return TaskKindIndex }
-
-func (c *TaskIndex) GetExecSpecs(rc dukkha.RenderingContext, helmCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskIndex) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	helmCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := sliceutils.NewStrings(helmCmd, "repo", "index")
 
 	if len(c.RepoURL) != 0 {
@@ -63,7 +63,9 @@ func (c *TaskIndex) GetExecSpecs(rc dukkha.RenderingContext, helmCmd []string) (
 
 	return []dukkha.TaskExecSpec{
 		{
-			Command: indexCmd,
+			Command:   indexCmd,
+			UseShell:  useShell,
+			ShellName: shellName,
 		},
 	}, nil
 }

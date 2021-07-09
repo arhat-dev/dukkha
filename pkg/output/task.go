@@ -6,31 +6,36 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
+	"github.com/fatih/color"
 )
 
 func WriteTaskStart(
-	toolKind dukkha.ToolKind,
-	toolName dukkha.ToolName,
-	taskKind dukkha.TaskKind,
-	taskName dukkha.TaskName,
+	prefixColor *color.Color,
+	k dukkha.ToolKey,
+	tk dukkha.TaskKey,
 	matrixSpec matrix.Entry,
 ) {
-	_, _ = fmt.Println(
+	output := []interface{}{
 		"---",
-		AssembleTaskKindID(toolKind, toolName, taskKind),
-		"[", taskName, "]",
+		AssembleTaskKindID(k, tk.Kind),
+		"[", tk.Name, "]",
 		"{", matrixSpec.String(), "}",
-	)
+	}
+
+	if prefixColor != nil {
+		_, _ = prefixColor.Println(output...)
+	} else {
+		_, _ = fmt.Println(output...)
+	}
 }
 
 func AssembleTaskKindID(
-	toolKind dukkha.ToolKind,
-	toolName dukkha.ToolName,
+	k dukkha.ToolKey,
 	taskKind dukkha.TaskKind,
 ) string {
-	kindParts := []string{string(toolKind)}
-	if len(toolName) != 0 {
-		kindParts = append(kindParts, string(toolName))
+	kindParts := []string{string(k.Kind)}
+	if len(k.Name) != 0 {
+		kindParts = append(kindParts, string(k.Name))
 	}
 
 	return strings.Join(append(kindParts, string(taskKind)), ":")

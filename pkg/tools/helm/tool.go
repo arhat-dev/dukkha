@@ -9,10 +9,10 @@ import (
 const ToolKind = "helm"
 
 func init() {
-	dukkha.RegisterTool(ToolKind, func() dukkha.Tool { return &Tool{} })
+	dukkha.RegisterTool(ToolKind, func() dukkha.Tool {
+		return &Tool{}
+	})
 }
-
-var _ dukkha.Tool = (*Tool)(nil)
 
 type Tool struct {
 	field.BaseField
@@ -20,4 +20,6 @@ type Tool struct {
 	tools.BaseTool `yaml:",inline"`
 }
 
-func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
+func (t *Tool) ResolveFields(rc field.RenderingHandler, depth int, fieldName string) error {
+	return t.BaseField.ResolveFields(rc, depth, fieldName)
+}

@@ -18,13 +18,11 @@ func init() {
 		ToolKind, TaskKindClone,
 		func(toolName string) dukkha.Task {
 			t := &TaskClone{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindClone)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskClone)(nil)
 
 type TaskClone struct {
 	field.BaseField
@@ -40,10 +38,12 @@ type TaskClone struct {
 	ExtraArgs []string `yaml:"extra_args"`
 }
 
-func (c *TaskClone) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskClone) Kind() dukkha.TaskKind     { return TaskKindClone }
-
-func (c *TaskClone) GetExecSpecs(rc dukkha.RenderingContext, gitCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskClone) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	gitCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	if len(c.URL) == 0 {
 		return nil, fmt.Errorf("remote url not set")
 	}
@@ -80,6 +80,8 @@ func (c *TaskClone) GetExecSpecs(rc dukkha.RenderingContext, gitCmd []string) ([
 	steps = append(steps, dukkha.TaskExecSpec{
 		Command:     cloneCmd,
 		IgnoreError: false,
+		UseShell:    useShell,
+		ShellName:   shellName,
 	})
 
 	localPath := c.Path
@@ -105,6 +107,8 @@ func (c *TaskClone) GetExecSpecs(rc dukkha.RenderingContext, gitCmd []string) ([
 				"symbolic-ref",
 				fmt.Sprintf("refs/remotes/%s/HEAD", remoteName),
 			),
+			UseShell:  useShell,
+			ShellName: shellName,
 		})
 	}
 
@@ -116,6 +120,8 @@ func (c *TaskClone) GetExecSpecs(rc dukkha.RenderingContext, gitCmd []string) ([
 			gitCmd, "checkout", "-b", localBranch,
 			fmt.Sprintf("%s/%s", remoteName, remoteBranch),
 		),
+		UseShell:  useShell,
+		ShellName: shellName,
 	})
 
 	return steps, nil

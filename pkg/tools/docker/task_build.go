@@ -13,22 +13,22 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild)
 			return t
 		},
 	)
 }
 
-var _ dukkha.Task = (*TaskBuild)(nil)
-
 type TaskBuild buildah.TaskBud
-
-func (c *TaskBuild) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskBuild) Kind() dukkha.TaskKind     { return TaskKindBuild }
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
-func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskBuild) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	toolCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []buildah.ImageNameSpec{{
@@ -65,6 +65,8 @@ func (c *TaskBuild) GetExecSpecs(rc dukkha.RenderingContext, toolCmd []string) (
 		{
 			Command:     buildCmd,
 			IgnoreError: false,
+			UseShell:    useShell,
+			ShellName:   shellName,
 		},
 	}, nil
 }

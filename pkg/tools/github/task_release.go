@@ -19,13 +19,11 @@ func init() {
 		ToolKind, TaskKindRelease,
 		func(toolName string) dukkha.Task {
 			t := &TaskRelease{}
-			t.SetToolName(toolName)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRelease)
 			return t
 		},
 	)
 }
-
-var _ dukkha.Task = (*TaskRelease)(nil)
 
 type TaskRelease struct {
 	field.BaseField
@@ -49,10 +47,12 @@ type ReleaseFileSpec struct {
 	Label string `yaml:"label"`
 }
 
-func (c *TaskRelease) ToolKind() dukkha.ToolKind { return ToolKind }
-func (c *TaskRelease) Kind() dukkha.TaskKind     { return TaskKindRelease }
-
-func (c *TaskRelease) GetExecSpecs(rc dukkha.RenderingContext, ghCmd []string) ([]dukkha.TaskExecSpec, error) {
+func (c *TaskRelease) GetExecSpecs(
+	rc dukkha.RenderingContext,
+	useShell bool,
+	shellName string,
+	ghCmd []string,
+) ([]dukkha.TaskExecSpec, error) {
 	createCmd := sliceutils.NewStrings(
 		ghCmd, "release", "create", c.Tag,
 	)
@@ -111,7 +111,11 @@ func (c *TaskRelease) GetExecSpecs(rc dukkha.RenderingContext, ghCmd []string) (
 		}
 	}
 
-	return []dukkha.TaskExecSpec{{
-		Command: createCmd,
-	}}, nil
+	return []dukkha.TaskExecSpec{
+		{
+			Command:   createCmd,
+			UseShell:  useShell,
+			ShellName: shellName,
+		},
+	}, nil
 }
