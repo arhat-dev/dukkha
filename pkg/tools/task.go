@@ -27,6 +27,7 @@ type BaseTask struct {
 	field.BaseField
 
 	TaskName string      `yaml:"name"`
+	Env      []string    `yaml:"env"`
 	Matrix   matrix.Spec `yaml:"matrix"`
 	Hooks    TaskHooks   `yaml:"hooks"`
 
@@ -50,9 +51,14 @@ func (t *BaseTask) DoAfterFieldsResolved(
 	defer t.mu.Unlock()
 
 	if len(fieldNames) == 0 {
-		err := t.ResolveFields(mCtx, depth, "TaskName")
-		if err != nil {
-			return fmt.Errorf("failed to resolve task name: %w", err)
+		for _, name := range []string{"TaskName", "Env"} {
+			err := t.ResolveFields(mCtx, depth, name)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to resolve basic task field %q: %w",
+					name, err,
+				)
+			}
 		}
 
 		// all fields, including hooks

@@ -63,6 +63,7 @@ func (c *TaskPush) GetExecSpecs(
 				}
 
 				result = append(result, dukkha.TaskExecSpec{
+					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
 						options.ToolCmd, "push",
 						string(bytes.TrimSpace(imageIDBytes)),
@@ -83,6 +84,7 @@ func (c *TaskPush) GetExecSpecs(
 			//   <manifest-list-name> <transport>:<transport-details>
 			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 			result = append(result, dukkha.TaskExecSpec{
+				Env: sliceutils.NewStrings(c.Env),
 				Command: sliceutils.NewStrings(
 					options.ToolCmd, "manifest", "push", "--all",
 					getLocalManifestName(manifestName),

@@ -115,6 +115,7 @@ func (c *TaskClone) GetExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			IgnoreError: false,
 			Chdir:       localPath,
+			Env:         sliceutils.NewStrings(c.Env),
 			Command: sliceutils.NewStrings(
 				options.ToolCmd, "checkout", "-b", localBranch,
 				fmt.Sprintf("%s/%s", remoteName, remoteBranch),

@@ -31,7 +31,6 @@ type TaskBuild struct {
 
 	Chdir     string   `yaml:"chdir"`
 	Path      string   `yaml:"path"`
-	Env       []string `yaml:"env"`
 	LDFlags   []string `yaml:"ldflags"`
 	Tags      []string `yaml:"tags"`
 	ExtraArgs []string `yaml:"extra_args"`
@@ -62,11 +61,11 @@ func (c *TaskBuild) GetExecSpecs(
 	doingCrossCompiling := rc.HostKernel() != mKernel ||
 		rc.HostArch() != mArch
 
-	env := sliceutils.NewStrings(c.Env, c.CGO.getEnv(
+	env := sliceutils.NewStrings(c.CGO.getEnv(
 		doingCrossCompiling, mKernel, mArch,
 		rc.HostOS(),
 		rc.MatrixLibc(),
-	)...)
+	))
 
 	env = append(env, "GOOS="+constant.GetGolangOS(mKernel))
 	env = append(env, "GOARCH="+constant.GetGolangArch(mArch))
@@ -91,7 +90,8 @@ func (c *TaskBuild) GetExecSpecs(
 			spec := &dukkha.TaskExecSpec{
 				Chdir: c.Chdir,
 
-				Env:       sliceutils.NewStrings(env),
+				// put generated env first, so user can override them
+				Env:       sliceutils.NewStrings(env, c.Env...),
 				Command:   sliceutils.NewStrings(options.ToolCmd, "build", "-o", output),
 				UseShell:  options.UseShell,
 				ShellName: options.ShellName,
