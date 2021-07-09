@@ -3,9 +3,10 @@ package matrix
 import (
 	"testing"
 
-	"arhat.dev/dukkha/pkg/field"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/field"
 
 	_ "embed"
 )

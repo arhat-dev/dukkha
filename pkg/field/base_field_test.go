@@ -75,6 +75,11 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 			yaml: `{other_field_1@a: foo, other_field_2@b: bar }`,
 			expected: &testFieldStruct{
 				BaseField: BaseField{
+					catchOtherFields: map[string]struct{}{
+						"other_field_1": {},
+						"other_field_2": {},
+					},
+					catchOtherCache: nil,
 					unresolvedFields: map[unresolvedFieldKey]*unresolvedFieldValue{
 						{
 							yamlKey: "other_field_1",
