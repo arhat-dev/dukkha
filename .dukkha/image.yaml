@@ -9,17 +9,28 @@ tools:
   - name: local
   # $ docker volume create buildah-dukkha
   - name: in-docker
-    cmd:
-    - |-
-      docker run -it --rm \
-        --workdir $(pwd) \
-        -v $(pwd):$(pwd) \
-        --security-opt label=disable \
-        --security-opt seccomp=unconfined \
-        -v buildah-dukkha:/var/lib/containers \
-        --device /dev/fuse:rw \
-        quay.io/buildah/stable \
-        buildah
+    # when not using shell, the cmd must be set as an array of args
+    use_shell: false
+    shell_name: ""
+    cmd@env:
+    - docker
+    - run
+    - -it
+    - --rm
+    - --workdir
+    - $(pwd)
+    - -v
+    - $(pwd):$(pwd)
+    - --security-opt
+    - label=disable
+    - --security-opt
+    - seccomp=unconfined
+    - -v
+    - buildah-dukkha:/var/lib/containers
+    - --device
+    - /dev/fuse:rw
+    - quay.io/buildah/stable
+    - buildah
 
 buildah:bud:
 - &dukkha_image_build
@@ -34,8 +45,10 @@ buildah:bud:
   extra_args@template:
   - --pull
   - --no-cache
-  - --build-arg="MATRIX_ARCH={{ .Env.MATRIX_ARCH }}"
-  - --build-arg="MATRIX_ROOTFS={{ .Env.MATRIX_ROOTFS | default "alpine" }}"
+  - --build-arg
+  - MATRIX_ARCH={{ .Env.MATRIX_ARCH }}
+  - --build-arg
+  - MATRIX_ROOTFS={{ .Env.MATRIX_ROOTFS | default "alpine" }}
 
 buildah:login:
 - name: ghcr
