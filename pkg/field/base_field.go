@@ -167,7 +167,7 @@ fieldLoop:
 		fieldValue := self._parentValue.Elem().Field(i)
 
 		// initialize struct fields accepted by Init(), in case being used later
-		self.initAllStructCanCallInit(fieldValue)
+		InitRecursively(fieldValue, self.ifaceTypeHandler)
 
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
@@ -409,34 +409,6 @@ fieldLoop:
 		"field: unknown yaml fields for %s: %s",
 		pt.String(), strings.Join(unknownFields, ", "),
 	)
-}
-
-// nolint:revive
-func (self *BaseField) initAllStructCanCallInit(fieldValue reflect.Value) {
-	if fieldValue.Kind() != reflect.Struct {
-		return
-	}
-
-	if fieldValue.Type() == baseFieldStructType {
-		return
-	}
-
-	if !fieldValue.CanAddr() {
-		return
-	}
-
-	if !fieldValue.Addr().CanInterface() {
-		return
-	}
-
-	iface, canCallInit := fieldValue.Addr().Interface().(Field)
-	if canCallInit {
-		_ = Init(iface, self.ifaceTypeHandler)
-	}
-
-	for i := 0; i < fieldValue.NumField(); i++ {
-		self.initAllStructCanCallInit(fieldValue.Field(i))
-	}
 }
 
 // nolint:revive
