@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"fmt"
 	"io"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -31,39 +30,22 @@ type TaskRun struct {
 }
 
 func (w *TaskRun) GetExecSpecs(
-	rc dukkha.RenderingContext,
-	_useShell bool,
-	_shellName string,
-	_toolCmd []string,
+	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	for i, job := range w.Jobs {
-		if len(job.Task) != 0 {
-			// do task
-			ref, err := dukkha.ParseTaskReference(job.Task, "")
-			if err != nil {
-				return nil, fmt.Errorf("invalid task reference at job#%d: %w", i, err)
-			}
-
-			_ = ref
-
-			// TODO: deep copy current job, execute as a hook
-			ret = append(ret, dukkha.TaskExecSpec{
-				AlterExecFunc: func(
-					replace map[string][]byte,
-					stdin io.Reader,
-					stdout, stderr io.Writer,
-				) ([]dukkha.TaskExecSpec, error) {
-					// TODO: implement
-					return nil, nil
-				},
-			})
-			continue
+		specs, err := job.GenSpecs(rc, dukkha.TaskExecOptions{}, i)
+		if err != nil {
+			return nil, err
 		}
 
-		// run shell command
 		ret = append(ret, dukkha.TaskExecSpec{
-			Command: []string{},
+			AlterExecFunc: func(
+				replace map[string][]byte,
+				stdin io.Reader, stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunShell, error) {
+				return specs, nil
+			},
 		})
 	}
 
