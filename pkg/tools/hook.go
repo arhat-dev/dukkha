@@ -49,8 +49,6 @@ type TaskHooks struct {
 	// After any condition of the task execution
 	// including success, failure, canceled (hook `before` failure)
 	After []Hook `yaml:"after"`
-
-	mu sync.Mutex
 }
 
 func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
@@ -73,15 +71,16 @@ func (h *TaskHooks) GenSpecs(
 	stage dukkha.TaskExecStage,
 	options dukkha.TaskExecOptions,
 ) ([]dukkha.RunTaskOrRunShell, error) {
+	// TODO: this func is only called by BaseTask with lock for now
+	// 		 if we call it from other place, we need to add lock to it
+
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
 	)
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	logger.D("resolving hooks")
-	err := h.ResolveFields(taskCtx, -1, h.GetFieldNameByStage(stage))
+	logger.D("resolving hooks for overview")
+	// just to get a list of hook actions available
+	err := h.ResolveFields(taskCtx, 1, h.GetFieldNameByStage(stage))
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve hook spec: %w", err)
 	}
@@ -108,15 +107,23 @@ func (h *TaskHooks) GenSpecs(
 
 	var ret []dukkha.RunTaskOrRunShell
 	for i := range toRun {
-		specs, err := toRun[i].GenSpecs(hookCtx.DeriveNew(), options, i)
+		ctx := hookCtx.DeriveNew()
+		err = toRun[i].DoAfterFieldResolved(ctx, func(h *Hook) error {
+			spec, err := h.GenSpecs(ctx, options, i)
+			if err != nil {
+				return err
+			}
+
+			ret = append(ret, spec)
+			return nil
+		})
+
 		if err != nil {
 			return nil, fmt.Errorf(
 				"failed to generate action #%d exec specs: %w",
 				i, err,
 			)
 		}
-
-		ret = append(ret, specs)
 	}
 
 	return ret, nil
