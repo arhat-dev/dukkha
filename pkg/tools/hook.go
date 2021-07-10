@@ -130,6 +130,9 @@ type Hook struct {
 
 	ContinueOnError bool `yaml:"continue_on_error"`
 
+	// raw system cmd, not in shell
+	Cmd []string `yaml:"cmd"`
+
 	Other map[string]string `dukkha:"other"`
 
 	mu sync.Mutex
@@ -189,6 +192,16 @@ func (h *Hook) GenSpecs(
 		}, nil
 	}
 
+	if len(h.Cmd) != 0 {
+		return []dukkha.TaskExecSpec{
+			{
+				Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
+				Command:     sliceutils.NewStrings(h.Cmd),
+				IgnoreError: h.ContinueOnError || options.ContinueOnError,
+			},
+		}, nil
+	}
+
 	switch {
 	case len(h.Other) > 1:
 		return nil, fmt.Errorf(
@@ -196,6 +209,7 @@ func (h *Hook) GenSpecs(
 			hookID,
 		)
 	case len(h.Other) == 1:
+		// ok
 	default:
 		// no hook to run
 		return nil, nil
