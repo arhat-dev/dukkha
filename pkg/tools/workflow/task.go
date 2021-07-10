@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"fmt"
 	"io"
 	"sync"
 
@@ -50,21 +49,7 @@ func (w *TaskRun) next(
 		hasJob     = false
 	)
 
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	var env []string
-	err := w.DoAfterFieldsResolved(mCtx, -1, func() error {
-		env = sliceutils.NewStrings(w.Env)
-		return nil
-	}, "BaseTask.Env")
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve env: %w", err)
-	}
-
-	mCtx.AddEnv(env...)
-
+	var err error
 	// depth = 1 to get job list only
 	err = w.DoAfterFieldsResolved(mCtx, 1, func() error {
 		if index >= len(w.Jobs) {

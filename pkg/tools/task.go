@@ -41,6 +41,22 @@ type BaseTask struct {
 	mu sync.Mutex
 }
 
+func (t *BaseTask) resolveEssentialFields(mCtx dukkha.RenderingContext) error {
+	for _, name := range []string{"TaskName", "Env"} {
+		err := t.ResolveFields(mCtx, -1, name)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to resolve essential task field %q: %w",
+				name, err,
+			)
+		}
+	}
+
+	mCtx.AddEnv(t.Env...)
+
+	return nil
+}
+
 func (t *BaseTask) DoAfterFieldsResolved(
 	mCtx dukkha.RenderingContext,
 	depth int,
@@ -50,18 +66,13 @@ func (t *BaseTask) DoAfterFieldsResolved(
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if len(fieldNames) == 0 {
-		for _, name := range []string{"TaskName", "Env"} {
-			err := t.ResolveFields(mCtx, depth, name)
-			if err != nil {
-				return fmt.Errorf(
-					"failed to resolve basic task field %q: %w",
-					name, err,
-				)
-			}
-		}
+	err := t.resolveEssentialFields(mCtx)
+	if err != nil {
+		return err
+	}
 
-		// all fields, including hooks
+	if len(fieldNames) == 0 {
+		// resolve all fields of the real task type
 		for _, name := range t.fieldsToResolve {
 			err := t.impl.ResolveFields(mCtx, depth, name)
 			if err != nil {
@@ -148,6 +159,22 @@ func (t *BaseTask) GetHookExecSpecs(
 	stage dukkha.TaskExecStage,
 	options dukkha.TaskExecOptions,
 ) ([]dukkha.RunTaskOrRunShell, error) {
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	// hooks may have reference to env defined in task scope
+
+	err := t.resolveEssentialFields(taskCtx)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to prepare env for hook %q: %w",
+			stage.String(), err,
+		)
+	}
+
+	taskCtx.AddEnv(t.Env...)
+
 	specs, err := t.Hooks.GenSpecs(taskCtx, stage, options)
 	if err != nil {
 		return nil, fmt.Errorf(
