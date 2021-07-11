@@ -187,14 +187,18 @@ func (t *BaseTask) GetHookExecSpecs(
 }
 
 func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, error) {
-	err := t.ResolveFields(rc, -1, "Matrix")
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve task matrix: %w", err)
-	}
+	var ret []matrix.Entry
+	err := t.DoAfterFieldsResolved(rc, -1, func() error {
+		ret = t.Matrix.GetSpecs(
+			rc.MatrixFilter(),
+			rc.HostKernel(),
+			rc.HostArch(),
+		)
+		return nil
+		// t.DoAfterFieldsResolved is intended to serve
+		// real task type, so we have to add the prefix
+		// `BaseTask.`
+	}, "BaseTask.Matrix")
 
-	return t.Matrix.GetSpecs(
-		rc.MatrixFilter(),
-		rc.HostKernel(),
-		rc.HostArch(),
-	), nil
+	return ret, err
 }
