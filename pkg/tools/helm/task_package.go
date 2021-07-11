@@ -42,7 +42,7 @@ type PackageSigningSpec struct {
 }
 
 func (c *TaskPackage) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Env:     sliceutils.NewStrings(c.Env),

@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -18,7 +17,7 @@ type _baseTaskWithGetExecSpecs struct {
 }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return nil, nil
 }
@@ -41,15 +40,10 @@ type BaseTask struct {
 	mu sync.Mutex
 }
 
-func (t *BaseTask) resolveEssentialFields(mCtx dukkha.RenderingContext) error {
-	for _, name := range []string{"TaskName", "Env"} {
-		err := t.ResolveFields(mCtx, -1, name)
-		if err != nil {
-			return fmt.Errorf(
-				"failed to resolve essential task field %q: %w",
-				name, err,
-			)
-		}
+func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
+	err := resolveFields(mCtx, t, -1, []string{"TaskName", "Env"})
+	if err != nil {
+		return fmt.Errorf("failed to resolve essential task fields: %w", err)
 	}
 
 	mCtx.AddEnv(t.Env...)
@@ -58,7 +52,7 @@ func (t *BaseTask) resolveEssentialFields(mCtx dukkha.RenderingContext) error {
 }
 
 func (t *BaseTask) DoAfterFieldsResolved(
-	mCtx dukkha.RenderingContext,
+	ctx dukkha.RenderingContext,
 	depth int,
 	do func() error,
 	fieldNames ...string,
@@ -66,37 +60,30 @@ func (t *BaseTask) DoAfterFieldsResolved(
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	err := t.resolveEssentialFields(mCtx)
+	err := t.resolveEssentialFieldsAndAddEnv(ctx)
 	if err != nil {
 		return err
 	}
 
 	if len(fieldNames) == 0 {
 		// resolve all fields of the real task type
-		for _, name := range t.fieldsToResolve {
-			err := t.impl.ResolveFields(mCtx, depth, name)
-			if err != nil {
-				return fmt.Errorf(
-					"failed to resolve task field %q from default list: %w",
-					name, err,
-				)
-			}
+		err := resolveFields(ctx, t.impl, depth, t.fieldsToResolve)
+		if err != nil {
+			return fmt.Errorf("failed to resolve tool fields: %w", err)
 		}
 	} else {
-		for _, name := range fieldNames {
-			target := field.Field(t.impl)
-			targetField := name
-			if strings.HasPrefix(targetField, "BaseTask.") {
-				targetField = strings.TrimPrefix(targetField, "BaseTask.")
-				target = t
-			}
-
-			err := target.ResolveFields(mCtx, depth, targetField)
+		forBase, forImpl := separateBaseAndImpl("BaseTask.", fieldNames)
+		if len(forBase) != 0 {
+			err := resolveFields(ctx, t, depth, forBase)
 			if err != nil {
-				return fmt.Errorf(
-					"failed to resolve specified task field %q: %w",
-					name, err,
-				)
+				return fmt.Errorf("failed to resolve requested BaseTask fields: %w", err)
+			}
+		}
+
+		if len(forImpl) != 0 {
+			err := resolveFields(ctx, t.impl, depth, forImpl)
+			if err != nil {
+				return fmt.Errorf("failed to resolve requested fields: %w", err)
 			}
 		}
 	}
@@ -118,31 +105,7 @@ func (t *BaseTask) InitBaseTask(
 	t.impl = impl
 
 	typ := reflect.TypeOf(impl).Elem()
-	for i := 1; i < typ.NumField(); i++ {
-		f := typ.Field(i)
-		if !(f.Name[0] >= 'A' && f.Name[0] <= 'Z') {
-			// unexported, ignore
-			continue
-		}
-
-		if f.Anonymous && f.Name == "BaseTask" {
-			// it's me
-			continue
-		}
-
-		val, ok := f.Tag.Lookup("yaml")
-		if !ok {
-			// no yaml field, ignore
-			continue
-		}
-
-		if strings.Contains(val, "-") {
-			// ignored explicitly
-			continue
-		}
-
-		t.fieldsToResolve = append(t.fieldsToResolve, f.Name)
-	}
+	t.fieldsToResolve = getFieldNamesToResolve(typ)
 }
 
 func (t *BaseTask) ToolKind() dukkha.ToolKind { return t.toolKind }
@@ -157,15 +120,14 @@ func (t *BaseTask) Key() dukkha.TaskKey {
 func (t *BaseTask) GetHookExecSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
-	options dukkha.TaskExecOptions,
-) ([]dukkha.RunTaskOrRunShell, error) {
+) ([]dukkha.RunTaskOrRunCmd, error) {
 
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	// hooks may have reference to env defined in task scope
 
-	err := t.resolveEssentialFields(taskCtx)
+	err := t.resolveEssentialFieldsAndAddEnv(taskCtx)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to prepare env for hook %q: %w",
@@ -173,9 +135,7 @@ func (t *BaseTask) GetHookExecSpecs(
 		)
 	}
 
-	taskCtx.AddEnv(t.Env...)
-
-	specs, err := t.Hooks.GenSpecs(taskCtx, stage, options)
+	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to generate exec specs for hook %q: %w",
@@ -194,11 +154,14 @@ func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, e
 			rc.HostKernel(),
 			rc.HostArch(),
 		)
+
 		return nil
+	},
 		// t.DoAfterFieldsResolved is intended to serve
 		// real task type, so we have to add the prefix
 		// `BaseTask.`
-	}, "BaseTask.Matrix")
+		"BaseTask.Matrix",
+	)
 
 	return ret, err
 }

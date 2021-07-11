@@ -69,8 +69,7 @@ func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
 func (h *TaskHooks) GenSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
-	options dukkha.TaskExecOptions,
-) ([]dukkha.RunTaskOrRunShell, error) {
+) ([]dukkha.RunTaskOrRunCmd, error) {
 	// TODO: this func is only called by BaseTask with lock for now
 	// 		 if we call it from other place, we need to add lock to it
 
@@ -105,11 +104,11 @@ func (h *TaskHooks) GenSpecs(
 	prefix := taskCtx.OutputPrefix() + stage.String() + ": "
 	hookCtx.SetOutputPrefix(prefix)
 
-	var ret []dukkha.RunTaskOrRunShell
+	var ret []dukkha.RunTaskOrRunCmd
 	for i := range toRun {
 		ctx := hookCtx.DeriveNew()
 		err = toRun[i].DoAfterFieldResolved(ctx, func(h *Hook) error {
-			spec, err2 := h.GenSpecs(ctx, options, i)
+			spec, err2 := h.GenSpecs(ctx, i)
 			if err2 != nil {
 				return err2
 			}
@@ -158,8 +157,8 @@ func (h *Hook) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *Hook
 }
 
 func (h *Hook) GenSpecs(
-	ctx dukkha.TaskExecContext, options dukkha.TaskExecOptions, index int,
-) (dukkha.RunTaskOrRunShell, error) {
+	ctx dukkha.TaskExecContext, index int,
+) (dukkha.RunTaskOrRunCmd, error) {
 	hookID := "#" + strconv.FormatInt(int64(index), 10)
 	if len(h.Name) != 0 {
 		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)
@@ -185,13 +184,6 @@ func (h *Hook) GenSpecs(
 			return nil, fmt.Errorf("%q: referenced task %q not found", hookID, ref.TaskKey())
 		}
 
-		opts := options.Clone()
-		// update tool specific values
-		opts.ToolCmd = tool.GetCmd()
-		opts.ShellName = tool.ShellName()
-		opts.UseShell = tool.UseShell()
-		opts.ContinueOnError = opts.ContinueOnError || h.ContinueOnError
-
 		return &CompleteTaskExecSpecs{
 			Context: ctx,
 			Tool:    tool,
@@ -204,7 +196,7 @@ func (h *Hook) GenSpecs(
 			{
 				Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
 				Command:     sliceutils.NewStrings(h.Cmd),
-				IgnoreError: h.ContinueOnError || options.ContinueOnError,
+				IgnoreError: h.ContinueOnError,
 			},
 		}, nil
 	}
@@ -223,9 +215,8 @@ func (h *Hook) GenSpecs(
 	}
 
 	var (
-		shell      string
-		script     string
-		isFilePath bool
+		shell  string
+		script string
 	)
 
 	for k, v := range h.Other {
@@ -234,31 +225,20 @@ func (h *Hook) GenSpecs(
 		switch {
 		case strings.HasPrefix(k, "shell:"):
 			shell = strings.SplitN(k, ":", 2)[1]
-			isFilePath = false
 		case k == "shell":
 			shell = ""
-			isFilePath = false
 		default:
 			return nil, fmt.Errorf("%q: unknown action: %q", hookID, k)
 		}
 	}
 
-	sh, ok := ctx.GetShell(shell)
-	if !ok {
-		return nil, fmt.Errorf("%q: shell %q not found", hookID, shell)
-	}
-
-	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("%q: failed to generate shell: %w", hookID, err)
-	}
-	ctx.AddEnv(env...)
-
 	return []dukkha.TaskExecSpec{
 		{
 			Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
-			Command:     cmd,
-			IgnoreError: h.ContinueOnError || options.ContinueOnError,
+			Command:     []string{script},
+			UseShell:    true,
+			ShellName:   shell,
+			IgnoreError: h.ContinueOnError,
 		},
 	}, nil
 }

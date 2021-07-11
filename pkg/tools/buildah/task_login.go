@@ -37,7 +37,7 @@ type TaskLogin struct {
 
 func (c *TaskLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskExecOptions,
+	options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 

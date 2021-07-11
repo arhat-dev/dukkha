@@ -9,7 +9,7 @@ import (
 func runHook(
 	ctx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
-	specs []dukkha.RunTaskOrRunShell,
+	specs []dukkha.RunTaskOrRunCmd,
 ) error {
 	for i, execSpec := range specs {
 

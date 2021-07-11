@@ -45,7 +45,12 @@ type Tool interface {
 
 	Run(taskCtx TaskExecContext) error
 
-	DoAfterFieldsResolved(mCtx TaskExecContext, do func() error) error
+	DoAfterFieldsResolved(
+		mCtx TaskExecContext,
+		depth int,
+		do func() error,
+		fieldNames ...string,
+	) error
 }
 
 type ToolManager interface {
