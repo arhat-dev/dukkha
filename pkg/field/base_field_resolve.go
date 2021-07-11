@@ -188,9 +188,26 @@ func (f *BaseField) handleUnResolvedField(
 			toResolve = resolvedValue
 		}
 
-		if target.Type() == stringPtrType {
+		// if it's target is a string
+		switch {
+		case target.Type() == stringPtrType:
 			// resolved value is the target value
 			target.Elem().SetString(string(resolvedValue))
+			continue
+		case v.isCatchOtherField &&
+			target.Type().AssignableTo(stringMapPtrType):
+
+			target.Elem().SetMapIndex(
+				reflect.ValueOf(key.yamlKey),
+				reflect.ValueOf(string(resolvedValue)),
+			)
+			continue
+		case v.isCatchOtherField &&
+			target.Type().AssignableTo(stringBytesMapPtrType):
+			target.Elem().SetMapIndex(
+				reflect.ValueOf(key.yamlKey),
+				reflect.ValueOf(resolvedValue),
+			)
 			continue
 		}
 

@@ -1,12 +1,14 @@
 package git_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
@@ -66,7 +68,11 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 	}
 
-	tests.RunTaskExecSpecGenerationTests(t, nil, testCases)
+	tests.RunTaskExecSpecGenerationTests(
+		t,
+		dukkha_test.NewTestContext(context.TODO()),
+		testCases,
+	)
 
 	assert.EqualValues(t, []string{"git"}, toolCmd)
 }
