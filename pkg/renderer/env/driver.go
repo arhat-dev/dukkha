@@ -141,20 +141,22 @@ func createEnvExpandFunc(
 			return origin
 		}
 
-		if lastAt+thisIdx > 0 && toExpand[lastAt+thisIdx-1] == '\\' {
+		currentAt := lastAt + thisIdx
+		if currentAt > 0 && toExpand[currentAt-1] == '\\' {
 			// do not expand escaped env `\${SOME_ENV}`
-			result.WriteString(toExpand[lastAt : lastAt+thisIdx-1])
+			// omit `\`
+			result.WriteString(toExpand[lastAt : currentAt-1])
 			result.WriteString(origin)
-			lastAt = lastAt + thisIdx + len(origin)
+			lastAt = currentAt + len(origin)
 
 			handleUpdate(lastAt)
 
 			return origin
 		}
 
-		result.WriteString(toExpand[lastAt : lastAt+thisIdx])
+		result.WriteString(toExpand[lastAt:currentAt])
 
-		lastAt += thisIdx
+		lastAt = currentAt
 
 		if strings.HasPrefix(origin, "$(") {
 			shellEval, err := utils.ParseBrackets(toExpand[lastAt+2:])
