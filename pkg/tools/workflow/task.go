@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"io"
-	"sync"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -29,8 +28,6 @@ type TaskRun struct {
 	tools.BaseTask `yaml:",inline"`
 
 	Jobs []tools.Hook `yaml:"jobs"`
-
-	mu sync.Mutex
 }
 
 func (w *TaskRun) GetExecSpecs(
