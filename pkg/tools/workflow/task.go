@@ -31,18 +31,18 @@ type TaskRun struct {
 }
 
 func (w *TaskRun) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return w.next(rc, options, 0)
 }
 
 func (w *TaskRun) next(
 	mCtx dukkha.TaskExecContext,
-	options dukkha.TaskExecOptions,
+	options *dukkha.TaskExecOptions,
 	index int,
 ) ([]dukkha.TaskExecSpec, error) {
 	var (
-		thisAction dukkha.RunTaskOrRunShell
+		thisAction dukkha.RunTaskOrRunCmd
 		hasJob     = false
 	)
 
@@ -57,7 +57,7 @@ func (w *TaskRun) next(
 
 		// resolve single job (Hook)
 		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
-			thisAction, err = h.GenSpecs(mCtx, options, index)
+			thisAction, err = h.GenSpecs(mCtx, index)
 			return err
 		})
 	}, "Jobs")
@@ -72,7 +72,7 @@ func (w *TaskRun) next(
 				replace map[string][]byte,
 				stdin io.Reader,
 				stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunShell, error) {
+			) (dukkha.RunTaskOrRunCmd, error) {
 				return thisAction, nil
 			},
 		},
@@ -81,9 +81,8 @@ func (w *TaskRun) next(
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader,
-				stdout,
-				stderr io.Writer,
-			) (dukkha.RunTaskOrRunShell, error) {
+				stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunCmd, error) {
 				return w.next(mCtx, options, index+1)
 			},
 		},

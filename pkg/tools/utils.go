@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"arhat.dev/pkg/hashhelper"
 )
@@ -26,4 +28,35 @@ func GetScriptCache(cacheDir, script string) (string, error) {
 	}
 
 	return scriptPath, nil
+}
+
+func getFieldNamesToResolve(typ reflect.Type) []string {
+	var ret []string
+	for i := 1; i < typ.NumField(); i++ {
+		f := typ.Field(i)
+		if !(f.Name[0] >= 'A' && f.Name[0] <= 'Z') {
+			// unexported, ignore
+			continue
+		}
+
+		if f.Anonymous && f.Name == "BaseTask" {
+			// it's me
+			continue
+		}
+
+		val, ok := f.Tag.Lookup("yaml")
+		if !ok {
+			// no yaml field, ignore
+			continue
+		}
+
+		if strings.Contains(val, "-") {
+			// ignored explicitly
+			continue
+		}
+
+		ret = append(ret, f.Name)
+	}
+
+	return ret
 }

@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -65,6 +66,8 @@ type BaseTool struct {
 	impl  dukkha.Tool
 	tasks map[dukkha.TaskKey]dukkha.Task
 
+	fieldsToResolve []string
+
 	mu sync.Mutex
 }
 
@@ -111,6 +114,9 @@ func (t *BaseTool) InitBaseTool(
 	t.impl = impl
 	t.tasks = make(map[dukkha.TaskKey]dukkha.Task)
 
+	typ := reflect.TypeOf(impl).Elem()
+	t.fieldsToResolve = getFieldNamesToResolve(typ)
+
 	return nil
 }
 
@@ -134,14 +140,76 @@ func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
 	return RunTask(taskCtx, t.impl, tsk)
 }
 
-func (t *BaseTool) DoAfterFieldsResolved(mCtx dukkha.TaskExecContext, do func() error) error {
+func (t *BaseTool) DoAfterFieldsResolved(
+	ctx dukkha.TaskExecContext,
+	depth int,
+	do func() error,
+	fieldNames ...string,
+) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	err := t.impl.ResolveFields(mCtx, -1, "")
+	err := t.resolveEssentialFieldsAndAddEnv(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to resolve tool fields: %w", err)
+		return err
+	}
+
+	if len(fieldNames) == 0 {
+		// resolve all fields of the real task type
+		err = resolveFields(ctx, t.impl, depth, t.fieldsToResolve)
+		if err != nil {
+			return fmt.Errorf("failed to resolve tool fields: %w", err)
+		}
+	} else {
+		forBase, forImpl := separateBaseAndImpl("BaseTool.", fieldNames)
+		if len(forBase) != 0 {
+			err := resolveFields(ctx, t, depth, forBase)
+			if err != nil {
+				return fmt.Errorf("failed to resolve requested BaseTool fields: %w", err)
+			}
+		}
+
+		if len(forImpl) != 0 {
+			err := resolveFields(ctx, t.impl, depth, forImpl)
+			if err != nil {
+				return fmt.Errorf("failed to resolve requested fields: %w", err)
+			}
+		}
 	}
 
 	return do()
+}
+
+func (t *BaseTool) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
+	err := resolveFields(mCtx, t, -1, []string{"ToolName", "Env"})
+	if err != nil {
+		return fmt.Errorf("failed to resolve essential fields: %w", err)
+	}
+
+	mCtx.AddEnv(t.Env...)
+
+	return nil
+}
+
+func separateBaseAndImpl(basePrefix string, fieldNames []string) (forBase, forImpl []string) {
+	for _, name := range fieldNames {
+		if strings.HasPrefix(name, basePrefix) {
+			forBase = append(forBase, strings.TrimPrefix(name, basePrefix))
+		} else {
+			forImpl = append(forImpl, name)
+		}
+	}
+
+	return
+}
+
+func resolveFields(rh field.RenderingHandler, f field.Field, depth int, fieldNames []string) error {
+	for _, name := range fieldNames {
+		err := f.ResolveFields(rh, depth, name)
+		if err != nil {
+			return fmt.Errorf("failed to resolve field %q: %w", name, err)
+		}
+	}
+
+	return nil
 }

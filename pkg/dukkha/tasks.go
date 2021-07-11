@@ -140,22 +140,20 @@ func (s TaskExecStage) String() string {
 }
 
 type TaskExecOptions struct {
-	UseShell        bool
-	ShellName       string
-	ToolCmd         []string
-	ContinueOnError bool
+	UseShell  bool
+	ShellName string
+	ToolCmd   []string
 }
 
 func (opts TaskExecOptions) Clone() TaskExecOptions {
 	return TaskExecOptions{
-		UseShell:        opts.UseShell,
-		ShellName:       opts.ShellName,
-		ToolCmd:         sliceutils.NewStrings(opts.ToolCmd),
-		ContinueOnError: opts.ContinueOnError,
+		UseShell:  opts.UseShell,
+		ShellName: opts.ShellName,
+		ToolCmd:   sliceutils.NewStrings(opts.ToolCmd),
 	}
 }
 
-type RunTaskOrRunShell interface{}
+type RunTaskOrRunCmd interface{}
 
 type TaskExecSpec struct {
 	// Delay execution
@@ -174,7 +172,7 @@ type TaskExecSpec struct {
 	AlterExecFunc func(
 		replace map[string][]byte,
 		stdin io.Reader, stdout, stderr io.Writer,
-	) (RunTaskOrRunShell, error)
+	) (RunTaskOrRunCmd, error)
 
 	Stdin io.Reader
 
@@ -211,16 +209,29 @@ type Task interface {
 	Key() TaskKey
 
 	// GetMatrixSpecs for matrix execution
+	//
+	// The implementation MUST be safe to be used concurrently
 	GetMatrixSpecs(rc RenderingContext) ([]matrix.Entry, error)
 
 	// GetExecSpecs generate commands using current field values
-	GetExecSpecs(
-		rc TaskExecContext, options TaskExecOptions,
-	) ([]TaskExecSpec, error)
+	//
+	// The implementation MUST be safe to be used concurrently
+	GetExecSpecs(rc TaskExecContext, options *TaskExecOptions) ([]TaskExecSpec, error)
 
-	GetHookExecSpecs(
-		ctx TaskExecContext, state TaskExecStage, options TaskExecOptions,
-	) ([]RunTaskOrRunShell, error)
+	// GetHookExecSpecs generate hook run target
+	//
+	// The implementation MUST be safe to be used concurrently
+	GetHookExecSpecs(ctx TaskExecContext, state TaskExecStage) ([]RunTaskOrRunCmd, error)
+
+	// DoAfterFieldsResolved is a helper function to ensure no data race
+	//
+	// The implementation MUST be safe to be used concurrently
+	DoAfterFieldsResolved(
+		rc RenderingContext,
+		depth int,
+		do func() error,
+		fieldNames ...string,
+	) error
 }
 
 type TaskManager interface {

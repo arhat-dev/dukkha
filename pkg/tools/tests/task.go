@@ -15,7 +15,7 @@ type ExecSpecGenerationTestCase struct {
 	Prepare  func() error
 	Finalize func()
 
-	Options   dukkha.TaskExecOptions
+	Options   *dukkha.TaskExecOptions
 	Task      dukkha.Task
 	Expected  []dukkha.TaskExecSpec
 	ExpectErr bool

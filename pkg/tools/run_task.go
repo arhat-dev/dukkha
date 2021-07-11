@@ -8,6 +8,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type CompleteTaskExecSpecs struct {
@@ -40,6 +41,16 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 		})
 	}
 
+	// task may need tool specific env, resolve tool env first
+
+	err := tool.DoAfterFieldsResolved(ctx, -1, func() error {
+		ctx.AddEnv(tool.GetEnv()...)
+		return nil
+	}, "BaseTool.Env")
+	if err != nil {
+		return fmt.Errorf("failed to resolve tool specific env: %w", err)
+	}
+
 	matrixSpecs, err := task.GetMatrixSpecs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get execution matrix: %w", err)
@@ -57,12 +68,6 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 	}
 
 	// resolve hooks for whole task
-	options := dukkha.TaskExecOptions{
-		UseShell:        tool.UseShell(),
-		ShellName:       tool.ShellName(),
-		ToolCmd:         tool.GetCmd(),
-		ContinueOnError: !ctx.FailFast(),
-	}
 
 	ctx.SetTask(tool.Key(), task.Key())
 
@@ -72,7 +77,7 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 	defer func() {
 		// TODO: handle hook error
 		hookAfter, err2 := task.GetHookExecSpecs(
-			ctx, dukkha.StageAfter, options,
+			ctx, dukkha.StageAfter,
 		)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
@@ -86,7 +91,7 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 	// run hook `before`
 	hookBefore, err := task.GetHookExecSpecs(
-		ctx, dukkha.StageBefore, options,
+		ctx, dukkha.StageBefore,
 	)
 	if err != nil {
 		// cancel task execution
@@ -101,7 +106,7 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 matrixRun:
 	for i, ms := range matrixSpecs {
-		mCtx, err2 := createTaskMatrixContext(ctx, i, ms, tool)
+		mCtx, options, err2 := createTaskMatrixContext(ctx, i, ms, tool)
 
 		if err2 != nil {
 			appendErrorResult(ms, err2)
@@ -145,7 +150,7 @@ matrixRun:
 				}
 
 				hookAfterMatrix, err4 := task.GetHookExecSpecs(
-					mCtx, dukkha.StageAfterMatrix, options,
+					mCtx, dukkha.StageAfterMatrix,
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
@@ -161,7 +166,7 @@ matrixRun:
 			}()
 
 			hookBeofreMatrix, err3 := task.GetHookExecSpecs(
-				mCtx, dukkha.StageBeforeMatrix, options,
+				mCtx, dukkha.StageBeforeMatrix,
 			)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
@@ -203,7 +208,7 @@ matrixRun:
 				appendErrorResult(ms, err3)
 
 				hookAfterMatrixFailure, err4 := task.GetHookExecSpecs(
-					mCtx, dukkha.StageAfterMatrixFailure, options,
+					mCtx, dukkha.StageAfterMatrixFailure,
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
@@ -224,7 +229,7 @@ matrixRun:
 			}
 
 			hookAfterMatrixSuccess, err3 := task.GetHookExecSpecs(
-				mCtx, dukkha.StageAfterMatrixSuccess, options,
+				mCtx, dukkha.StageAfterMatrixSuccess,
 			)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
@@ -243,7 +248,7 @@ matrixRun:
 
 	if len(errCollection) != 0 {
 		hookAfterFailure, err2 := task.GetHookExecSpecs(
-			ctx, dukkha.StageAfterFailure, options,
+			ctx, dukkha.StageAfterFailure,
 		)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
@@ -258,7 +263,7 @@ matrixRun:
 	}
 
 	hookAfterSuccess, err := task.GetHookExecSpecs(
-		ctx, dukkha.StageAfterSuccess, options,
+		ctx, dukkha.StageAfterSuccess,
 	)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
@@ -277,16 +282,15 @@ func createTaskMatrixContext(
 	i int,
 	ms matrix.Entry,
 	tool dukkha.Tool,
-) (dukkha.TaskExecContext, error) {
+) (dukkha.TaskExecContext, *dukkha.TaskExecOptions, error) {
+	mCtx := ctx.DeriveNew()
+
 	// set default matrix filter for referenced hook tasks
 	mFilter := make(map[string][]string)
 	for k, v := range ms {
 		mFilter[k] = []string{v}
 	}
 
-	// mCtx is the matrix execution context
-
-	mCtx := ctx.DeriveNew()
 	mCtx.SetMatrixFilter(mFilter)
 
 	for k, v := range ms {
@@ -306,13 +310,23 @@ func createTaskMatrixContext(
 	mCtx.SetTaskColors(output.PickColor(i))
 
 	// tool may have reference to MATRIX_ values
-	err := tool.DoAfterFieldsResolved(mCtx, func() error {
+	// but MUST not have reference to task specific env
+
+	// now everything prepared for the tool, resolve all of it
+
+	options := &dukkha.TaskExecOptions{}
+	err := tool.DoAfterFieldsResolved(mCtx, -1, func() error {
 		mCtx.AddEnv(tool.GetEnv()...)
+
+		options.ToolCmd = sliceutils.NewStrings(tool.GetCmd())
+		options.UseShell = tool.UseShell()
+		options.ShellName = tool.ShellName()
+
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to add tool env: %w", err)
+		return nil, nil, fmt.Errorf("failed to add tool env: %w", err)
 	}
 
-	return mCtx, nil
+	return mCtx, options, nil
 }

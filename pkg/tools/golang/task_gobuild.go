@@ -54,7 +54,7 @@ type CGOSepc struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()

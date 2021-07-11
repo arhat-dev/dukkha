@@ -52,7 +52,7 @@ type ImageNameSpec struct {
 }
 
 func (c *TaskBud) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
@@ -65,7 +65,7 @@ func (c *TaskBud) GetExecSpecs(
 }
 
 func (c *TaskBud) createExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
 	dukkhaCacheDir := rc.CacheDir()
@@ -140,7 +140,7 @@ func (c *TaskBud) createExecSpecs(
 		AlterExecFunc: func(
 			replace map[string][]byte,
 			stdin io.Reader, stdout, stderr io.Writer,
-		) (dukkha.RunTaskOrRunShell, error) {
+		) (dukkha.RunTaskOrRunCmd, error) {
 			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
 			if err != nil {
 				return nil, err
@@ -240,7 +240,7 @@ func (c *TaskBud) createExecSpecs(
 			AlterExecFunc: func(
 				replace map[string][]byte,
 				stdin io.Reader, stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunShell, error) {
+			) (dukkha.RunTaskOrRunCmd, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
 				if !ok {
 					// manifest not created, usually should not happen since we just created before

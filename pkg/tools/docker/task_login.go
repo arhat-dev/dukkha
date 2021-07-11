@@ -24,7 +24,7 @@ func init() {
 type TaskLogin buildah.TaskLogin
 
 func (c *TaskLogin) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
@@ -37,12 +37,11 @@ func (c *TaskLogin) GetExecSpecs(
 		password := c.Password + "\n"
 
 		steps = append(steps, dukkha.TaskExecSpec{
-			Stdin:       strings.NewReader(password),
-			Env:         sliceutils.NewStrings(c.Env),
-			Command:     append(loginCmd, c.Registry),
-			IgnoreError: options.ContinueOnError,
-			UseShell:    options.UseShell,
-			ShellName:   options.ShellName,
+			Stdin:     strings.NewReader(password),
+			Env:       sliceutils.NewStrings(c.Env),
+			Command:   append(loginCmd, c.Registry),
+			UseShell:  options.UseShell,
+			ShellName: options.ShellName,
 		})
 
 		return nil
