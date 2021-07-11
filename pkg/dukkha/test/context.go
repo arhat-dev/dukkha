@@ -36,11 +36,14 @@ func testBootstrapExec(toExec []string, isFilePath bool) (env []string, cmd []st
 	return []string{"DUKKHA_TEST=true"}, []string{}, nil
 }
 
-func NewTestContext(ctx context.Context) dukkha.Context {
+func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
 	return NewTestContextWithGlobalEnv(ctx, nil)
 }
 
-func NewTestContextWithGlobalEnv(ctx context.Context, globalEnv map[string]string) dukkha.Context {
+func NewTestContextWithGlobalEnv(
+	ctx context.Context,
+	globalEnv map[string]string,
+) dukkha.ConfigResolvingContext {
 	d := dukkha.NewConfigResolvingContext(
 		ctx, globalEnv,
 		testBootstrapExec,
@@ -49,6 +52,7 @@ func NewTestContextWithGlobalEnv(ctx context.Context, globalEnv map[string]strin
 		false, // turn off color output
 		1,
 	)
+
 	d.AddRenderer("echo", &echoRenderer{})
 
 	return d

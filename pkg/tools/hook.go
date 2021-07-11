@@ -109,9 +109,9 @@ func (h *TaskHooks) GenSpecs(
 	for i := range toRun {
 		ctx := hookCtx.DeriveNew()
 		err = toRun[i].DoAfterFieldResolved(ctx, func(h *Hook) error {
-			spec, err := h.GenSpecs(ctx, options, i)
-			if err != nil {
-				return err
+			spec, err2 := h.GenSpecs(ctx, options, i)
+			if err2 != nil {
+				return err2
 			}
 
 			ret = append(ret, spec)
