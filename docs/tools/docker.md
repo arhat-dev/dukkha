@@ -33,7 +33,7 @@ __NOTE:__ docker login has no `skip_tls_verify` support
 
 Build docker images
 
-Config is the same as [`buildah:bud`](./buildah.md#task-buildahbud), but replace `bud` with `build`, and `buildah` with `docker` in your mind
+Config is the same as [`buildah:build`](./buildah.md#task-buildahbuild), but replace `buildah` with `docker` in your mind
 
 ### Task `docker:push`
 

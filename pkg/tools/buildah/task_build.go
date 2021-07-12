@@ -20,20 +20,20 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const TaskKindBud = "bud"
+const TaskKindBuild = "build"
 
 func init() {
 	dukkha.RegisterTask(
-		ToolKind, TaskKindBud,
+		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
-			t := &TaskBud{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBud, t)
+			t := &TaskBuild{}
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
 			return t
 		},
 	)
 }
 
-type TaskBud struct {
+type TaskBuild struct {
 	field.BaseField
 
 	tools.BaseTask `yaml:",inline"`
@@ -51,7 +51,7 @@ type ImageNameSpec struct {
 	Manifest string `yaml:"manifest"`
 }
 
-func (c *TaskBud) GetExecSpecs(
+func (c *TaskBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
@@ -64,12 +64,12 @@ func (c *TaskBud) GetExecSpecs(
 	return steps, err
 }
 
-func (c *TaskBud) createExecSpecs(
+func (c *TaskBuild) createExecSpecs(
 	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
 	dukkhaCacheDir := rc.CacheDir()
-	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-bud-image-id-*")
+	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-build-image-id-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
 	}

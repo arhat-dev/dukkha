@@ -42,12 +42,12 @@ buildah:login:
   # tls_skip_verify: false
 ```
 
-### Task `buildah:bud`
+### Task `buildah:build`
 
 Build OCI images using `buildah bud` (bud: build-using-dockerfile)
 
 ```yaml
-buildah:bud:
+buildah:build:
 - name: example-image
   # images_names of the build output
   # if not set, will use the `name` value as `image`

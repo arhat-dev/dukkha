@@ -19,7 +19,7 @@ func init() {
 	)
 }
 
-type TaskBuild buildah.TaskBud
+type TaskBuild buildah.TaskBuild
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
