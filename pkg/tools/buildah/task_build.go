@@ -40,7 +40,7 @@ type TaskBuild struct {
 
 	Context    string          `yaml:"context"`
 	ImageNames []ImageNameSpec `yaml:"image_names"`
-	Dockerfile string          `yaml:"dockerfile"`
+	File       string          `yaml:"file"`
 	ExtraArgs  []string        `yaml:"extra_args"`
 }
 
@@ -77,8 +77,8 @@ func (c *TaskBuild) createExecSpecs(
 	_ = tmpImageIDFile.Close()
 
 	budCmd := sliceutils.NewStrings(options.ToolCmd, "bud", "--iidfile", tmpImageIDFilePath)
-	if len(c.Dockerfile) != 0 {
-		budCmd = append(budCmd, "-f", c.Dockerfile)
+	if len(c.File) != 0 {
+		budCmd = append(budCmd, "-f", c.File)
 	}
 
 	budCmd = append(budCmd, c.ExtraArgs...)

@@ -39,7 +39,7 @@ buildah:build:
   image_names: &dukkha_image_names
   - image: ghcr.io/arhat-dev/dukkha
     manifest: ghcr.io/arhat-dev/dukkha
-  dockerfile@env: cicd/docker/dukkha.${MATRIX_KERNEL}.dockerfile
+  file@env: cicd/docker/dukkha.${MATRIX_KERNEL}.dockerfile
   # yamllint disable-line rule:quoted-strings
   context: "."
   extra_args@template:

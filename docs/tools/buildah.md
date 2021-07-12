@@ -64,7 +64,7 @@ buildah:build:
   context: "."
 
   # arg to buildah build -f
-  dockerfile: path/to/dockerfile
+  file: path/to/dockerfile
 
   # extra buildah build args
   extra_args: []
