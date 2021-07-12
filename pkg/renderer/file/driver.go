@@ -42,8 +42,13 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
-	path, ok := rawData.(string)
-	if !ok {
+	var path string
+	switch t := rawData.(type) {
+	case string:
+		path = t
+	case []byte:
+		path = string(t)
+	default:
 		return nil, fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
 	}
 
