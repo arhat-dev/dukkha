@@ -16,5 +16,5 @@ tools:
     - ghcr.io/arhat-dev/builder-go:debian-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
     - go
 
-golang:build@file: .dukkha/go-build.yml
-golang:test@file|template: .dukkha/go-test.yml
+golang:build@file: scripts/dukkha/go-build.yml
+golang:test@file|template: scripts/dukkha/go-test.yml

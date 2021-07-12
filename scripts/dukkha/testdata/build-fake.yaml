@@ -1,0 +1,2 @@
+golang:build@file: scripts/dukkha/testdata/go-build-fake.yml
+golang:test@file|template: scripts/dukkha/go-test.yml

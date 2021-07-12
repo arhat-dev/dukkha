@@ -91,9 +91,11 @@ dukkha buildah in-docker build my-image`,
 			logger := log.Log.WithName("pre-run")
 
 			// read all configration files
+			visitedPaths := make(map[string]struct{})
 			err = readConfigRecursively(
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
+				&visitedPaths,
 				config,
 			)
 			if err != nil {

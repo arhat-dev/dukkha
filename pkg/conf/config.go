@@ -40,8 +40,12 @@ func NewConfig() *Config {
 type Config struct {
 	field.BaseField
 
-	// no rendering suffix support
+	// Bootstrap has no rendering suffix support
 	Bootstrap BootstrapConfig `yaml:"bootstrap"`
+
+	// Include other files using path relative to this config
+	// also no rendering suffix support
+	Include []string `yaml:"include"`
 
 	// Shells for rendering and command execution
 	Shells []*tools.BaseToolWithInit `yaml:"shells"`

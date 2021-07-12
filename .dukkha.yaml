@@ -1,4 +1,8 @@
+include:
+- scripts/dukkha/entrypoint.yaml
+
 bootstrap:
+  cache_dir: scripts/dukkha/cache
   env:
   - GIT_DEFAULT_BRANCH=master
   script_cmd: [sh]
