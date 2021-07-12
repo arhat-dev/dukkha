@@ -16,7 +16,7 @@ github:release:
   tag: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
-  notes@file|template: .dukkha/release-notes.md
+  notes@file|template: scripts/dukkha/release-notes.md
   files:
   - path: build/dukkha.*
   # checksums
@@ -26,7 +26,7 @@ github:release:
   tag: testing
   draft: true
   title: testing-release-title
-  notes@file: .dukkha/release-notes.md
+  notes@file: scripts/dukkha/release-notes.md
   files:
   - path: build/duk*
     label: testing.dukkha
