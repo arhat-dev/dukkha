@@ -46,8 +46,8 @@ func (c *TaskBuild) GetExecSpecs(
 			buildCmd = append(buildCmd, "-t", spec.Image)
 		}
 
-		if len(c.Dockerfile) != 0 {
-			buildCmd = append(buildCmd, "-f", c.Dockerfile)
+		if len(c.File) != 0 {
+			buildCmd = append(buildCmd, "-f", c.File)
 		}
 
 		buildCmd = append(buildCmd, c.ExtraArgs...)
