@@ -57,7 +57,7 @@ func readConfigRecursively(
 
 			err2 = readConfigRecursively(matches, false, visitedPaths, mergedConfig)
 			if err2 != nil {
-				return fmt.Errorf("failed to load included config files: %w", err)
+				return fmt.Errorf("failed to load included config files: %w", err2)
 			}
 		}
 
