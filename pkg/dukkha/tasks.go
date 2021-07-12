@@ -49,9 +49,9 @@ func (t *TaskReference) TaskKey() TaskKey {
 //
 // <tool-kind>{:<tool-name>}:<task-kind>(<task-name>, ...)
 //
-// e.g. buildah:bud(dukkha) # use default matrix
-// 		buildah:bud(dukkha, {kernel: [linux]}) # use custom matrix
-//		buildah:in-docker:bud(dukkha, {kernel: [linux]}) # with tool-name
+// e.g. buildah:build(dukkha) # use default matrix
+// 		buildah:build(dukkha, {kernel: [linux]}) # use custom matrix
+//		buildah:in-docker:build(dukkha, {kernel: [linux]}) # with tool-name
 func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReference, error) {
 	callStart := strings.IndexByte(taskRef, '(')
 	if callStart < 0 {
@@ -70,7 +70,7 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 		// no matter what kind the tool is
 		//
 		// current task
-		// 		buildah:in-docker:bud 	# tool name is `in-docker`
+		// 		buildah:in-docker:build 	# tool name is `in-docker`
 		// has task reference in hook:
 		// 		buildah:login(foo)    	# same kind
 		// 		golang:build(bar)		# different kind

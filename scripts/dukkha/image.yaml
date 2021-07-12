@@ -32,7 +32,7 @@ tools:
     - quay.io/buildah/stable
     - buildah
 
-buildah:bud:
+buildah:build:
 - &dukkha_image_build
   name: dukkha
   matrix@file|template: &dukkha_image_matrix scripts/dukkha/image-matrix.yml
