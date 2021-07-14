@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 
 	"arhat.dev/dukkha/pkg/field"
 )
@@ -29,6 +30,10 @@ var (
 )
 
 func RegisterRenderer(name string, create RendererCreateFunc) {
+	if strings.Contains(name, ":") {
+		panic(fmt.Sprintf("invalid renderer name %q containing `:`", name))
+	}
+
 	globalTypeManager.register(
 		rendererType,
 		regexp.MustCompile(fmt.Sprintf(`^%s$`, name)),
@@ -38,15 +43,27 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 	)
 }
 
-func RegisterTool(kind ToolKind, create ToolCreateFunc) {
+func RegisterTool(k ToolKind, create ToolCreateFunc) {
+	if strings.Contains(string(k), ":") {
+		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
+	}
+
 	globalTypeManager.register(
 		toolType,
-		regexp.MustCompile(fmt.Sprintf(`^%s$`, string(kind))),
+		regexp.MustCompile(fmt.Sprintf(`^%s$`, string(k))),
 		func(subMatches []string) interface{} { return create() },
 	)
 }
 
 func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
+	if strings.Contains(string(k), ":") {
+		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
+	}
+
+	if strings.Contains(string(tk), ":") {
+		panic(fmt.Sprintf("invalid task kind %q containing `:`", tk))
+	}
+
 	globalTypeManager.register(
 		taskType,
 		regexp.MustCompile(
