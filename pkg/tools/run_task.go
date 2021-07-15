@@ -51,22 +51,6 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 		return fmt.Errorf("failed to resolve tool specific env: %w", err)
 	}
 
-	matrixSpecs, err := task.GetMatrixSpecs(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get execution matrix: %w", err)
-	}
-
-	if len(matrixSpecs) == 0 {
-		return fmt.Errorf("no matrix spec match")
-	}
-
-	// TODO: do real global limit
-	workerCount := ctx.ClaimWorkers(len(matrixSpecs))
-	waitCh := make(chan struct{}, workerCount)
-	for i := 0; i < workerCount; i++ {
-		waitCh <- struct{}{}
-	}
-
 	// resolve hooks for whole task
 
 	ctx.SetTask(tool.Key(), task.Key())
@@ -102,6 +86,22 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 	if err != nil {
 		// cancel task execution
 		return err
+	}
+
+	matrixSpecs, err := task.GetMatrixSpecs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get execution matrix: %w", err)
+	}
+
+	if len(matrixSpecs) == 0 {
+		return fmt.Errorf("no matrix spec match")
+	}
+
+	// TODO: do real global limit
+	workerCount := ctx.ClaimWorkers(len(matrixSpecs))
+	waitCh := make(chan struct{}, workerCount)
+	for i := 0; i < workerCount; i++ {
+		waitCh <- struct{}{}
 	}
 
 matrixRun:
