@@ -79,6 +79,21 @@ func newTemplate(rc dukkha.RenderingContext) *template.Template {
 
 				return string(data), nil
 			},
+			"os_WriteFile": func(filename string, data []byte) error {
+				return os.WriteFile(filename, data, 0640)
+			},
+			"appendFile": func(filename string, data []byte) error {
+				f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+				if err != nil {
+					return err
+				}
+
+				_, err = f.Write(data)
+				return err
+			},
+			"toBytes": func(s string) []byte {
+				return []byte(s)
+			},
 
 			"filepath_Join": filepath.Join,
 
@@ -91,6 +106,8 @@ func newTemplate(rc dukkha.RenderingContext) *template.Template {
 
 			"jq":      textquery.JQ,
 			"jqBytes": textquery.JQBytes,
+			"yq":      textquery.YQ,
+			"yqBytes": textquery.YQBytes,
 
 			"getAlpineArch":       constant.GetAlpineArch,
 			"getAlpineTripleName": constant.GetAlpineTripleName,
