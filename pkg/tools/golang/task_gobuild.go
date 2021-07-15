@@ -46,11 +46,8 @@ type CGOSepc struct {
 	CFlags  []string `yaml:"cflags"`
 	LDFlags []string `yaml:"ldflags"`
 
-	HostCC  string `yaml:"host_cc"`
-	HostCXX string `yaml:"host_cxx"`
-
-	TargetCC  string `yaml:"target_cc"`
-	TargetCXX string `yaml:"target_cxx"`
+	CC  string `yaml:"cc"`
+	CXX string `yaml:"cxx"`
 }
 
 func (c *TaskBuild) GetExecSpecs(
@@ -61,17 +58,19 @@ func (c *TaskBuild) GetExecSpecs(
 	doingCrossCompiling := rc.HostKernel() != mKernel ||
 		rc.HostArch() != mArch
 
-	env := sliceutils.NewStrings(c.CGO.getEnv(
-		doingCrossCompiling, mKernel, mArch,
-		rc.HostOS(),
-		rc.MatrixLibc(),
-	))
+	env := sliceutils.NewStrings(
+		c.CGO.getEnv(options.UseShell,
+			doingCrossCompiling, mKernel, mArch,
+			rc.HostOS(),
+			rc.MatrixLibc(),
+		),
+	)
 
 	env = append(env, "GOOS="+constant.GetGolangOS(mKernel))
 	env = append(env, "GOARCH="+constant.GetGolangArch(mArch))
 
 	if envGOMIPS := c.getGOMIPS(mArch); len(envGOMIPS) != 0 {
-		env = append(env, "GOMIPS="+envGOMIPS)
+		env = append(env, "GOMIPS="+envGOMIPS, "GOMIPS64="+envGOMIPS)
 	}
 
 	if envGOARM := c.getGOARM(mArch); len(envGOARM) != 0 {
@@ -149,7 +148,7 @@ func (c *TaskBuild) getGOMIPS(mArch string) string {
 	return "softfloat"
 }
 
-func (c *CGOSepc) getEnv(doingCrossCompiling bool, mKernel, mArch, hostOS, targetLibc string) []string {
+func (c *CGOSepc) getEnv(useShell, doingCrossCompiling bool, mKernel, mArch, hostOS, targetLibc string) []string {
 	if !c.Enabled {
 		return []string{"CGO_ENABLED=0"}
 	}
@@ -158,23 +157,19 @@ func (c *CGOSepc) getEnv(doingCrossCompiling bool, mKernel, mArch, hostOS, targe
 	ret = append(ret, "CGO_ENABLED=1")
 
 	if len(c.CFlags) != 0 {
-		ret = append(ret, fmt.Sprintf("CGO_CFLAGS=%s", strings.Join(c.CFlags, " ")))
+		ret = append(ret,
+			fmt.Sprintf("CGO_CFLAGS=%s", formatArgs(c.CFlags, useShell)),
+		)
 	}
 
 	if len(c.LDFlags) != 0 {
-		ret = append(ret, fmt.Sprintf("CGO_LDFLAGS=%s", strings.Join(c.LDFlags, " ")))
+		ret = append(ret,
+			fmt.Sprintf("CGO_LDFLAGS=%s", formatArgs(c.LDFlags, useShell)),
+		)
 	}
 
-	if len(c.HostCC) != 0 {
-		ret = append(ret, "CC="+c.HostCC)
-	}
-
-	if len(c.HostCXX) != 0 {
-		ret = append(ret, "CXX="+c.HostCXX)
-	}
-
-	targetCC := "gcc"
-	targetCXX := "g++"
+	cc := "gcc"
+	cxx := "g++"
 	if doingCrossCompiling {
 		switch hostOS {
 		case constant.OS_DEBIAN,
@@ -191,28 +186,28 @@ func (c *CGOSepc) getEnv(doingCrossCompiling bool, mKernel, mArch, hostOS, targe
 			default:
 			}
 
-			targetCC = tripleName + "-gcc"
-			targetCXX = tripleName + "-g++"
+			cc = tripleName + "-gcc"
+			cxx = tripleName + "-g++"
 		case constant.OS_ALPINE:
 			tripleName := constant.GetAlpineTripleName(mArch)
-			targetCC = tripleName + "-gcc"
-			targetCXX = tripleName + "-g++"
+			cc = tripleName + "-gcc"
+			cxx = tripleName + "-g++"
 		case constant.OS_MACOS:
-			targetCC = "clang"
-			targetCXX = "clang++"
+			cc = "clang"
+			cxx = "clang++"
 		}
 	}
 
-	if len(c.TargetCC) != 0 {
-		ret = append(ret, "CC_FOR_TARGET="+c.TargetCC)
+	if len(c.CC) != 0 {
+		ret = append(ret, "CC="+c.CC)
 	} else if doingCrossCompiling {
-		ret = append(ret, "CC_FOR_TARGET="+targetCC)
+		ret = append(ret, "CC="+cc)
 	}
 
-	if len(c.TargetCXX) != 0 {
-		ret = append(ret, "CXX_FOR_TARGET="+c.TargetCXX)
+	if len(c.CXX) != 0 {
+		ret = append(ret, "CXX="+c.CC)
 	} else if doingCrossCompiling {
-		ret = append(ret, "CC_FOR_TARGET="+targetCXX)
+		ret = append(ret, "CXX="+cxx)
 	}
 
 	return ret

@@ -7,13 +7,10 @@
     - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"
   cgo:
     enabled: false
-    host_cc: gcc
-    host_cxx: g++
+    cc: gcc
+    cxx: g++
 
-    # target_cc and target_cxx will be set automatically for cross compiling when using cgo
-    # and of course you can customize
-
-    # target_cc@template: |-
+    # cc@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
     #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
@@ -21,7 +18,7 @@
     #   {{- get -}}
     #   -gcc
 
-    # target_cxx@template: |-
+    # cc@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
     #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
@@ -34,6 +31,7 @@
       - -I/usr/include/glib-2.0
       - -I/usr/include
       EOF
+
     ldflags@shell: |-
       cat <<EOF
       EOF
