@@ -110,7 +110,11 @@ func (c *TaskBuild) GetExecSpecs(
 				spec.Command = append(
 					spec.Command,
 					"-tags",
-					formatArgs(c.Tags, options.UseShell),
+					// ref: https://golang.org/doc/go1.13#go-command
+					// The go build flag -tags now takes a comma-separated list of build tags,
+					// to allow for multiple tags in GOFLAGS. The space-separated form is
+					// deprecated but still recognized and will be maintained.
+					strings.Join(c.Tags, ","),
 				)
 			}
 
