@@ -47,8 +47,6 @@ buildah:build:
   - --no-cache
   - --build-arg
   - MATRIX_ARCH={{ .Env.MATRIX_ARCH }}
-  - --build-arg
-  - MATRIX_ROOTFS={{ .Env.MATRIX_ROOTFS | default "alpine" }}
 
 buildah:login:
 - name: ghcr
