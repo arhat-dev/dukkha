@@ -1,6 +1,6 @@
 ARG MATRIX_ARCH
 
-FROM ghcr.io/arhat-dev/builder-go:alpine as builder
+FROM ghcr.io/arhat-dev/builder-golang:1.16-alpine as builder
 
 ARG MATRIX_ARCH
 

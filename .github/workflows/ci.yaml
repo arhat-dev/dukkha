@@ -60,7 +60,7 @@ jobs:
   unit-tests:
     if: contains(github.head_ref, 'deps/') == false
     container:
-      image: ghcr.io/arhat-dev/builder-go:debian
+      image: ghcr.io/arhat-dev/builder-golang:1.16-alpine
     needs:
     - stylecheck
     runs-on: ubuntu-latest

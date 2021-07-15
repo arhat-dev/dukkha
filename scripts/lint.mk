@@ -15,7 +15,7 @@
 RUN_LINTER := docker run -t --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)"
 
 lint.file:
-	${RUN_LINTER} ghcr.io/arhat-dev/editorconfig-checker:2.3.5 \
+	${RUN_LINTER} ghcr.io/arhat-dev/editorconfig-checker:2.3 \
 		/editorconfig-checker -config .ecrc
 
 lint.shell:
@@ -23,11 +23,11 @@ lint.shell:
 		sh -c "find . | grep -E -e '.sh\$$' | grep -v vendor | grep -v \.git | xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
 lint.go:
-	${RUN_LINTER} ghcr.io/arhat-dev/golangci-lint:v1.41.1-alpine \
+	${RUN_LINTER} ghcr.io/arhat-dev/golangci-lint:1.41 \
 		/golangci-lint run --fix
 
 lint.yaml:
-	${RUN_LINTER} ghcr.io/arhat-dev/yamllint:latest \
+	${RUN_LINTER} ghcr.io/arhat-dev/yamllint:1.26 \
 		yamllint -c .yaml-lint.yml .
 
 lint.all: \
