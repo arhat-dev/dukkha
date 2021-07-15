@@ -1,5 +1,4 @@
 ARG MATRIX_ARCH
-ARG MATRIX_ROOTFS
 
 FROM ghcr.io/arhat-dev/builder-golang:1.16-alpine as builder
 
@@ -10,7 +9,7 @@ RUN set -ex ;\
     make dukkha && \
     ./build/dukkha golang local build dukkha -m kernel=linux -m arch=${MATRIX_ARCH}
 
-FROM ghcr.io/arhat-dev/golang:1.16-${MATRIX_ROOTFS}-${MATRIX_ARCH}
+FROM scratch
 
 LABEL org.opencontainers.image.source https://github.com/arhat-dev/dukkha
 
