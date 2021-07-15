@@ -5,7 +5,7 @@ func GetDebianArch(mArch string) string {
 		ARCH_X86:   "i386",
 		ARCH_AMD64: "amd64",
 
-		// ARCH_ARM_V5: "",
+		ARCH_ARM_V5: "armel",
 		ARCH_ARM_V6: "armel",
 		ARCH_ARM_V7: "armhf",
 		ARCH_ARM64:  "arm64",
