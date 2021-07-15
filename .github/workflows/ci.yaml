@@ -59,13 +59,14 @@ jobs:
 
   unit-tests:
     if: contains(github.head_ref, 'deps/') == false
-    container:
-      image: ghcr.io/arhat-dev/builder-golang:1.16-alpine
     needs:
     - stylecheck
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
 
     - name: Test Packages
       env:
