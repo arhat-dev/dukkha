@@ -39,28 +39,15 @@ type TaskBuild struct {
 	CGO CGOSepc `yaml:"cgo"`
 }
 
-type CGOSepc struct {
-	field.BaseField
-
-	Enabled bool     `yaml:"enabled"`
-	CFlags  []string `yaml:"cflags"`
-	LDFlags []string `yaml:"ldflags"`
-
-	CC  string `yaml:"cc"`
-	CXX string `yaml:"cxx"`
-}
-
 func (c *TaskBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
-	doingCrossCompiling := rc.HostKernel() != mKernel ||
-		rc.HostArch() != mArch
-
 	env := sliceutils.NewStrings(
 		c.CGO.getEnv(options.UseShell,
-			doingCrossCompiling, mKernel, mArch,
+			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
+			mKernel, mArch,
 			rc.HostOS(),
 			rc.MatrixLibc(),
 		),
@@ -152,6 +139,31 @@ func (c *TaskBuild) getGOMIPS(mArch string) string {
 	return "softfloat"
 }
 
+type CGOSepc struct {
+	field.BaseField
+
+	// Enable cgo
+	Enabled bool `yaml:"enabled"`
+
+	// CGO_CPPFLAGS
+	CPPFlags []string `yaml:"cppflags"`
+
+	// CGO_CFLAGS
+	CFlags []string `yaml:"cflags"`
+
+	// CGO_CXXFLAGS
+	CXXFlags []string `yaml:"cxxflags"`
+
+	// CGO_FFLAGS
+	FFlags []string `yaml:"fflags"`
+
+	// CGO_LDFLAGS
+	LDFlags []string `yaml:"ldflags"`
+
+	CC  string `yaml:"cc"`
+	CXX string `yaml:"cxx"`
+}
+
 func (c *CGOSepc) getEnv(useShell, doingCrossCompiling bool, mKernel, mArch, hostOS, targetLibc string) []string {
 	if !c.Enabled {
 		return []string{"CGO_ENABLED=0"}
@@ -160,20 +172,44 @@ func (c *CGOSepc) getEnv(useShell, doingCrossCompiling bool, mKernel, mArch, hos
 	var ret []string
 	ret = append(ret, "CGO_ENABLED=1")
 
-	if len(c.CFlags) != 0 {
-		ret = append(ret,
-			fmt.Sprintf("CGO_CFLAGS=%s", formatArgs(c.CFlags, useShell)),
-		)
+	appendListEnv := func(name string, values, defVals []string) {
+		actual := values
+		if len(values) == 0 {
+			actual = defVals
+		}
+
+		if len(actual) != 0 {
+			ret = append(ret, fmt.Sprintf("%s=%s", name, strings.Join(actual, " ")))
+		}
 	}
 
-	if len(c.LDFlags) != 0 {
-		ret = append(ret,
-			fmt.Sprintf("CGO_LDFLAGS=%s", formatArgs(c.LDFlags, useShell)),
-		)
+	appendEnv := func(name, value, defVal string) {
+		actual := value
+		if len(value) == 0 {
+			actual = defVal
+		}
+
+		if len(actual) != 0 {
+			ret = append(ret, fmt.Sprintf("%s=%s", name, actual))
+		}
 	}
 
-	cc := "gcc"
-	cxx := "g++"
+	var (
+		cppflags []string
+		cflags   []string
+		cxxflags []string
+		fflags   []string
+		ldflags  []string
+
+		cc  = "gcc"
+		cxx = "g++"
+	)
+
+	if hostOS == constant.OS_MACOS {
+		cc = "clang"
+		cxx = "clang++"
+	}
+
 	if doingCrossCompiling {
 		switch hostOS {
 		case constant.OS_DEBIAN,
@@ -202,17 +238,15 @@ func (c *CGOSepc) getEnv(useShell, doingCrossCompiling bool, mKernel, mArch, hos
 		}
 	}
 
-	if len(c.CC) != 0 {
-		ret = append(ret, "CC="+c.CC)
-	} else if doingCrossCompiling {
-		ret = append(ret, "CC="+cc)
-	}
+	// TODO: generate suitable flags
+	appendListEnv("CGO_CPPFLAGS", c.CPPFlags, cppflags)
+	appendListEnv("CGO_CFLAGS", c.CFlags, cflags)
+	appendListEnv("CGO_CXXFLAGS", c.CXXFlags, cxxflags)
+	appendListEnv("CGO_FFLAGS", c.FFlags, fflags)
+	appendListEnv("CGO_LDFLAGS", c.LDFlags, ldflags)
 
-	if len(c.CXX) != 0 {
-		ret = append(ret, "CXX="+c.CC)
-	} else if doingCrossCompiling {
-		ret = append(ret, "CXX="+cxx)
-	}
+	appendEnv("CC", c.CC, cc)
+	appendEnv("CXX", c.CXX, cxx)
 
 	return ret
 }
