@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"io"
 
 	"github.com/fatih/color"
@@ -19,34 +18,35 @@ func (p *prefixWriter) Write(data []byte) (n int, err error) {
 		return p._w.Write(data)
 	}
 
-	lines := bytes.SplitAfter(data, []byte{'\n'})
+	//
+	// 	lines := bytes.SplitAfter(data, []byte{'\n'})
+	//
+	// 	err = p.writePrefix()
+	// 	if err != nil {
+	// 		return 0, err
+	// 	}
+	//
+	// 	var lineN int
+	// 	for _, line := range lines {
+	// 		if len(line) == 0 {
+	// 			continue
+	// 		}
+	//
+	// 		if lineN != 0 {
+	// 			err = p.writePrefix()
+	// 			if err != nil {
+	// 				return
+	// 			}
+	// 		}
+	//
+	// 		lineN, err = p.writeOutput(line)
+	// 		n += lineN
+	// 		if err != nil {
+	// 			return
+	// 		}
+	// 	}
 
-	err = p.writePrefix()
-	if err != nil {
-		return 0, err
-	}
-
-	var lineN int
-	for _, line := range lines {
-		if len(line) == 0 {
-			continue
-		}
-
-		if lineN != 0 {
-			err = p.writePrefix()
-			if err != nil {
-				return
-			}
-		}
-
-		lineN, err = p.writeOutput(line)
-		n += lineN
-		if err != nil {
-			return
-		}
-	}
-
-	return
+	return p.writeOutput(data)
 }
 
 func PrefixWriter(
