@@ -16,7 +16,7 @@ RUN_LINTER := docker run -t --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)
 
 lint.file:
 	${RUN_LINTER} ghcr.io/arhat-dev/editorconfig-checker:2.3 \
-		/editorconfig-checker -config .ecrc
+		editorconfig-checker -config .ecrc
 
 lint.shell:
 	${RUN_LINTER} koalaman/shellcheck-alpine:stable \
@@ -24,7 +24,7 @@ lint.shell:
 
 lint.go:
 	${RUN_LINTER} ghcr.io/arhat-dev/golangci-lint:1.41 \
-		/golangci-lint run --fix
+		golangci-lint run --fix
 
 lint.yaml:
 	${RUN_LINTER} ghcr.io/arhat-dev/yamllint:1.26 \
