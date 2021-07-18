@@ -45,7 +45,7 @@ func (c *TaskBuild) GetExecSpecs(
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
 	env := sliceutils.NewStrings(
-		c.CGO.getEnv(options.UseShell,
+		c.CGO.getEnv(
 			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
 			mKernel, mArch,
 			rc.HostOS(),
@@ -164,7 +164,10 @@ type CGOSepc struct {
 	CXX string `yaml:"cxx"`
 }
 
-func (c *CGOSepc) getEnv(useShell, doingCrossCompiling bool, mKernel, mArch, hostOS, targetLibc string) []string {
+func (c *CGOSepc) getEnv(
+	doingCrossCompiling bool,
+	mKernel, mArch, hostOS, targetLibc string,
+) []string {
 	if !c.Enabled {
 		return []string{"CGO_ENABLED=0"}
 	}
