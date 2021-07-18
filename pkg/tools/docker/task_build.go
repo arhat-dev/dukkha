@@ -50,6 +50,10 @@ func (c *TaskBuild) GetExecSpecs(
 			buildCmd = append(buildCmd, "-f", c.File)
 		}
 
+		for _, bArg := range c.BuildArgs {
+			buildCmd = append(buildCmd, "--build-arg", bArg)
+		}
+
 		buildCmd = append(buildCmd, c.ExtraArgs...)
 
 		if len(c.Context) == 0 {

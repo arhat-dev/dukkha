@@ -41,7 +41,11 @@ type TaskBuild struct {
 	Context    string          `yaml:"context"`
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 	File       string          `yaml:"file"`
-	ExtraArgs  []string        `yaml:"extra_args"`
+
+	// --build-arg
+	BuildArgs []string `yaml:"build_args"`
+
+	ExtraArgs []string `yaml:"extra_args"`
 }
 
 type ImageNameSpec struct {
@@ -79,6 +83,10 @@ func (c *TaskBuild) createExecSpecs(
 	budCmd := sliceutils.NewStrings(options.ToolCmd, "bud", "--iidfile", tmpImageIDFilePath)
 	if len(c.File) != 0 {
 		budCmd = append(budCmd, "-f", c.File)
+	}
+
+	for _, bArg := range c.BuildArgs {
+		budCmd = append(budCmd, "--build-arg", bArg)
 	}
 
 	budCmd = append(budCmd, c.ExtraArgs...)
