@@ -2,10 +2,12 @@ name: CI
 
 # yamllint disable-line rule:truthy
 on:
-  check_run:
-    types:
-    - rerequested
-    - requested_action
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: reason to run this workflow
+        required: false
+        default: test
   pull_request:
     paths-ignore:
     - docs/**
@@ -57,11 +59,6 @@ jobs:
       run: |
         make lint.all
 
-    - uses: sonarsource/sonarqube-scan-action@v1.0.0
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
   unit-tests:
     if: contains(github.head_ref, 'deps/') == false
     needs:
@@ -85,11 +82,10 @@ jobs:
       run: |
         make test.cmd
 
-    - name: Report Test Coverage
-      uses: codecov/codecov-action@v1
-      # with:
-      #   token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-      #   fail_ci_if_error: true # optional (default = false)
+    - uses: sonarsource/sonarqube-scan-action@v1.0.0
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   build-images:
     if: contains(github.head_ref, 'deps/') == false

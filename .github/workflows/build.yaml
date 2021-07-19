@@ -2,10 +2,12 @@ name: Build
 
 # yamllint disable-line rule:truthy
 on:
-  check_run:
-    types:
-    - rerequested
-    - requested_action
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: reason to run this workflow
+        required: false
+        default: test
   pull_request:
     paths-ignore:
     - docs/**
