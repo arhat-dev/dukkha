@@ -11,15 +11,17 @@ import (
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-type CompleteTaskExecSpecs struct {
+type TaskExecRequest struct {
 	Context dukkha.TaskExecContext
 
 	Tool dukkha.Tool
 	Task dukkha.Task
+
+	IgnoreError bool
 }
 
 // nolint:gocyclo
-func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) error {
+func RunTask(req *TaskExecRequest) error {
 	type taskResult struct {
 		matrixSpec string
 		errMsg     string
@@ -43,8 +45,8 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 	// task may need tool specific env, resolve tool env first
 
-	err := tool.DoAfterFieldsResolved(ctx, -1, func() error {
-		ctx.AddEnv(tool.GetEnv()...)
+	err := req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
+		req.Context.AddEnv(req.Tool.GetEnv()...)
 		return nil
 	}, "BaseTool.Env")
 	if err != nil {
@@ -53,42 +55,42 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 	// resolve hooks for whole task
 
-	ctx.SetTask(tool.Key(), task.Key())
+	req.Context.SetTask(req.Tool.Key(), req.Task.Key())
 
 	wg := &sync.WaitGroup{}
 
 	// ensure hook `after` always run
 	defer func() {
 		// TODO: handle hook error
-		hookAfter, err2 := task.GetHookExecSpecs(
-			ctx, dukkha.StageAfter,
+		hookAfter, err2 := req.Task.GetHookExecSpecs(
+			req.Context, dukkha.StageAfter,
 		)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		}
 
-		err2 = runHook(ctx, dukkha.StageAfter, hookAfter)
+		err2 = runHook(req.Context, dukkha.StageAfter, hookAfter)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		}
 	}()
 
 	// run hook `before`
-	hookBefore, err := task.GetHookExecSpecs(
-		ctx, dukkha.StageBefore,
+	hookBefore, err := req.Task.GetHookExecSpecs(
+		req.Context, dukkha.StageBefore,
 	)
 	if err != nil {
 		// cancel task execution
 		return err
 	}
 
-	err = runHook(ctx, dukkha.StageBefore, hookBefore)
+	err = runHook(req.Context, dukkha.StageBefore, hookBefore)
 	if err != nil {
 		// cancel task execution
 		return err
 	}
 
-	matrixSpecs, err := task.GetMatrixSpecs(ctx)
+	matrixSpecs, err := req.Task.GetMatrixSpecs(req.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get execution matrix: %w", err)
 	}
@@ -98,7 +100,7 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 	}
 
 	// TODO: do real global limit
-	workerCount := ctx.ClaimWorkers(len(matrixSpecs))
+	workerCount := req.Context.ClaimWorkers(len(matrixSpecs))
 	waitCh := make(chan struct{}, workerCount)
 	for i := 0; i < workerCount; i++ {
 		waitCh <- struct{}{}
@@ -106,12 +108,12 @@ func RunTask(ctx dukkha.TaskExecContext, tool dukkha.Tool, task dukkha.Task) err
 
 matrixRun:
 	for i, ms := range matrixSpecs {
-		mCtx, options, err2 := createTaskMatrixContext(ctx, i, ms, tool)
+		mCtx, options, err2 := createTaskMatrixContext(req, i, ms)
 
 		if err2 != nil {
 			appendErrorResult(ms, err2)
-			if ctx.FailFast() {
-				ctx.Cancel()
+			if req.Context.FailFast() {
+				req.Context.Cancel()
 				break matrixRun
 			}
 
@@ -145,11 +147,11 @@ matrixRun:
 					}
 				}()
 
-				if err3 != nil && ctx.FailFast() {
-					ctx.Cancel()
+				if err3 != nil && req.Context.FailFast() {
+					req.Context.Cancel()
 				}
 
-				hookAfterMatrix, err4 := task.GetHookExecSpecs(
+				hookAfterMatrix, err4 := req.Task.GetHookExecSpecs(
 					mCtx, dukkha.StageAfterMatrix,
 				)
 				if err4 != nil {
@@ -165,7 +167,7 @@ matrixRun:
 				}
 			}()
 
-			hookBeofreMatrix, err3 := task.GetHookExecSpecs(
+			hookBeofreMatrix, err3 := req.Task.GetHookExecSpecs(
 				mCtx, dukkha.StageBeforeMatrix,
 			)
 			if err3 != nil {
@@ -180,7 +182,7 @@ matrixRun:
 			}
 
 			// produce a snapshot of what to do
-			execSpecs, err3 := task.GetExecSpecs(mCtx, options)
+			execSpecs, err3 := req.Task.GetExecSpecs(mCtx, options)
 			if err3 != nil {
 				appendErrorResult(
 					ms,
@@ -201,13 +203,13 @@ matrixRun:
 
 			if err3 != nil {
 				// cancel other tasks if in fail-fast mode
-				if ctx.FailFast() {
-					ctx.Cancel()
+				if req.Context.FailFast() {
+					req.Context.Cancel()
 				}
 
 				appendErrorResult(ms, err3)
 
-				hookAfterMatrixFailure, err4 := task.GetHookExecSpecs(
+				hookAfterMatrixFailure, err4 := req.Task.GetHookExecSpecs(
 					mCtx, dukkha.StageAfterMatrixFailure,
 				)
 				if err4 != nil {
@@ -228,7 +230,7 @@ matrixRun:
 				return
 			}
 
-			hookAfterMatrixSuccess, err3 := task.GetHookExecSpecs(
+			hookAfterMatrixSuccess, err3 := req.Task.GetHookExecSpecs(
 				mCtx, dukkha.StageAfterMatrixSuccess,
 			)
 			if err3 != nil {
@@ -247,14 +249,14 @@ matrixRun:
 	wg.Wait()
 
 	if len(errCollection) != 0 {
-		hookAfterFailure, err2 := task.GetHookExecSpecs(
-			ctx, dukkha.StageAfterFailure,
+		hookAfterFailure, err2 := req.Task.GetHookExecSpecs(
+			req.Context, dukkha.StageAfterFailure,
 		)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		}
 
-		err2 = runHook(ctx, dukkha.StageAfterFailure, hookAfterFailure)
+		err2 = runHook(req.Context, dukkha.StageAfterFailure, hookAfterFailure)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		}
@@ -262,14 +264,14 @@ matrixRun:
 		return fmt.Errorf("task execution failed: %v", errCollection)
 	}
 
-	hookAfterSuccess, err := task.GetHookExecSpecs(
-		ctx, dukkha.StageAfterSuccess,
+	hookAfterSuccess, err := req.Task.GetHookExecSpecs(
+		req.Context, dukkha.StageAfterSuccess,
 	)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
 	}
 
-	err = runHook(ctx, dukkha.StageAfterSuccess, hookAfterSuccess)
+	err = runHook(req.Context, dukkha.StageAfterSuccess, hookAfterSuccess)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
 	}
@@ -277,13 +279,14 @@ matrixRun:
 	return nil
 }
 
+// createTaskMatrixContext creates a per matrix entry task exec options
+// with context resolved
 func createTaskMatrixContext(
-	ctx dukkha.TaskExecContext,
+	req *TaskExecRequest,
 	i int,
 	ms matrix.Entry,
-	tool dukkha.Tool,
 ) (dukkha.TaskExecContext, *dukkha.TaskExecOptions, error) {
-	mCtx := ctx.DeriveNew()
+	mCtx := req.Context.DeriveNew()
 
 	// set default matrix filter for referenced hook tasks
 	mFilter := make(map[string][]string)
@@ -315,12 +318,12 @@ func createTaskMatrixContext(
 	// now everything prepared for the tool, resolve all of it
 
 	options := &dukkha.TaskExecOptions{}
-	err := tool.DoAfterFieldsResolved(mCtx, -1, func() error {
-		mCtx.AddEnv(tool.GetEnv()...)
+	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, func() error {
+		mCtx.AddEnv(req.Tool.GetEnv()...)
 
-		options.ToolCmd = sliceutils.NewStrings(tool.GetCmd())
-		options.UseShell = tool.UseShell()
-		options.ShellName = tool.ShellName()
+		options.ToolCmd = sliceutils.NewStrings(req.Tool.GetCmd())
+		options.UseShell = req.Tool.UseShell()
+		options.ShellName = req.Tool.ShellName()
 
 		return nil
 	})

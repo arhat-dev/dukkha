@@ -2,15 +2,11 @@ package tools
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-	"sync"
 
 	"arhat.dev/pkg/log"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type TaskHooks struct {
@@ -19,36 +15,52 @@ type TaskHooks struct {
 	// Before runs before the task execution start
 	// if this hook failed, the whole task execution is canceled
 	// and will run `After` hooks
-	Before []Hook `yaml:"before"`
+	//
+	// This hook MUST NOT have any reference to matrix information
+	Before []Action `yaml:"before"`
 
 	// Matrix scope hooks
 
 	// Before a specific matrix execution start
-	BeforeMatrix []Hook `yaml:"before:matrix"`
+	//
+	// This hook May have reference to matrix information
+	BeforeMatrix []Action `yaml:"before:matrix"`
 
 	// AfterMatrixSuccess runs after a successful matrix execution
-	AfterMatrixSuccess []Hook `yaml:"after:matrix:success"`
+	//
+	// This hook May have reference to matrix information
+	AfterMatrixSuccess []Action `yaml:"after:matrix:success"`
 
 	// AfterMatrixFailure runs after a failed matrix execution
-	AfterMatrixFailure []Hook `yaml:"after:matrix:failure"`
+	//
+	// This hook May have reference to matrix information
+	AfterMatrixFailure []Action `yaml:"after:matrix:failure"`
 
 	// AfterMatrix runs after at any condition of the matrix execution
 	// including success, failure
-	AfterMatrix []Hook `yaml:"after:matrix"`
+	//
+	// This hook May have reference to matrix information
+	AfterMatrix []Action `yaml:"after:matrix"`
 
 	// Task scope hooks again
 
 	// AfterSuccess runs after a successful task execution
 	// requires all matrix executions are successful
-	AfterSuccess []Hook `yaml:"after:success"`
+	//
+	// This hook MUST NOT have any reference to matrix information
+	AfterSuccess []Action `yaml:"after:success"`
 
 	// AfterFailure runs after a failed task execution
 	// any failed matrix execution will cause this hook to run
-	AfterFailure []Hook `yaml:"after:failure"`
+	//
+	// This hook MUST NOT have any reference to matrix information
+	AfterFailure []Action `yaml:"after:failure"`
 
 	// After any condition of the task execution
 	// including success, failure, canceled (hook `before` failure)
-	After []Hook `yaml:"after"`
+	//
+	// This hook MUST NOT have any reference to matrix information
+	After []Action `yaml:"after"`
 }
 
 func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
@@ -84,7 +96,7 @@ func (h *TaskHooks) GenSpecs(
 		return nil, fmt.Errorf("failed to resolve hook spec: %w", err)
 	}
 
-	toRun, ok := map[dukkha.TaskExecStage][]Hook{
+	toRun, ok := map[dukkha.TaskExecStage][]Action{
 		dukkha.StageBefore: h.Before,
 
 		dukkha.StageBeforeMatrix:       h.BeforeMatrix,
@@ -107,7 +119,7 @@ func (h *TaskHooks) GenSpecs(
 	var ret []dukkha.RunTaskOrRunCmd
 	for i := range toRun {
 		ctx := hookCtx.DeriveNew()
-		err = toRun[i].DoAfterFieldResolved(ctx, func(h *Hook) error {
+		err = toRun[i].DoAfterFieldResolved(ctx, func(h *Action) error {
 			spec, err2 := h.GenSpecs(ctx, i)
 			if err2 != nil {
 				return err2
@@ -126,119 +138,4 @@ func (h *TaskHooks) GenSpecs(
 	}
 
 	return ret, nil
-}
-
-type Hook struct {
-	field.BaseField
-
-	Name string `yaml:"name"`
-	Task string `yaml:"task"`
-
-	ContinueOnError bool `yaml:"continue_on_error"`
-
-	// raw system cmd, not in shell
-	Cmd []string `yaml:"cmd"`
-
-	Other map[string]string `dukkha:"other"`
-
-	mu sync.Mutex
-}
-
-func (h *Hook) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *Hook) error) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	err := h.ResolveFields(mCtx, -1, "")
-	if err != nil {
-		return fmt.Errorf("failed to resolve fields: %w", err)
-	}
-
-	return do(h)
-}
-
-func (h *Hook) GenSpecs(
-	ctx dukkha.TaskExecContext, index int,
-) (dukkha.RunTaskOrRunCmd, error) {
-	hookID := "#" + strconv.FormatInt(int64(index), 10)
-	if len(h.Name) != 0 {
-		hookID = fmt.Sprintf("%s (%s)", h.Name, hookID)
-	}
-
-	if len(h.Task) != 0 {
-		ref, err := dukkha.ParseTaskReference(h.Task, ctx.CurrentTool().Name)
-		if err != nil {
-			return nil, fmt.Errorf("%q: invalid task reference %q: %w", hookID, h.Task, err)
-		}
-
-		if len(ref.MatrixFilter) != 0 {
-			ctx.SetMatrixFilter(ref.MatrixFilter)
-		}
-
-		tool, ok := ctx.GetTool(ref.ToolKey())
-		if !ok {
-			return nil, fmt.Errorf("%q: referenced tool %q not found", hookID, ref.ToolKey())
-		}
-
-		tsk, ok := tool.GetTask(ref.TaskKey())
-		if !ok {
-			return nil, fmt.Errorf("%q: referenced task %q not found", hookID, ref.TaskKey())
-		}
-
-		return &CompleteTaskExecSpecs{
-			Context: ctx,
-			Tool:    tool,
-			Task:    tsk,
-		}, nil
-	}
-
-	if len(h.Cmd) != 0 {
-		return []dukkha.TaskExecSpec{
-			{
-				Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
-				Command:     sliceutils.NewStrings(h.Cmd),
-				IgnoreError: h.ContinueOnError,
-			},
-		}, nil
-	}
-
-	switch {
-	case len(h.Other) > 1:
-		return nil, fmt.Errorf(
-			"%q: unexpected multiple shell entries in one spec",
-			hookID,
-		)
-	case len(h.Other) == 1:
-		// ok
-	default:
-		// no hook to run
-		return nil, nil
-	}
-
-	var (
-		shell  string
-		script string
-	)
-
-	for k, v := range h.Other {
-		script = v
-
-		switch {
-		case strings.HasPrefix(k, "shell:"):
-			shell = strings.SplitN(k, ":", 2)[1]
-		case k == "shell":
-			shell = ""
-		default:
-			return nil, fmt.Errorf("%q: unknown action: %q", hookID, k)
-		}
-	}
-
-	return []dukkha.TaskExecSpec{
-		{
-			Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
-			Command:     []string{script},
-			UseShell:    true,
-			ShellName:   shell,
-			IgnoreError: h.ContinueOnError,
-		},
-	}, nil
 }

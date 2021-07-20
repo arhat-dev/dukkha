@@ -103,9 +103,10 @@ func doRun(
 			switch t := subSpecs.(type) {
 			case []dukkha.TaskExecSpec:
 				err = doRun(ctx, t, &replace)
-			case *CompleteTaskExecSpecs:
-				err = RunTask(t.Context, t.Tool, t.Task)
+			case *TaskExecRequest:
+				err = RunTask(t)
 			case nil:
+				// nothing to do
 			default:
 				// TODO: log error instead of panic?
 				panic(fmt.Errorf("unexpected sub specs type: %T", t))
