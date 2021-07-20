@@ -27,7 +27,7 @@ type TaskRun struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	Jobs []tools.Hook `yaml:"jobs"`
+	Jobs []tools.Action `yaml:"jobs"`
 }
 
 func (w *TaskRun) GetExecSpecs(
@@ -56,7 +56,7 @@ func (w *TaskRun) next(
 		hasJob = true
 
 		// resolve single job (Hook)
-		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Hook) error {
+		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Action) error {
 			thisAction, err = h.GenSpecs(mCtx, index)
 			return err
 		})

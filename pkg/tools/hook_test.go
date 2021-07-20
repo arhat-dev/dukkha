@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	//go:embed fixtures/001-hook-script-whitespace-trimed-after-rendering.yaml
+	//go:embed _fixtures/001-hook-script-whitespace-trimed-after-rendering.yaml
 	hookScriptWhitespaceTrimedAfterRendering []byte
 
 	// nolint:revive
-	//go:embed fixtures/001-expected.yaml
+	//go:embed _fixtures/001-expected.yaml
 	_expected_001 []byte
 )
 
@@ -45,18 +45,18 @@ func TestHookFixtures(t *testing.T) {
 			ctx.AddRenderer("env", env.NewDefault(nil))
 			ctx.AddEnv(test.env...)
 
-			actual := field.Init(&Hook{}, nil).(*Hook)
+			actual := field.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.input, actual))
 			assert.NoError(t, actual.ResolveFields(ctx, -1, ""))
 
-			expected := field.Init(&Hook{}, nil).(*Hook)
+			expected := field.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.expected, expected))
 
 			t.Log(actual)
 
 			assert.EqualValues(t, expected.Cmd, actual.Cmd)
 			assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
-			assert.EqualValues(t, expected.Other, actual.Other)
+			assert.EqualValues(t, expected.Shell, actual.Shell)
 			assert.EqualValues(t, expected.Task, actual.Task)
 		})
 	}

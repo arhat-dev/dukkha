@@ -203,9 +203,10 @@ type Task interface {
 	// Kind of the task (e.g. build)
 	Kind() TaskKind
 
-	// Name of the task
+	// Name of the task (e.g. foo)
 	Name() TaskName
 
+	// Key of this task
 	Key() TaskKey
 
 	// GetMatrixSpecs for matrix execution
@@ -232,6 +233,8 @@ type Task interface {
 		do func() error,
 		fieldNames ...string,
 	) error
+
+	ContinueOnError() bool
 }
 
 type TaskManager interface {

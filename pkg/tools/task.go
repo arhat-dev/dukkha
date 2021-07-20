@@ -12,9 +12,7 @@ import (
 
 var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
 
-type _baseTaskWithGetExecSpecs struct {
-	BaseTask
-}
+type _baseTaskWithGetExecSpecs struct{ BaseTask }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
@@ -29,6 +27,10 @@ type BaseTask struct {
 	Env      []string    `yaml:"env"`
 	Matrix   matrix.Spec `yaml:"matrix"`
 	Hooks    TaskHooks   `yaml:"hooks"`
+
+	ContinueOnErrorFlag bool `yaml:"continue_on_error"`
+
+	// fields managed by BaseTask
 
 	toolName dukkha.ToolName `yaml:"-"`
 	toolKind dukkha.ToolKind `yaml:"-"`
@@ -115,6 +117,10 @@ func (t *BaseTask) Name() dukkha.TaskName     { return dukkha.TaskName(t.TaskNam
 
 func (t *BaseTask) Key() dukkha.TaskKey {
 	return dukkha.TaskKey{Kind: t.taskKind, Name: dukkha.TaskName(t.TaskName)}
+}
+
+func (t *BaseTask) ContinueOnError() bool {
+	return t.ContinueOnErrorFlag
 }
 
 func (t *BaseTask) GetHookExecSpecs(

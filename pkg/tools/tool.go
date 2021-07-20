@@ -137,7 +137,11 @@ func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
 		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
 	}
 
-	return RunTask(taskCtx, t.impl, tsk)
+	return RunTask(&TaskExecRequest{
+		Context: taskCtx,
+		Tool:    t.impl,
+		Task:    tsk,
+	})
 }
 
 func (t *BaseTool) DoAfterFieldsResolved(
