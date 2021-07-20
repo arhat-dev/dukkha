@@ -194,7 +194,7 @@ func (h *Hook) GenSpecs(
 	if len(h.Cmd) != 0 {
 		return []dukkha.TaskExecSpec{
 			{
-				Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
+				Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
 				Command:     sliceutils.NewStrings(h.Cmd),
 				IgnoreError: h.ContinueOnError,
 			},
@@ -234,7 +234,7 @@ func (h *Hook) GenSpecs(
 
 	return []dukkha.TaskExecSpec{
 		{
-			Env:         sliceutils.FormatStringMap(ctx.Env(), "="),
+			Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
 			Command:     []string{script},
 			UseShell:    true,
 			ShellName:   shell,
