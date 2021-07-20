@@ -1,43 +1,20 @@
 package matrix
 
 import (
-	"sort"
 	"strings"
+
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type Entry map[string]string
 
 func (m Entry) String() string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var pairs []string
-	for _, k := range keys {
-		pairs = append(pairs, k+": "+m[k])
-	}
-
-	return strings.Join(pairs, ", ")
+	return strings.Join(sliceutils.FormatStringMap(m, ": ", false), ", ")
 }
 
 // BriefString return all values concatenated with slash
 func (m Entry) BriefString() string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var parts []string
-	for _, k := range keys {
-		parts = append(parts, m[k])
-	}
-
-	return strings.Join(parts, "/")
+	return strings.Join(sliceutils.FormatStringMap(m, "", true), "/")
 }
 
 func (m Entry) Match(a map[string]string) bool {
