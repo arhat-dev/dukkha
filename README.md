@@ -4,7 +4,7 @@
 [![Build](https://github.com/arhat-dev/dukkha/workflows/Build/badge.svg)](https://github.com/arhat-dev/dukkha/actions?query=workflow%3ABuild)
 [![PkgGoDev](https://pkg.go.dev/badge/arhat.dev/dukkha)](https://pkg.go.dev/arhat.dev/dukkha)
 [![GoReportCard](https://goreportcard.com/badge/arhat.dev/dukkha)](https://goreportcard.com/report/arhat.dev/dukkha)
-[![codecov](https://codecov.io/gh/arhat-dev/dukkha/branch/master/graph/badge.svg)](https://codecov.io/gh/arhat-dev/dukkha)
+![Coverage](https://badge.arhat.dev/sonar/coverage/arhat-dev_dukkha?branch=master&token=1f8a3998312d6feee60ab16f1ef58ca8)
 
 Make YAML files Makefiles
 
