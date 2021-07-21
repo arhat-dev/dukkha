@@ -179,7 +179,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 }
 
 var (
-	//go:embed fixtures/001-filter-amd64-got-unwanted-aix.yaml
+	//go:embed _fixtures/001-filter-amd64-got-unwanted-aix.yaml
 	fitlerAMD64GotUnwantedAIX []byte
 )
 
