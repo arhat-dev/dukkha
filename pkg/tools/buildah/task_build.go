@@ -3,6 +3,7 @@ package buildah
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -185,25 +186,19 @@ func (c *TaskBuild) createExecSpecs(
 
 	// add to manifest, ensure same os/arch/variant only one exist
 	mArch := rc.MatrixArch()
-	arch := constant.GetOciArch(mArch)
-	os := constant.GetOciOS(rc.MatrixKernel())
 	variant := constant.GetOciArchVariant(mArch)
 
-	manifestOsArchVariantQueryForDigest := fmt.Sprintf(
-		`.manifests[] | select( .platform.os == "%s")`+
-			` | select (.platform.architecture == "%s")`,
-		os, arch,
-	)
 	osArchVariantArgs := []string{
-		"--os", os, "--arch", arch,
+		"--os", constant.GetOciOS(rc.MatrixKernel()),
+		"--arch", constant.GetOciArch(mArch),
 	}
 	if len(variant) != 0 {
-		manifestOsArchVariantQueryForDigest += fmt.Sprintf(
-			` | select (.platform.vairant == "%s")`, variant,
-		)
 		osArchVariantArgs = append(osArchVariantArgs, "--variant", variant)
 	}
-	manifestOsArchVariantQueryForDigest += ` | .digest`
+
+	manifestOsArchVariantQueryForDigest := createManifestOsArchVariantQueryForDigest(
+		rc.MatrixKernel(), mArch,
+	)
 
 	for _, spec := range targets {
 		if len(spec.Manifest) == 0 {
@@ -272,7 +267,7 @@ func (c *TaskBuild) createExecSpecs(
 				}
 
 				// manifest already created, query to get all matching digests
-				digestLines, err := textquery.JQBytes(manifestOsArchVariantQueryForDigest, manifestSpec)
+				digestResult, err := textquery.JQBytes(manifestOsArchVariantQueryForDigest, manifestSpec)
 				if err != nil {
 					// no manifests entries, add this image directly
 					return []dukkha.TaskExecSpec{{
@@ -283,10 +278,15 @@ func (c *TaskBuild) createExecSpecs(
 					}}, nil
 				}
 
+				digests, err := parseManifestOsArchVariantQueryResult(digestResult)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse digest result: %w", err)
+				}
+
 				var subSteps []dukkha.TaskExecSpec
 
 				// remove existing entries with same os/arch/variant
-				for _, digest := range strings.Split(digestLines, "\n") {
+				for _, digest := range digests {
 					digest = strings.TrimSpace(digest)
 					if len(digest) == 0 {
 						continue
@@ -316,6 +316,53 @@ func (c *TaskBuild) createExecSpecs(
 	}
 
 	return steps, nil
+}
+
+func parseManifestOsArchVariantQueryResult(result string) ([]string, error) {
+	var data interface{}
+
+	err := json.Unmarshal([]byte(result), &data)
+	if err != nil {
+		// plain text
+		return []string{result}, nil
+	}
+
+	switch t := data.(type) {
+	case []interface{}:
+		var ret []string
+		for _, v := range t {
+			if r, ok := v.(string); ok {
+				ret = append(ret, r)
+			} else {
+				return nil, fmt.Errorf("unexpected non string digest %T", v)
+			}
+		}
+
+		return ret, nil
+	default:
+		return nil, fmt.Errorf("unexpected result type %T, want []interface{}", t)
+	}
+}
+
+func createManifestOsArchVariantQueryForDigest(mKernel, mArch string) string {
+	os := constant.GetOciOS(mKernel)
+	arch := constant.GetOciArch(mArch)
+	variant := constant.GetOciArchVariant(mArch)
+
+	manifestOsArchVariantQueryForDigest := fmt.Sprintf(
+		`.manifests[] | select((.platform.os == "%s")`+
+			` and (.platform.architecture == "%s")`,
+		os,
+		arch,
+	)
+
+	if len(variant) != 0 {
+		manifestOsArchVariantQueryForDigest += fmt.Sprintf(
+			` and (.platform.variant == "%s")`, variant,
+		)
+	}
+
+	return manifestOsArchVariantQueryForDigest + `) | .digest`
 }
 
 func getLocalImageName(imageName string) string {
