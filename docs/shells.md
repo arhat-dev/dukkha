@@ -3,8 +3,8 @@
 ```yaml
 # shell command to provision a shell to execute your scripts
 shells:
-# fist shell will become the default shell, you can reference it using `shell`,
-# but other shells with `shell:<shell_name>`
+# reference your shells using `shell:<shell_name>` as renderer
+# or hook action or job action (in workflow run)
 - name: bash
   # environment variables used when provisioning a shell
   env:

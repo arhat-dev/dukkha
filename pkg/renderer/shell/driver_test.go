@@ -7,9 +7,7 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	d := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
-		return
-	})
+	d := NewDefault()
 
 	assert.NotNil(t, d)
 }

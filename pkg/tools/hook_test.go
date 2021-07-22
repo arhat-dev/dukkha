@@ -42,7 +42,7 @@ func TestHookFixtures(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.AddRenderer("env", env.NewDefault(nil))
+			ctx.AddRenderer("env", env.NewDefault())
 			ctx.AddEnv(test.env...)
 
 			actual := field.Init(&Action{}, nil).(*Action)
@@ -56,7 +56,8 @@ func TestHookFixtures(t *testing.T) {
 
 			assert.EqualValues(t, expected.Cmd, actual.Cmd)
 			assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
-			assert.EqualValues(t, expected.Shell, actual.Shell)
+			assert.EqualValues(t, expected.EmbeddedShell, actual.EmbeddedShell)
+			assert.EqualValues(t, expected.OtherShell, actual.OtherShell)
 			assert.EqualValues(t, expected.Task, actual.Task)
 		})
 	}

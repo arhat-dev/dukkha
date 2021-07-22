@@ -119,23 +119,17 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 	logger := log.Log.WithName("config")
 
 	logger.V("creating essential renderers")
-	appCtx.AddRenderer(
-		shell.DefaultName,
-		shell.NewDefault(appCtx.GetBootstrapExecSpec),
-	)
-	appCtx.AddRenderer(
-		env.DefaultName,
-		env.NewDefault(appCtx.GetBootstrapExecSpec),
-	)
+	appCtx.AddRenderer(shell.DefaultName, shell.NewDefault())
+	appCtx.AddRenderer(env.DefaultName, env.NewDefault())
 	appCtx.AddRenderer(template.DefaultName, template.NewDefault())
 	appCtx.AddRenderer(file.DefaultName, file.NewDefault())
 
 	logger.D("resolving top level config")
 	err := c.ResolveFields(appCtx, 1, "")
 	if err != nil {
-		return fmt.Errorf("failed to resolve config: %w", err)
+		return fmt.Errorf("failed to resolve top-level config: %w", err)
 	}
-	logger.V("resolved top level config", log.Any("result", c))
+	logger.V("resolved top-level config", log.Any("result", c))
 
 	logger.D("resolving shells", log.Int("count", len(c.Shells)))
 	for i, v := range c.Shells {
@@ -155,11 +149,6 @@ func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) err
 		)
 		if err != nil {
 			return fmt.Errorf("failed to initialize shell %q", v.Name())
-		}
-
-		if i == 0 {
-			logger.V("adding default shell")
-			appCtx.AddShell("", c.Shells[i])
 		}
 
 		logger.V("adding shell")

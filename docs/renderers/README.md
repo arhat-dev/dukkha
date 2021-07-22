@@ -67,7 +67,7 @@ Without Rendering Suffix, your yaml file is static, values are parsed as is, for
 
 While with Rendering Suffix, values are evaluted in application with runtime context, it's highly dynamic but also get type checked.
 
-A simple example using default shell rendering suffix (assume a posix `sh`):
+A simple example using embedded shell rendering suffix (assume a posix `sh`):
 
 ```yaml
 foo@shell: printf "bar"

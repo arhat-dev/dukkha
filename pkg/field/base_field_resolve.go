@@ -215,8 +215,8 @@ func (f *BaseField) handleUnResolvedField(
 		err = yaml.Unmarshal(resolvedValue, &tmp)
 		if err != nil {
 			return fmt.Errorf(
-				"field: failed to unmarshal resolved value to interface: %w",
-				err,
+				"field: failed to unmarshal resolved value %q to interface: %w",
+				resolvedValue, err,
 			)
 		}
 

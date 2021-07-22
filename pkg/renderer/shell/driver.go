@@ -3,6 +3,10 @@ package shell
 import (
 	"bytes"
 	"fmt"
+	"os"
+
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -12,16 +16,11 @@ import (
 const DefaultName = "shell"
 
 func init() {
-	dukkha.RegisterRenderer(
-		DefaultName,
-		func() dukkha.Renderer {
-			return NewDefault(nil)
-		},
-	)
+	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault(getExecSpec dukkha.ExecSpecGetFunc) dukkha.Renderer {
-	return &driver{getExecSpec: getExecSpec}
+func NewDefault() dukkha.Renderer {
+	return &driver{}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
@@ -35,17 +34,15 @@ type driver struct {
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	allShells := ctx.AllShells()
 	for shellName := range allShells {
-		rendererName := DefaultName
-		if len(shellName) != 0 {
-			rendererName += ":" + shellName
-		}
-
 		ctx.AddRenderer(
-			rendererName, &driver{
+			DefaultName+":"+shellName,
+			&driver{
 				getExecSpec: allShells[shellName].GetExecSpec,
 			},
 		)
 	}
+
+	ctx.AddRenderer(DefaultName, NewDefault())
 
 	return nil
 }
@@ -71,8 +68,33 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	}
 
 	buf := &bytes.Buffer{}
+
+	var (
+		parser *syntax.Parser
+		runner *interp.Runner
+		err    error
+	)
+	if d.getExecSpec == nil {
+		environ, _ := renderer.CreateEnvForEmbeddedShell(rc)
+		runner, err = renderer.CreateEmbeddedShellRunner(
+			rc.WorkingDir(), environ, nil, buf, os.Stderr,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("renderer.%s: failed to create embedded shell: %w", DefaultName, err)
+		}
+
+		parser = syntax.NewParser(
+			syntax.Variant(syntax.LangBash),
+		)
+	}
+
 	for _, script := range scripts {
-		err := renderer.RunShellScript(rc, script, false, buf, d.getExecSpec)
+		if d.getExecSpec == nil {
+			err = renderer.RunShellScriptInEmbeddedShell(rc, runner, parser, script)
+		} else {
+			err = renderer.RunShellScript(rc, script, false, buf, d.getExecSpec)
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
 		}

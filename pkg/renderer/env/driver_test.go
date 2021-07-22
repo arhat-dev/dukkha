@@ -10,18 +10,17 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	ret := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
-		return
-	})
+	ret := NewDefault()
 
 	assert.NotNil(t, ret)
 }
 
 func TestDriver_Render(t *testing.T) {
 	cmdPrintHello := []string{"sh", "-c", "printf hello"}
-	d := NewDefault(func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+	d := NewDefault().(*driver)
+	d.getExecSpec = func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
 		return nil, cmdPrintHello, nil
-	})
+	}
 
 	rv := dukkha_test.NewTestContext(context.TODO())
 	rv.AddEnv("FOO=bar")
