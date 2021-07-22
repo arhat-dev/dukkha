@@ -26,12 +26,16 @@
     #   {{- get -}}
     #   -g++
 
-    cflags:
-    - -I/usr/include/glib-2.0
-    - -I/usr/include
+    cflags@shell: |-
+      cat <<EOF >/dev/null
+      - -I/usr/include/glib-2.0
+      - -I/usr/include
+      EOF
 
-    ldflags: []
-
+    ldflags@shell: |-
+      cat <<EOF >/dev/null
+      - -s -w
+      EOF
   matrix:
     kernel:
     - windows
