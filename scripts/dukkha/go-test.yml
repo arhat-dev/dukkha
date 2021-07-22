@@ -12,7 +12,7 @@
         golang:local:build(
           dukkha,
           {
-            kernel: [plan9],
+            kernel: [darwin],
             arch: [arm64],
           },
         )
