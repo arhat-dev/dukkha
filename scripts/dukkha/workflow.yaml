@@ -8,7 +8,7 @@ workflow:run:
 - name: test
   env@env:
   - FROM_TOOL=${TOOL_SPECIFIC_ENV}
-  - FOO=task_specific_env
+  - FOO=task_specific_env_FOO
   jobs@template:
   - name: test dukkha working
     shell:python: print("test")
@@ -18,11 +18,11 @@ workflow:run:
 
   - name: test raw cmd
     # yamllint disable-line rule:quoted-strings
-    cmd: [echo, "raw echo ${FOO}"]
+    cmd: [echo, "raw echo ${FOO} not expanded"]
 
   - name: test raw cmd with rendering suffix
     # yamllint disable-line rule:quoted-strings
-    cmd@env: [echo, "raw echo ${FOO} expanded"]
+    cmd@env: [echo, "raw echo ${FOO} expended"]
 
   - name: test script from remote endpoint
     shell@http: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh

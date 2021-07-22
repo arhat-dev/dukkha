@@ -66,7 +66,7 @@ func TestDriver_Render(t *testing.T) {
 		},
 		{
 			name:     "Valid Shell Evaluation With Round Brackets",
-			rawData:  "foo $(s())))",
+			rawData:  `foo $(s)))`,
 			expected: "foo hello))",
 		},
 		{
@@ -80,10 +80,9 @@ func TestDriver_Render(t *testing.T) {
 			expected: "foo hello hello",
 		},
 		{
-			name: "Valid Non-Terminated Shell Evaluation",
-			// envhelper.Expand handling func will just ignore it
-			rawData:  "some $(non-terminated evaluation ignored",
-			expected: "some $(non-terminated evaluation ignored",
+			name:    "Invalid Non-Terminated Shell Evaluation",
+			rawData: "some $(non-terminated evaluation ignored",
+			errStr:  "without matching ( with )",
 		},
 		{
 			name:    "Invalid Env Not Found",
@@ -93,7 +92,7 @@ func TestDriver_Render(t *testing.T) {
 		{
 			name:    "Invalid Inner Non-Terminated Shell Evaluation",
 			rawData: "some $(inner(not-terminated)",
-			errStr:  "non-terminated",
+			errStr:  "must be followed by )",
 		},
 		{
 			name:     "Valid Keep Reference Untouched",
@@ -124,6 +123,7 @@ func TestDriver_Render(t *testing.T) {
 				return
 			}
 
+			assert.NoError(t, err)
 			assert.Equal(t, test.expected, string(ret))
 		})
 
