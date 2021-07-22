@@ -43,7 +43,6 @@
     - freebsd
     - netbsd
     - openbsd
-    - plan9
     arch:
     - x86
     - arm64
@@ -54,7 +53,6 @@
     exclude:
     - kernel:
       - windows
-      - plan9
       arch: [arm64]
     include:
     - kernel:
