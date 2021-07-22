@@ -18,7 +18,7 @@ All tasks have a `arhat.dev/dukkha/pkg/tools.BaseTask` embedded
   # task hooks
   hook:
     before:
-    # use the default shell to run commands
+    # use the embedded shell to run commands
     - shell: |-
         echo "foo"
 

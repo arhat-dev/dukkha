@@ -26,15 +26,12 @@
     #   {{- get -}}
     #   -g++
 
-    cflags@shell: |-
-      cat <<EOF
-      - -I/usr/include/glib-2.0
-      - -I/usr/include
-      EOF
+    cflags:
+    - -I/usr/include/glib-2.0
+    - -I/usr/include
 
-    ldflags@shell: |-
-      cat <<EOF
-      EOF
+    ldflags: []
+
   matrix:
     kernel:
     - windows
@@ -97,11 +94,11 @@
   - -X "arhat.dev/dukkha/pkg/version.goCompilerPlatform=$(go version | cut -d\  -f4)"
   outputs@shell: |-
     suffix=""
-    if [ "${MATRIX_KERNEL}" = "windows" ]; then
+    if [[ "${MATRIX_KERNEL}" == "windows" ]]; then
       suffix="${suffix}.exe"
     fi
 
-    if [ "${MATRIX_KERNEL}" = "${HOST_KERNEL}" ] && [ "${MATRIX_ARCH}" = "${HOST_ARCH}" ]; then
+    if [[ "${MATRIX_KERNEL}" == "${HOST_KERNEL}" ]] && [[ "${MATRIX_ARCH}" == "${HOST_ARCH}" ]]; then
       echo "- build/dukkha${suffix}"
     fi
 

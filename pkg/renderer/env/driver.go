@@ -6,12 +6,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 
-	"go.uber.org/multierr"
 	"mvdan.cc/sh/v3/expand"
-	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -25,16 +22,11 @@ const (
 )
 
 func init() {
-	dukkha.RegisterRenderer(
-		DefaultName,
-		func() dukkha.Renderer {
-			return NewDefault(nil)
-		},
-	)
+	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault(getExecSpec dukkha.ExecSpecGetFunc) dukkha.Renderer {
-	return &driver{getExecSpec: getExecSpec}
+func NewDefault() dukkha.Renderer {
+	return &driver{}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
@@ -48,23 +40,15 @@ type driver struct {
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	allShells := ctx.AllShells()
 	for shellName := range allShells {
-		rendererName := DefaultName
-		if len(shellName) != 0 {
-			rendererName += ":" + shellName
-			ctx.AddRenderer(
-				rendererName, &driver{
-					getExecSpec: allShells[shellName].GetExecSpec,
-				},
-			)
-			continue
-		}
-
 		ctx.AddRenderer(
-			rendererName, &driver{
-				getExecSpec: nil,
+			DefaultName+":"+shellName,
+			&driver{
+				getExecSpec: allShells[shellName].GetExecSpec,
 			},
 		)
 	}
+
+	ctx.AddRenderer(DefaultName, NewDefault())
 
 	return nil
 }
@@ -94,40 +78,11 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		return nil, fmt.Errorf("renderer.%s: invalid expansion text: %w", DefaultName, err)
 	}
 
-	var errEnvMissing error
-	environ := expand.FuncEnviron(func(name string) string {
-		v, ok := rc.Env()[name]
-		if ok {
-			return v
-		}
-
-		switch name {
-		case "IFS":
-			return " \t\n"
-		case "OPTIND":
-			return "1"
-		case "PWD":
-			return rc.WorkingDir()
-		case "UID":
-			// os.Getenv("UID") usually retruns empty value
-			// so we have to call os.Getuid
-			return strconv.FormatInt(int64(os.Getuid()), 10)
-		// case "GID":
-		default:
-			errEnvMissing = multierr.Append(errEnvMissing,
-				fmt.Errorf("env %q not found", name),
-			)
-		}
-
-		return ""
-	})
+	environ, errEnvMissing := renderer.CreateEnvForEmbeddedShell(rc)
 
 	embeddedShellOutput := &bytes.Buffer{}
-	runner, err := interp.New(
-		interp.Env(environ),
-		interp.Dir(rc.WorkingDir()),
-		interp.StdIO(nil, embeddedShellOutput, ioutil.Discard),
-		interp.ExecHandler(interp.DefaultExecHandler(0)),
+	runner, err := renderer.CreateEmbeddedShellRunner(
+		rc.WorkingDir(), environ, nil, embeddedShellOutput, os.Stderr,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: failed to create runner for env: %w", DefaultName, err)
@@ -142,34 +97,22 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		Env: environ,
 		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
 			buf := &bytes.Buffer{}
-			err := printer.Print(buf, cs)
-			if err != nil {
-				return err
+			err2 := printer.Print(buf, cs)
+			if err2 != nil {
+				return fmt.Errorf("failed to get evaluation commands: %w", err2)
 			}
 
 			script := string(buf.Bytes()[2 : buf.Len()-1])
 
 			if d.getExecSpec == nil {
 				embeddedShellOutput.Reset()
-				f, err := parser.Parse(strings.NewReader(script), "")
-				if err != nil {
-					return fmt.Errorf(
-						"failed to parse shell evaluation \n\n%s\n\nusing embedded shell: %w",
-						buf.String(),
-						err,
-					)
+				err2 = renderer.RunShellScriptInEmbeddedShell(rc, runner, parser, script)
+				if err2 != nil {
+					return err2
 				}
 
-				err = runner.Run(rc, f)
-				if err != nil {
-					return fmt.Errorf(
-						"failed to evaluate command \n\n%s\n\nusing embedded shell: %w",
-						script, err,
-					)
-				}
-
-				_, err = embeddedShellOutput.WriteTo(w)
-				if err != nil {
+				_, err2 = embeddedShellOutput.WriteTo(w)
+				if err2 != nil {
 					return fmt.Errorf(
 						"failed to write embedded shell output to result value: %w", err,
 					)
@@ -191,8 +134,8 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		word,
 	)
 
-	if errEnvMissing != nil {
-		return nil, fmt.Errorf("renderer.%s: some env not resolved: %w", DefaultName, errEnvMissing)
+	if *errEnvMissing != nil {
+		return nil, fmt.Errorf("renderer.%s: some env not resolved: %w", DefaultName, *errEnvMissing)
 	}
 
 	if err != nil {
