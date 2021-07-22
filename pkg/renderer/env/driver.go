@@ -3,16 +3,20 @@ package env
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
-	"unicode"
 
-	"arhat.dev/pkg/envhelper"
 	"go.uber.org/multierr"
+	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 // nolint:revive
@@ -47,11 +51,17 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 		rendererName := DefaultName
 		if len(shellName) != 0 {
 			rendererName += ":" + shellName
+			ctx.AddRenderer(
+				rendererName, &driver{
+					getExecSpec: allShells[shellName].GetExecSpec,
+				},
+			)
+			continue
 		}
 
 		ctx.AddRenderer(
 			rendererName, &driver{
-				getExecSpec: allShells[shellName].GetExecSpec,
+				getExecSpec: nil,
 			},
 		)
 	}
@@ -75,106 +85,119 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		toExpand = string(dataBytes)
 	}
 
-	var err error
+	parser := syntax.NewParser(
+		syntax.Variant(syntax.LangBash),
+	)
 
-	result := &bytes.Buffer{}
-	endAt := 0
-	_ = envhelper.Expand(toExpand,
-		createEnvExpandFunc(
-			toExpand, result,
-			func(at int) { endAt = at },
-			func(name, origin string, at int) string {
-				endAt = at
-				v, ok := rc.Env()[name]
-				if ok {
-					return v
-				}
+	word, err := parser.Document(strings.NewReader(toExpand))
+	if err != nil {
+		return nil, fmt.Errorf("renderer.%s: invalid expansion text: %w", DefaultName, err)
+	}
 
-				// env not found
+	var errEnvMissing error
+	environ := expand.FuncEnviron(func(name string) string {
+		v, ok := rc.Env()[name]
+		if ok {
+			return v
+		}
 
-				err = multierr.Append(err,
-					fmt.Errorf("env %q not found", origin),
-				)
+		switch name {
+		case "IFS":
+			return " \t\n"
+		case "OPTIND":
+			return "1"
+		case "PWD":
+			return rc.WorkingDir()
+		case "UID":
+			// os.Getenv("UID") usually retruns empty value
+			// so we have to call os.Getuid
+			return strconv.FormatInt(int64(os.Getuid()), 10)
+		// case "GID":
+		default:
+			errEnvMissing = multierr.Append(errEnvMissing,
+				fmt.Errorf("env %q not found", name),
+			)
+		}
 
-				return origin
-			},
-			func(script string, err2 error, at int) string {
-				endAt = at
-				if err2 != nil {
-					err = multierr.Append(err, err2)
-					return ""
-				}
+		return ""
+	})
 
-				buf := &bytes.Buffer{}
-				err = multierr.Append(err,
-					renderer.RunShellScript(
-						rc, script, false, buf, d.getExecSpec,
-					),
-				)
-
-				return strings.TrimRightFunc(buf.String(), unicode.IsSpace)
-			},
-		),
+	embeddedShellOutput := &bytes.Buffer{}
+	runner, err := interp.New(
+		interp.Env(environ),
+		interp.Dir(rc.WorkingDir()),
+		interp.StdIO(nil, embeddedShellOutput, ioutil.Discard),
+		interp.ExecHandler(interp.DefaultExecHandler(0)),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return nil, fmt.Errorf("renderer.%s: failed to create runner for env: %w", DefaultName, err)
 	}
 
-	result.WriteString(toExpand[endAt:])
+	printer := syntax.NewPrinter(
+		syntax.FunctionNextLine(false),
+		syntax.Indent(2),
+	)
 
-	return result.Bytes(), nil
-}
-
-func createEnvExpandFunc(
-	toExpand string,
-	result *bytes.Buffer,
-	handleUpdate func(at int),
-	handleEnv func(name, origin string, at int) string,
-	handleExec func(script string, err error, at int) string,
-) func(varName, origin string) string {
-	lastAt := 0
-	return func(varName, origin string) string {
-		thisIdx := strings.Index(toExpand[lastAt:], origin)
-		if thisIdx < 0 {
-			// shell evaluation overrides the default behavior
-			// of name matching
-			return origin
-		}
-
-		currentAt := lastAt + thisIdx
-		if currentAt > 0 && toExpand[currentAt-1] == '\\' {
-			// do not expand escaped env `\${SOME_ENV}`
-			// omit `\`
-			result.WriteString(toExpand[lastAt : currentAt-1])
-			result.WriteString(origin)
-			lastAt = currentAt + len(origin)
-
-			handleUpdate(lastAt)
-
-			return origin
-		}
-
-		result.WriteString(toExpand[lastAt:currentAt])
-
-		lastAt = currentAt
-
-		if strings.HasPrefix(origin, "$(") {
-			shellEval, err := utils.ParseBrackets(toExpand[lastAt+2:])
+	result, err := expand.Document(&expand.Config{
+		Env: environ,
+		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
+			buf := &bytes.Buffer{}
+			err := printer.Print(buf, cs)
 			if err != nil {
-				lastAt += len(origin)
-			} else {
-				// 3 -> '$', '(' , ')'
-				lastAt += len(shellEval) + 3
+				return err
 			}
 
-			result.WriteString(handleExec(shellEval, err, lastAt))
-			return origin
-		}
+			script := string(buf.Bytes()[2 : buf.Len()-1])
 
-		// no special handling
-		lastAt += len(origin)
+			if d.getExecSpec == nil {
+				embeddedShellOutput.Reset()
+				f, err := parser.Parse(strings.NewReader(script), "")
+				if err != nil {
+					return fmt.Errorf(
+						"failed to parse shell evaluation \n\n%s\n\nusing embedded shell: %w",
+						buf.String(),
+						err,
+					)
+				}
 
-		result.WriteString(handleEnv(varName, origin, lastAt))
-		return origin
+				err = runner.Run(rc, f)
+				if err != nil {
+					return fmt.Errorf(
+						"failed to evaluate command \n\n%s\n\nusing embedded shell: %w",
+						script, err,
+					)
+				}
+
+				_, err = embeddedShellOutput.WriteTo(w)
+				if err != nil {
+					return fmt.Errorf(
+						"failed to write embedded shell output to result value: %w", err,
+					)
+				}
+
+				return nil
+			}
+
+			return renderer.RunShellScript(
+				rc, script, false, w, d.getExecSpec,
+			)
+		},
+		ProcSubst: nil,
+		ReadDir:   ioutil.ReadDir,
+		GlobStar:  true,
+		NullGlob:  true,
+		NoUnset:   false,
+	},
+		word,
+	)
+
+	if errEnvMissing != nil {
+		return nil, fmt.Errorf("renderer.%s: some env not resolved: %w", DefaultName, errEnvMissing)
 	}
+
+	if err != nil {
+		return nil, fmt.Errorf("renderer.%s: env expansion failed: %w", DefaultName, err)
+	}
+
+	return []byte(result), nil
 }

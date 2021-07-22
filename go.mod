@@ -17,6 +17,7 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	mvdan.cc/sh/v3 v3.3.0
 )
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
