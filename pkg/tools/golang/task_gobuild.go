@@ -132,11 +132,11 @@ func (c *TaskBuild) getGOMIPS(mArch string) string {
 		return ""
 	}
 
-	if strings.HasSuffix(mArch, "hf") {
-		return "hardfloat"
+	if strings.HasSuffix(mArch, "sf") {
+		return "softfloat"
 	}
 
-	return "softfloat"
+	return "hardfloat"
 }
 
 type CGOSepc struct {

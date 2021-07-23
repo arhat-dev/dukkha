@@ -14,13 +14,13 @@ func GetDebianArch(mArch string) string {
 		ARCH_PPC64_LE: "ppc64el",
 
 		ARCH_MIPS:         "mips",
-		ARCH_MIPS_HF:      "mips",
+		ARCH_MIPS_SF:      "mips",
 		ARCH_MIPS_LE:      "mipsel",
-		ARCH_MIPS_LE_HF:   "mipsel",
+		ARCH_MIPS_LE_SF:   "mipsel",
 		ARCH_MIPS64:       "mips64",
-		ARCH_MIPS64_HF:    "mips64",
+		ARCH_MIPS64_SF:    "mips64",
 		ARCH_MIPS64_LE:    "mips64el",
-		ARCH_MIPS64_LE_HF: "mips64el",
+		ARCH_MIPS64_LE_SF: "mips64el",
 
 		ARCH_RISCV_64: "riscv64",
 		ARCH_S390X:    "s390x",
@@ -45,13 +45,13 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) string {
 			ARCH_ARM64:  "aarch64-linux-musl",
 
 			ARCH_MIPS:         "mips-linux-musl",
-			ARCH_MIPS_HF:      "mips-linux-musl",
+			ARCH_MIPS_SF:      "mips-linux-musl",
 			ARCH_MIPS_LE:      "mipsel-linux-musl",
-			ARCH_MIPS_LE_HF:   "mipsel-linux-musl",
+			ARCH_MIPS_LE_SF:   "mipsel-linux-musl",
 			ARCH_MIPS64:       "mips64-linux-musl",
-			ARCH_MIPS64_HF:    "mips64-linux-musl",
+			ARCH_MIPS64_SF:    "mips64-linux-musl",
 			ARCH_MIPS64_LE:    "mips64el-linux-musl",
-			ARCH_MIPS64_LE_HF: "mips64el-linux-musl",
+			ARCH_MIPS64_LE_SF: "mips64el-linux-musl",
 
 			ARCH_S390X: "s390x-linux-musl",
 
@@ -88,13 +88,13 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) string {
 		ARCH_PPC64_LE: "powerpc64le-linux-gnu",
 
 		ARCH_MIPS:         "mips-linux-gnu",
-		ARCH_MIPS_HF:      "mips-linux-gnu",
+		ARCH_MIPS_SF:      "mips-linux-gnu",
 		ARCH_MIPS_LE:      "mipsel-linux-gnu",
-		ARCH_MIPS_LE_HF:   "mipsel-linux-gnu",
+		ARCH_MIPS_LE_SF:   "mipsel-linux-gnu",
 		ARCH_MIPS64:       "mips64-linux-gnuabi64",
-		ARCH_MIPS64_HF:    "mips64-linux-gnuabi64",
+		ARCH_MIPS64_SF:    "mips64-linux-gnuabi64",
 		ARCH_MIPS64_LE:    "mips64el-linux-gnuabi64",
-		ARCH_MIPS64_LE_HF: "mips64el-linux-gnuabi64",
+		ARCH_MIPS64_LE_SF: "mips64el-linux-gnuabi64",
 
 		ARCH_RISCV_64: "riscv64-linux-gnu",
 		ARCH_S390X:    "s390x-linux-gnu",

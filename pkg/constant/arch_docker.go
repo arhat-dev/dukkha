@@ -25,7 +25,7 @@ func GetDockerHubArch(mArch, mKernel string) string {
 		ARCH_ARM64: "arm64v8",
 
 		ARCH_MIPS64_LE:    "mips64le",
-		ARCH_MIPS64_LE_HF: "mips64le",
+		ARCH_MIPS64_LE_SF: "mips64le",
 
 		ARCH_PPC64_LE: "ppc64le",
 

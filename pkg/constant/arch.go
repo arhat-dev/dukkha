@@ -14,16 +14,16 @@ const (
 	ARCH_ARM_V7 = "armv7"
 
 	ARCH_MIPS    = "mips"
-	ARCH_MIPS_HF = "mipshf"
+	ARCH_MIPS_SF = "mipssf"
 
 	ARCH_MIPS_LE    = "mipsle"
-	ARCH_MIPS_LE_HF = "mipslehf"
+	ARCH_MIPS_LE_SF = "mipslesf"
 
 	ARCH_MIPS64    = "mips64"
-	ARCH_MIPS64_HF = "mips64hf"
+	ARCH_MIPS64_SF = "mips64sf"
 
 	ARCH_MIPS64_LE    = "mips64le"
-	ARCH_MIPS64_LE_HF = "mips64lehf"
+	ARCH_MIPS64_LE_SF = "mips64lesf"
 
 	ARCH_PPC = "ppc"
 

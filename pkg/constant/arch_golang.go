@@ -11,14 +11,14 @@ func GetGolangArch(mArch string) string {
 		ARCH_ARM_V7: "arm",
 
 		ARCH_MIPS:       "mips",
-		ARCH_MIPS_HF:    "mips",
+		ARCH_MIPS_SF:    "mips",
 		ARCH_MIPS_LE:    "mipsle",
-		ARCH_MIPS_LE_HF: "mipsle",
+		ARCH_MIPS_LE_SF: "mipsle",
 
 		ARCH_MIPS64:       "mips64",
-		ARCH_MIPS64_HF:    "mips64",
+		ARCH_MIPS64_SF:    "mips64",
 		ARCH_MIPS64_LE:    "mips64le",
-		ARCH_MIPS64_LE_HF: "mips64le",
+		ARCH_MIPS64_LE_SF: "mips64le",
 
 		ARCH_PPC64:    "ppc64",
 		ARCH_PPC64_LE: "ppc64le",
