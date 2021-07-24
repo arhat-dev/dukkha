@@ -1,0 +1,82 @@
+package data
+
+import (
+	"fmt"
+	"net/url"
+	"path"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/pkg/errors"
+
+	gaws "github.com/hairyhenderson/gomplate/v3/aws"
+)
+
+// awsSecretsManagerGetter - A subset of Secrets Manager API for use in unit testing
+type awsSecretsManagerGetter interface {
+	GetSecretValue(input *secretsmanager.GetSecretValueInput) (*secretsmanager.GetSecretValueOutput, error)
+}
+
+func parseDatasourceURLArgs(sourceURL *url.URL, args ...string) (params map[string]interface{}, p string, err error) {
+	if len(args) >= 2 {
+		err = fmt.Errorf("maximum two arguments to %s datasource: alias, extraPath (found %d)",
+			sourceURL.Scheme, len(args))
+		return nil, "", err
+	}
+
+	p = sourceURL.Path
+	params = make(map[string]interface{})
+	for key, val := range sourceURL.Query() {
+		params[key] = strings.Join(val, " ")
+	}
+
+	if p == "" && sourceURL.Opaque != "" {
+		p = sourceURL.Opaque
+	}
+
+	if len(args) == 1 {
+		parsed, err := url.Parse(args[0])
+		if err != nil {
+			return nil, "", err
+		}
+
+		if parsed.Path != "" {
+			p = path.Join(p, parsed.Path)
+			if strings.HasSuffix(parsed.Path, "/") {
+				p += "/"
+			}
+		}
+
+		for key, val := range parsed.Query() {
+			params[key] = strings.Join(val, " ")
+		}
+	}
+	return params, p, nil
+}
+
+func readAWSSecretsManager(source *Source, args ...string) (output []byte, err error) {
+	if source.awsSecretsManager == nil {
+		source.awsSecretsManager = secretsmanager.New(gaws.SDKSession())
+	}
+
+	_, paramPath, err := parseDatasourceURLArgs(source.URL, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return readAWSSecretsManagerParam(source, paramPath)
+}
+
+func readAWSSecretsManagerParam(source *Source, paramPath string) ([]byte, error) {
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId: aws.String(paramPath),
+	}
+
+	response, err := source.awsSecretsManager.GetSecretValue(input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error reading aws+sm from AWS using GetSecretValue with input %v", input)
+	}
+
+	return []byte(*response.SecretString), nil
+}
