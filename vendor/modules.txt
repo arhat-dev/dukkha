@@ -18,7 +18,7 @@ github.com/Masterminds/sprig/v3
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/die-net/lrucache v0.0.0-20190707192454-883874fe3947
+# github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed
 ## explicit
 github.com/die-net/lrucache
 # github.com/fatih/color v1.12.0
