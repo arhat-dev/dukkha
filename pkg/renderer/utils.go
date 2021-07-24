@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"arhat.dev/pkg/exechelper"
 	"go.uber.org/multierr"
@@ -76,28 +78,50 @@ func CreateEmbeddedShellRunner(
 		interp.Dir(workingDir),
 		interp.StdIO(stdin, stdout, stderr),
 		interp.Params("-e", "-u"),
-		interp.ExecHandler(func(_ctx context.Context, args []string) error {
-			ctx := interp.HandlerCtx(_ctx)
+		interp.ExecHandler(func(ctx context.Context, args []string) error {
+			hc := interp.HandlerCtx(ctx)
 
 			cmd, err := exechelper.Do(exechelper.Spec{
-				Context: _ctx,
-				Dir:     ctx.Dir,
+				Context: ctx,
+				Dir:     hc.Dir,
 				Command: args,
 
-				Stdin:  ctx.Stdin,
-				Stdout: ctx.Stdout,
-				Stderr: ctx.Stderr,
+				Stdin:  hc.Stdin,
+				Stdout: hc.Stdout,
+				Stderr: hc.Stderr,
 			})
-			if err != nil {
-				return err
+
+			if err == nil {
+				exitCode, err := cmd.Wait()
+				if err != nil {
+					return interp.NewExitStatus(uint8(exitCode))
+				}
+
+				return nil
 			}
 
-			_, err = cmd.Wait()
-			if err != nil {
+			// copied from interp.DefaultExecHandler
+			switch x := err.(type) {
+			case *exec.ExitError:
+				// started, but errored - default to 1 if OS
+				// doesn't have exit statuses
+				if status, ok := x.Sys().(syscall.WaitStatus); ok {
+					if status.Signaled() {
+						if ctx.Err() != nil {
+							return ctx.Err()
+						}
+						return interp.NewExitStatus(uint8(128 + status.Signal()))
+					}
+					return interp.NewExitStatus(uint8(status.ExitStatus()))
+				}
+				return interp.NewExitStatus(1)
+			case *exec.Error:
+				// did not start
+				fmt.Fprintf(hc.Stderr, "%v\n", err)
+				return interp.NewExitStatus(127)
+			default:
 				return err
 			}
-
-			return nil
 		}),
 	)
 }
