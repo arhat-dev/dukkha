@@ -6,12 +6,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"syscall"
 
 	"arhat.dev/pkg/exechelper"
-	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
@@ -37,35 +35,6 @@ func ToYamlBytes(in interface{}) ([]byte, error) {
 	return ret, nil
 }
 
-func CreateEnvForEmbeddedShell(rc dukkha.RenderingContext) (expand.Environ, *error) {
-	var errEnvMissing error
-	return expand.FuncEnviron(func(name string) string {
-		v, ok := rc.Env()[name]
-		if ok {
-			return v
-		}
-
-		switch name {
-		case "IFS":
-			return " \t\n"
-		case "OPTIND":
-			return "1"
-		case "PWD":
-			return rc.WorkingDir()
-		case "UID":
-			// os.Getenv("UID") usually retruns empty value
-			// so we have to call os.Getuid
-			return strconv.FormatInt(int64(os.Getuid()), 10)
-		default:
-			errEnvMissing = multierr.Append(errEnvMissing,
-				fmt.Errorf("env %q not found", name),
-			)
-		}
-
-		return ""
-	}), &errEnvMissing
-}
-
 func CreateEmbeddedShellRunner(
 	workingDir string,
 	environ expand.Environ,
@@ -77,12 +46,29 @@ func CreateEmbeddedShellRunner(
 		interp.Env(environ),
 		interp.Dir(workingDir),
 		interp.StdIO(stdin, stdout, stderr),
-		interp.Params("-e", "-u"),
+		interp.Params("-e"),
 		interp.ExecHandler(func(ctx context.Context, args []string) error {
 			hc := interp.HandlerCtx(ctx)
 
+			env := make(map[string]string)
+			hc.Env.Each(func(name string, vr expand.Variable) bool {
+				switch vr.Kind {
+				case expand.NameRef:
+					env[name], _ = vr.Resolve(environ)
+				case expand.String:
+					env[name] = vr.Str
+				case expand.Indexed:
+					env[name] = strings.Join(vr.List, " ")
+				default:
+					env[name] = vr.String()
+				}
+
+				return true
+			})
+
 			cmd, err := exechelper.Do(exechelper.Spec{
 				Context: ctx,
+				Env:     env,
 				Dir:     hc.Dir,
 				Command: args,
 
@@ -135,7 +121,7 @@ func RunShellScriptInEmbeddedShell(
 	f, err := parser.Parse(strings.NewReader(script), "")
 	if err != nil {
 		return fmt.Errorf(
-			"failed to parse shell command \n\n%s\n\nusing embedded shell: %w",
+			"failed to parse shell script:\n\n%s\n\nin embedded shell: %w",
 			script,
 			err,
 		)
@@ -144,7 +130,7 @@ func RunShellScriptInEmbeddedShell(
 	err = runner.Run(ctx, f)
 	if err != nil {
 		return fmt.Errorf(
-			"failed to evaluate command \n\n%s\n\nusing embedded shell: %w",
+			"failed to run command:\n\n%s\n\nin embedded shell: %w",
 			script, err,
 		)
 	}

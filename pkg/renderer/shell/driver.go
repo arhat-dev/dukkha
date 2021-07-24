@@ -75,9 +75,8 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		err    error
 	)
 	if d.getExecSpec == nil {
-		environ, _ := renderer.CreateEnvForEmbeddedShell(rc)
 		runner, err = renderer.CreateEmbeddedShellRunner(
-			rc.WorkingDir(), environ, nil, buf, os.Stderr,
+			rc.WorkingDir(), rc, nil, buf, os.Stderr,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: failed to create embedded shell: %w", DefaultName, err)

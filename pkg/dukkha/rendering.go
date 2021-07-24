@@ -3,13 +3,19 @@ package dukkha
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
+	"strconv"
+
+	"mvdan.cc/sh/v3/expand"
 
 	"arhat.dev/dukkha/pkg/field"
 )
 
 type RenderingContext interface {
 	context.Context
+
+	expand.Environ
 
 	ImmutableValues
 	MutableValues
@@ -104,4 +110,63 @@ func (c *contextRendering) AddRenderer(name string, r Renderer) {
 
 func (c *contextRendering) AllRenderers() map[string]Renderer {
 	return c.renderers
+}
+
+// Get retrieves a variable by its name. To check if the variable is
+// set, use Variable.IsSet.
+//
+// for expand.Environ
+func (c *contextRendering) Get(name string) expand.Variable {
+	return c.createVariable(name)
+}
+
+// Each iterates over all the currently set variables, calling the
+// supplied function on each variable. Iteration is stopped if the
+// function returns false.
+//
+// The names used in the calls aren't required to be unique or sorted.
+// If a variable name appears twice, the latest occurrence takes
+// priority.
+//
+// Each is required to forward exported variables when executing
+// programs.
+//
+// for expand.Environ
+func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
+	for k := range c.Env() {
+		if !do(k, c.createVariable(k)) {
+			return
+		}
+	}
+}
+
+func (c *contextRendering) createVariable(name string) expand.Variable {
+	v, ok := c.Env()[name]
+
+	// TODO: set kind for lists
+	kind := expand.String
+	if !ok {
+		switch name {
+		case "IFS":
+			v = " \t\n"
+		case "OPTIND":
+			v = "1"
+		case "PWD":
+			v = c.WorkingDir()
+		case "UID":
+			// os.Getenv("UID") usually retruns empty value
+			// so we have to call os.Getuid
+			v = strconv.FormatInt(int64(os.Getuid()), 10)
+		default:
+			kind = expand.Unset
+		}
+	}
+
+	return expand.Variable{
+		Local:    false,
+		Exported: true,
+		ReadOnly: false,
+		Kind:     kind,
+		Str:      v,
+	}
 }
