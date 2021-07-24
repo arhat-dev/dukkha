@@ -37,8 +37,14 @@ workflow:run:
     - shell:python: print("finished")
 
   jobs@template:
-  - name: test dukkha working
-    shell:python: print("test")
+  - name: test dukkha working with nested rendering suffix
+    shell:python: print({{- "\"test\"" -}})
+
+  - name: test template func call in embedded shell
+    shell: dukkha:template:printf \"Hello Template %s\\n\" \"test\"
+
+  - name: test piped template func call in embedded shell
+    shell: printf "from shell printf" | dukkha:template:printf \"Hello piped template %s\\n\"
 
   - name: test script execution
     shell: ./scripts/dukkha/testdata/script.sh

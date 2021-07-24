@@ -11,6 +11,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/shell"
 )
 
 const DefaultName = "shell"
@@ -75,7 +76,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		err    error
 	)
 	if d.getExecSpec == nil {
-		runner, err = renderer.CreateEmbeddedShellRunner(
+		runner, err = shell.CreateEmbeddedShellRunner(
 			rc.WorkingDir(), rc, nil, buf, os.Stderr,
 		)
 		if err != nil {
@@ -89,9 +90,9 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 
 	for _, script := range scripts {
 		if d.getExecSpec == nil {
-			err = renderer.RunShellScriptInEmbeddedShell(rc, runner, parser, script)
+			err = shell.RunScriptInEmbeddedShell(rc, runner, parser, script)
 		} else {
-			err = renderer.RunShellScript(rc, script, false, buf, d.getExecSpec)
+			err = shell.RunScript(rc, script, false, buf, d.getExecSpec)
 		}
 
 		if err != nil {

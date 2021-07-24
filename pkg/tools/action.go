@@ -11,7 +11,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/shell"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
@@ -141,7 +141,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			runner, err := renderer.CreateEmbeddedShellRunner(
+			runner, err := shell.CreateEmbeddedShellRunner(
 				workingDir, ctx, stdin, stdout, stderr,
 			)
 			if err != nil {
@@ -150,7 +150,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 			parser := syntax.NewParser(syntax.Variant(syntax.LangBash))
 
-			err = renderer.RunShellScriptInEmbeddedShell(ctx, runner, parser, script)
+			err = shell.RunScriptInEmbeddedShell(ctx, runner, parser, script)
 			if err != nil {
 				return nil, fmt.Errorf("%q: failed to run command in embedded shell: %w", hookID, err)
 			}
