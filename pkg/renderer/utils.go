@@ -92,8 +92,8 @@ func CreateEmbeddedShellRunner(
 			})
 
 			if err == nil {
-				exitCode, err := cmd.Wait()
-				if err != nil {
+				exitCode, err2 := cmd.Wait()
+				if err2 != nil {
 					return interp.NewExitStatus(uint8(exitCode))
 				}
 
