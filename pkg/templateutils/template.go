@@ -74,10 +74,19 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"yq":      textquery.YQ,
 			"yqBytes": textquery.YQBytes,
 
-			"getAlpineArch":       constant.GetAlpineArch,
-			"getAlpineTripleName": constant.GetAlpineTripleName,
+			"getAlpineArch": func(mArch string) string {
+				v, _ := constant.GetAlpineArch(mArch)
+				return v
+			},
+			"getAlpineTripleName": func(mArch string) string {
+				v, _ := constant.GetAlpineTripleName(mArch)
+				return v
+			},
 
-			"getDebianArch": constant.GetDebianArch,
+			"getDebianArch": func(mArch string) string {
+				v, _ := constant.GetDebianArch(mArch)
+				return v
+			},
 			"getDebianTripleName": func(mArch string, other ...string) string {
 				targetKernel, targetLibc := "", ""
 				if len(other) > 0 {
@@ -87,18 +96,40 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 					targetLibc = other[1]
 				}
 
-				return constant.GetDebianTripleName(mArch, targetKernel, targetLibc)
+				v, _ := constant.GetDebianTripleName(mArch, targetKernel, targetLibc)
+				return v
 			},
 
-			"getQemuArch": constant.GetQemuArch,
+			"getQemuArch": func(mArch string) string {
+				v, _ := constant.GetQemuArch(mArch)
+				return v
+			},
 
-			"getOciOS":          constant.GetOciOS,
-			"getOciArch":        constant.GetOciArch,
-			"getOciArchVariant": constant.GetOciArchVariant,
+			"getOciOS": func(mKernel string) string {
+				v, _ := constant.GetOciOS(mKernel)
+				return v
+			},
+			"getOciArch": func(mArch string) string {
+				v, _ := constant.GetOciArch(mArch)
+				return v
+			},
+			"getOciArchVariant": func(mArch string) string {
+				v, _ := constant.GetOciArchVariant(mArch)
+				return v
+			},
 
-			"getDockerOS":          constant.GetDockerOS,
-			"getDockerArch":        constant.GetDockerArch,
-			"getDockerArchVariant": constant.GetDockerArchVariant,
+			"getDockerOS": func(mKernel string) string {
+				v, _ := constant.GetDockerOS(mKernel)
+				return v
+			},
+			"getDockerArch": func(mArch string) string {
+				v, _ := constant.GetDockerArch(mArch)
+				return v
+			},
+			"getDockerArchVariant": func(mArch string) string {
+				v, _ := constant.GetDockerArchVariant(mArch)
+				return v
+			},
 
 			"getDockerHubArch": func(mArch string, other ...string) string {
 				mKernel := ""
@@ -106,11 +137,16 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 					mKernel = other[0]
 				}
 
-				return constant.GetDockerHubArch(mArch, mKernel)
+				v, _ := constant.GetDockerHubArch(mArch, mKernel)
+				return v
 			},
 			"getDockerPlatformArch": func(mArch string) string {
-				arch := constant.GetDockerArch(mArch)
-				variant := constant.GetDockerArchVariant(mArch)
+				arch, ok := constant.GetDockerArch(mArch)
+				if !ok {
+					return ""
+				}
+
+				variant, _ := constant.GetDockerArchVariant(mArch)
 				if len(variant) != 0 {
 					return arch + "/" + variant
 				}
@@ -118,7 +154,14 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return arch
 			},
 
-			"getGolangArch": constant.GetGolangArch,
+			"getGolangOS": func(mKernel string) string {
+				v, _ := constant.GetGolangOS(mKernel)
+				return v
+			},
+			"getGolangArch": func(mArch string) string {
+				v, _ := constant.GetGolangArch(mArch)
+				return v
+			},
 		}).
 		Funcs(fm)
 }

@@ -1,7 +1,7 @@
 package constant
 
-func GetGolangArch(mArch string) string {
-	return map[string]string{
+func GetGolangArch(mArch string) (string, bool) {
+	v, ok := map[string]string{
 		ARCH_X86:   "386",
 		ARCH_AMD64: "amd64",
 		ARCH_ARM64: "arm64",
@@ -26,5 +26,12 @@ func GetGolangArch(mArch string) string {
 		ARCH_RISCV_64: "riscv64",
 		ARCH_S390X:    "s390x",
 		ARCH_IA64:     "ia64",
+
+		ARCH_PPC:       "",
+		ARCH_PPC_SF:    "",
+		ARCH_PPC_LE:    "",
+		ARCH_PPC_LE_SF: "",
 	}[mArch]
+
+	return v, ok
 }
