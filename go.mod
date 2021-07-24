@@ -7,10 +7,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed
 	github.com/fatih/color v1.12.0
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/hairyhenderson/gomplate/v3 v3.9.0
 	github.com/huandu/xstrings v1.3.2
-	github.com/imdario/mergo v0.3.12 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
