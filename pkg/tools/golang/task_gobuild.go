@@ -44,30 +44,38 @@ func (c *TaskBuild) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()
-	env := sliceutils.NewStrings(
-		c.CGO.getEnv(
-			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
-			mKernel, mArch,
-			rc.HostOS(),
-			rc.MatrixLibc(),
-		),
-	)
-
-	env = append(env, "GOOS="+constant.GetGolangOS(mKernel))
-	env = append(env, "GOARCH="+constant.GetGolangArch(mArch))
-
-	if envGOMIPS := c.getGOMIPS(mArch); len(envGOMIPS) != 0 {
-		env = append(env, "GOMIPS="+envGOMIPS, "GOMIPS64="+envGOMIPS)
-	}
-
-	if envGOARM := c.getGOARM(mArch); len(envGOARM) != 0 {
-		env = append(env, "GOARM="+envGOARM)
-	}
 
 	var buildSteps []dukkha.TaskExecSpec
 
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
-		outputs := c.Outputs
+		env := sliceutils.NewStrings(
+			c.CGO.getEnv(
+				rc.HostKernel() != mKernel || rc.HostArch() != mArch,
+				mKernel, mArch,
+				rc.HostOS(),
+				rc.MatrixLibc(),
+			),
+		)
+
+		goos := constant.GetGolangOS(mKernel)
+		if len(goos) != 0 {
+			env = append(env, "GOOS="+goos)
+		}
+
+		goarch := constant.GetGolangArch(mArch)
+		if len(goarch) != 0 {
+			env = append(env, "GOARCH="+goarch)
+		}
+
+		if envGOMIPS := c.getGOMIPS(mArch); len(envGOMIPS) != 0 {
+			env = append(env, "GOMIPS="+envGOMIPS, "GOMIPS64="+envGOMIPS)
+		}
+
+		if envGOARM := c.getGOARM(mArch); len(envGOARM) != 0 {
+			env = append(env, "GOARM="+envGOARM)
+		}
+
+		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
 			outputs = []string{c.BaseTask.TaskName}
 		}
