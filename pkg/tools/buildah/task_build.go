@@ -18,6 +18,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -32,6 +33,17 @@ func init() {
 			return t
 		},
 	)
+
+	templateutils.RegisterTemplateFuncs(map[string]templateutils.TemplateFuncFactory{
+		"getBuildahImageIDFile": func(rc dukkha.RenderingContext) interface{} {
+			return func(imageName string) string {
+				return GetImageIDFileForImageName(
+					rc.CacheDir(),
+					SetDefaultImageTagIfNoTagSet(rc, imageName),
+				)
+			}
+		},
+	})
 }
 
 type TaskBuild struct {
