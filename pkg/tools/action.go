@@ -141,9 +141,8 @@ func (act *Action) genEmbeddedShellActionSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			environ, _ := renderer.CreateEnvForEmbeddedShell(ctx)
 			runner, err := renderer.CreateEmbeddedShellRunner(
-				workingDir, environ, stdin, stdout, stderr,
+				workingDir, ctx, stdin, stdout, stderr,
 			)
 			if err != nil {
 				return nil, fmt.Errorf("%q: failed to create embedded shell: %w", hookID, err)
@@ -158,6 +157,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 			return nil, err
 		},
+		IgnoreError: act.ContinueOnError,
 	}}, nil
 }
 

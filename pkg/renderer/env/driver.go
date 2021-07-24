@@ -78,11 +78,9 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		return nil, fmt.Errorf("renderer.%s: invalid expansion text: %w", DefaultName, err)
 	}
 
-	environ, errEnvMissing := renderer.CreateEnvForEmbeddedShell(rc)
-
 	embeddedShellOutput := &bytes.Buffer{}
 	runner, err := renderer.CreateEmbeddedShellRunner(
-		rc.WorkingDir(), environ, nil, embeddedShellOutput, os.Stderr,
+		rc.WorkingDir(), rc, nil, embeddedShellOutput, os.Stderr,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: failed to create runner for env: %w", DefaultName, err)
@@ -94,7 +92,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	)
 
 	result, err := expand.Document(&expand.Config{
-		Env: environ,
+		Env: rc,
 		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
 			buf := &bytes.Buffer{}
 			err2 := printer.Print(buf, cs)
@@ -129,14 +127,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		ReadDir:   ioutil.ReadDir,
 		GlobStar:  true,
 		NullGlob:  true,
-		NoUnset:   false,
+		NoUnset:   true,
 	},
 		word,
 	)
-
-	if *errEnvMissing != nil {
-		return nil, fmt.Errorf("renderer.%s: some env not resolved: %w", DefaultName, *errEnvMissing)
-	}
 
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: env expansion failed: %w", DefaultName, err)

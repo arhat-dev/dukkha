@@ -86,7 +86,7 @@ func TestDriver_Render(t *testing.T) {
 		{
 			name:    "Invalid Env Not Found",
 			rawData: "${NO_SUCH_ENV}",
-			errStr:  "not found",
+			errStr:  "unbound variable",
 		},
 		{
 			name:    "Invalid Inner Non-Terminated Shell Evaluation",
@@ -114,7 +114,7 @@ func TestDriver_Render(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			ret, err := d.RenderYaml(rv, test.rawData)
 			if len(test.errStr) != 0 {
-				if !assert.Error(t, err) {
+				if !assert.Error(t, err, ret) {
 					return
 				}
 
