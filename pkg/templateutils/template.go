@@ -10,6 +10,7 @@ import (
 	"arhat.dev/pkg/hashhelper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
+	"github.com/hairyhenderson/gomplate/v3/funcs"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -38,7 +39,25 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 	}
 
 	return template.New("template").
+		// template func from sprig
 		Funcs(sprig.TxtFuncMap()).
+		// template func from gomplate
+		Funcs(funcs.CreateNetFuncs(rc)).
+		Funcs(funcs.CreateReFuncs(rc)).
+		Funcs(funcs.CreateStringFuncs(rc)).
+		Funcs(funcs.CreateConvFuncs(rc)).
+		Funcs(funcs.CreateTimeFuncs(rc)).
+		Funcs(funcs.CreateMathFuncs(rc)).
+		Funcs(funcs.CreateCryptoFuncs(rc)).
+		Funcs(funcs.CreateFileFuncs(rc)).
+		Funcs(funcs.CreateFilePathFuncs(rc)).
+		Funcs(funcs.CreatePathFuncs(rc)).
+		Funcs(funcs.CreateSockaddrFuncs(rc)).
+		Funcs(funcs.CreateTestFuncs(rc)).
+		Funcs(funcs.CreateCollFuncs(rc)).
+		Funcs(funcs.CreateUUIDFuncs(rc)).
+		Funcs(funcs.CreateRandomFuncs(rc)).
+		// dukkha specific template func
 		Funcs(map[string]interface{}{
 			"md5sum": func(s string) string {
 				return hex.EncodeToString(hashhelper.MD5Sum([]byte(s)))

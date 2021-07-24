@@ -29,7 +29,7 @@ func CreateEmbeddedShellRunner(
 		interp.ExecHandler(func(ctx context.Context, args []string) error {
 			hc := interp.HandlerCtx(ctx)
 
-			if !strings.HasPrefix(args[0], "dukkha:template:") {
+			if !strings.HasPrefix(args[0], "template:") {
 				return cmdExecHandler(ctx, args)
 			}
 
@@ -44,7 +44,7 @@ func CreateEmbeddedShellRunner(
 				pipeReader,
 				hc.Stdout,
 				append(
-					[]string{strings.TrimPrefix(args[0], "dukkha:template:")},
+					[]string{strings.TrimPrefix(args[0], "template:")},
 					args[1:]...,
 				),
 			)

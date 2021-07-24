@@ -75,17 +75,17 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 	}{
 		{
 			name:     "Simple md5sum",
-			script:   `dukkha:template:md5sum \"test\"`,
+			script:   `template:md5sum \"test\"`,
 			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
 		},
 		{
 			name:     "Piped md5sum",
-			script:   `printf "test" | dukkha:template:md5sum`,
+			script:   `printf "test" | template:md5sum`,
 			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
 		},
 		{
 			name:     "Subcmd md5sum",
-			script:   `dukkha:template:md5sum \"$(printf "test")\"`,
+			script:   `template:md5sum \"$(printf "test")\"`,
 			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
 		},
 	}
