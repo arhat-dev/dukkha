@@ -40,6 +40,9 @@ workflow:run:
   - name: test dukkha working
     shell:python: print("test")
 
+  - name: test script execution
+    shell: ./scripts/dukkha/testdata/script.sh
+
   - name: test task specific env
     shell@env: echo "${FROM_TOOL}+${FOO}"
 
