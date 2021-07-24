@@ -1,5 +1,5 @@
 package constant
 
-func GetGolangOS(mKernel string) string {
-	return mKernel
+func GetGolangOS(mKernel string) (string, bool) {
+	return mKernel, true
 }

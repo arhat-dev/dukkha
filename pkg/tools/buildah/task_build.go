@@ -198,12 +198,11 @@ func (c *TaskBuild) createExecSpecs(
 
 	// add to manifest, ensure same os/arch/variant only one exist
 	mArch := rc.MatrixArch()
-	variant := constant.GetOciArchVariant(mArch)
+	variant, _ := constant.GetOciArchVariant(mArch)
+	os, _ := constant.GetOciOS(rc.MatrixKernel())
+	arch, _ := constant.GetOciArch(mArch)
 
-	osArchVariantArgs := []string{
-		"--os", constant.GetOciOS(rc.MatrixKernel()),
-		"--arch", constant.GetOciArch(mArch),
-	}
+	osArchVariantArgs := []string{"--os", os, "--arch", arch}
 	if len(variant) != 0 {
 		osArchVariantArgs = append(osArchVariantArgs, "--variant", variant)
 	}
@@ -357,9 +356,9 @@ func parseManifestOsArchVariantQueryResult(result string) ([]string, error) {
 }
 
 func createManifestOsArchVariantQueryForDigest(mKernel, mArch string) string {
-	os := constant.GetOciOS(mKernel)
-	arch := constant.GetOciArch(mArch)
-	variant := constant.GetOciArchVariant(mArch)
+	os, _ := constant.GetOciOS(mKernel)
+	arch, _ := constant.GetOciArch(mArch)
+	variant, _ := constant.GetOciArchVariant(mArch)
 
 	manifestOsArchVariantQueryForDigest := fmt.Sprintf(
 		`.manifests[] | select((.platform.os == "%s")`+

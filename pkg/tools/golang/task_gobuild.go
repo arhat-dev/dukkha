@@ -57,12 +57,12 @@ func (c *TaskBuild) GetExecSpecs(
 			),
 		)
 
-		goos := constant.GetGolangOS(mKernel)
+		goos, _ := constant.GetGolangOS(mKernel)
 		if len(goos) != 0 {
 			env = append(env, "GOOS="+goos)
 		}
 
-		goarch := constant.GetGolangArch(mArch)
+		goarch, _ := constant.GetGolangArch(mArch)
 		if len(goarch) != 0 {
 			env = append(env, "GOARCH="+goarch)
 		}
@@ -228,19 +228,19 @@ func (c *CGOSepc) getEnv(
 			var tripleName string
 			switch mKernel {
 			case constant.KERNEL_LINUX:
-				tripleName = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
+				tripleName, _ = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			case constant.KERNEL_DARWIN:
 				// TODO: set darwin version
-				tripleName = constant.GetAppleTripleName(mArch, "")
+				tripleName, _ = constant.GetAppleTripleName(mArch, "")
 			case constant.KERNEL_WINDOWS:
-				tripleName = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
+				tripleName, _ = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			default:
 			}
 
 			cc = tripleName + "-gcc"
 			cxx = tripleName + "-g++"
 		case constant.OS_ALPINE:
-			tripleName := constant.GetAlpineTripleName(mArch)
+			tripleName, _ := constant.GetAlpineTripleName(mArch)
 			cc = tripleName + "-gcc"
 			cxx = tripleName + "-g++"
 		case constant.OS_MACOS:

@@ -92,13 +92,14 @@ func (c *TaskPush) GetExecSpecs(
 			// 		<manifest-list-name> <image-name> \
 			// 		--os <arch> --arch <arch> {--variant <variant>}
 			mArch := rc.MatrixArch()
+			os, _ := constant.GetDockerOS(rc.MatrixKernel())
+			arch, _ := constant.GetDockerArch(mArch)
 			annotateCmd := sliceutils.NewStrings(
 				manifestCmd, "annotate", manifestName, imageName,
-				"--os", constant.GetDockerOS(rc.MatrixKernel()),
-				"--arch", constant.GetDockerArch(mArch),
+				"--os", os, "--arch", arch,
 			)
 
-			variant := constant.GetDockerArchVariant(mArch)
+			variant, _ := constant.GetDockerArchVariant(mArch)
 			if len(variant) != 0 {
 				annotateCmd = append(annotateCmd, "--variant", variant)
 			}

@@ -1,7 +1,7 @@
 package constant
 
-func GetQemuArch(mArch string) string {
-	return map[string]string{
+func GetQemuArch(mArch string) (string, bool) {
+	v, ok := map[string]string{
 		ARCH_X86:   "i386",
 		ARCH_AMD64: "x86_64",
 
@@ -21,11 +21,19 @@ func GetQemuArch(mArch string) string {
 		ARCH_MIPS64_LE:    "mips64el",
 		ARCH_MIPS64_LE_SF: "mips64el",
 
-		ARCH_PPC:      "ppc",
+		ARCH_PPC:       "ppc",
+		ARCH_PPC_SF:    "ppc",
+		ARCH_PPC_LE:    "",
+		ARCH_PPC_LE_SF: "",
+
 		ARCH_PPC64:    "ppc64",
 		ARCH_PPC64_LE: "ppc64le",
 
 		ARCH_S390X:    "s390x",
 		ARCH_RISCV_64: "riscv64",
+
+		ARCH_IA64: "",
 	}[mArch]
+
+	return v, ok
 }
