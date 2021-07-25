@@ -139,14 +139,21 @@ func (s TaskExecStage) String() string {
 	}[s]
 }
 
-type TaskExecOptions struct {
+type TaskMatrixExecOptions struct {
 	UseShell  bool
 	ShellName string
 	ToolCmd   []string
+
+	Seq   int
+	Total int
 }
 
-func (opts TaskExecOptions) Clone() TaskExecOptions {
-	return TaskExecOptions{
+func (opts TaskMatrixExecOptions) IsLast() bool {
+	return opts.Seq == opts.Total-1
+}
+
+func (opts TaskMatrixExecOptions) Clone() TaskMatrixExecOptions {
+	return TaskMatrixExecOptions{
 		UseShell:  opts.UseShell,
 		ShellName: opts.ShellName,
 		ToolCmd:   sliceutils.NewStrings(opts.ToolCmd),
@@ -217,7 +224,7 @@ type Task interface {
 	// GetExecSpecs generate commands using current field values
 	//
 	// The implementation MUST be safe to be used concurrently
-	GetExecSpecs(rc TaskExecContext, options *TaskExecOptions) ([]TaskExecSpec, error)
+	GetExecSpecs(rc TaskExecContext, options *TaskMatrixExecOptions) ([]TaskExecSpec, error)
 
 	// GetHookExecSpecs generate hook run target
 	//

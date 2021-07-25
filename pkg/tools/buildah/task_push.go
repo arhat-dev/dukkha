@@ -34,7 +34,7 @@ type TaskPush struct {
 }
 
 func (c *TaskPush) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 

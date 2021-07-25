@@ -20,7 +20,7 @@ func TestTaskRelease_GetExecSpecs(t *testing.T) {
 					TaskName: "foo",
 				},
 			},
-			Options: &dukkha.TaskExecOptions{
+			Options: &dukkha.TaskMatrixExecOptions{
 				ToolCmd: toolCmd,
 			},
 			Expected: []dukkha.TaskExecSpec{

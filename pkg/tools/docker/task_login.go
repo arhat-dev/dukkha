@@ -24,7 +24,7 @@ func init() {
 type TaskLogin buildah.TaskLogin
 
 func (c *TaskLogin) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {

@@ -69,7 +69,7 @@ type ImageNameSpec struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
@@ -82,7 +82,7 @@ func (c *TaskBuild) GetExecSpecs(
 }
 
 func (c *TaskBuild) createExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
 	dukkhaCacheDir := rc.CacheDir()

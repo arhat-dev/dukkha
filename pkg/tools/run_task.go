@@ -108,7 +108,7 @@ func RunTask(req *TaskExecRequest) error {
 
 matrixRun:
 	for i, ms := range matrixSpecs {
-		mCtx, options, err2 := createTaskMatrixContext(req, i, ms)
+		mCtx, options, err2 := createTaskMatrixContext(req, ms, i, len(matrixSpecs))
 
 		if err2 != nil {
 			appendErrorResult(ms, err2)
@@ -283,9 +283,9 @@ matrixRun:
 // with context resolved
 func createTaskMatrixContext(
 	req *TaskExecRequest,
-	i int,
 	ms matrix.Entry,
-) (dukkha.TaskExecContext, *dukkha.TaskExecOptions, error) {
+	seq, total int,
+) (dukkha.TaskExecContext, *dukkha.TaskMatrixExecOptions, error) {
 	mCtx := req.Context.DeriveNew()
 
 	// set default matrix filter for referenced hook tasks
@@ -310,14 +310,17 @@ func createTaskMatrixContext(
 		mCtx.SetOutputPrefix(ms.BriefString() + ": ")
 	}
 
-	mCtx.SetTaskColors(output.PickColor(i))
+	mCtx.SetTaskColors(output.PickColor(seq))
 
 	// tool may have reference to MATRIX_ values
 	// but MUST not have reference to task specific env
 
 	// now everything prepared for the tool, resolve all of it
 
-	options := &dukkha.TaskExecOptions{}
+	options := &dukkha.TaskMatrixExecOptions{
+		Seq:   seq,
+		Total: total,
+	}
 	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, func() error {
 		mCtx.AddEnv(req.Tool.GetEnv()...)
 
