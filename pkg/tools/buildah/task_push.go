@@ -80,6 +80,10 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
+			if !options.IsLast() {
+				continue
+			}
+
 			// buildah manifest push --all \
 			//   <manifest-list-name> <transport>:<transport-details>
 			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
