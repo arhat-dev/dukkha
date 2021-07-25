@@ -88,7 +88,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed
+# github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0
 ## explicit
 github.com/die-net/lrucache
 # github.com/docker/libkv v0.2.2-0.20180912205406-458977154600
@@ -215,7 +215,7 @@ github.com/hairyhenderson/gomplate/v3/strings
 github.com/hairyhenderson/gomplate/v3/test
 github.com/hairyhenderson/gomplate/v3/time
 github.com/hairyhenderson/gomplate/v3/vault
-# github.com/hairyhenderson/toml v0.3.1-0.20191004034452-2a4f3b6160f2
+# github.com/hairyhenderson/toml v0.3.1-0.20191004034452-2a4f3b6160f2 => github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680
 github.com/hairyhenderson/toml
 # github.com/hashicorp/consul/api v1.8.1
 github.com/hashicorp/consul/api
@@ -606,7 +606,9 @@ mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
+# github.com/BurntSushi/toml-test => github.com/BurntSushi/toml-test v0.1.1-0.20210704114940-e6948edce1c5
 # github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
+# github.com/hairyhenderson/toml => github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680
 # k8s.io/api => github.com/kubernetes/api v0.20.7
 # k8s.io/apiextensions-apiserver => github.com/kubernetes/apiextensions-apiserver v0.20.7
 # k8s.io/apimachinery => github.com/kubernetes/apimachinery v0.20.7

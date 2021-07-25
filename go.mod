@@ -5,7 +5,7 @@ go 1.16
 require (
 	arhat.dev/pkg v0.5.8
 	github.com/Masterminds/sprig/v3 v3.2.2
-	github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed
+	github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0
 	github.com/fatih/color v1.12.0
 	github.com/hairyhenderson/gomplate/v3 v3.9.0
 	github.com/huandu/xstrings v1.3.2
@@ -18,7 +18,11 @@ require (
 	mvdan.cc/sh/v3 v3.3.0
 )
 
-replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
+replace (
+	github.com/BurntSushi/toml-test => github.com/BurntSushi/toml-test v0.1.1-0.20210704114940-e6948edce1c5
+	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
+	github.com/hairyhenderson/toml => github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680
+)
 
 replace (
 	k8s.io/api => github.com/kubernetes/api v0.20.7
