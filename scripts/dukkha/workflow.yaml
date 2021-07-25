@@ -41,10 +41,10 @@ workflow:run:
     shell:python: print({{- "\"test\"" -}})
 
   - name: test template func call in embedded shell
-    shell: dukkha:template:printf \"Hello Template %s\\n\" \"test\"
+    shell: template:printf \"Hello Template %s\\n\" \"test\"
 
   - name: test piped template func call in embedded shell
-    shell: printf "from shell printf" | dukkha:template:printf \"Hello piped template %s\\n\"
+    shell: printf "from shell printf" | template:printf \"Hello piped template %s\\n\"
 
   - name: test script execution
     shell: ./scripts/dukkha/testdata/script.sh
