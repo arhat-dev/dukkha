@@ -1,6 +1,8 @@
 package renderer
 
 import (
+	"path/filepath"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,4 +21,8 @@ func ToYamlBytes(in interface{}) ([]byte, error) {
 	}
 
 	return ret, nil
+}
+
+func FormatCacheDir(dukkhaCacheDir, rendererName string) string {
+	return filepath.Join(dukkhaCacheDir, "renderer-"+rendererName)
 }
