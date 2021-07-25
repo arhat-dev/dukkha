@@ -96,7 +96,8 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	if d.cache != nil {
 		data, err = d.cache.Get(url,
 			renderer.CreateRefreshFuncForRemote(
-				rc.CacheDir(), DefaultName, d.CacheMaxAge,
+				renderer.FormatCacheDir(rc.CacheDir(), DefaultName),
+				d.CacheMaxAge,
 				func(key string) ([]byte, error) {
 					return d.fetchRemote(client, key)
 				},
