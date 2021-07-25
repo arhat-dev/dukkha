@@ -65,7 +65,7 @@
       - dragonfly
       arch: [amd64]
     - kernel:
-      - aix
+      # - aix
       - linux
       arch: [ppc64]
     - kernel:
