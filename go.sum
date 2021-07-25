@@ -88,6 +88,12 @@ github.com/Azure/go-autorest/autorest/validation v0.3.0/go.mod h1:yhLgjC0Wda5DYX
 github.com/Azure/go-autorest/logger v0.2.0/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/BurntSushi/toml v0.3.2-0.20210704081116-ccff24ee4463 h1:CQCUjt8vUDGIEsctm4VWa1ibwc1kiGPy2TKzufTtJ7I=
+github.com/BurntSushi/toml v0.3.2-0.20210704081116-ccff24ee4463/go.mod h1:EkRrMiQQmfxK6kIldz3QbPlhmVkrjW1RDJUnbDqGYvc=
+github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680 h1:Nr5yBD/uNErMlqKAiohT1UpNiuqGNRuydij8I4ViGMc=
+github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680/go.mod h1:nIDrfNEiXzLbhHYOFix8uaJ4UDd0yfoGJC99VYybSHU=
+github.com/BurntSushi/toml-test v0.1.1-0.20210704114940-e6948edce1c5 h1:pkhJ7YiuikhNSX/HnPKMahEWoWiQbsAZ3djE6vVF2I0=
+github.com/BurntSushi/toml-test v0.1.1-0.20210704114940-e6948edce1c5/go.mod h1:ve9Q/RRu2vHi42LocPLNvagxuUJh993/95b18bw/Nws=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/GoogleCloudPlatform/cloudsql-proxy v1.19.1/go.mod h1:+yYmuKqcBVkgRePGpUhTA9OEg0XsnFE96eZ6nJ2yCQM=
 github.com/GoogleCloudPlatform/k8s-cloud-provider v0.0.0-20200415212048-7901bc822317/go.mod h1:DF8FZRxMHMGv/vP2lQP6h+dYzzjpuRn24VeRiYn3qjQ=
@@ -230,8 +236,8 @@ github.com/denisenkom/go-mssqldb v0.9.0/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27N
 github.com/devigned/tab v0.1.1/go.mod h1:XG9mPq0dFghrYvoBF3xdRrJzSTX1b7IQrvaL9mzjeJY=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
-github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed h1:xXkcZT2Bc04qF2HFjMmjhxJO3Xy1Bdk/9eUFRHnHaL8=
-github.com/die-net/lrucache v0.0.0-20210724195304-5dd1c4b04fed/go.mod h1:4d9drWV+btTB21Zyq/hXMaqjLHSm+dFm+gOkckqOXOw=
+github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0 h1:vUfwjUbyXbUoaLH44LhmAYXOOIQgMQGer0/Oww5ukbQ=
+github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0/go.mod h1:4d9drWV+btTB21Zyq/hXMaqjLHSm+dFm+gOkckqOXOw=
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/dimchansky/utfbom v1.1.1/go.mod h1:SxdoEBH5qIqFocHMyGOXVAybYJdr71b1Q/j0mACtrfE=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
@@ -498,8 +504,6 @@ github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/hairyhenderson/gomplate/v3 v3.9.0 h1:Q4hA16QshY8txJp+jP5kvQ8KrEFcOmKVeSmPhEcSzP4=
 github.com/hairyhenderson/gomplate/v3 v3.9.0/go.mod h1:rDctfXlPaBE0kLvik9VPW0s8xeRzjx7k0skZZC8zLD4=
-github.com/hairyhenderson/toml v0.3.1-0.20191004034452-2a4f3b6160f2 h1:Dc4YWWuY02jqhCnErAH++juCTwEPLstAOOVhyPXeE7Q=
-github.com/hairyhenderson/toml v0.3.1-0.20191004034452-2a4f3b6160f2/go.mod h1:Qzp4VYCUWsSh/aiz4pJGa+R7aXrGdepyDeZP4+9kToA=
 github.com/hashicorp/consul/api v1.1.0/go.mod h1:VmuI/Lkw1nC05EYQWNKwWGbkg+FbDBtguAZLlVdkD9Q=
 github.com/hashicorp/consul/api v1.3.0/go.mod h1:MmDNSzIMUjNpY/mQ398R4bk2FnqQLoPndWW5VkKPlCE=
 github.com/hashicorp/consul/api v1.8.1 h1:BOEQaMWoGMhmQ29fC26bi0qb7/rId9JzZP2V0Xmx7m8=
@@ -1596,3 +1600,4 @@ sigs.k8s.io/structured-merge-diff/v4 v4.0.3/go.mod h1:bJZC9H9iH24zzfZ/41RGcq60oK
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
 sourcegraph.com/sourcegraph/appdash v0.0.0-20190731080439-ebfcffb1b5c0/go.mod h1:hI742Nqp5OhwiqlzhgfbWU4mW4yO10fP+LoT9WOswdU=
+zgo.at/zli v0.0.0-20210619044753-e7020a328e59/go.mod h1:HLAc12TjNGT+VRXr76JnsNE3pbooQtwKWhX+RlDjQ2Y=
