@@ -34,7 +34,7 @@ type TaskIndex struct {
 }
 
 func (c *TaskIndex) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := sliceutils.NewStrings(options.ToolCmd, "repo", "index")
 

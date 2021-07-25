@@ -40,7 +40,7 @@ type TaskBuild struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	mKernel := rc.MatrixKernel()
 	mArch := rc.MatrixArch()

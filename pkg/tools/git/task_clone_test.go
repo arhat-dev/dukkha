@@ -20,14 +20,14 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			Name:      "Invalid Empty",
 			Task:      &git.TaskClone{},
 			ExpectErr: true,
-			Options: &dukkha.TaskExecOptions{
+			Options: &dukkha.TaskMatrixExecOptions{
 				ToolCmd: toolCmd,
 			},
 		},
 		{
 			Name: "Valid Clone Using Default Branch",
 			Task: &git.TaskClone{URL: "example/foo.git"},
-			Options: &dukkha.TaskExecOptions{
+			Options: &dukkha.TaskMatrixExecOptions{
 				ToolCmd: toolCmd,
 			},
 			Expected: []dukkha.TaskExecSpec{
@@ -48,7 +48,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		{
 			Name: "Valid Clone Changing Remote Name",
 			Task: &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
-			Options: &dukkha.TaskExecOptions{
+			Options: &dukkha.TaskMatrixExecOptions{
 				ToolCmd: toolCmd,
 			},
 			Expected: []dukkha.TaskExecSpec{

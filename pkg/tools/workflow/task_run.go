@@ -31,14 +31,14 @@ type TaskRun struct {
 }
 
 func (w *TaskRun) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return w.next(rc, options, 0)
 }
 
 func (w *TaskRun) next(
 	mCtx dukkha.TaskExecContext,
-	options *dukkha.TaskExecOptions,
+	options *dukkha.TaskMatrixExecOptions,
 	index int,
 ) ([]dukkha.TaskExecSpec, error) {
 	var (

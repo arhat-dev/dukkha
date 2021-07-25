@@ -28,7 +28,7 @@ type TaskTest struct {
 }
 
 func (w *TaskTest) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskExecOptions,
+	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return nil, fmt.Errorf("UNIMPLEMENTED")
 }
