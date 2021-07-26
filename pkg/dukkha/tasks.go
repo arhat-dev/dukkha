@@ -105,8 +105,6 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 		if err != nil {
 			return nil, fmt.Errorf("invalid matrix arg\n\n%s\nerror: %w", callArgs[1], err)
 		}
-
-		fmt.Println("MATRIX", ref)
 	}
 
 	return ref, nil

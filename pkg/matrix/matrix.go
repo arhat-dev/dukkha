@@ -28,7 +28,7 @@ func defaultSpecs(hostKernel, hostArch string) []Entry {
 	}
 }
 
-func (mc *Spec) GetSpecs(
+func (mc *Spec) GenerateEntries(
 	matchFilter map[string][]string,
 	hostKernel, hostArch string,
 ) []Entry {
