@@ -31,6 +31,7 @@ cmd() {
     eval "${go_test} -c -o ./build/dukkha.test -coverpkg=./... ./cmd/..."
 
     ./build/dukkha.test \
+      -test.timeout=1h \
       -test.coverprofile=coverage.cmd.txt \
       -- \
       workflow local run test
