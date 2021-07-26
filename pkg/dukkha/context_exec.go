@@ -1,6 +1,76 @@
 package dukkha
 
-import "github.com/fatih/color"
+import (
+	"arhat.dev/dukkha/pkg/sliceutils"
+	"github.com/fatih/color"
+)
+
+type TaskExecOptions interface {
+	NextMatrixExecOptions(useShell bool, shellName string, toolCmd []string) TaskMatrixExecOptions
+}
+
+func CreateTaskExecOptions(id, totalMatrix int) TaskExecOptions {
+	return &taskExecOpts{
+		id:    id,
+		seq:   -1,
+		total: totalMatrix,
+	}
+}
+
+type taskExecOpts struct {
+	id    int
+	seq   int
+	total int
+}
+
+func (opts *taskExecOpts) NextMatrixExecOptions(
+	useShell bool, shellName string, toolCmd []string,
+) TaskMatrixExecOptions {
+	opts.seq++
+
+	ret := &taskMatrixExecOpts{
+		id:    opts.id,
+		seq:   opts.seq,
+		total: opts.total,
+
+		useShell:  useShell,
+		shellName: shellName,
+		toolCmd:   sliceutils.NewStrings(toolCmd),
+	}
+
+	return ret
+}
+
+type TaskMatrixExecOptions interface {
+	ID() int
+	Total() int
+
+	UseShell() bool
+	ShellName() string
+	ToolCmd() []string
+
+	Seq() int
+
+	IsLast() bool
+}
+
+type taskMatrixExecOpts struct {
+	id    int
+	seq   int
+	total int
+
+	useShell  bool
+	shellName string
+	toolCmd   []string
+}
+
+func (opts *taskMatrixExecOpts) ID() int           { return opts.id }
+func (opts *taskMatrixExecOpts) UseShell() bool    { return opts.useShell }
+func (opts *taskMatrixExecOpts) ShellName() string { return opts.shellName }
+func (opts *taskMatrixExecOpts) Seq() int          { return opts.seq }
+func (opts *taskMatrixExecOpts) Total() int        { return opts.total }
+func (opts *taskMatrixExecOpts) ToolCmd() []string { return opts.toolCmd }
+func (opts *taskMatrixExecOpts) IsLast() bool      { return opts.seq == opts.total-1 }
 
 type ExecValues interface {
 	SetOutputPrefix(s string)
