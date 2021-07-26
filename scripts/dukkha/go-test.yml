@@ -9,6 +9,8 @@
   matrix:
     pkg@shell: |-
       find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}' \;
+      find ./pkg/tools -mindepth 1 -maxdepth 1 -type d -exec \
+        sh -c "echo '- {}' | grep -v _fixture | grep -v nfpm" \;
   path@env: ${MATRIX_PKG}
   verbose: true
   panic_on_exit_0: true
@@ -19,7 +21,7 @@
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        coverage.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.txt
+        coverage.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.txt
         {{- end -}}
       packages@env:
       - ${MATRIX_PKG}
@@ -28,33 +30,33 @@
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        memory.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        memory.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.out
         {{- end -}}
 
     cpu:
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        cpu.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        cpu.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.out
         {{- end -}}
 
     mutex:
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        mutex.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        mutex.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.out
         {{- end -}}
 
     block:
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        block.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        block.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.out
         {{- end -}}
 
     trace:
       enabled: true
       output@template: |-
         {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
-        trace.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        trace.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.out
         {{- end -}}
