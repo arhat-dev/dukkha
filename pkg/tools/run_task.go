@@ -5,6 +5,8 @@ import (
 	"strings"
 	"sync"
 
+	"go.uber.org/multierr"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
@@ -20,7 +22,7 @@ type TaskExecRequest struct {
 }
 
 // nolint:gocyclo
-func RunTask(req *TaskExecRequest) error {
+func RunTask(req *TaskExecRequest) (err error) {
 	type taskResult struct {
 		matrixSpec string
 		errMsg     string
@@ -44,7 +46,7 @@ func RunTask(req *TaskExecRequest) error {
 
 	// task may need tool specific env, resolve tool env first
 
-	err := req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
+	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
 		req.Context.AddEnv(req.Tool.GetEnv()...)
 		return nil
 	}, "BaseTool.Env")
@@ -65,12 +67,14 @@ func RunTask(req *TaskExecRequest) error {
 			req.Context, dukkha.StageAfter,
 		)
 		if err2 != nil {
-			appendErrorResult(make(matrix.Entry), err2)
+			err = multierr.Append(err, err2)
+			return
 		}
 
 		err2 = runHook(req.Context, dukkha.StageAfter, hookAfter)
 		if err2 != nil {
-			appendErrorResult(make(matrix.Entry), err2)
+			err = multierr.Append(err, err2)
+			return
 		}
 	}()
 
@@ -95,6 +99,7 @@ func RunTask(req *TaskExecRequest) error {
 	}
 
 	if len(matrixSpecs) == 0 {
+		// TODO: write warning and ignore error
 		return fmt.Errorf("no matrix spec match")
 	}
 
@@ -193,12 +198,9 @@ matrixRun:
 
 			err3 = doRun(mCtx, execSpecs, nil)
 
-			output.WriteExecResult(
-				mCtx.PrefixColor(),
-				mCtx.CurrentTool(),
-				mCtx.CurrentTask(),
-				ms.String(),
-				err3,
+			output.WriteExecResult(mCtx.PrefixColor(),
+				mCtx.CurrentTool(), mCtx.CurrentTask(),
+				ms.String(), err3,
 			)
 
 			if err3 != nil {

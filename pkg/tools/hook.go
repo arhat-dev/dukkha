@@ -83,7 +83,7 @@ func (h *TaskHooks) GenSpecs(
 	stage dukkha.TaskExecStage,
 ) ([]dukkha.RunTaskOrRunCmd, error) {
 	// TODO: this func is only called by BaseTask with lock for now
-	// 		 if we call it from other place, we need to add lock to it
+	// 		 if we call it from other places, we need to use lock here
 
 	logger := log.Log.WithName("TaskHooks").WithFields(
 		log.String("stage", stage.String()),
