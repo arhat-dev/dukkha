@@ -1,0 +1,4 @@
+# matrix@http:
+#   url: https://raw.githubusercontent.com/arhat-dev/dockerfile/master/.dukkha/specs/matrix-linux.yml
+#   user@env: hi-$(echo hello)
+#   password@shell: echo "test"

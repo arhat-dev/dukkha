@@ -98,12 +98,15 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 	case 1:
 		// using default matrix spec, do nothing
 	case 2:
+		// second arg is matrix spec
 		matrixFilterStr := strings.TrimRight(strings.TrimSpace(callArgs[1]), ",")
 		ref.MatrixFilter = make(map[string][]string)
 		err = yaml.Unmarshal([]byte(matrixFilterStr), &ref.MatrixFilter)
 		if err != nil {
-			return nil, fmt.Errorf("invalid matrix arg \n\n%s\nerror: %w", callArgs[1], err)
+			return nil, fmt.Errorf("invalid matrix arg\n\n%s\nerror: %w", callArgs[1], err)
 		}
+
+		fmt.Println("MATRIX", ref)
 	}
 
 	return ref, nil
