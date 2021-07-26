@@ -8,7 +8,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type TaskExecRequest struct {
@@ -106,9 +105,10 @@ func RunTask(req *TaskExecRequest) error {
 		waitCh <- struct{}{}
 	}
 
+	opts := dukkha.CreateTaskExecOptions(0, len(matrixSpecs))
 matrixRun:
-	for i, ms := range matrixSpecs {
-		mCtx, options, err2 := createTaskMatrixContext(req, ms, i, len(matrixSpecs))
+	for _, ms := range matrixSpecs {
+		mCtx, options, err2 := createTaskMatrixContext(req, ms, opts)
 
 		if err2 != nil {
 			appendErrorResult(ms, err2)
@@ -284,8 +284,8 @@ matrixRun:
 func createTaskMatrixContext(
 	req *TaskExecRequest,
 	ms matrix.Entry,
-	seq, total int,
-) (dukkha.TaskExecContext, *dukkha.TaskMatrixExecOptions, error) {
+	opts dukkha.TaskExecOptions,
+) (dukkha.TaskExecContext, dukkha.TaskMatrixExecOptions, error) {
 	mCtx := req.Context.DeriveNew()
 
 	// set default matrix filter for referenced hook tasks
@@ -310,23 +310,22 @@ func createTaskMatrixContext(
 		mCtx.SetOutputPrefix(ms.BriefString() + ": ")
 	}
 
-	mCtx.SetTaskColors(output.PickColor(seq))
-
 	// tool may have reference to MATRIX_ values
 	// but MUST not have reference to task specific env
 
 	// now everything prepared for the tool, resolve all of it
 
-	options := &dukkha.TaskMatrixExecOptions{
-		Seq:   seq,
-		Total: total,
-	}
+	var options dukkha.TaskMatrixExecOptions
 	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, func() error {
 		mCtx.AddEnv(req.Tool.GetEnv()...)
 
-		options.ToolCmd = sliceutils.NewStrings(req.Tool.GetCmd())
-		options.UseShell = req.Tool.UseShell()
-		options.ShellName = req.Tool.ShellName()
+		options = opts.NextMatrixExecOptions(
+			req.Tool.UseShell(),
+			req.Tool.ShellName(),
+			req.Tool.GetCmd(),
+		)
+
+		mCtx.SetTaskColors(output.PickColor(options.Seq()))
 
 		return nil
 	})

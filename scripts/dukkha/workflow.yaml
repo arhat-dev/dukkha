@@ -30,7 +30,7 @@ workflow:run:
           ],
         })
     - name: Run Tests
-      task: 'golang:test(dukkha, {pkg: []})'
+      task: golang:test(dukkha, {})
 
     after:success:
     - shell: printf 'Succeeded\n'

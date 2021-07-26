@@ -20,9 +20,7 @@ func TestTaskRelease_GetExecSpecs(t *testing.T) {
 					TaskName: "foo",
 				},
 			},
-			Options: &dukkha.TaskMatrixExecOptions{
-				ToolCmd: toolCmd,
-			},
+			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Env:     []string{"CGO_ENABLED=0"},
