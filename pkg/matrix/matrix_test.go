@@ -11,7 +11,7 @@ import (
 	_ "embed"
 )
 
-func TestMatrixConfig_GetSpecs(t *testing.T) {
+func TestMatrixConfig_GenerateEntries(t *testing.T) {
 	tests := []struct {
 		name string
 		in   Spec
@@ -172,7 +172,7 @@ func TestMatrixConfig_GetSpecs(t *testing.T) {
 			assert.EqualValues(
 				t,
 				test.expected,
-				test.in.GetSpecs(test.filter, "", ""),
+				test.in.GenerateEntries(test.filter, "", ""),
 			)
 		})
 	}
@@ -183,7 +183,7 @@ var (
 	fitlerAMD64GotUnwantedAIX []byte
 )
 
-func TestMatrixConfig_GetSpecs_Fixture(t *testing.T) {
+func TestMatrixConfig_GenerateEntries_Fixture(t *testing.T) {
 	tests := []struct {
 		name           string
 		yamlMatrixSpec []byte
@@ -209,7 +209,7 @@ func TestMatrixConfig_GetSpecs_Fixture(t *testing.T) {
 				return
 			}
 
-			entries := spec.GetSpecs(test.filter, "", "")
+			entries := spec.GenerateEntries(test.filter, "", "")
 			assert.EqualValues(t, test.expected, entries)
 		})
 	}
