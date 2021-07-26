@@ -16,9 +16,9 @@ workflow:run:
     before:matrix:
     - shell:bash: echo "check bash shell ${FOO}"
     after:matrix:success:
-    - shell: echo success
+    - shell: echo matrix run success
     after:matrix:failure:
-    - shell: echo failed
+    - shell: echo matrix run failed
     after:matrix:
     - task: |-
         golang:build(dukkha, {
@@ -29,6 +29,9 @@ workflow:run:
             amd64, arm64,
           ],
         })
+    - name: Run Tests
+      task: 'golang:test(dukkha, {pkg: []})'
+
     after:success:
     - shell: printf 'Succeeded\n'
     after:failure:

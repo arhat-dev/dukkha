@@ -1,22 +1,60 @@
 - name: dukkha
-  matrix@http:
-    url: https://raw.githubusercontent.com/arhat-dev/dockerfile/master/.dukkha/specs/matrix-linux.yml
-    user@env: hi-$(echo hello)
-    password@shell: echo "test"
+  env:
+  - PROFILE_OUTPUT_DIR=build/test-profile
   hooks:
     before:
-    - shell: echo "hello"
-    - shell:python: print("world")
-    before:matrix:
-    - task@env: |-
-        golang:local:build(
-          dukkha,
-          {
-            kernel: [darwin],
-            arch: [arm64],
-          },
-        )
-    after:success@shell: |-
-      echo '- shell: echo "Done."'
-    after:failure:
-    - shell: echo "failed"
+    - shell: mkdir -p ${PROFILE_OUTPUT_DIR}
+    # after:success:
+    # - shell: go tool pprof ${PROFILE_OUTPUT_DIR}/mem.out
+  matrix:
+    pkg@shell: |-
+      find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}' \;
+  path@env: ${MATRIX_PKG}
+  verbose: true
+  panic_on_exit_0: true
+
+  profile:
+    output_dir@env: ${PROFILE_OUTPUT_DIR}
+    coverage:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        coverage.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.txt
+        {{- end -}}
+      packages@env:
+      - ${MATRIX_PKG}
+
+    memory:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        memory.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        {{- end -}}
+
+    cpu:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        cpu.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        {{- end -}}
+
+    mutex:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        mutex.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        {{- end -}}
+
+    block:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        block.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        {{- end -}}
+
+    trace:
+      enabled: true
+      output@template: |-
+        {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+        trace.{{ trimPrefix "./pkg/" .Env.MATRIX_PKG }}.out
+        {{- end -}}
