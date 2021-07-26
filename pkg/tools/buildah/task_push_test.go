@@ -3,9 +3,10 @@ package buildah
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTaskPush_ManifestHandling(t *testing.T) {
