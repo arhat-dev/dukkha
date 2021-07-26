@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
+	"sort"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
@@ -18,11 +18,25 @@ func init() {
 	dukkha.RegisterTask(
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
-			t := &TaskPush{}
+			t := &TaskPush{
+				manifestCache: make(map[manifestCacheKey]manifestCacheValue),
+			}
 			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
 			return t
 		},
 	)
+}
+
+type manifestCacheKey struct {
+	execID int
+	name   string
+}
+
+type manifestCacheValue struct {
+	subIndex int
+	name     string
+
+	opts dukkha.TaskMatrixExecOptions
 }
 
 type TaskPush struct {
@@ -31,11 +45,84 @@ type TaskPush struct {
 	tools.BaseTask `yaml:",inline"`
 
 	ImageNames []ImageNameSpec `yaml:"image_names"`
+
+	manifestCache map[manifestCacheKey]manifestCacheValue
+}
+
+func (c *TaskPush) cacheManifestPushSpec(
+	opts dukkha.TaskMatrixExecOptions,
+	manifestName string,
+	index int,
+) {
+	key := manifestCacheKey{
+		execID: opts.ID(),
+		name:   manifestName,
+	}
+
+	c.manifestCache[key] = manifestCacheValue{
+		subIndex: index,
+
+		name: manifestName,
+		opts: opts,
+	}
+}
+
+func (c *TaskPush) createManifestPushSpecsFromCache(
+	rc dukkha.TaskExecContext, execID int,
+) []dukkha.TaskExecSpec {
+	var (
+		values []manifestCacheValue
+	)
+
+	// filter manifests belong to this exec
+	for k, v := range c.manifestCache {
+		if k.execID != execID {
+			continue
+		}
+
+		values = append(values, v)
+	}
+
+	// restore original order
+	sort.SliceStable(values, func(i, j int) bool {
+		less := values[i].opts.Seq() < values[j].opts.Seq()
+		if less {
+			return true
+		}
+
+		return values[i].subIndex < values[j].subIndex
+	})
+
+	// generate specs using original options
+	var ret []dukkha.TaskExecSpec
+	for _, v := range values {
+		delete(c.manifestCache, manifestCacheKey{
+			execID: v.opts.ID(),
+			name:   v.name,
+		})
+
+		// buildah manifest push --all \
+		//   <manifest-list-name> <transport>:<transport-details>
+		ret = append(ret, dukkha.TaskExecSpec{
+			Env: sliceutils.NewStrings(c.Env),
+			Command: sliceutils.NewStrings(
+				v.opts.ToolCmd(), "manifest", "push", "--all",
+				getLocalManifestName(v.name),
+				// TODO: support other destination
+				"docker://"+v.name,
+			),
+			IgnoreError: false,
+			UseShell:    v.opts.UseShell(),
+			ShellName:   v.opts.ShellName(),
+		})
+	}
+
+	return ret
 }
 
 func (c *TaskPush) GetExecSpecs(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	opts dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 
@@ -52,7 +139,7 @@ func (c *TaskPush) GetExecSpecs(
 
 		dukkhaCacheDir := rc.CacheDir()
 
-		for _, spec := range targets {
+		for i, spec := range targets {
 			if len(spec.Image) != 0 {
 				imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 				imageIDFile := GetImageIDFileForImageName(
@@ -66,14 +153,14 @@ func (c *TaskPush) GetExecSpecs(
 				result = append(result, dukkha.TaskExecSpec{
 					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
-						options.ToolCmd(), "push",
+						opts.ToolCmd(), "push",
 						string(bytes.TrimSpace(imageIDBytes)),
 						// TODO: support other destination
 						"docker://"+imageName,
 					),
 					IgnoreError: false,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
+					UseShell:    opts.UseShell(),
+					ShellName:   opts.ShellName(),
 				})
 			}
 
@@ -81,38 +168,19 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			if !options.IsLast() {
-				continue
-			}
-
-			// buildah manifest push --all \
-			//   <manifest-list-name> <transport>:<transport-details>
 			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
-			result = append(result, dukkha.TaskExecSpec{
-				Env: sliceutils.NewStrings(c.Env),
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "manifest", "push", "--all",
-					getLocalManifestName(manifestName),
-					// TODO: support other destination
-					"docker://"+manifestName,
-				),
-				IgnoreError: false,
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
-			})
+			c.cacheManifestPushSpec(opts, manifestName, i)
+		}
+
+		// push all manifests at last
+		if opts.IsLast() {
+			result = append(result,
+				c.createManifestPushSpecsFromCache(rc, opts.ID())...,
+			)
 		}
 
 		return nil
 	})
 
 	return result, err
-}
-
-func ImageOrManifestHasFQDN(s string) bool {
-	parts := strings.SplitN(s, "/", 2)
-	if len(parts) == 1 {
-		return false
-	}
-
-	return strings.Contains(parts[0], ".")
 }
