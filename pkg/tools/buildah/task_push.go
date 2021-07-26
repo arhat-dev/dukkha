@@ -67,9 +67,7 @@ func (c *TaskPush) cacheManifestPushSpec(
 	}
 }
 
-func (c *TaskPush) createManifestPushSpecsFromCache(
-	rc dukkha.TaskExecContext, execID int,
-) []dukkha.TaskExecSpec {
+func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExecSpec {
 	var (
 		values []manifestCacheValue
 	)
@@ -175,7 +173,7 @@ func (c *TaskPush) GetExecSpecs(
 		// push all manifests at last
 		if opts.IsLast() {
 			result = append(result,
-				c.createManifestPushSpecsFromCache(rc, opts.ID())...,
+				c.createManifestPushSpecsFromCache(opts.ID())...,
 			)
 		}
 
