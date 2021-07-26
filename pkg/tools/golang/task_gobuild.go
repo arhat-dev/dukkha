@@ -38,7 +38,7 @@ type TaskBuild struct {
 }
 
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var buildSteps []dukkha.TaskExecSpec
 
@@ -67,12 +67,12 @@ func (c *TaskBuild) GetExecSpecs(
 
 				// put generated env first, so user can override them
 				Env:       sliceutils.NewStrings(env, c.Env...),
-				Command:   sliceutils.NewStrings(options.ToolCmd, "build", "-o", output),
-				UseShell:  options.UseShell,
-				ShellName: options.ShellName,
+				Command:   sliceutils.NewStrings(options.ToolCmd(), "build", "-o", output),
+				UseShell:  options.UseShell(),
+				ShellName: options.ShellName(),
 			}
 
-			spec.Command = append(spec.Command, c.BuildOptions.generateArgs(options.UseShell)...)
+			spec.Command = append(spec.Command, c.BuildOptions.generateArgs(options.UseShell())...)
 			spec.Command = append(spec.Command, c.ExtraArgs...)
 
 			if len(c.Path) != 0 {

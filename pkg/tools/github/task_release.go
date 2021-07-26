@@ -48,13 +48,13 @@ type ReleaseFileSpec struct {
 }
 
 func (c *TaskRelease) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
 		createCmd := sliceutils.NewStrings(
-			options.ToolCmd, "release", "create", c.Tag,
+			options.ToolCmd(), "release", "create", c.Tag,
 		)
 
 		if c.Draft {
@@ -114,8 +114,8 @@ func (c *TaskRelease) GetExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			Env:       sliceutils.NewStrings(c.Env),
 			Command:   createCmd,
-			UseShell:  options.UseShell,
-			ShellName: options.ShellName,
+			UseShell:  options.UseShell(),
+			ShellName: options.ShellName(),
 		})
 
 		return nil

@@ -37,13 +37,13 @@ type TaskLogin struct {
 
 func (c *TaskLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,
-	options *dukkha.TaskMatrixExecOptions,
+	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
 		loginCmd := sliceutils.NewStrings(
-			options.ToolCmd, "login",
+			options.ToolCmd(), "login",
 			"--username", c.Username,
 			"--password-stdin",
 		)
@@ -62,8 +62,8 @@ func (c *TaskLogin) GetExecSpecs(
 			Stdin:       strings.NewReader(password),
 			Command:     append(loginCmd, c.Registry),
 			IgnoreError: false,
-			UseShell:    options.UseShell,
-			ShellName:   options.ShellName,
+			UseShell:    options.UseShell(),
+			ShellName:   options.ShellName(),
 		})
 
 		return nil

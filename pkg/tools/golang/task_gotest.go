@@ -51,7 +51,7 @@ type TaskTest struct {
 }
 
 func (c *TaskTest) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
@@ -91,10 +91,10 @@ func (c *TaskTest) GetExecSpecs(
 		})
 
 		compileCmd := sliceutils.NewStrings(
-			options.ToolCmd, "test", "-c", "-o", builtTestExecutable,
+			options.ToolCmd(), "test", "-c", "-o", builtTestExecutable,
 		)
 
-		compileCmd = append(compileCmd, c.Build.generateArgs(options.UseShell)...)
+		compileCmd = append(compileCmd, c.Build.generateArgs(options.UseShell())...)
 		compileCmd = append(compileCmd, c.Test.generateArgs(true)...)
 		compileCmd = append(compileCmd, c.Benchmark.generateArgs(true)...)
 		compileCmd = append(compileCmd, c.Profile.generateArgs(rc.WorkingDir(), true)...)
@@ -103,8 +103,8 @@ func (c *TaskTest) GetExecSpecs(
 			Env:         sliceutils.NewStrings(env, c.Env...),
 			Chdir:       c.Chdir,
 			Command:     append(compileCmd, c.Path),
-			UseShell:    options.UseShell,
-			ShellName:   options.ShellName,
+			UseShell:    options.UseShell(),
+			ShellName:   options.ShellName(),
 			IgnoreError: false,
 		})
 
@@ -158,8 +158,8 @@ func (c *TaskTest) GetExecSpecs(
 						Env:       testEnv,
 						Chdir:     workdir,
 						Command:   runCmd,
-						UseShell:  options.UseShell,
-						ShellName: options.ShellName,
+						UseShell:  options.UseShell(),
+						ShellName: options.ShellName(),
 					},
 				}, nil
 			},

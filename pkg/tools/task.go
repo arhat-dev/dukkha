@@ -15,7 +15,7 @@ var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
 type _baseTaskWithGetExecSpecs struct{ BaseTask }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	return nil, nil
 }

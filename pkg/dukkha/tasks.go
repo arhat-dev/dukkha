@@ -140,26 +140,71 @@ func (s TaskExecStage) String() string {
 	}[s]
 }
 
-type TaskMatrixExecOptions struct {
-	UseShell  bool
-	ShellName string
-	ToolCmd   []string
-
-	Seq   int
-	Total int
+type TaskExecOptions interface {
+	NextMatrixExecOptions(useShell bool, shellName string, toolCmd []string) TaskMatrixExecOptions
 }
 
-func (opts TaskMatrixExecOptions) IsLast() bool {
-	return opts.Seq == opts.Total-1
-}
-
-func (opts TaskMatrixExecOptions) Clone() TaskMatrixExecOptions {
-	return TaskMatrixExecOptions{
-		UseShell:  opts.UseShell,
-		ShellName: opts.ShellName,
-		ToolCmd:   sliceutils.NewStrings(opts.ToolCmd),
+func CreateTaskExecOptions(id, totalMatrix int) TaskExecOptions {
+	return &taskExecOpts{
+		id:    id,
+		seq:   -1,
+		total: totalMatrix,
 	}
 }
+
+type taskExecOpts struct {
+	id    int
+	seq   int
+	total int
+}
+
+func (opts *taskExecOpts) NextMatrixExecOptions(
+	useShell bool, shellName string, toolCmd []string,
+) TaskMatrixExecOptions {
+	opts.seq++
+
+	ret := &taskMatrixExecOpts{
+		id:  opts.id,
+		seq: opts.seq,
+
+		useShell:  useShell,
+		shellName: shellName,
+		toolCmd:   sliceutils.NewStrings(toolCmd),
+	}
+
+	return ret
+}
+
+type TaskMatrixExecOptions interface {
+	ID() int
+	Total() int
+
+	UseShell() bool
+	ShellName() string
+	ToolCmd() []string
+
+	Seq() int
+
+	IsLast() bool
+}
+
+type taskMatrixExecOpts struct {
+	id    int
+	seq   int
+	total int
+
+	useShell  bool
+	shellName string
+	toolCmd   []string
+}
+
+func (opts *taskMatrixExecOpts) ID() int           { return opts.id }
+func (opts *taskMatrixExecOpts) UseShell() bool    { return opts.useShell }
+func (opts *taskMatrixExecOpts) ShellName() string { return opts.shellName }
+func (opts *taskMatrixExecOpts) Seq() int          { return opts.seq }
+func (opts *taskMatrixExecOpts) Total() int        { return opts.total }
+func (opts *taskMatrixExecOpts) ToolCmd() []string { return opts.toolCmd }
+func (opts *taskMatrixExecOpts) IsLast() bool      { return opts.seq == opts.total-1 }
 
 type RunTaskOrRunCmd interface{}
 
@@ -225,7 +270,7 @@ type Task interface {
 	// GetExecSpecs generate commands using current field values
 	//
 	// The implementation MUST be safe to be used concurrently
-	GetExecSpecs(rc TaskExecContext, options *TaskMatrixExecOptions) ([]TaskExecSpec, error)
+	GetExecSpecs(rc TaskExecContext, options TaskMatrixExecOptions) ([]TaskExecSpec, error)
 
 	// GetHookExecSpecs generate hook run target
 	//

@@ -23,7 +23,7 @@ func init() {
 type TaskPush buildah.TaskPush
 
 func (c *TaskPush) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 
@@ -37,7 +37,7 @@ func (c *TaskPush) GetExecSpecs(
 		}
 
 		var (
-			manifestCmd = sliceutils.NewStrings(options.ToolCmd, "manifest")
+			manifestCmd = sliceutils.NewStrings(options.ToolCmd(), "manifest")
 		)
 
 		for _, spec := range targets {
@@ -51,11 +51,11 @@ func (c *TaskPush) GetExecSpecs(
 				result = append(result, dukkha.TaskExecSpec{
 					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
-						options.ToolCmd, "push", imageName,
+						options.ToolCmd(), "push", imageName,
 					),
 					IgnoreError: false,
-					UseShell:    options.UseShell,
-					ShellName:   options.ShellName,
+					UseShell:    options.UseShell(),
+					ShellName:   options.ShellName(),
 				})
 			}
 
@@ -73,8 +73,8 @@ func (c *TaskPush) GetExecSpecs(
 					),
 					// may already exists
 					IgnoreError: true,
-					UseShell:    options.UseShell,
-					ShellName:   options.ShellName,
+					UseShell:    options.UseShell(),
+					ShellName:   options.ShellName(),
 				},
 				// link manifest and image
 				dukkha.TaskExecSpec{
@@ -83,8 +83,8 @@ func (c *TaskPush) GetExecSpecs(
 						"--amend", imageName,
 					),
 					IgnoreError: false,
-					UseShell:    options.UseShell,
-					ShellName:   options.ShellName,
+					UseShell:    options.UseShell(),
+					ShellName:   options.ShellName(),
 				},
 			)
 
@@ -108,18 +108,18 @@ func (c *TaskPush) GetExecSpecs(
 				Env:         sliceutils.NewStrings(c.Env),
 				Command:     annotateCmd,
 				IgnoreError: false,
-				UseShell:    options.UseShell,
-				ShellName:   options.ShellName,
+				UseShell:    options.UseShell(),
+				ShellName:   options.ShellName(),
 			})
 
 			// docker manifest push <manifest-list-name>
 			if buildah.ImageOrManifestHasFQDN(manifestName) {
 				result = append(result, dukkha.TaskExecSpec{
 					Env:         sliceutils.NewStrings(c.Env),
-					Command:     sliceutils.NewStrings(options.ToolCmd, "manifest", "push", spec.Manifest),
+					Command:     sliceutils.NewStrings(options.ToolCmd(), "manifest", "push", spec.Manifest),
 					IgnoreError: false,
-					UseShell:    options.UseShell,
-					ShellName:   options.ShellName,
+					UseShell:    options.UseShell(),
+					ShellName:   options.ShellName(),
 				})
 			}
 		}

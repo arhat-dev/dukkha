@@ -20,16 +20,12 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			Name:      "Invalid Empty",
 			Task:      &git.TaskClone{},
 			ExpectErr: true,
-			Options: &dukkha.TaskMatrixExecOptions{
-				ToolCmd: toolCmd,
-			},
+			Options:   dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 		},
 		{
-			Name: "Valid Clone Using Default Branch",
-			Task: &git.TaskClone{URL: "example/foo.git"},
-			Options: &dukkha.TaskMatrixExecOptions{
-				ToolCmd: toolCmd,
-			},
+			Name:    "Valid Clone Using Default Branch",
+			Task:    &git.TaskClone{URL: "example/foo.git"},
+			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin origin example/foo.git", " "),
@@ -46,11 +42,9 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			},
 		},
 		{
-			Name: "Valid Clone Changing Remote Name",
-			Task: &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
-			Options: &dukkha.TaskMatrixExecOptions{
-				ToolCmd: toolCmd,
-			},
+			Name:    "Valid Clone Changing Remote Name",
+			Task:    &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
+			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split("git clone --no-checkout --origin bar example/foo", " "),

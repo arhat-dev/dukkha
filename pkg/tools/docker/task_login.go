@@ -24,12 +24,12 @@ func init() {
 type TaskLogin buildah.TaskLogin
 
 func (c *TaskLogin) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
 		loginCmd := sliceutils.NewStrings(
-			options.ToolCmd, "login",
+			options.ToolCmd(), "login",
 			"--username", c.Username,
 			"--password-stdin",
 		)
@@ -40,8 +40,8 @@ func (c *TaskLogin) GetExecSpecs(
 			Stdin:     strings.NewReader(password),
 			Env:       sliceutils.NewStrings(c.Env),
 			Command:   append(loginCmd, c.Registry),
-			UseShell:  options.UseShell,
-			ShellName: options.ShellName,
+			UseShell:  options.UseShell(),
+			ShellName: options.ShellName(),
 		})
 
 		return nil

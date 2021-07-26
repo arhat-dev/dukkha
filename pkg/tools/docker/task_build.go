@@ -24,7 +24,7 @@ type TaskBuild buildah.TaskBuild
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
 func (c *TaskBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
@@ -37,7 +37,7 @@ func (c *TaskBuild) GetExecSpecs(
 			}}
 		}
 
-		buildCmd := sliceutils.NewStrings(options.ToolCmd, "build")
+		buildCmd := sliceutils.NewStrings(options.ToolCmd(), "build")
 		for _, spec := range targets {
 			if len(spec.Image) == 0 {
 				continue
@@ -65,8 +65,8 @@ func (c *TaskBuild) GetExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			Command:   buildCmd,
 			Env:       sliceutils.NewStrings(c.Env),
-			UseShell:  options.UseShell,
-			ShellName: options.ShellName,
+			UseShell:  options.UseShell(),
+			ShellName: options.ShellName(),
 		})
 
 		return nil

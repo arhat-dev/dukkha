@@ -42,14 +42,14 @@ type PackageSigningSpec struct {
 }
 
 func (c *TaskPackage) GetExecSpecs(
-	rc dukkha.TaskExecContext, options *dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Env:     sliceutils.NewStrings(c.Env),
-		Command: sliceutils.NewStrings(options.ToolCmd, "package"),
+		Command: sliceutils.NewStrings(options.ToolCmd(), "package"),
 
-		UseShell:  options.UseShell,
-		ShellName: options.ShellName,
+		UseShell:  options.UseShell(),
+		ShellName: options.ShellName(),
 	}
 
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
