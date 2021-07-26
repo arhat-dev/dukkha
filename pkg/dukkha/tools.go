@@ -14,7 +14,7 @@ type (
 	}
 )
 
-func (k *ToolKey) String() string {
+func (k ToolKey) String() string {
 	return string(k.Kind) + ":" + string(k.Name)
 }
 

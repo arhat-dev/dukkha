@@ -16,9 +16,12 @@ workflow:run:
     before:matrix:
     - shell:bash: echo "check bash shell ${FOO}"
     after:matrix:success:
+    - task: golang:test(dukkha, {})
     - shell: echo matrix run success
+
     after:matrix:failure:
     - shell: echo matrix run failed
+
     after:matrix:
     - task: |-
         golang:build(dukkha, {
@@ -29,15 +32,23 @@ workflow:run:
             amd64, arm64,
           ],
         })
-    - name: Run Tests
-      task: golang:test(dukkha, {})
 
-    after:success:
-    - shell: printf 'Succeeded\n'
     after:failure:
     - shell: printf 'Failed\n'
-    after:
-    - shell:python: print("finished")
+
+    after:success@shell: |-
+      prefix="buildah:local"
+      if ! command -v buildah >/dev/null 2>&1; then
+        prefix="buildah:in-docker"
+      fi
+
+      echo "- task: ${prefix}:build(dukkha, {})"
+
+      if [[ ${PUSH_DUKKHA_IMAGE_IN_CMD_TEST} == "true" ]]; then
+        echo "- task: ${prefix}:push(dukkha, {})"
+      fi
+
+      echo "- shell: printf 'Succeeded\n'"
 
   jobs@template:
   - name: test dukkha working with nested rendering suffix
