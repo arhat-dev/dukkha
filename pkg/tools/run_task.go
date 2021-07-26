@@ -67,14 +67,21 @@ func RunTask(req *TaskExecRequest) (err error) {
 			req.Context, dukkha.StageAfter,
 		)
 		if err2 != nil {
-			err = multierr.Append(err, err2)
-			return
+			appendErrorResult(make(matrix.Entry), err2)
+		} else {
+			err2 = runHook(req.Context, dukkha.StageAfter, hookAfter)
+			if err2 != nil {
+				appendErrorResult(make(matrix.Entry), err2)
+			}
 		}
 
-		err2 = runHook(req.Context, dukkha.StageAfter, hookAfter)
-		if err2 != nil {
-			err = multierr.Append(err, err2)
-			return
+		if len(errCollection) != 0 {
+			err2 := fmt.Errorf("%v", errCollection)
+			if err != nil {
+				err = multierr.Append(err, err2)
+			} else {
+				err = err2
+			}
 		}
 	}()
 
@@ -119,6 +126,7 @@ matrixRun:
 			appendErrorResult(ms, err2)
 			if req.Context.FailFast() {
 				req.Context.Cancel()
+
 				break matrixRun
 			}
 
@@ -131,11 +139,8 @@ matrixRun:
 		case <-waitCh:
 		}
 
-		output.WriteTaskStart(
-			mCtx.PrefixColor(),
-			mCtx.CurrentTool(),
-			mCtx.CurrentTask(),
-			ms,
+		output.WriteTaskStart(mCtx.PrefixColor(),
+			mCtx.CurrentTool(), mCtx.CurrentTask(), ms,
 		)
 
 		wg.Add(1)
@@ -161,14 +166,12 @@ matrixRun:
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
-					return
-				}
-
-				// TODO: handle hook error
-				err4 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
-				if err4 != nil {
-					appendErrorResult(ms, err4)
-					return
+				} else {
+					// TODO: handle hook error
+					err4 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
+					if err4 != nil {
+						appendErrorResult(ms, err4)
+					}
 				}
 			}()
 
@@ -216,17 +219,11 @@ matrixRun:
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
-					return
-				}
-
-				err4 = runHook(
-					mCtx,
-					dukkha.StageAfterMatrixFailure,
-					hookAfterMatrixFailure,
-				)
-				if err4 != nil {
-					appendErrorResult(ms, err4)
-					return
+				} else {
+					err4 = runHook(mCtx, dukkha.StageAfterMatrixFailure, hookAfterMatrixFailure)
+					if err4 != nil {
+						appendErrorResult(ms, err4)
+					}
 				}
 
 				return
@@ -237,13 +234,11 @@ matrixRun:
 			)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
-				return
-			}
-
-			err3 = runHook(mCtx, dukkha.StageAfterMatrixSuccess, hookAfterMatrixSuccess)
-			if err3 != nil {
-				appendErrorResult(ms, err3)
-				return
+			} else {
+				err3 = runHook(mCtx, dukkha.StageAfterMatrixSuccess, hookAfterMatrixSuccess)
+				if err3 != nil {
+					appendErrorResult(ms, err3)
+				}
 			}
 		}(ms)
 	}
@@ -256,6 +251,7 @@ matrixRun:
 		)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
+			return
 		}
 
 		err2 = runHook(req.Context, dukkha.StageAfterFailure, hookAfterFailure)
@@ -263,7 +259,7 @@ matrixRun:
 			appendErrorResult(make(matrix.Entry), err2)
 		}
 
-		return fmt.Errorf("task execution failed: %v", errCollection)
+		return
 	}
 
 	hookAfterSuccess, err := req.Task.GetHookExecSpecs(
@@ -271,14 +267,16 @@ matrixRun:
 	)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
+		return
 	}
 
 	err = runHook(req.Context, dukkha.StageAfterSuccess, hookAfterSuccess)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
+		return
 	}
 
-	return nil
+	return
 }
 
 // createTaskMatrixContext creates a per matrix entry task exec options
