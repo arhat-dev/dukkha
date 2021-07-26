@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"strings"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
@@ -47,7 +49,7 @@ func (c *TaskPush) GetExecSpecs(
 
 			imageName := buildah.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 			// docker push <image-name>
-			if buildah.ImageOrManifestHasFQDN(imageName) {
+			if imageOrManifestHasFQDN(imageName) {
 				result = append(result, dukkha.TaskExecSpec{
 					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
@@ -113,7 +115,7 @@ func (c *TaskPush) GetExecSpecs(
 			})
 
 			// docker manifest push <manifest-list-name>
-			if buildah.ImageOrManifestHasFQDN(manifestName) {
+			if imageOrManifestHasFQDN(manifestName) {
 				result = append(result, dukkha.TaskExecSpec{
 					Env:         sliceutils.NewStrings(c.Env),
 					Command:     sliceutils.NewStrings(options.ToolCmd(), "manifest", "push", spec.Manifest),
@@ -128,4 +130,13 @@ func (c *TaskPush) GetExecSpecs(
 	})
 
 	return result, err
+}
+
+func imageOrManifestHasFQDN(s string) bool {
+	parts := strings.SplitN(s, "/", 2)
+	if len(parts) == 1 {
+		return false
+	}
+
+	return strings.Contains(parts[0], ".")
 }
