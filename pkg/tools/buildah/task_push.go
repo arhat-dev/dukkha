@@ -27,97 +27,6 @@ func init() {
 	)
 }
 
-type manifestCacheKey struct {
-	execID int
-	name   string
-}
-
-type manifestCacheValue struct {
-	subIndex int
-	name     string
-
-	opts dukkha.TaskMatrixExecOptions
-}
-
-type TaskPush struct {
-	field.BaseField
-
-	tools.BaseTask `yaml:",inline"`
-
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-
-	manifestCache map[manifestCacheKey]manifestCacheValue
-}
-
-func (c *TaskPush) cacheManifestPushSpec(
-	opts dukkha.TaskMatrixExecOptions,
-	manifestName string,
-	index int,
-) {
-	key := manifestCacheKey{
-		execID: opts.ID(),
-		name:   manifestName,
-	}
-
-	c.manifestCache[key] = manifestCacheValue{
-		subIndex: index,
-
-		name: manifestName,
-		opts: opts,
-	}
-}
-
-func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExecSpec {
-	var (
-		values []manifestCacheValue
-	)
-
-	// filter manifests belong to this exec
-	for k, v := range c.manifestCache {
-		if k.execID != execID {
-			continue
-		}
-
-		values = append(values, v)
-	}
-
-	// restore original order
-	sort.SliceStable(values, func(i, j int) bool {
-		less := values[i].opts.Seq() < values[j].opts.Seq()
-		if less {
-			return true
-		}
-
-		return values[i].subIndex < values[j].subIndex
-	})
-
-	// generate specs using original options
-	var ret []dukkha.TaskExecSpec
-	for _, v := range values {
-		delete(c.manifestCache, manifestCacheKey{
-			execID: v.opts.ID(),
-			name:   v.name,
-		})
-
-		// buildah manifest push --all \
-		//   <manifest-list-name> <transport>:<transport-details>
-		ret = append(ret, dukkha.TaskExecSpec{
-			Env: sliceutils.NewStrings(c.Env),
-			Command: sliceutils.NewStrings(
-				v.opts.ToolCmd(), "manifest", "push", "--all",
-				getLocalManifestName(v.name),
-				// TODO: support other destination
-				"docker://"+v.name,
-			),
-			IgnoreError: false,
-			UseShell:    v.opts.UseShell(),
-			ShellName:   v.opts.ShellName(),
-		})
-	}
-
-	return ret
-}
-
 func (c *TaskPush) GetExecSpecs(
 	rc dukkha.TaskExecContext,
 	opts dukkha.TaskMatrixExecOptions,
@@ -167,7 +76,7 @@ func (c *TaskPush) GetExecSpecs(
 			}
 
 			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
-			c.cacheManifestPushSpec(opts, manifestName, i)
+			c.cacheManifestPushSpec(i, opts, manifestName)
 		}
 
 		// push all manifests at last
@@ -181,4 +90,95 @@ func (c *TaskPush) GetExecSpecs(
 	})
 
 	return result, err
+}
+
+type manifestCacheKey struct {
+	execID int
+	name   string
+}
+
+type manifestCacheValue struct {
+	subIndex int
+	name     string
+
+	opts dukkha.TaskMatrixExecOptions
+}
+
+type TaskPush struct {
+	field.BaseField
+
+	tools.BaseTask `yaml:",inline"`
+
+	ImageNames []ImageNameSpec `yaml:"image_names"`
+
+	manifestCache map[manifestCacheKey]manifestCacheValue
+}
+
+func (c *TaskPush) cacheManifestPushSpec(
+	index int,
+	opts dukkha.TaskMatrixExecOptions,
+	manifestName string,
+) {
+	key := manifestCacheKey{
+		execID: opts.ID(),
+		name:   manifestName,
+	}
+
+	c.manifestCache[key] = manifestCacheValue{
+		subIndex: index,
+
+		name: manifestName,
+		opts: opts,
+	}
+}
+
+func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExecSpec {
+	var (
+		values []manifestCacheValue
+	)
+
+	// filter manifests belong to this exec
+	for k, v := range c.manifestCache {
+		if k.execID != execID {
+			continue
+		}
+
+		values = append(values, v)
+	}
+
+	// restore original order
+	sort.Slice(values, func(i, j int) bool {
+		less := values[i].opts.Seq() < values[j].opts.Seq()
+		if less {
+			return true
+		}
+
+		return values[i].subIndex < values[j].subIndex
+	})
+
+	// generate specs using original options
+	var ret []dukkha.TaskExecSpec
+	for _, v := range values {
+		delete(c.manifestCache, manifestCacheKey{
+			execID: v.opts.ID(),
+			name:   v.name,
+		})
+
+		// buildah manifest push --all \
+		//   <manifest-list-name> <transport>:<transport-details>
+		ret = append(ret, dukkha.TaskExecSpec{
+			Env: sliceutils.NewStrings(c.Env),
+			Command: sliceutils.NewStrings(
+				v.opts.ToolCmd(), "manifest", "push", "--all",
+				getLocalManifestName(v.name),
+				// TODO: support other destination
+				"docker://"+v.name,
+			),
+			IgnoreError: false,
+			UseShell:    v.opts.UseShell(),
+			ShellName:   v.opts.ShellName(),
+		})
+	}
+
+	return ret
 }
