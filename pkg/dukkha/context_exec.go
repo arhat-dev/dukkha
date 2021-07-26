@@ -1,8 +1,9 @@
 package dukkha
 
 import (
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"github.com/fatih/color"
+
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type TaskExecOptions interface {
