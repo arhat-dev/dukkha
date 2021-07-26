@@ -92,7 +92,7 @@ func (act *Action) genTaskActionSpecs(
 		return nil, fmt.Errorf("%q: invalid task reference %q: %w", hookID, act.Task, err)
 	}
 
-	if len(ref.MatrixFilter) != 0 {
+	if ref.MatrixFilter != nil {
 		ctx.SetMatrixFilter(ref.MatrixFilter)
 	}
 
