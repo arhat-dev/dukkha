@@ -117,7 +117,8 @@ func (c *contextRendering) AllRenderers() map[string]Renderer {
 //
 // for expand.Environ
 func (c *contextRendering) Get(name string) expand.Variable {
-	return c.createVariable(name)
+	v, ok := c.Env()[name]
+	return c.createVariable(name, v, ok)
 }
 
 // Each iterates over all the currently set variables, calling the
@@ -133,30 +134,28 @@ func (c *contextRendering) Get(name string) expand.Variable {
 //
 // for expand.Environ
 func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
-	for k := range c.Env() {
-		if !do(k, c.createVariable(k)) {
+	for k, v := range c.Env() {
+		if !do(k, c.createVariable(k, v, true)) {
 			return
 		}
 	}
 }
 
-func (c *contextRendering) createVariable(name string) expand.Variable {
-	v, ok := c.Env()[name]
-
+func (c *contextRendering) createVariable(name, value string, eixists bool) expand.Variable {
 	// TODO: set kind for lists
 	kind := expand.String
-	if !ok {
+	if !eixists {
 		switch name {
 		case "IFS":
-			v = " \t\n"
+			value = " \t\n"
 		case "OPTIND":
-			v = "1"
+			value = "1"
 		case "PWD":
-			v = c.WorkingDir()
+			value = c.WorkingDir()
 		case "UID":
 			// os.Getenv("UID") usually retruns empty value
 			// so we have to call os.Getuid
-			v = strconv.FormatInt(int64(os.Getuid()), 10)
+			value = strconv.FormatInt(int64(os.Getuid()), 10)
 		default:
 			kind = expand.Unset
 		}
@@ -167,6 +166,6 @@ func (c *contextRendering) createVariable(name string) expand.Variable {
 		Exported: true,
 		ReadOnly: false,
 		Kind:     kind,
-		Str:      v,
+		Str:      value,
 	}
 }
