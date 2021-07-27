@@ -141,14 +141,28 @@ func (s TaskExecStage) String() string {
 
 type RunTaskOrRunCmd interface{}
 
+type ReplaceEntries map[string]*ReplaceEntry
+
+type ReplaceEntry struct {
+	Data []byte
+	Err  error
+}
+
 type TaskExecSpec struct {
 	// Delay execution
 	Delay time.Duration
 
-	// OutputAsReplace to replace same string in following TaskExecSpecs
-	OutputAsReplace string
+	// StdoutAsReplace to replace same string in following TaskExecSpecs
+	// use output to stdout of this exec
+	StdoutAsReplace string
 
-	FixOutputForReplace func(newValue []byte) []byte
+	FixStdoutValueForReplace func(data []byte) []byte
+
+	// StderrAsReplace to replace same string in following TaskExecSpecs
+	// use output to stderr of this exec
+	StderrAsReplace string
+
+	FixStderrValueForReplace func(data []byte) []byte
 
 	Chdir string
 
@@ -156,7 +170,7 @@ type TaskExecSpec struct {
 	Command []string
 
 	AlterExecFunc func(
-		replace map[string][]byte,
+		replace ReplaceEntries,
 		stdin io.Reader, stdout, stderr io.Writer,
 	) (RunTaskOrRunCmd, error)
 

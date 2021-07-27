@@ -98,7 +98,7 @@ func (c *TaskClone) GetExecSpecs(
 
 			steps = append(steps, dukkha.TaskExecSpec{
 				Chdir:           localPath,
-				OutputAsReplace: replaceTargetDefaultBranch,
+				StdoutAsReplace: replaceTargetDefaultBranch,
 
 				IgnoreError: false,
 				Command: sliceutils.NewStrings(

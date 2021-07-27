@@ -155,11 +155,11 @@ func (c *TaskBuild) createExecSpecs(
 	// read image id file to get image id
 	const replaceTargetImageID = "<IMAGE_ID>"
 	steps = append(steps, dukkha.TaskExecSpec{
-		OutputAsReplace:     replaceTargetImageID,
-		FixOutputForReplace: bytes.TrimSpace,
-		Env:                 sliceutils.NewStrings(c.Env),
+		StdoutAsReplace:          replaceTargetImageID,
+		FixStdoutValueForReplace: bytes.TrimSpace,
+		Env:                      sliceutils.NewStrings(c.Env),
 		AlterExecFunc: func(
-			replace map[string][]byte,
+			replace dukkha.ReplaceEntries,
 			stdin io.Reader, stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
 			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
@@ -183,9 +183,9 @@ func (c *TaskBuild) createExecSpecs(
 	// buildah inspect --type image to get image digest from image id
 	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
 	steps = append(steps, dukkha.TaskExecSpec{
-		OutputAsReplace:     replaceTargetImageDigest,
-		FixOutputForReplace: bytes.TrimSpace,
-		Env:                 sliceutils.NewStrings(c.Env),
+		StdoutAsReplace:          replaceTargetImageDigest,
+		FixStdoutValueForReplace: bytes.TrimSpace,
+		Env:                      sliceutils.NewStrings(c.Env),
 		Command: sliceutils.NewStrings(
 			options.ToolCmd(), "inspect", "--type", "image",
 			"--format", `"{{ .FromImageDigest }}"`,
@@ -231,9 +231,9 @@ func (c *TaskBuild) createExecSpecs(
 
 		const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
 		steps = append(steps, dukkha.TaskExecSpec{
-			OutputAsReplace:     replaceTargetManifestSpec,
-			FixOutputForReplace: nil,
-			Env:                 sliceutils.NewStrings(c.Env),
+			StdoutAsReplace:          replaceTargetManifestSpec,
+			FixStdoutValueForReplace: nil,
+			Env:                      sliceutils.NewStrings(c.Env),
 			Command: sliceutils.NewStrings(
 				options.ToolCmd(), "manifest", "inspect", localManifestName,
 			),
@@ -252,7 +252,7 @@ func (c *TaskBuild) createExecSpecs(
 			IgnoreError: false,
 			Env:         sliceutils.NewStrings(c.Env),
 			AlterExecFunc: func(
-				replace map[string][]byte,
+				replace dukkha.ReplaceEntries,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
 				manifestSpec, ok := replace[replaceTargetManifestSpec]
@@ -278,7 +278,9 @@ func (c *TaskBuild) createExecSpecs(
 				}
 
 				// manifest already created, query to get all matching digests
-				digestResult, err := textquery.JQBytes(manifestOsArchVariantQueryForDigest, manifestSpec)
+				digestResult, err := textquery.JQBytes(
+					manifestOsArchVariantQueryForDigest, manifestSpec.Data,
+				)
 				if err != nil {
 					// no manifests entries, add this image directly
 					return []dukkha.TaskExecSpec{{

@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -59,7 +60,7 @@ func (c *TaskTest) GetExecSpecs(
 		mKernel := rc.MatrixKernel()
 		mArch := rc.MatrixArch()
 
-		env := sliceutils.NewStrings(
+		buildEnv := sliceutils.NewStrings(
 			c.CGO.getEnv(
 				rc.HostKernel() != mKernel || rc.HostArch() != mArch,
 				mKernel, mArch,
@@ -69,107 +70,252 @@ func (c *TaskTest) GetExecSpecs(
 			createBuildEnv(mKernel, mArch)...,
 		)
 
-		// compile the test
-		builtTestExecutable := filepath.Join(
-			rc.CacheDir(), "golang-test",
-			c.TaskName+"-"+hex.EncodeToString(hashhelper.MD5Sum([]byte(c.Path)))+".test",
-		)
-
-		// remove previously built test executable if any
+		env := sliceutils.NewStrings(buildEnv, c.Env...)
+		// get package prefix to be trimed
+		const targetReplaceModuleName = "<MODULE_NAME>"
 		steps = append(steps, dukkha.TaskExecSpec{
-			AlterExecFunc: func(
-				replace map[string][]byte,
-				stdin io.Reader,
-				stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunCmd, error) {
-				err := os.Remove(builtTestExecutable)
-				if err != nil && !os.IsNotExist(err) {
-					return nil, fmt.Errorf("failed to remove previously built test executable: %w", err)
-				}
+			StdoutAsReplace:          targetReplaceModuleName,
+			FixStdoutValueForReplace: bytes.TrimSpace,
 
-				return nil, nil
-			},
-		})
-
-		compileCmd := sliceutils.NewStrings(
-			options.ToolCmd(), "test", "-c", "-o", builtTestExecutable,
-		)
-
-		compileCmd = append(compileCmd, c.Build.generateArgs(options.UseShell())...)
-		compileCmd = append(compileCmd, c.Test.generateArgs(true)...)
-		compileCmd = append(compileCmd, c.Benchmark.generateArgs(true)...)
-		compileCmd = append(compileCmd, c.Profile.generateArgs(rc.WorkingDir(), true)...)
-
-		steps = append(steps, dukkha.TaskExecSpec{
-			Env:         sliceutils.NewStrings(env, c.Env...),
+			Env:         env,
 			Chdir:       c.Chdir,
-			Command:     append(compileCmd, c.Path),
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
+			Command:     sliceutils.NewStrings(options.ToolCmd(), "list", "-m"),
 			IgnoreError: false,
 		})
 
-		workdir := c.Test.WorkDir
-		if len(workdir) == 0 {
-			// use same default workdir as go test
-			if filepath.IsAbs(c.Path) {
-				workdir = c.Path
-			} else {
-				if filepath.IsAbs(c.Chdir) {
-					workdir = filepath.Join(c.Chdir, c.Path)
-				} else {
-					workdir = filepath.Join(rc.WorkingDir(), c.Chdir, c.Path)
-				}
-			}
+		// get a list of packages to be tested
+		listFormat := `{{ .ImportPath }}`
+		if options.UseShell() {
+			listFormat = `'` + listFormat + `'`
 		}
+		const (
+			targetReplacePackages          = "<GO_PACKAGES>"
+			targetReplaceGoListErrorResult = "<GO_LIST_ERROR_RESULT>"
+		)
+		steps = append(steps, dukkha.TaskExecSpec{
+			StdoutAsReplace: targetReplacePackages,
+			StderrAsReplace: targetReplaceGoListErrorResult,
 
-		testEnv := sliceutils.NewStrings(c.Env)
+			Env:   env,
+			Chdir: c.Chdir,
+			Command: sliceutils.NewStrings(
+				options.ToolCmd(), "list", "-f", listFormat, c.Path,
+			),
+			IgnoreError: true,
+		})
 
-		runCmd := []string{builtTestExecutable}
-		runCmd = append(runCmd, c.Test.generateArgs(false)...)
-		runCmd = append(runCmd, c.Benchmark.generateArgs(false)...)
-		runCmd = append(runCmd, c.Profile.generateArgs(rc.WorkingDir(), false)...)
+		// copy values and do not reference task fields
+		// since they are generated dynamically
+		taskName := c.TaskName
+		dukkhaCacheDir := rc.CacheDir()
+		dukkhaWorkingDir := rc.WorkingDir()
+		toolCmd := sliceutils.NewStrings(options.ToolCmd())
+		useShell := options.UseShell()
+		shellName := options.ShellName()
+		chdir := c.Chdir
+
+		var compileArgs []string
+		compileArgs = append(compileArgs, c.Build.generateArgs(useShell)...)
+		compileArgs = append(compileArgs, c.Test.generateArgs(true)...)
+		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
+		compileArgs = append(compileArgs, c.Profile.generateArgs(dukkhaWorkingDir, true)...)
+
+		var runArgs []string
+		runArgs = append(runArgs, c.Test.generateArgs(false)...)
+		runArgs = append(runArgs, c.Benchmark.generateArgs(false)...)
+		runArgs = append(runArgs, c.Profile.generateArgs(dukkhaWorkingDir, false)...)
 		if len(c.CustomArgs) != 0 {
-			runCmd = append(runCmd, "--")
-			runCmd = append(runCmd, c.CustomArgs...)
+			runArgs = append(runArgs, "--")
+			runArgs = append(runArgs, c.CustomArgs...)
 		}
 
-		// check if compiled test file exists
-		// can be missing if no test was found in the package
 		steps = append(steps, dukkha.TaskExecSpec{
 			AlterExecFunc: func(
-				replace map[string][]byte,
-				stdin io.Reader,
-				stdout, stderr io.Writer,
+				replace dukkha.ReplaceEntries,
+				stdin io.Reader, stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				_, err := os.Stat(builtTestExecutable)
-				if err != nil {
-					if os.IsNotExist(err) {
-						// no test in that package
+				moduleNameBytes, ok := replace[targetReplaceModuleName]
+				if !ok {
+					return nil, fmt.Errorf("unexpected no module name set")
+				}
+				moduleName := string(moduleNameBytes.Data)
+
+				stdoutResult, ok := replace[targetReplacePackages]
+				if ok && stdoutResult.Err == nil {
+					// found packages to be tested, test these packages
+					var (
+						compileSteps []dukkha.TaskExecSpec
+						runSteps     []dukkha.TaskExecSpec
+					)
+
+					pkgsToTest := strings.Split(string(stdoutResult.Data), "\n")
+					for _, pkg := range pkgsToTest {
+						pkg = strings.TrimSpace(pkg)
+						if len(pkg) == 0 {
+							continue
+						}
+						pkgRelPath := strings.TrimPrefix(pkg, moduleName)
+						if strings.HasPrefix(pkgRelPath, "/") {
+							pkgRelPath = "." + pkgRelPath
+						} else {
+							pkgRelPath = "./" + pkgRelPath
+						}
+
+						builtTestExecutable, subCompileSteps := generateCompileSpecs(
+							taskName,
+							dukkhaCacheDir,
+							chdir,
+							env, compileArgs, pkgRelPath,
+							toolCmd, useShell, shellName,
+						)
+
+						compileSteps = append(compileSteps, subCompileSteps...)
+
+						subRunSpecs := generateRunSpecs(
+							dukkhaWorkingDir,
+							builtTestExecutable,
+							chdir,
+							env, runArgs, pkgRelPath,
+							useShell, shellName,
+						)
+
+						runSteps = append(runSteps, subRunSpecs...)
+					}
+
+					return append(compileSteps, runSteps...), nil
+				}
+
+				// no stdout data, check stderr data
+				stderrResult, ok := replace[targetReplaceGoListErrorResult]
+				if ok && stderrResult.Err != nil {
+					if bytes.Contains(stderrResult.Data, []byte("no Go files")) {
+						// no go source file in this package, skip
 						return nil, nil
 					}
 
-					return nil, fmt.Errorf("failed to check compiled test executable: %w", err)
+					return nil, stderrResult.Err
 				}
 
-				// found, run it
-
-				return []dukkha.TaskExecSpec{
-					{
-						Env:       testEnv,
-						Chdir:     workdir,
-						Command:   runCmd,
-						UseShell:  options.UseShell(),
-						ShellName: options.ShellName(),
-					},
-				}, nil
+				return nil, fmt.Errorf("failed to determine which packages to test")
 			},
+			IgnoreError: false,
 		})
 
 		return nil
 	})
 
 	return steps, err
+}
+
+func generateCompileSpecs(
+	taskName string,
+	dukkhaCacheDir string,
+	chdir string,
+	env []string,
+	args []string,
+	pkgRelPath string,
+
+	// options
+	toolCmd []string,
+	useShell bool,
+	shellName string,
+) (string, []dukkha.TaskExecSpec) {
+	var steps []dukkha.TaskExecSpec
+
+	builtTestExecutable := filepath.Join(
+		dukkhaCacheDir, "golang-test",
+		taskName+"-"+hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath)))+".test",
+	)
+
+	// remove previously built test executable if any
+	steps = append(steps, dukkha.TaskExecSpec{
+		AlterExecFunc: func(
+			replace dukkha.ReplaceEntries,
+			stdin io.Reader,
+			stdout, stderr io.Writer,
+		) (dukkha.RunTaskOrRunCmd, error) {
+			err := os.Remove(builtTestExecutable)
+			if err != nil && !os.IsNotExist(err) {
+				return nil, fmt.Errorf("failed to remove previously built test executable: %w", err)
+			}
+
+			return nil, nil
+		},
+	})
+
+	compileCmd := sliceutils.NewStrings(
+		toolCmd, "test", "-c", "-o", builtTestExecutable,
+	)
+
+	compileCmd = append(compileCmd, args...)
+
+	steps = append(steps, dukkha.TaskExecSpec{
+		Env:         sliceutils.NewStrings(env),
+		Chdir:       chdir,
+		Command:     append(compileCmd, pkgRelPath),
+		UseShell:    useShell,
+		ShellName:   shellName,
+		IgnoreError: false,
+	})
+
+	return builtTestExecutable, steps
+}
+
+func generateRunSpecs(
+	dukkhaWorkingDir string,
+	builtTestExecutable string,
+	chdir string,
+	env []string,
+	args []string,
+	pkgRelPath string,
+	useShell bool,
+	shellName string,
+) []dukkha.TaskExecSpec {
+	var steps []dukkha.TaskExecSpec
+
+	workdir := dukkhaWorkingDir
+	if len(workdir) == 0 {
+		// use same default workdir as go test (the pakcage dir)
+		if filepath.IsAbs(chdir) {
+			workdir = filepath.Join(chdir, pkgRelPath)
+		} else {
+			workdir = filepath.Join(dukkhaWorkingDir, chdir, pkgRelPath)
+		}
+	}
+
+	runCmd := append([]string{builtTestExecutable}, args...)
+
+	// check if compiled test file exists
+	// can be missing if no test was found in the package
+	steps = append(steps, dukkha.TaskExecSpec{
+		AlterExecFunc: func(
+			replace dukkha.ReplaceEntries,
+			stdin io.Reader,
+			stdout, stderr io.Writer,
+		) (dukkha.RunTaskOrRunCmd, error) {
+			_, err := os.Stat(builtTestExecutable)
+			if err != nil {
+				if os.IsNotExist(err) {
+					// no test in that package
+					return nil, nil
+				}
+
+				return nil, fmt.Errorf("failed to check compiled test executable: %w", err)
+			}
+
+			// found, run it
+
+			return []dukkha.TaskExecSpec{{
+				Env:       env,
+				Chdir:     workdir,
+				Command:   runCmd,
+				UseShell:  useShell,
+				ShellName: shellName,
+			}}, nil
+		},
+	})
+
+	return steps
 }
 
 type testSpec struct {
