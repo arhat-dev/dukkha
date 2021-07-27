@@ -22,18 +22,18 @@ import (
 func doRun(
 	ctx dukkha.TaskExecContext,
 	execSpecs []dukkha.TaskExecSpec,
-	_replaceEntries *map[string][]byte,
+	_replaceEntries *dukkha.ReplaceEntries,
 ) error {
 	timer := time.NewTimer(0)
 	if !timer.Stop() {
 		<-timer.C
 	}
 
-	var replace map[string][]byte
+	var replace dukkha.ReplaceEntries
 	if _replaceEntries != nil {
 		replace = *_replaceEntries
 	} else {
-		replace = make(map[string][]byte)
+		replace = make(dukkha.ReplaceEntries)
 	}
 
 	for _, es := range execSpecs {
@@ -77,27 +77,52 @@ func doRun(
 			os.Stdout,
 		)
 
-		var buf *bytes.Buffer
-		if len(es.OutputAsReplace) != 0 {
-			buf = &bytes.Buffer{}
+		var (
+			stdoutBuf *bytes.Buffer
+			stderrBuf *bytes.Buffer
+		)
+		if len(es.StdoutAsReplace) != 0 {
+			stdoutBuf = &bytes.Buffer{}
+			stdout = io.MultiWriter(stdout, stdoutBuf)
+		}
 
-			stdout = io.MultiWriter(stdout, buf)
+		if len(es.StderrAsReplace) != 0 {
+			stderrBuf = &bytes.Buffer{}
+			stderr = io.MultiWriter(stderr, stderrBuf)
+		}
+
+		setReplaceEntry := func(err error) {
+			if stdoutBuf != nil {
+				stdoutValue := stdoutBuf.Bytes()
+				if es.FixStdoutValueForReplace != nil {
+					stdoutValue = es.FixStdoutValueForReplace(stdoutValue)
+				}
+
+				replace[es.StdoutAsReplace] = &dukkha.ReplaceEntry{
+					Data: stdoutValue,
+					Err:  err,
+				}
+			}
+
+			if stderrBuf != nil {
+				stderrValue := stderrBuf.Bytes()
+				if es.FixStdoutValueForReplace != nil {
+					stderrValue = es.FixStderrValueForReplace(stderrValue)
+				}
+
+				replace[es.StderrAsReplace] = &dukkha.ReplaceEntry{
+					Data: stderrValue,
+					Err:  err,
+				}
+			}
 		}
 
 		// alter exec func can generate sub exec specs
 		if es.AlterExecFunc != nil {
 			subSpecs, err := es.AlterExecFunc(replace, stdin, stdout, stderr)
+			setReplaceEntry(err)
 			if err != nil {
 				return fmt.Errorf("failed to execute alter exec func: %w", err)
-			}
-
-			if buf != nil {
-				newValue := buf.Bytes()
-				if es.FixOutputForReplace != nil {
-					newValue = es.FixOutputForReplace(newValue)
-				}
-
-				replace[es.OutputAsReplace] = newValue
 			}
 
 			switch t := subSpecs.(type) {
@@ -124,7 +149,7 @@ func doRun(
 			pairs := make([]string, 2*len(replace))
 			i := 0
 			for toReplace, newValue := range replace {
-				pairs[i], pairs[i+1] = toReplace, string(newValue)
+				pairs[i], pairs[i+1] = toReplace, string(newValue.Data)
 				i += 2
 			}
 
@@ -184,6 +209,7 @@ func doRun(
 			Stderr: stderr,
 		})
 		if err != nil {
+			setReplaceEntry(err)
 			if !es.IgnoreError {
 				return fmt.Errorf("failed to prepare command [ %s ]: %w", strings.Join(cmd, " "), err)
 			}
@@ -191,12 +217,12 @@ func doRun(
 			// TODO: log error in detail
 			log.Log.I("error ignored", log.Error(err))
 
-			delete(replace, es.OutputAsReplace)
-
 			continue
 		}
 
 		_, err = p.Wait()
+		setReplaceEntry(err)
+
 		if err != nil {
 			if !es.IgnoreError {
 				return fmt.Errorf("command exited with error: %w", err)
@@ -204,19 +230,7 @@ func doRun(
 
 			// TODO: log error in detail
 			log.Log.I("error ignored", log.Error(err))
-
-			delete(replace, es.OutputAsReplace)
-
 			continue
-		}
-
-		if buf != nil {
-			newValue := buf.Bytes()
-			if es.FixOutputForReplace != nil {
-				newValue = es.FixOutputForReplace(newValue)
-			}
-
-			replace[es.OutputAsReplace] = newValue
 		}
 	}
 

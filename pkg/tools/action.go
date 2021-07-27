@@ -137,7 +137,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 	return []dukkha.TaskExecSpec{{
 		AlterExecFunc: func(
-			replace map[string][]byte,
+			replace dukkha.ReplaceEntries,
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {

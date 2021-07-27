@@ -8,9 +8,7 @@
     # - shell: go tool pprof ${PROFILE_OUTPUT_DIR}/mem.out
   matrix:
     pkg@shell: |-
-      find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}' \;
-      find ./pkg/tools -mindepth 1 -maxdepth 1 -type d -exec \
-        sh -c "echo '- {}' | grep -v _fixture | grep -v nfpm" \;
+      find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}/...' \;
   path@env: ${MATRIX_PKG}
   verbose: true
   panic_on_exit_0: true

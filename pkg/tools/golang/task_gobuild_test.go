@@ -10,7 +10,7 @@ import (
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
-func TestTaskRelease_GetExecSpecs(t *testing.T) {
+func TestTaskBuild_GetExecSpecs(t *testing.T) {
 	toolCmd := []string{"go"}
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{

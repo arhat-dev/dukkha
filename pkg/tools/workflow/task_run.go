@@ -69,7 +69,7 @@ func (w *TaskRun) next(
 		{
 			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
-				replace map[string][]byte,
+				replace dukkha.ReplaceEntries,
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
@@ -79,7 +79,7 @@ func (w *TaskRun) next(
 		{
 			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
-				replace map[string][]byte,
+				replace dukkha.ReplaceEntries,
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {

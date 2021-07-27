@@ -31,7 +31,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 					Command: strings.Split("git clone --no-checkout --origin origin example/foo.git", " "),
 				},
 				{
-					OutputAsReplace: "<DEFAULT_BRANCH>",
+					StdoutAsReplace: "<DEFAULT_BRANCH>",
 					Chdir:           "foo",
 					Command:         strings.Split("git symbolic-ref refs/remotes/origin/HEAD", " "),
 				},
@@ -50,7 +50,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 					Command: strings.Split("git clone --no-checkout --origin bar example/foo", " "),
 				},
 				{
-					OutputAsReplace: "<DEFAULT_BRANCH>",
+					StdoutAsReplace: "<DEFAULT_BRANCH>",
 					Chdir:           "foo",
 					Command:         strings.Split("git symbolic-ref refs/remotes/bar/HEAD", " "),
 				},
