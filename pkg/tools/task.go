@@ -43,29 +43,12 @@ type BaseTask struct {
 }
 
 func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := resolveFields(mCtx, t, -1, []string{"TaskName"})
+	err := t.ResolveFields(mCtx, -1, "TaskName")
 	if err != nil {
 		return fmt.Errorf("failed to resolve task name: %w", err)
 	}
 
-	err = resolveFields(mCtx, t, 1, []string{"Env"})
-	if err != nil {
-		return fmt.Errorf("failed to get env overview: %w", err)
-	}
-
-	for _, e := range t.Env {
-		err = e.ResolveFields(mCtx, -1, "")
-		if err != nil {
-			return fmt.Errorf("failed to resolve env %q: %w", e.Name, err)
-		}
-
-		mCtx.AddEnv(true, dukkha.EnvEntry{
-			Name:  e.Name,
-			Value: e.Value,
-		})
-	}
-
-	return nil
+	return dukkha.ResolveEnv(t, mCtx, "Env")
 }
 
 func (t *BaseTask) DoAfterFieldsResolved(

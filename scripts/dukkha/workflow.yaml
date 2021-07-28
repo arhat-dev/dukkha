@@ -7,17 +7,28 @@ tools:
 
 workflow:run:
 - name: test
-  env@env:
+  env:
   - name: FROM_TOOL
     value@env: ${TOOL_SPECIFIC_ENV}
   - name: FOO
     value: task_specific_env_FOO
   - name: BAR
-    value@env: reference newly defined env ${FOO}
+    value@env: ${FOO}
   hooks:
     before:
     - shell@template: echo "check embedded shell ${FOO}"
-    - shell: printenv FROM_TOOL
+
+    - name: Test `Each` implementation of embedded shell env
+      shell: printenv FROM_TOOL
+
+    - shell: |-
+        if [[ "${FOO}" != "${BAR}" ]]; then
+          echo "FOO=${FOO} and BAR=${BAR} should have same value"
+          exit 1
+        fi
+
+        echo "${FOO}=${BAR}"
+
     before:matrix:
     - shell:bash: echo "check bash shell ${FOO}"
     after:matrix:success:

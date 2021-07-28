@@ -53,18 +53,9 @@ type GlobalConfig struct {
 }
 
 func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
-	err := g.ResolveFields(rc, 1, "Env")
+	err := dukkha.ResolveEnv(g, rc, "Env")
 	if err != nil {
-		return fmt.Errorf("failed to get env overview: %w", err)
-	}
-
-	for _, entry := range g.Env {
-		err = entry.ResolveFields(rc, -1, "")
-		if err != nil {
-			return fmt.Errorf("failed to resolve env %q: %w", entry.Name, err)
-		}
-
-		rc.AddEnv(true, entry)
+		return fmt.Errorf("failed to resolve global env: %w", err)
 	}
 
 	err = g.ResolveFields(rc, -1, "CacheDir")
