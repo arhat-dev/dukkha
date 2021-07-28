@@ -58,7 +58,6 @@ func (c *TaskPush) GetExecSpecs(
 				}
 
 				result = append(result, dukkha.TaskExecSpec{
-					Env: sliceutils.NewStrings(c.Env),
 					Command: sliceutils.NewStrings(
 						opts.ToolCmd(), "push",
 						string(bytes.TrimSpace(imageIDBytes)),
@@ -167,7 +166,6 @@ func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExe
 		// buildah manifest push --all \
 		//   <manifest-list-name> <transport>:<transport-details>
 		ret = append(ret, dukkha.TaskExecSpec{
-			Env: sliceutils.NewStrings(c.Env),
 			Command: sliceutils.NewStrings(
 				v.opts.ToolCmd(), "manifest", "push", "--all",
 				getLocalManifestName(v.name),

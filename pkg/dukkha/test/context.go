@@ -45,8 +45,7 @@ func NewTestContextWithGlobalEnv(
 	globalEnv map[string]string,
 ) dukkha.ConfigResolvingContext {
 	d := dukkha.NewConfigResolvingContext(
-		ctx, globalEnv,
-		testBootstrapExec,
+		ctx,
 		dukkha.GlobalInterfaceTypeHandler,
 		true,
 		false, // turn off color output

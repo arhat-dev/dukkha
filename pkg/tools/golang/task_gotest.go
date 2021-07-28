@@ -70,14 +70,12 @@ func (c *TaskTest) GetExecSpecs(
 			createBuildEnv(mKernel, mArch)...,
 		)
 
-		env := sliceutils.NewStrings(buildEnv, c.Env...)
 		// get package prefix to be trimed
 		const targetReplaceModuleName = "<MODULE_NAME>"
 		steps = append(steps, dukkha.TaskExecSpec{
 			StdoutAsReplace:          targetReplaceModuleName,
 			FixStdoutValueForReplace: bytes.TrimSpace,
 
-			Env:         env,
 			Chdir:       c.Chdir,
 			Command:     sliceutils.NewStrings(options.ToolCmd(), "list", "-m"),
 			IgnoreError: false,
@@ -96,7 +94,6 @@ func (c *TaskTest) GetExecSpecs(
 			StdoutAsReplace: targetReplacePackages,
 			StderrAsReplace: targetReplaceGoListErrorResult,
 
-			Env:   env,
 			Chdir: c.Chdir,
 			Command: sliceutils.NewStrings(
 				options.ToolCmd(), "list", "-f", listFormat, c.Path,
@@ -165,7 +162,7 @@ func (c *TaskTest) GetExecSpecs(
 							taskName,
 							dukkhaCacheDir,
 							chdir,
-							env, compileArgs, pkgRelPath,
+							buildEnv, compileArgs, pkgRelPath,
 							toolCmd, useShell, shellName,
 						)
 
@@ -175,7 +172,7 @@ func (c *TaskTest) GetExecSpecs(
 							dukkhaWorkingDir,
 							builtTestExecutable,
 							chdir,
-							env, runArgs, pkgRelPath,
+							runArgs, pkgRelPath,
 							useShell, shellName,
 						)
 
@@ -265,7 +262,6 @@ func generateRunSpecs(
 	dukkhaWorkingDir string,
 	builtTestExecutable string,
 	chdir string,
-	env []string,
 	args []string,
 	pkgRelPath string,
 	useShell bool,
@@ -306,7 +302,6 @@ func generateRunSpecs(
 			// found, run it
 
 			return []dukkha.TaskExecSpec{{
-				Env:       env,
 				Chdir:     workdir,
 				Command:   runCmd,
 				UseShell:  useShell,

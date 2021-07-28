@@ -30,7 +30,6 @@ type driver struct {
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	ctx.AddRenderer(DefaultName, d)
 	return nil
 }
 

@@ -3,7 +3,8 @@ tools:
   # first tool in this kind will be the default tool
   - name: local-buildkit
     env:
-    - DOCKER_BUILDKIT=1
+    - name: DOCKER_BUILDKIT
+      value: "1"
 
   buildah:
   - name: local

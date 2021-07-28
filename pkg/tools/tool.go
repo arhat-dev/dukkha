@@ -24,7 +24,9 @@ func (t *BaseToolWithInit) Init(kind dukkha.ToolKind, cacheDir string) error {
 }
 
 // GetExecSpec is a helper func for shells
-func (t *BaseToolWithInit) GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
+func (t *BaseToolWithInit) GetExecSpec(
+	toExec []string, isFilePath bool,
+) (env dukkha.Env, cmd []string, err error) {
 	if len(toExec) == 0 {
 		return nil, nil, fmt.Errorf("invalid empty exec spec")
 	}
@@ -50,9 +52,9 @@ func (t *BaseToolWithInit) GetExecSpec(toExec []string, isFilePath bool) (env, c
 type BaseTool struct {
 	field.BaseField
 
-	ToolName string   `yaml:"name"`
-	Env      []string `yaml:"env"`
-	Cmd      []string `yaml:"cmd"`
+	ToolName string     `yaml:"name"`
+	Env      dukkha.Env `yaml:"env"`
+	Cmd      []string   `yaml:"cmd"`
 
 	// Whether to run this tool in shell and which shell to use
 	UsingShell     bool   `yaml:"use_shell"`
@@ -94,7 +96,7 @@ func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
 	return tsk, ok
 }
 
-func (t *BaseTool) GetEnv() []string { return sliceutils.NewStrings(t.Env) }
+func (t *BaseTool) GetEnv() []dukkha.EnvEntry { return t.Env }
 
 // InitBaseTool must be called in your own version of Init()
 // with correct defaultExecutable name
@@ -185,12 +187,27 @@ func (t *BaseTool) DoAfterFieldsResolved(
 }
 
 func (t *BaseTool) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := resolveFields(mCtx, t, -1, []string{"ToolName", "Env"})
+	err := resolveFields(mCtx, t, -1, []string{"ToolName"})
 	if err != nil {
 		return fmt.Errorf("failed to resolve essential fields: %w", err)
 	}
 
-	mCtx.AddEnv(t.Env...)
+	err = resolveFields(mCtx, t, 1, []string{"Env"})
+	if err != nil {
+		return fmt.Errorf("failed to get env overview: %w", err)
+	}
+
+	for _, e := range t.Env {
+		err = e.ResolveFields(mCtx, -1, "")
+		if err != nil {
+			return fmt.Errorf("failed to resolve env %q: %w", e.Name, err)
+		}
+
+		mCtx.AddEnv(dukkha.EnvEntry{
+			Name:  e.Name,
+			Value: e.Value,
+		})
+	}
 
 	return nil
 }

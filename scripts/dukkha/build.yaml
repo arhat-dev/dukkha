@@ -2,9 +2,12 @@ tools:
   golang:
   - name: local
     env:
-    - GO111MODULE=on
-    - GO_PROXY=direct
-    - GO_SUMDB=off
+    - name: GO111MODULE
+      value: "on"
+    - name: GO_PROXY
+      value: direct
+    - name: GO_SUMDB
+      value: "off"
     cmd: [go]
   - name: in-docker
     # when using shell, you can leave environment variables unexpanded

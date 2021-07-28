@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer/env"
@@ -28,13 +29,15 @@ func TestHookFixtures(t *testing.T) {
 		name  string
 		input []byte
 
-		env      []string
+		env      []dukkha.EnvEntry
 		expected []byte
 	}{
 		{
-			name:     "001-hook-script-whitespace-trimed-after-rendering",
-			input:    hookScriptWhitespaceTrimedAfterRendering,
-			env:      []string{"VERSION=1.26.1"},
+			name:  "001-hook-script-whitespace-trimed-after-rendering",
+			input: hookScriptWhitespaceTrimedAfterRendering,
+			env: []dukkha.EnvEntry{
+				{Name: "VERSION", Value: "1.26.1"},
+			},
 			expected: _expected_001,
 		},
 	}
@@ -57,7 +60,7 @@ func TestHookFixtures(t *testing.T) {
 			assert.EqualValues(t, expected.Cmd, actual.Cmd)
 			assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
 			assert.EqualValues(t, expected.EmbeddedShell, actual.EmbeddedShell)
-			assert.EqualValues(t, expected.OtherShell, actual.OtherShell)
+			assert.EqualValues(t, expected.ExternalShell, actual.ExternalShell)
 			assert.EqualValues(t, expected.Task, actual.Task)
 		})
 	}

@@ -12,7 +12,7 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
-type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env, cmd []string, err error)
+type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
 
 type ConfigResolvingContext interface {
 	Context
@@ -32,8 +32,6 @@ type TaskExecContext interface {
 	TaskUser
 
 	DeriveNew() Context
-
-	GetBootstrapExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error)
 
 	Cancel()
 
@@ -62,8 +60,7 @@ var (
 type dukkhaContext struct {
 	*contextStd
 
-	cache            *sync.Map
-	bootstrapExecGen ExecSpecGetFunc
+	cache *sync.Map
 
 	// shells
 	*contextShells
@@ -88,8 +85,6 @@ type dukkhaContext struct {
 
 func NewConfigResolvingContext(
 	parent context.Context,
-	globalEnv map[string]string,
-	bootstrapExecGen ExecSpecGetFunc,
 	ifaceTypeHandler field.InterfaceTypeHandler,
 	failFast bool,
 	colorOutput bool,
@@ -99,15 +94,13 @@ func NewConfigResolvingContext(
 	dukkhaCtx := &dukkhaContext{
 		contextStd: ctxStd,
 
-		bootstrapExecGen: bootstrapExecGen,
-
 		contextShells: newContextShells(),
 		contextTools:  newContextTools(),
 		contextTasks:  newContextTasks(),
 		contextExec:   newContextExec(),
 
 		contextRendering: newContextRendering(
-			ctxStd.ctx, globalEnv, ifaceTypeHandler,
+			ctxStd.ctx, ifaceTypeHandler,
 		),
 
 		failFast:    failFast,
@@ -118,16 +111,11 @@ func NewConfigResolvingContext(
 	return dukkhaCtx
 }
 
-func (c *dukkhaContext) GetBootstrapExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error) {
-	return c.bootstrapExecGen(toExec, isFilePath)
-}
-
 func (c *dukkhaContext) DeriveNew() Context {
 	ctxStd := newContextStd(c.contextStd.ctx)
 	newCtx := &dukkhaContext{
-		contextStd:       ctxStd,
-		cache:            c.cache,
-		bootstrapExecGen: c.bootstrapExecGen,
+		contextStd: ctxStd,
+		cache:      c.cache,
 
 		contextShells:    c.contextShells,
 		contextTools:     c.contextTools,

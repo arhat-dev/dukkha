@@ -1,4 +1,4 @@
-package cmd
+package conf
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ import (
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(appBaseCtx context.Context) map[string]string {
+func createGlobalEnv(ctx context.Context) map[string]string {
 	now := time.Now()
 	result := map[string]string{
 		constant.ENV_DUKKHA_WORKING_DIR: func() string {
@@ -117,7 +117,7 @@ func createGlobalEnv(appBaseCtx context.Context) map[string]string {
 	for _, e := range envs {
 		buf.Reset()
 		cmd, err2 := exechelper.Do(exechelper.Spec{
-			Context: appBaseCtx,
+			Context: ctx,
 			Command: e.command,
 			Stdout:  buf,
 			Stderr:  ioutil.Discard,

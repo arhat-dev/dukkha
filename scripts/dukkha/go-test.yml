@@ -1,6 +1,7 @@
 - name: dukkha
   env:
-  - PROFILE_OUTPUT_DIR=build/test-profile
+  - name: PROFILE_OUTPUT_DIR
+    value: build/test-profile
   hooks:
     before:
     - shell: mkdir -p ${PROFILE_OUTPUT_DIR}

@@ -44,7 +44,6 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	}
 
 	d.defaultClient = d.DefaultConfig.createClient()
-	ctx.AddRenderer(DefaultName, d)
 	return nil
 }
 

@@ -1,0 +1,2 @@
+global:
+  env@shell: 'template:printf "- { name: ENV, value: example }\n"'

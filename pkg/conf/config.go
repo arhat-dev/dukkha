@@ -18,9 +18,12 @@ package conf
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"arhat.dev/pkg/log"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer/env"
@@ -37,17 +40,59 @@ func NewConfig() *Config {
 	).(*Config)
 }
 
+type GlobalConfig struct {
+	field.BaseField
+
+	// CacheDir to store script file and temporary task execution data
+	// it is used when
+	// 		- resolving fields using shell renderer
+	// 		- executing tasks need to run commands
+	CacheDir string `yaml:"cache_dir"`
+
+	// Env
+	Env []dukkha.EnvEntry `yaml:"env"`
+}
+
+func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
+	err := g.ResolveFields(rc, 1, "Env")
+	if err != nil {
+		return fmt.Errorf("failed to get env overview: %w", err)
+	}
+
+	for _, entry := range g.Env {
+		err = entry.ResolveFields(rc, -1, "")
+		if err != nil {
+			return fmt.Errorf("failed to resolve env %q: %w", entry.Name, err)
+		}
+
+		rc.AddEnv(dukkha.EnvEntry{
+			Name:  entry.Name,
+			Value: entry.Value,
+		})
+	}
+
+	err = g.ResolveFields(rc, -1, "CacheDir")
+	if err != nil {
+		return fmt.Errorf("failed to resolve cache dir: %w", err)
+	}
+
+	return nil
+}
+
 type Config struct {
 	field.BaseField
 
-	// Bootstrap has no rendering suffix support
-	Bootstrap BootstrapConfig `yaml:"bootstrap"`
+	// Global has no rendering suffix support
+	Global GlobalConfig `yaml:"global"`
 
 	// Include other files using path relative to this config
 	// also no rendering suffix support
 	Include []string `yaml:"include"`
 
 	// Shells for rendering and command execution
+	//
+	// this option is host specific and do not support
+	// renderers like `http`
 	Shells []*tools.BaseToolWithInit `yaml:"shells"`
 
 	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
@@ -64,15 +109,12 @@ func (c *Config) Merge(a *Config) {
 		panic(fmt.Errorf("failed to inherit other top level base field: %w", err))
 	}
 
-	c.Bootstrap.Env = append(c.Bootstrap.Env, a.Bootstrap.Env...)
-	if len(a.Bootstrap.CacheDir) != 0 {
-		c.Bootstrap.CacheDir = a.Bootstrap.CacheDir
+	c.Global.Env = append(c.Global.Env, a.Global.Env...)
+	if len(a.Global.CacheDir) != 0 {
+		c.Global.CacheDir = a.Global.CacheDir
 	}
 
-	// once changed script cmd, replace the whole bootstrap config
-	if len(a.Bootstrap.ScriptCmd) != 0 {
-		c.Bootstrap = a.Bootstrap
-	}
+	c.Global.BaseField.Inherit(&a.Global.BaseField)
 
 	c.Shells = append(c.Shells, a.Shells...)
 
@@ -106,91 +148,145 @@ func (c *Config) Merge(a *Config) {
 	}
 }
 
-// ResolveAfterBootstrap resolves all top level dukkha config
-// to gain a overview of all tools and tasks
-//
-// 1. create a rendering manager with all essential renderers
-//
-// 2. resolve shells config using essential renderers,
-// 	  add them as shell renderers
-//
-// 3. resolve tools and their tasks
-func (c *Config) ResolveAfterBootstrap(appCtx dukkha.ConfigResolvingContext) error {
+// Resolve resolves all top level dukkha config
+// to gain an overview of all tools and tasks
+func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 	logger := log.Log.WithName("config")
 
-	logger.V("creating essential renderers")
-	appCtx.AddRenderer(shell.DefaultName, shell.NewDefault())
-	appCtx.AddRenderer(env.DefaultName, env.NewDefault())
-	appCtx.AddRenderer(template.DefaultName, template.NewDefault())
-	appCtx.AddRenderer(file.DefaultName, file.NewDefault())
+	// step 0: create basic global env and add them to appCtx
+	// 		   so we can resolve global config using these variables
+	appCtx.SetGlobalEnv(createGlobalEnv(appCtx))
 
+	// step 1: create essential renderers
+	{
+		logger.V("creating essential renderers")
+
+		appCtx.AddRenderer(env.DefaultName, env.NewDefault())
+		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault())
+		appCtx.AddRenderer(template.DefaultName, template.NewDefault())
+		appCtx.AddRenderer(file.DefaultName, file.NewDefault())
+
+		essentialRenderers := appCtx.AllRenderers()
+		logger.D("initializing essential renderers",
+			log.Int("count", len(essentialRenderers)),
+		)
+		for name, r := range essentialRenderers {
+			// using default config, no need to resolve fields
+
+			err := r.Init(appCtx)
+			if err != nil {
+				return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
+			}
+		}
+	}
+
+	// step 2: resolve global config, ensure cache dir exists
+	{
+		logger.D("resolving global config overview")
+		err := c.ResolveFields(appCtx, 1, "Global")
+		if err != nil {
+			return fmt.Errorf("failed to get global config overview: %w", err)
+		}
+
+		err = c.Global.Resolve(appCtx)
+		if err != nil {
+			return fmt.Errorf("failed to resolve global config: %w", err)
+		}
+
+		logger.V("resolved global config", log.Any("result", c.Global))
+
+		cacheDir := c.Global.CacheDir
+		if len(cacheDir) == 0 {
+			cacheDir = constant.DefaultCacheDir
+		}
+
+		cacheDir, err = filepath.Abs(c.Global.CacheDir)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path of cache dir: %w", err)
+		}
+
+		err = os.MkdirAll(cacheDir, 0750)
+		if err != nil && !os.IsExist(err) {
+			return fmt.Errorf("failed to ensure cache dir: %w", err)
+		}
+
+		appCtx.SetCacheDir(cacheDir)
+		appCtx.AddEnv(c.Global.Env...)
+	}
+
+	// step 3: resolve renderers
+	{
+		logger.D("resolving global config overview")
+		err := c.ResolveFields(appCtx, 1, "Renderers")
+		if err != nil {
+			return fmt.Errorf("failed to get global config overview: %w", err)
+		}
+
+		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
+		for name, r := range c.Renderers {
+			logger := logger.WithFields(
+				log.Any("renderer", name),
+			)
+
+			logger.D("resolving renderer config fields")
+			err = r.ResolveFields(appCtx, -1, "")
+			if err != nil {
+				return fmt.Errorf("failed to resolve config for renderer %q: %w", name, err)
+			}
+
+			err = r.Init(appCtx)
+			if err != nil {
+				return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
+			}
+
+			appCtx.AddRenderer(name, c.Renderers[name])
+		}
+		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
+
+	}
+
+	// step 4: resolve shells so we can create various renderers
+	{
+		logger.D("resolving shell config overview")
+
+		err := c.ResolveFields(appCtx, 1, "Shells")
+		if err != nil {
+			return fmt.Errorf("failed to resolve shell config overview: %w", err)
+		}
+		logger.V("resolved shell config overview", log.Any("result", c.Shells))
+
+		logger.D("resolving shells", log.Int("count", len(c.Shells)))
+		for i, v := range c.Shells {
+			logger := logger.WithFields(
+				log.Any("shell", v.Name()),
+				log.Int("index", i),
+			)
+
+			logger.D("resolving shell config fields")
+			err := v.ResolveFields(appCtx, -1, "")
+			if err != nil {
+				return fmt.Errorf("failed to resolve config for shell %q #%d", v.Name(), i)
+			}
+
+			err = v.InitBaseTool(
+				"shell", string(v.Name()), appCtx.CacheDir(), v,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to initialize shell %q", v.Name())
+			}
+
+			logger.V("adding shell")
+			appCtx.AddShell(string(v.Name()), c.Shells[i])
+		}
+	}
+
+	// step 5: resolve tools and tasks
 	logger.D("resolving top level config")
 	err := c.ResolveFields(appCtx, 1, "")
 	if err != nil {
 		return fmt.Errorf("failed to resolve top-level config: %w", err)
 	}
 	logger.V("resolved top-level config", log.Any("result", c))
-
-	logger.D("resolving shells", log.Int("count", len(c.Shells)))
-	for i, v := range c.Shells {
-		logger := logger.WithFields(
-			log.Any("shell", v.Name()),
-			log.Int("index", i),
-		)
-
-		logger.D("resolving shell config fields")
-		err = v.ResolveFields(appCtx, -1, "")
-		if err != nil {
-			return fmt.Errorf("failed to resolve config for shell %q #%d", v.Name(), i)
-		}
-
-		err = v.InitBaseTool(
-			"shell", string(v.Name()), appCtx.CacheDir(), v,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to initialize shell %q", v.Name())
-		}
-
-		logger.V("adding shell")
-		appCtx.AddShell(string(v.Name()), c.Shells[i])
-	}
-
-	essentialRenderers := appCtx.AllRenderers()
-	logger.D("initializing essential renderers",
-		log.Int("count", len(essentialRenderers)),
-	)
-	for name, r := range essentialRenderers {
-		// using default config, no need to resolve fields
-
-		err = r.Init(appCtx)
-		if err != nil {
-			return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
-		}
-	}
-
-	logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
-	for name, r := range c.Renderers {
-		logger := logger.WithFields(
-			log.Any("renderer", name),
-		)
-
-		logger.D("resolving renderer config fields")
-		err = r.ResolveFields(appCtx, -1, "")
-		if err != nil {
-			return fmt.Errorf("failed to resolve config for renderer %q: %w", name, err)
-		}
-	}
-
-	logger.D("initializing user renderers",
-		log.Int("count", len(c.Renderers)),
-	)
-	for name, r := range c.Renderers {
-		err = r.Init(appCtx)
-		if err != nil {
-			return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
-		}
-	}
-	logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
 
 	logger.V("groupping tasks by tool")
 	for _, tasks := range c.Tasks {

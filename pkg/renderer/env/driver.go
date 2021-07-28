@@ -39,18 +39,6 @@ type driver struct {
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	allShells := ctx.AllShells()
-	for shellName := range allShells {
-		ctx.AddRenderer(
-			DefaultName+":"+shellName,
-			&driver{
-				getExecSpec: allShells[shellName].GetExecSpec,
-			},
-		)
-	}
-
-	ctx.AddRenderer(DefaultName, NewDefault())
-
 	return nil
 }
 

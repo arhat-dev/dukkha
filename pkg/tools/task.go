@@ -24,7 +24,7 @@ type BaseTask struct {
 	field.BaseField
 
 	TaskName string      `yaml:"name"`
-	Env      []string    `yaml:"env"`
+	Env      dukkha.Env  `yaml:"env"`
 	Matrix   matrix.Spec `yaml:"matrix"`
 	Hooks    TaskHooks   `yaml:"hooks"`
 
@@ -43,12 +43,27 @@ type BaseTask struct {
 }
 
 func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := resolveFields(mCtx, t, -1, []string{"TaskName", "Env"})
+	err := resolveFields(mCtx, t, -1, []string{"TaskName"})
 	if err != nil {
-		return fmt.Errorf("failed to resolve essential task fields: %w", err)
+		return fmt.Errorf("failed to resolve task name: %w", err)
 	}
 
-	mCtx.AddEnv(t.Env...)
+	err = resolveFields(mCtx, t, 1, []string{"Env"})
+	if err != nil {
+		return fmt.Errorf("failed to get env overview: %w", err)
+	}
+
+	for _, e := range t.Env {
+		err = e.ResolveFields(mCtx, -1, "")
+		if err != nil {
+			return fmt.Errorf("failed to resolve env %q: %w", e.Name, err)
+		}
+
+		mCtx.AddEnv(dukkha.EnvEntry{
+			Name:  e.Name,
+			Value: e.Value,
+		})
+	}
 
 	return nil
 }

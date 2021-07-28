@@ -2,13 +2,18 @@ tools:
   workflow:
   - name: local
     env:
-    - TOOL_SPECIFIC_ENV=tool_specific_env
+    - name: TOOL_SPECIFIC_ENV
+      value: tool_specific_env
 
 workflow:run:
 - name: test
   env@env:
-  - FROM_TOOL=${TOOL_SPECIFIC_ENV}
-  - FOO=task_specific_env_FOO
+  - name: FROM_TOOL
+    value@env: ${TOOL_SPECIFIC_ENV}
+  - name: FOO
+    value: task_specific_env_FOO
+  - name: BAR
+    value@env: reference newly defined env ${FOO}
   hooks:
     before:
     - shell@template: echo "check embedded shell ${FOO}"

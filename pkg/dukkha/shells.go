@@ -7,7 +7,7 @@ import (
 type Shell interface {
 	field.Field
 
-	GetExecSpec(toExec []string, isFilePath bool) (env, cmd []string, err error)
+	GetExecSpec(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
 }
 
 type ShellUser interface {
