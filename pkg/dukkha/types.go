@@ -9,6 +9,30 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 )
 
+func ResolveEnv(t field.Field, mCtx RenderingContext, envFieldName string) error {
+	err := t.ResolveFields(mCtx, 1, envFieldName)
+	if err != nil {
+		return fmt.Errorf("failed to get env overview: %w", err)
+	}
+
+	fv := reflect.ValueOf(t)
+	for fv.Kind() == reflect.Ptr {
+		fv = fv.Elem()
+	}
+
+	env := fv.FieldByName(envFieldName).Interface().(Env)
+	for i := range env {
+		err = env[i].ResolveFields(mCtx, -1, "")
+		if err != nil {
+			return fmt.Errorf("failed to resolve env %q: %w", env[i].Name, err)
+		}
+
+		mCtx.AddEnv(true, env[i])
+	}
+
+	return nil
+}
+
 type Env []EnvEntry
 
 func (orig Env) Clone() Env {

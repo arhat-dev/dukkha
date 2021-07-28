@@ -21,8 +21,8 @@ type Action struct {
 	// Name of this action, optional
 	Name string `yaml:"name"`
 
-	// // Env specific to this action
-	// Env dukkha.Env
+	// Env specific to this action
+	Env dukkha.Env
 
 	// Task reference of this action
 	//
@@ -59,7 +59,12 @@ func (act *Action) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
-	err := act.ResolveFields(mCtx, -1, "")
+	err := dukkha.ResolveEnv(act, mCtx, "Env")
+	if err != nil {
+		return fmt.Errorf("failed to resolve action specific env: %w", err)
+	}
+
+	err = act.ResolveFields(mCtx, -1, "")
 	if err != nil {
 		return fmt.Errorf("failed to resolve fields: %w", err)
 	}
@@ -123,6 +128,7 @@ func (act *Action) genCmdActionSpecs(
 	_ = hookID
 	return []dukkha.TaskExecSpec{
 		{
+			EnvOverride: act.Env.Clone(),
 			Command:     sliceutils.NewStrings(act.Cmd),
 			Chdir:       act.Chdir,
 			IgnoreError: act.ContinueOnError,
@@ -136,6 +142,8 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 	workingDir := act.Chdir
 	script := act.EmbeddedShell
+
+	ctx.AddEnv(true, act.Env...)
 
 	return []dukkha.TaskExecSpec{{
 		AlterExecFunc: func(
@@ -199,6 +207,7 @@ func (act *Action) genExternalShellActionSpecs(
 	return []dukkha.TaskExecSpec{
 		{
 			Command:     []string{script},
+			EnvOverride: act.Env.Clone(),
 			Chdir:       act.Chdir,
 			UseShell:    true,
 			ShellName:   shell,
