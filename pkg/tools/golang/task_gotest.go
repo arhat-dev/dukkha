@@ -60,15 +60,12 @@ func (c *TaskTest) GetExecSpecs(
 		mKernel := rc.MatrixKernel()
 		mArch := rc.MatrixArch()
 
-		buildEnv := sliceutils.NewStrings(
-			c.CGO.getEnv(
-				rc.HostKernel() != mKernel || rc.HostArch() != mArch,
-				mKernel, mArch,
-				rc.HostOS(),
-				rc.MatrixLibc(),
-			),
-			createBuildEnv(mKernel, mArch)...,
-		)
+		buildEnv := append(c.CGO.getEnv(
+			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
+			mKernel, mArch,
+			rc.HostOS(),
+			rc.MatrixLibc(),
+		), createBuildEnv(mKernel, mArch)...)
 
 		// get package prefix to be trimed
 		const targetReplaceModuleName = "<MODULE_NAME>"
@@ -208,7 +205,7 @@ func generateCompileSpecs(
 	taskName string,
 	dukkhaCacheDir string,
 	chdir string,
-	env []string,
+	buildEnv dukkha.Env,
 	args []string,
 	pkgRelPath string,
 
@@ -247,7 +244,7 @@ func generateCompileSpecs(
 	compileCmd = append(compileCmd, args...)
 
 	steps = append(steps, dukkha.TaskExecSpec{
-		Env:         sliceutils.NewStrings(env),
+		EnvSuggest:  buildEnv,
 		Chdir:       chdir,
 		Command:     append(compileCmd, pkgRelPath),
 		UseShell:    useShell,

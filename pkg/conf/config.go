@@ -65,10 +65,7 @@ func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
 			return fmt.Errorf("failed to resolve env %q: %w", entry.Name, err)
 		}
 
-		rc.AddEnv(dukkha.EnvEntry{
-			Name:  entry.Name,
-			Value: entry.Value,
-		})
+		rc.AddEnv(true, entry)
 	}
 
 	err = g.ResolveFields(rc, -1, "CacheDir")
@@ -153,10 +150,6 @@ func (c *Config) Merge(a *Config) {
 func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 	logger := log.Log.WithName("config")
 
-	// step 0: create basic global env and add them to appCtx
-	// 		   so we can resolve global config using these variables
-	appCtx.SetGlobalEnv(createGlobalEnv(appCtx))
-
 	// step 1: create essential renderers
 	{
 		logger.V("creating essential renderers")
@@ -211,7 +204,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		}
 
 		appCtx.SetCacheDir(cacheDir)
-		appCtx.AddEnv(c.Global.Env...)
+		appCtx.AddEnv(true, c.Global.Env...)
 	}
 
 	// step 3: resolve renderers

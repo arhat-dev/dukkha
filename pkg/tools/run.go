@@ -14,7 +14,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/output"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
@@ -63,17 +62,13 @@ func doRun(
 		}
 
 		stderr = utils.PrefixWriter(
-			ctx.OutputPrefix(),
-			ctx.ColorOutput(),
-			ctx.PrefixColor(),
-			ctx.OutputColor(),
+			ctx.OutputPrefix(), ctx.ColorOutput(),
+			ctx.PrefixColor(), ctx.OutputColor(),
 			os.Stderr,
 		)
 		stdout = utils.PrefixWriter(
-			ctx.OutputPrefix(),
-			ctx.ColorOutput(),
-			ctx.PrefixColor(),
-			ctx.OutputColor(),
+			ctx.OutputPrefix(), ctx.ColorOutput(),
+			ctx.PrefixColor(), ctx.OutputColor(),
 			os.Stdout,
 		)
 
@@ -144,7 +139,7 @@ func doRun(
 			continue
 		}
 
-		var cmd []string
+		cmd := es.Command
 		if len(replace) != 0 {
 			pairs := make([]string, 2*len(replace))
 			i := 0
@@ -154,16 +149,30 @@ func doRun(
 			}
 
 			replacer := strings.NewReplacer(pairs...)
-			for _, rawEnvPart := range es.Env {
-				ctx.AddListEnv(replacer.Replace(rawEnvPart))
+
+			// replace placeholders in cmd
+			cmd = make([]string, 0, len(es.Command))
+			for _, origCmdPart := range es.Command {
+				cmd = append(cmd, replacer.Replace(origCmdPart))
 			}
 
-			for _, rawCmdPart := range es.Command {
-				cmd = append(cmd, replacer.Replace(rawCmdPart))
+			// replace placeholders in env
+			for _, origEnvPart := range es.EnvOverride {
+				ctx.AddEnv(true, dukkha.EnvEntry{
+					Name:  replacer.Replace(origEnvPart.Name),
+					Value: replacer.Replace(origEnvPart.Value),
+				})
+			}
+
+			for _, origEnvPart := range es.EnvSuggest {
+				ctx.AddEnv(false, dukkha.EnvEntry{
+					Name:  replacer.Replace(origEnvPart.Name),
+					Value: replacer.Replace(origEnvPart.Value),
+				})
 			}
 		} else {
-			ctx.AddListEnv(es.Env...)
-			cmd = sliceutils.NewStrings(es.Command)
+			ctx.AddEnv(true, es.EnvOverride...)
+			ctx.AddEnv(false, es.EnvSuggest...)
 		}
 
 		var err error

@@ -23,7 +23,12 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{
-					Env:     []string{"CGO_ENABLED=0"},
+					EnvSuggest: dukkha.Env{
+						{
+							Name:  "CGO_ENABLED",
+							Value: "0",
+						},
+					},
 					Command: []string{"go", "build", "-o", "foo", "./"},
 				},
 			},

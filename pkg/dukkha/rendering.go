@@ -45,11 +45,12 @@ type RendererManager interface {
 func newContextRendering(
 	ctx context.Context,
 	ifaceTypeHandler field.InterfaceTypeHandler,
+	globalEnv map[string]string,
 ) *contextRendering {
 	return &contextRendering{
 		Context: ctx,
 
-		envValues: newEnvValues(),
+		envValues: newEnvValues(ctx, globalEnv),
 
 		ifaceTypeHandler: ifaceTypeHandler,
 		renderers:        make(map[string]Renderer),

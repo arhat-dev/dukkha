@@ -107,6 +107,7 @@ dukkha buildah in-docker build my-image`,
 				failFast,
 				term.IsTerminal(int(os.Stdout.Fd())) || forceColor,
 				workerCount,
+				createGlobalEnv(appBaseCtx),
 			)
 
 			err = config.Resolve(_appCtx)
