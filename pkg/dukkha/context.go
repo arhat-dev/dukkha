@@ -3,13 +3,9 @@ package dukkha
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
-	"arhat.dev/pkg/exechelper"
-
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
@@ -47,7 +43,6 @@ type Context interface {
 	TaskExecContext
 
 	RunTask(ToolKey, TaskKey) error
-	RunShell(shell, script string, isFilePath bool) error
 }
 
 var (
@@ -147,48 +142,6 @@ func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
 
 	c.contextExec.SetTask(k, tK)
 	return tool.Run(c)
-}
-
-func (c *dukkhaContext) RunShell(shell, script string, isFilePath bool) error {
-	sh, ok := c.allShells[shell]
-	if !ok {
-		return fmt.Errorf("shell %q not found", shell)
-	}
-
-	env, cmd, err := sh.GetExecSpec([]string{script}, isFilePath)
-	if err != nil {
-		return err
-	}
-
-	c.AddEnv(env...)
-
-	p, err := exechelper.Do(exechelper.Spec{
-		Context: c,
-		Command: cmd,
-		Env:     c.Env(),
-
-		Stdin: os.Stdin,
-		Stderr: utils.PrefixWriter(
-			c.OutputPrefix(), c.ColorOutput(),
-			c.PrefixColor(), c.OutputColor(),
-			os.Stderr,
-		),
-		Stdout: utils.PrefixWriter(
-			c.OutputPrefix(), c.ColorOutput(),
-			c.PrefixColor(), c.OutputColor(),
-			os.Stdout,
-		),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to run script: %w", err)
-	}
-
-	_, err = p.Wait()
-	if err != nil {
-		return fmt.Errorf("shell script exited with error: %w", err)
-	}
-
-	return nil
 }
 
 func (c *dukkhaContext) FailFast() bool {

@@ -34,8 +34,6 @@ var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	field.BaseField
-
-	getExecSpec dukkha.ExecSpecGetFunc
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
@@ -91,26 +89,20 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 
 			script := string(buf.Bytes()[2 : buf.Len()-1])
 
-			if d.getExecSpec == nil {
-				embeddedShellOutput.Reset()
-				err2 = shell.RunScriptInEmbeddedShell(rc, runner, parser, script)
-				if err2 != nil {
-					return err2
-				}
-
-				_, err2 = embeddedShellOutput.WriteTo(w)
-				if err2 != nil {
-					return fmt.Errorf(
-						"failed to write embedded shell output to result value: %w", err,
-					)
-				}
-
-				return nil
+			embeddedShellOutput.Reset()
+			err2 = shell.RunScriptInEmbeddedShell(rc, runner, parser, script)
+			if err2 != nil {
+				return err2
 			}
 
-			return shell.RunScript(
-				rc, script, false, w, d.getExecSpec,
-			)
+			_, err2 = embeddedShellOutput.WriteTo(w)
+			if err2 != nil {
+				return fmt.Errorf(
+					"failed to write embedded shell output to result value: %w", err,
+				)
+			}
+
+			return nil
 		},
 		ProcSubst: nil,
 		ReadDir:   ioutil.ReadDir,

@@ -17,11 +17,7 @@ func TestNewDriver(t *testing.T) {
 }
 
 func TestDriver_Render(t *testing.T) {
-	cmdPrintHello := []string{"sh", "-c", "printf hello"}
 	d := NewDefault().(*driver)
-	d.getExecSpec = func(toExec []string, isFilePath bool) (env dukkha.Env, cmd []string, err error) {
-		return nil, cmdPrintHello, nil
-	}
 
 	rv := dukkha_test.NewTestContext(context.TODO())
 	rv.AddEnv(dukkha.EnvEntry{
@@ -64,27 +60,27 @@ func TestDriver_Render(t *testing.T) {
 		},
 		{
 			name:     "Valid Simple Shell Evaluation",
-			rawData:  "foo $(some command)",
+			rawData:  "foo $(echo hello)",
 			expected: "foo hello",
 		},
 		{
 			name:     "Valid Shell Evaluation With Round Brackets",
-			rawData:  `foo $(s)))`,
+			rawData:  `foo $(echo hello)))`,
 			expected: "foo hello))",
 		},
 		{
 			name:     "Valid Multi Shell Evaluation With Round Brackets",
-			rawData:  "foo $(say-something() useful) $(say-something() useless)",
+			rawData:  "foo $(echo hello) $(echo hello)",
 			expected: "foo hello hello",
 		},
 		{
-			name:     "Valid Multi Embedded Shell Evaluation With Round Brackets",
-			rawData:  "foo $(say-something() $(ok) useful) $(say-something() $(what) useless)",
-			expected: "foo hello hello",
+			name:     "Valid Multi Embedded Shell Evaluation",
+			rawData:  "foo $(echo hello $(echo hello)) $(echo hello)",
+			expected: "foo hello hello hello",
 		},
 		{
 			name:    "Invalid Non-Terminated Shell Evaluation",
-			rawData: "some $(non-terminated evaluation ignored",
+			rawData: "some $(non-terminated evaluation",
 			errStr:  "without matching ( with )",
 		},
 		{
