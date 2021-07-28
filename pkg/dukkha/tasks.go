@@ -166,7 +166,11 @@ type TaskExecSpec struct {
 
 	Chdir string
 
-	Env     []string
+	// EnvSuggest to provide environment variables when not set by user
+	EnvSuggest Env
+	// EnvOverride to override existing environment variables
+	EnvOverride Env
+
 	Command []string
 
 	AlterExecFunc func(

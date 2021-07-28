@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,16 +53,31 @@ func TestCreateBuildEnv(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.mArch, func(t *testing.T) {
 
-			expected := []string{
-				"GOOS=linux",
-				"GOARCH=" + test.goarch,
+			expected := dukkha.Env{
+				{
+					Name:  "GOOS",
+					Value: "linux",
+				},
+				{
+					Name:  "GOARCH",
+					Value: test.goarch,
+				},
 			}
 
 			if len(test.goarm) != 0 {
-				expected = append(expected, "GOARM="+test.goarm)
+				expected = append(expected, dukkha.EnvEntry{
+					Name:  "GOARM",
+					Value: test.goarm,
+				})
 			}
 			if len(test.gomips) != 0 {
-				expected = append(expected, "GOMIPS="+test.gomips, "GOMIPS64="+test.gomips)
+				expected = append(expected, dukkha.EnvEntry{
+					Name:  "GOMIPS",
+					Value: test.gomips,
+				}, dukkha.EnvEntry{
+					Name:  "GOMIPS64",
+					Value: test.gomips,
+				})
 			}
 
 			assert.Equal(t, expected, createBuildEnv("linux", test.mArch))

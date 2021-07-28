@@ -20,7 +20,7 @@ func TestDriver_Render(t *testing.T) {
 	d := NewDefault().(*driver)
 
 	rv := dukkha_test.NewTestContext(context.TODO())
-	rv.AddEnv(dukkha.EnvEntry{
+	rv.AddEnv(true, dukkha.EnvEntry{
 		Name:  "FOO",
 		Value: "bar",
 	})

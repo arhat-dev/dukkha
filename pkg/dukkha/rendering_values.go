@@ -1,6 +1,7 @@
 package dukkha
 
 import (
+	"context"
 	"os"
 	"strings"
 	"sync"
@@ -10,7 +11,6 @@ import (
 )
 
 type GlobalValues interface {
-	SetGlobalEnv(globalEnv map[string]string)
 	SetCacheDir(dir string)
 
 	WorkingDir() string
@@ -39,15 +39,15 @@ type EnvValues interface {
 	MatrixKernel() string
 	MatrixLibc() string
 
-	AddEnv(env ...EnvEntry)
+	AddEnv(override bool, env ...EnvEntry)
 	AddListEnv(env ...string)
 }
 
-func newEnvValues() *envValues {
+func newEnvValues(ctx context.Context, globalEnv map[string]string) *envValues {
 	ret := &envValues{
 		matrixFilter: nil,
 
-		globalEnv: make(map[string]string),
+		globalEnv: globalEnv,
 
 		env: make(map[string]string),
 		mu:  new(sync.RWMutex),
@@ -69,7 +69,12 @@ type envValues struct {
 }
 
 func (c *envValues) clone() *envValues {
-	newValues := newEnvValues()
+	newValues := &envValues{
+		matrixFilter: nil,
+		globalEnv:    c.globalEnv,
+		env:          make(map[string]string),
+		mu:           new(sync.RWMutex),
+	}
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -108,8 +113,12 @@ func (c *envValues) MatrixLibc() string {
 	return c.env[constant.ENV_MATRIX_LIBC]
 }
 
-func (c *envValues) AddEnv(entries ...EnvEntry) {
+func (c *envValues) AddEnv(override bool, entries ...EnvEntry) {
 	for _, e := range entries {
+		if _, ok := c.env[e.Name]; ok && !override {
+			continue
+		}
+
 		c.env[e.Name] = e.Value
 	}
 }
@@ -124,10 +133,6 @@ func (c *envValues) AddListEnv(env ...string) {
 
 		c.env[key] = value
 	}
-}
-
-func (c *envValues) SetGlobalEnv(m map[string]string) {
-	c.globalEnv = m
 }
 
 func (c *envValues) SetCacheDir(dir string) {

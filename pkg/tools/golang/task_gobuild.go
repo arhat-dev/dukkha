@@ -46,15 +46,12 @@ func (c *TaskBuild) GetExecSpecs(
 		mKernel := rc.MatrixKernel()
 		mArch := rc.MatrixArch()
 
-		env := sliceutils.NewStrings(
-			c.CGO.getEnv(
-				rc.HostKernel() != mKernel || rc.HostArch() != mArch,
-				mKernel, mArch,
-				rc.HostOS(),
-				rc.MatrixLibc(),
-			),
-			createBuildEnv(mKernel, mArch)...,
-		)
+		buildEnv := append(c.CGO.getEnv(
+			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
+			mKernel, mArch,
+			rc.HostOS(),
+			rc.MatrixLibc(),
+		), createBuildEnv(mKernel, mArch)...)
 
 		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
@@ -66,10 +63,10 @@ func (c *TaskBuild) GetExecSpecs(
 				Chdir: c.Chdir,
 
 				// put generated env first, so user can override them
-				Env:       env,
-				Command:   sliceutils.NewStrings(options.ToolCmd(), "build", "-o", output),
-				UseShell:  options.UseShell(),
-				ShellName: options.ShellName(),
+				EnvSuggest: buildEnv,
+				Command:    sliceutils.NewStrings(options.ToolCmd(), "build", "-o", output),
+				UseShell:   options.UseShell(),
+				ShellName:  options.ShellName(),
 			}
 
 			spec.Command = append(spec.Command, c.BuildOptions.generateArgs(options.UseShell())...)

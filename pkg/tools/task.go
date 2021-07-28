@@ -59,7 +59,7 @@ func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext)
 			return fmt.Errorf("failed to resolve env %q: %w", e.Name, err)
 		}
 
-		mCtx.AddEnv(dukkha.EnvEntry{
+		mCtx.AddEnv(true, dukkha.EnvEntry{
 			Name:  e.Name,
 			Value: e.Value,
 		})

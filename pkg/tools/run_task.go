@@ -47,7 +47,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 	// task may need tool specific env, resolve tool env first
 
 	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
-		req.Context.AddEnv(req.Tool.GetEnv()...)
+		req.Context.AddEnv(true, req.Tool.GetEnv()...)
 		return nil
 	}, "BaseTool.Env")
 	if err != nil {
@@ -297,7 +297,7 @@ func createTaskMatrixContext(
 	mCtx.SetMatrixFilter(mFilter)
 
 	for k, v := range ms {
-		mCtx.AddEnv(dukkha.EnvEntry{
+		mCtx.AddEnv(true, dukkha.EnvEntry{
 			Name:  "MATRIX_" + strings.ToUpper(k),
 			Value: v,
 		})
@@ -320,7 +320,7 @@ func createTaskMatrixContext(
 
 	var options dukkha.TaskMatrixExecOptions
 	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, func() error {
-		mCtx.AddEnv(req.Tool.GetEnv()...)
+		mCtx.AddEnv(true, req.Tool.GetEnv()...)
 
 		options = opts.NextMatrixExecOptions(
 			req.Tool.UseShell(),

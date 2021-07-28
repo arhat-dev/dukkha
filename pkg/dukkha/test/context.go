@@ -16,7 +16,6 @@ type echoRenderer struct {
 }
 
 func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error {
-	ctx.AddRenderer("echo", r)
 	return nil
 }
 
@@ -30,10 +29,6 @@ func (*echoRenderer) RenderYaml(rc dukkha.RenderingContext, rawData interface{})
 		data, err := yaml.Marshal(rawData)
 		return data, err
 	}
-}
-
-func testBootstrapExec(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
-	return []string{"DUKKHA_TEST=true"}, []string{}, nil
 }
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
@@ -50,6 +45,7 @@ func NewTestContextWithGlobalEnv(
 		true,
 		false, // turn off color output
 		1,
+		globalEnv,
 	)
 
 	d.AddRenderer("echo", &echoRenderer{})

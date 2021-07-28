@@ -84,6 +84,7 @@ func NewConfigResolvingContext(
 	failFast bool,
 	colorOutput bool,
 	workers int,
+	globalEnv map[string]string,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
@@ -95,7 +96,7 @@ func NewConfigResolvingContext(
 		contextExec:   newContextExec(),
 
 		contextRendering: newContextRendering(
-			ctxStd.ctx, ifaceTypeHandler,
+			ctxStd.ctx, ifaceTypeHandler, globalEnv,
 		),
 
 		failFast:    failFast,

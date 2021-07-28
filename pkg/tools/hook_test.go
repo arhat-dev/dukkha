@@ -46,7 +46,7 @@ func TestHookFixtures(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(context.TODO())
 			ctx.AddRenderer("env", env.NewDefault())
-			ctx.AddEnv(test.env...)
+			ctx.AddEnv(true, test.env...)
 
 			actual := field.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.input, actual))

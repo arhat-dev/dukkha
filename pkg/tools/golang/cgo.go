@@ -1,10 +1,10 @@
 package golang
 
 import (
-	"fmt"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 )
 
@@ -37,13 +37,21 @@ type CGOSepc struct {
 func (c *CGOSepc) getEnv(
 	doingCrossCompiling bool,
 	mKernel, mArch, hostOS, targetLibc string,
-) []string {
+) dukkha.Env {
 	if !c.Enabled {
-		return []string{"CGO_ENABLED=0"}
+		return dukkha.Env{
+			{
+				Name:  "CGO_ENABLED",
+				Value: "0",
+			},
+		}
 	}
 
-	var ret []string
-	ret = append(ret, "CGO_ENABLED=1")
+	var ret dukkha.Env
+	ret = append(ret, dukkha.EnvEntry{
+		Name:  "CGO_ENABLED",
+		Value: "1",
+	})
 
 	appendListEnv := func(name string, values, defVals []string) {
 		actual := values
@@ -52,7 +60,10 @@ func (c *CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, fmt.Sprintf("%s=%s", name, strings.Join(actual, " ")))
+			ret = append(ret, dukkha.EnvEntry{
+				Name:  name,
+				Value: strings.Join(actual, " "),
+			})
 		}
 	}
 
@@ -63,7 +74,10 @@ func (c *CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, fmt.Sprintf("%s=%s", name, actual))
+			ret = append(ret, dukkha.EnvEntry{
+				Name:  name,
+				Value: actual,
+			})
 		}
 	}
 
