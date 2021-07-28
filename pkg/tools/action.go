@@ -21,28 +21,31 @@ type Action struct {
 	// Name of this action, optional
 	Name string `yaml:"name"`
 
+	// // Env specific to this action
+	// Env dukkha.Env
+
 	// Task reference of this action
 	//
-	// Task, Cmd, Shell, OtherShell are mutually exclusive
+	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
 	Task string `yaml:"task"`
 
-	// Shell using embedded shell
+	// EmbeddedShell using embedded shell
 	//
-	// Task, Cmd, Shell, OtherShell are mutually exclusive
+	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
 	EmbeddedShell string `yaml:"shell"`
 
-	// Shell script for this action
+	// EmbeddedShell script for this action
 	//
-	// Task, Cmd, Shell, OtherShell are mutually exclusive
-	OtherShell map[string]string `dukkha:"other"`
+	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
+	ExternalShell map[string]string `dukkha:"other"`
 
 	// Cmd execution, not in any shell
 	//
-	// Task, Cmd, Shell, OtherShell are mutually exclusive
+	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
 	Cmd []string `yaml:"cmd"`
 
 	// Chdir change working directory before executing command
-	// this option only applies to Cmd, Shell, OtherShell action
+	// this option only applies to Cmd, EmbeddedShell, ExternalShell action
 	Chdir string `yaml:"chdir"`
 
 	// ContuineOnError ignores error occurred in this action and continue
@@ -80,7 +83,7 @@ func (act *Action) GenSpecs(
 	case len(act.EmbeddedShell) != 0:
 		return act.genEmbeddedShellActionSpecs(ctx, hookID)
 	default:
-		return act.genShellActionSpecs(ctx, hookID)
+		return act.genExternalShellActionSpecs(ctx, hookID)
 	}
 }
 
@@ -120,7 +123,6 @@ func (act *Action) genCmdActionSpecs(
 	_ = hookID
 	return []dukkha.TaskExecSpec{
 		{
-			Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
 			Command:     sliceutils.NewStrings(act.Cmd),
 			Chdir:       act.Chdir,
 			IgnoreError: act.ContinueOnError,
@@ -161,17 +163,17 @@ func (act *Action) genEmbeddedShellActionSpecs(
 	}}, nil
 }
 
-func (act *Action) genShellActionSpecs(
+func (act *Action) genExternalShellActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
 ) (dukkha.RunTaskOrRunCmd, error) {
 	// check other shell
 	switch {
-	case len(act.OtherShell) > 1:
+	case len(act.ExternalShell) > 1:
 		return nil, fmt.Errorf(
 			"%q: unexpected multiple shell entries in one spec",
 			hookID,
 		)
-	case len(act.OtherShell) == 1:
+	case len(act.ExternalShell) == 1:
 		// ok
 	default:
 		// no hook to run
@@ -183,7 +185,7 @@ func (act *Action) genShellActionSpecs(
 		script string
 	)
 
-	for k, v := range act.OtherShell {
+	for k, v := range act.ExternalShell {
 		script = v
 
 		switch {
@@ -196,7 +198,6 @@ func (act *Action) genShellActionSpecs(
 
 	return []dukkha.TaskExecSpec{
 		{
-			Env:         sliceutils.FormatStringMap(ctx.Env(), "=", false),
 			Command:     []string{script},
 			Chdir:       act.Chdir,
 			UseShell:    true,

@@ -145,7 +145,6 @@ func (c *TaskBuild) createExecSpecs(
 
 	// buildah bud
 	steps = append(steps, dukkha.TaskExecSpec{
-		Env:         sliceutils.NewStrings(c.Env),
 		Command:     append(budCmd, context),
 		IgnoreError: false,
 		UseShell:    options.UseShell(),
@@ -157,7 +156,6 @@ func (c *TaskBuild) createExecSpecs(
 	steps = append(steps, dukkha.TaskExecSpec{
 		StdoutAsReplace:          replaceTargetImageID,
 		FixStdoutValueForReplace: bytes.TrimSpace,
-		Env:                      sliceutils.NewStrings(c.Env),
 		AlterExecFunc: func(
 			replace dukkha.ReplaceEntries,
 			stdin io.Reader, stdout, stderr io.Writer,
@@ -185,7 +183,6 @@ func (c *TaskBuild) createExecSpecs(
 	steps = append(steps, dukkha.TaskExecSpec{
 		StdoutAsReplace:          replaceTargetImageDigest,
 		FixStdoutValueForReplace: bytes.TrimSpace,
-		Env:                      sliceutils.NewStrings(c.Env),
 		Command: sliceutils.NewStrings(
 			options.ToolCmd(), "inspect", "--type", "image",
 			"--format", `"{{ .FromImageDigest }}"`,
@@ -220,7 +217,6 @@ func (c *TaskBuild) createExecSpecs(
 		localManifestName := getLocalManifestName(manifestName)
 		// ensure local manifest exists
 		steps = append(steps, dukkha.TaskExecSpec{
-			Env: sliceutils.NewStrings(c.Env),
 			Command: sliceutils.NewStrings(
 				options.ToolCmd(), "manifest", "create", localManifestName,
 			),
@@ -233,7 +229,6 @@ func (c *TaskBuild) createExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			StdoutAsReplace:          replaceTargetManifestSpec,
 			FixStdoutValueForReplace: nil,
-			Env:                      sliceutils.NewStrings(c.Env),
 			Command: sliceutils.NewStrings(
 				options.ToolCmd(), "manifest", "inspect", localManifestName,
 			),
@@ -250,7 +245,6 @@ func (c *TaskBuild) createExecSpecs(
 		// find existing manifest entries with same os/arch/variant
 		steps = append(steps, dukkha.TaskExecSpec{
 			IgnoreError: false,
-			Env:         sliceutils.NewStrings(c.Env),
 			AlterExecFunc: func(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader, stdout, stderr io.Writer,

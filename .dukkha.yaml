@@ -1,11 +1,11 @@
 include:
 - scripts/dukkha/entrypoint.yaml
 
-bootstrap:
+global:
   cache_dir: scripts/dukkha/cache
   env:
-  - GIT_DEFAULT_BRANCH=master
-  script_cmd: [sh]
+  - name: GIT_DEFAULT_BRANCH
+    value: master
 
 renderers:
   http:

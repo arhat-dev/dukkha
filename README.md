@@ -43,7 +43,11 @@ workflow:run:
   jobs@template:
   - shell@env: |-
       echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
-  - shell@http: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
+  - shell@template|http: |-
+      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
+      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
+      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
+      echo.sh
 ```
 
 ## LICENSE

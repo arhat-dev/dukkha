@@ -14,33 +14,6 @@ renderers:
   env: {}
 ```
 
-## Supported value types
-
-Any valid yaml value
-
-## Variants
-
-### Variant `@env:<shell-name>`
-
-Depending on the `shells` section of your dukkha config, you can use shell specific env renderers with `@env:<shell-name>`, shell commands (`$(some command)`) will be handled using that shell.
-
-Example:
-
-```yaml
-shells:
-- name: bash
-- name: python
-  cmd: [python3]
-
-tool:task-kind:
-- name: foo
-  foo@env: command will be handled by the embedded shell $(echo "bash")
-  bar@env:bash: $(echo "Use configured bash!")
-  foo_bar@env:python:
-    a: command get evaluated by python
-    b: so you can run python commands $(print('hello'))
-```
-
 ## Suggested Use Cases
 
 ### Expand environment variables before task execution start

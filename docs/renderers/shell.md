@@ -18,24 +18,6 @@ renderers:
 
 - `string`
 
-## Variants
-
-### Variant `@shell:<shell-name>`
-
-Use specific shell to run the script
-
-Example:
-
-```yaml
-shells:
-- name: sh
-- name: python
-
-tool:task-kind:
-- name: foo
-  foo@shell:python: print("hello")
-```
-
 ## Suggested Use Cases
 
 No suggestion for now

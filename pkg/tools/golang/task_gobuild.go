@@ -66,7 +66,7 @@ func (c *TaskBuild) GetExecSpecs(
 				Chdir: c.Chdir,
 
 				// put generated env first, so user can override them
-				Env:       sliceutils.NewStrings(env, c.Env...),
+				Env:       env,
 				Command:   sliceutils.NewStrings(options.ToolCmd(), "build", "-o", output),
 				UseShell:  options.UseShell(),
 				ShellName: options.ShellName(),

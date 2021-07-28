@@ -155,26 +155,22 @@ func doRun(
 
 			replacer := strings.NewReplacer(pairs...)
 			for _, rawEnvPart := range es.Env {
-				ctx.AddEnv(replacer.Replace(rawEnvPart))
+				ctx.AddListEnv(replacer.Replace(rawEnvPart))
 			}
 
 			for _, rawCmdPart := range es.Command {
 				cmd = append(cmd, replacer.Replace(rawCmdPart))
 			}
 		} else {
-			ctx.AddEnv(es.Env...)
+			ctx.AddListEnv(es.Env...)
 			cmd = sliceutils.NewStrings(es.Command)
 		}
 
 		var err error
 		if es.UseShell {
 			var shellCmd []string
-			if es.ShellName == "bootstrap" {
-				_, shellCmd, err = ctx.GetBootstrapExecSpec(cmd, false)
-				if err != nil {
-					return fmt.Errorf("failed to get exec spec for bootstrap shell: %w", err)
-				}
-			} else {
+			if es.ShellName != "" {
+				// using embedded shell
 				sh, ok := ctx.GetShell(es.ShellName)
 				if !ok {
 					return fmt.Errorf("shell %q not found", es.ShellName)

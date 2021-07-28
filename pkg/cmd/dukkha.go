@@ -28,7 +28,6 @@ import (
 	"golang.org/x/term"
 
 	"arhat.dev/dukkha/pkg/conf"
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
@@ -103,10 +102,18 @@ dukkha buildah in-docker build my-image`,
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
-			_appCtx, err := initDukkha(appBaseCtx, config, failFast, forceColor, workerCount)
+			_appCtx := dukkha.NewConfigResolvingContext(
+				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
+				failFast,
+				term.IsTerminal(int(os.Stdout.Fd())) || forceColor,
+				workerCount,
+			)
+
+			err = config.Resolve(_appCtx)
 			if err != nil {
-				return fmt.Errorf("failed to initialize dukkha: %w", err)
+				return fmt.Errorf("failed to resolve config: %w", err)
 			}
+
 			_appCtx.SetMatrixFilter(parseMatrixFilter(matrixFilter))
 
 			appCtx = _appCtx
@@ -155,56 +162,6 @@ dukkha buildah in-docker build my-image`,
 	}
 
 	return rootCmd
-}
-
-// initialize dukkha runtime, create a context for any task execution
-func initDukkha(
-	appBaseCtx context.Context,
-	config *conf.Config,
-	failFast bool,
-	forceColor bool,
-	workers int,
-) (dukkha.Context, error) {
-	logger := log.Log.WithName("init")
-
-	// create global env per docs/environment-variables
-	logger.V("creating global environment variables")
-	globalEnv := createGlobalEnv(appBaseCtx)
-
-	logger.D("resolving bootstrap config")
-	err := config.Bootstrap.Resolve(&globalEnv)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve bootstrap config: %w", err)
-	}
-
-	logger.D("ensuring cache directory exists",
-		log.String("cache_dir", config.Bootstrap.CacheDir),
-	)
-	err = os.MkdirAll(config.Bootstrap.CacheDir, 0750)
-	if err != nil && !os.IsExist(err) {
-		return nil, fmt.Errorf("failed to ensure cache dir exists: %w", err)
-	}
-
-	globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = config.Bootstrap.CacheDir
-
-	// all global environment variables set
-	// globalEnv MUST NOT be modified from now on
-
-	appCtx := dukkha.NewConfigResolvingContext(
-		appBaseCtx, globalEnv,
-		config.Bootstrap.GetExecSpec,
-		dukkha.GlobalInterfaceTypeHandler,
-		failFast,
-		term.IsTerminal(int(os.Stdout.Fd())) || forceColor,
-		workers,
-	)
-
-	err = config.ResolveAfterBootstrap(appCtx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve config: %w", err)
-	}
-
-	return appCtx, nil
 }
 
 func run(appCtx dukkha.Context, args []string) error {

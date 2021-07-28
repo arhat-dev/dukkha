@@ -9,6 +9,27 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 )
 
+type Env []EnvEntry
+
+func (orig Env) Clone() Env {
+	ret := make(Env, 0, len(orig))
+	for _, entry := range orig {
+		ret = append(ret, EnvEntry{
+			Name:  entry.Name,
+			Value: entry.Value,
+		})
+	}
+
+	return ret
+}
+
+type EnvEntry struct {
+	field.BaseField
+
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
 type (
 	RendererCreateFunc func() Renderer
 

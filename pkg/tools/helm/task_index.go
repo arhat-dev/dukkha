@@ -65,12 +65,9 @@ func (c *TaskIndex) GetExecSpecs(
 		return nil
 	})
 
-	return []dukkha.TaskExecSpec{
-		{
-			Env:       sliceutils.NewStrings(c.Env),
-			Command:   indexCmd,
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
-		},
-	}, err
+	return []dukkha.TaskExecSpec{{
+		Command:   indexCmd,
+		UseShell:  options.UseShell(),
+		ShellName: options.ShellName(),
+	}}, err
 }

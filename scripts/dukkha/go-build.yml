@@ -1,7 +1,8 @@
 - name: dukkha
   path: ./cmd/dukkha
   env:
-  - CGO_CFLAGS_ALLOW="-W"
+  - name: CGO_CFLAGS_ALLOW
+    value: -W
   hooks:
     before:matrix:
     - shell: echo "${MATRIX_KERNEL}/${MATRIX_ARCH}"

@@ -5,7 +5,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -67,7 +66,6 @@ func (w *TaskRun) next(
 
 	return []dukkha.TaskExecSpec{
 		{
-			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader,
@@ -77,7 +75,6 @@ func (w *TaskRun) next(
 			},
 		},
 		{
-			Env: sliceutils.NewStrings(w.Env),
 			AlterExecFunc: func(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader,

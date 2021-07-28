@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
@@ -18,12 +19,15 @@ func TestNewDriver(t *testing.T) {
 func TestDriver_Render(t *testing.T) {
 	cmdPrintHello := []string{"sh", "-c", "printf hello"}
 	d := NewDefault().(*driver)
-	d.getExecSpec = func(toExec []string, isFilePath bool) (env []string, cmd []string, err error) {
+	d.getExecSpec = func(toExec []string, isFilePath bool) (env dukkha.Env, cmd []string, err error) {
 		return nil, cmdPrintHello, nil
 	}
 
 	rv := dukkha_test.NewTestContext(context.TODO())
-	rv.AddEnv("FOO=bar")
+	rv.AddEnv(dukkha.EnvEntry{
+		Name:  "FOO",
+		Value: "bar",
+	})
 
 	tests := []struct {
 		name     string

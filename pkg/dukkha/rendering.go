@@ -17,8 +17,8 @@ type RenderingContext interface {
 
 	expand.Environ
 
-	ImmutableValues
-	MutableValues
+	GlobalValues
+	EnvValues
 
 	Env() map[string]string
 
@@ -44,14 +44,12 @@ type RendererManager interface {
 
 func newContextRendering(
 	ctx context.Context,
-	globalEnv map[string]string,
 	ifaceTypeHandler field.InterfaceTypeHandler,
 ) *contextRendering {
 	return &contextRendering{
 		Context: ctx,
 
-		immutableValues: newContextImmutableValues(globalEnv),
-		mutableValues:   newContextMutableValues(),
+		envValues: newEnvValues(),
 
 		ifaceTypeHandler: ifaceTypeHandler,
 		renderers:        make(map[string]Renderer),
@@ -66,8 +64,7 @@ var (
 type contextRendering struct {
 	context.Context
 
-	*mutableValues
-	*immutableValues
+	*envValues
 
 	ifaceTypeHandler field.InterfaceTypeHandler
 	renderers        map[string]Renderer
@@ -77,18 +74,17 @@ func (c *contextRendering) clone(newCtx context.Context) *contextRendering {
 	return &contextRendering{
 		Context: newCtx,
 
-		immutableValues: c.immutableValues,
-		mutableValues:   c.mutableValues.clone(),
-		renderers:       c.renderers,
+		envValues: c.envValues.clone(),
+		renderers: c.renderers,
 	}
 }
 
 func (c *contextRendering) Env() map[string]string {
-	for k, v := range c.immutableValues.globalEnv {
-		c.mutableValues.env[k] = v
+	for k, v := range c.envValues.globalEnv {
+		c.envValues.env[k] = v
 	}
 
-	return c.mutableValues.env
+	return c.envValues.env
 }
 
 func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
