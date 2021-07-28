@@ -229,7 +229,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 
 	}
 
-	// step 4: resolve shells so we can create various renderers
+	// step 4: resolve shells
 	{
 		logger.D("resolving shell config overview")
 
