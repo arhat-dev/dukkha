@@ -47,6 +47,7 @@ func main() {
 	err := rootCmd.Execute()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err.Error())
+		// TODO: use last exec exist code
 		os.Exit(1)
 	}
 }
