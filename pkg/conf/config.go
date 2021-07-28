@@ -34,10 +34,9 @@ import (
 )
 
 func NewConfig() *Config {
-	return field.Init(
-		&Config{},
-		dukkha.GlobalInterfaceTypeHandler,
-	).(*Config)
+	return field.Init(&Config{
+		Global: *field.Init(&GlobalConfig{}, dukkha.GlobalInterfaceTypeHandler).(*GlobalConfig),
+	}, dukkha.GlobalInterfaceTypeHandler).(*Config)
 }
 
 type GlobalConfig struct {
@@ -50,7 +49,7 @@ type GlobalConfig struct {
 	CacheDir string `yaml:"cache_dir"`
 
 	// Env
-	Env []dukkha.EnvEntry `yaml:"env"`
+	Env dukkha.Env `yaml:"env"`
 }
 
 func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
@@ -163,6 +162,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		logger.D("initializing essential renderers",
 			log.Int("count", len(essentialRenderers)),
 		)
+
 		for name, r := range essentialRenderers {
 			// using default config, no need to resolve fields
 
@@ -175,7 +175,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 
 	// step 2: resolve global config, ensure cache dir exists
 	{
-		logger.D("resolving global config overview")
+		logger.D("resolving global config")
 		err := c.ResolveFields(appCtx, 1, "Global")
 		if err != nil {
 			return fmt.Errorf("failed to get global config overview: %w", err)
@@ -224,7 +224,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			logger.D("resolving renderer config fields")
 			err = r.ResolveFields(appCtx, -1, "")
 			if err != nil {
-				return fmt.Errorf("failed to resolve config for renderer %q: %w", name, err)
+				return fmt.Errorf("failed to resolve renderer %q config: %w", name, err)
 			}
 
 			err = r.Init(appCtx)
@@ -258,7 +258,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			logger.D("resolving shell config fields")
 			err := v.ResolveFields(appCtx, -1, "")
 			if err != nil {
-				return fmt.Errorf("failed to resolve config for shell %q #%d", v.Name(), i)
+				return fmt.Errorf("failed to resolve shell %q #%d config: %w", v.Name(), i, err)
 			}
 
 			err = v.InitBaseTool(
@@ -327,7 +327,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			err = t.ResolveFields(appCtx, -1, "")
 			if err != nil {
 				return fmt.Errorf(
-					"failed to resolve config for tool %q: %w",
+					"failed to resolve tool %q config: %w",
 					key, err,
 				)
 			}
