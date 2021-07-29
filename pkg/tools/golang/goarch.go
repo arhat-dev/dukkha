@@ -9,7 +9,14 @@ import (
 
 func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 	var env dukkha.Env
+
 	goos, _ := constant.GetGolangOS(v.MatrixKernel())
+	switch {
+	case len(goos) != 0:
+	case len(v.MatrixKernel()) != 0:
+		goos = v.MatrixKernel()
+	}
+
 	if len(goos) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOOS",
@@ -18,6 +25,12 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 	}
 
 	goarch, _ := constant.GetGolangArch(v.MatrixArch())
+	switch {
+	case len(goarch) != 0:
+	case len(v.MatrixArch()) != 0:
+		goarch = v.MatrixArch()
+	}
+
 	if len(goarch) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOARCH",
