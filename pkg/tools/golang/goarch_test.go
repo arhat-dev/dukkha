@@ -1,12 +1,14 @@
 package golang
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestCreateBuildEnv(t *testing.T) {
@@ -57,7 +59,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			expected := dukkha.Env{
 				{
 					Name:  "GOOS",
-					Value: "linux",
+					Value: constant.KERNEL_LINUX,
 				},
 				{
 					Name:  "GOARCH",
@@ -81,7 +83,23 @@ func TestCreateBuildEnv(t *testing.T) {
 				})
 			}
 
-			assert.Equal(t, expected, createBuildEnv("linux", test.mArch))
+			expected = append(expected, dukkha.EnvEntry{
+				Name:  "CGO_ENABLED",
+				Value: "0",
+			})
+
+			rc := dukkha_test.NewTestContext(context.TODO())
+			rc.AddEnv(true, dukkha.EnvEntry{
+				Name:  constant.ENV_MATRIX_KERNEL,
+				Value: constant.KERNEL_LINUX,
+			}, dukkha.EnvEntry{
+				Name:  constant.ENV_MATRIX_ARCH,
+				Value: test.mArch,
+			})
+
+			assert.Equal(t, expected, createBuildEnv(
+				rc, CGOSepc{},
+			))
 		})
 	}
 }

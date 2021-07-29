@@ -7,9 +7,9 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func createBuildEnv(mKernel, mArch string) dukkha.Env {
+func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 	var env dukkha.Env
-	goos, _ := constant.GetGolangOS(mKernel)
+	goos, _ := constant.GetGolangOS(v.MatrixKernel())
 	if len(goos) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOOS",
@@ -17,7 +17,7 @@ func createBuildEnv(mKernel, mArch string) dukkha.Env {
 		})
 	}
 
-	goarch, _ := constant.GetGolangArch(mArch)
+	goarch, _ := constant.GetGolangArch(v.MatrixArch())
 	if len(goarch) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOARCH",
@@ -25,7 +25,7 @@ func createBuildEnv(mKernel, mArch string) dukkha.Env {
 		})
 	}
 
-	if gomips := getGOMIPS(mArch); len(gomips) != 0 {
+	if gomips := getGOMIPS(v.MatrixArch()); len(gomips) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOMIPS",
 			Value: gomips,
@@ -35,14 +35,19 @@ func createBuildEnv(mKernel, mArch string) dukkha.Env {
 		})
 	}
 
-	if goarm := getGOARM(mArch); len(goarm) != 0 {
+	if goarm := getGOARM(v.MatrixArch()); len(goarm) != 0 {
 		env = append(env, dukkha.EnvEntry{
 			Name:  "GOARM",
 			Value: goarm,
 		})
 	}
 
-	return env
+	return append(env, cgoSpec.getEnv(
+		v.HostKernel() != v.MatrixKernel() || v.HostArch() != v.MatrixArch(),
+		v.MatrixKernel(), v.MatrixArch(),
+		v.HostOS(),
+		v.MatrixLibc(),
+	)...)
 }
 
 func getGOARM(mArch string) string {
