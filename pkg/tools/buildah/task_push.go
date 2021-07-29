@@ -9,6 +9,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -48,7 +49,7 @@ func (c *TaskPush) GetExecSpecs(
 
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
-				imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 				imageIDFile := GetImageIDFileForImageName(
 					dukkhaCacheDir, imageName,
 				)
@@ -74,7 +75,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 			c.cacheManifestPushSpec(i, opts, manifestName)
 		}
 

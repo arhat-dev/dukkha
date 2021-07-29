@@ -39,7 +39,7 @@ func init() {
 			return func(imageName string) string {
 				return GetImageIDFileForImageName(
 					rc.CacheDir(),
-					SetDefaultImageTagIfNoTagSet(rc, imageName),
+					templateutils.SetDefaultImageTagIfNoTagSet(rc, imageName),
 				)
 			}
 		},
@@ -119,7 +119,7 @@ func (c *TaskBuild) createExecSpecs(
 			continue
 		}
 
-		imageName := SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+		imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 
 		// local image name is to handle bud regression bugs related to
 		// FQDN image names
@@ -213,7 +213,7 @@ func (c *TaskBuild) createExecSpecs(
 			continue
 		}
 
-		manifestName := SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+		manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 		localManifestName := getLocalManifestName(manifestName)
 		// ensure local manifest exists
 		steps = append(steps, dukkha.TaskExecSpec{

@@ -1,4 +1,4 @@
-package buildah
+package templateutils
 
 import (
 	"strings"
@@ -8,8 +8,8 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func SetDefaultImageTagIfNoTagSet(rc dukkha.RenderingContext, name string) string {
-	return setDefaultTagIfNoTagSet(rc, name, false)
+func SetDefaultImageTagIfNoTagSet(rc dukkha.RenderingContext, imageName string) string {
+	return setDefaultTagIfNoTagSet(rc, imageName, false)
 }
 
 func SetDefaultManifestTagIfNoTagSet(rc dukkha.RenderingContext, manfiestName string) string {
