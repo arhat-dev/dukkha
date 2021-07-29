@@ -50,7 +50,7 @@ func newContextRendering(
 	return &contextRendering{
 		Context: ctx,
 
-		envValues: newEnvValues(ctx, globalEnv),
+		envValues: newEnvValues(globalEnv),
 
 		ifaceTypeHandler: ifaceTypeHandler,
 		renderers:        make(map[string]Renderer),

@@ -77,44 +77,49 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 	return in
 }
 
-func InitRecursively(fieldValue reflect.Value, h InterfaceTypeHandler) {
-	target := fieldValue
-	switch fieldValue.Kind() {
-	case reflect.Struct:
-	case reflect.Ptr:
-		target = fieldValue.Elem()
-	default:
-		return
-	}
-
-	switch fieldValue.Type() {
+func InitRecursively(fv reflect.Value, h InterfaceTypeHandler) {
+	switch fv.Type() {
 	case baseFieldPtrType, baseFieldStructType:
 		return
 	}
 
-	calledInit := false
-	if fieldValue.CanInterface() {
-		fVal, canCallInit := fieldValue.Interface().(Field)
-		if canCallInit {
-			calledInit = true
-			_ = Init(fVal, h)
-		}
-	}
-
-	if !calledInit {
-		if fieldValue.CanAddr() && fieldValue.Addr().CanInterface() {
-			fVal, canCallInit := fieldValue.Addr().Interface().(Field)
-			if canCallInit {
-				_ = Init(fVal, h)
-			} else {
-				return
-			}
-		} else {
+	target := fv
+findStruct:
+	switch target.Kind() {
+	case reflect.Struct:
+		_ = tryInit(fv, h)
+	case reflect.Ptr:
+		if !target.IsValid() || target.IsZero() || target.IsNil() {
 			return
 		}
+
+		target = target.Elem()
+		goto findStruct
+	default:
+		return
 	}
 
 	for i := 0; i < target.NumField(); i++ {
 		InitRecursively(target.Field(i), h)
 	}
+}
+
+func tryInit(fieldValue reflect.Value, h InterfaceTypeHandler) bool {
+	if fieldValue.CanInterface() {
+		fVal, canCallInit := fieldValue.Interface().(Field)
+		if canCallInit {
+			_ = Init(fVal, h)
+			return true
+		}
+	}
+
+	if fieldValue.CanAddr() && fieldValue.Addr().CanInterface() {
+		fVal, canCallInit := fieldValue.Addr().Interface().(Field)
+		if canCallInit {
+			_ = Init(fVal, h)
+			return true
+		}
+	}
+
+	return false
 }
