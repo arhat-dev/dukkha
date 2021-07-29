@@ -3,9 +3,10 @@ package golang
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateBuildEnv(t *testing.T) {

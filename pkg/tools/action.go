@@ -125,6 +125,7 @@ func (act *Action) genTaskActionSpecs(
 func (act *Action) genCmdActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
 ) (dukkha.RunTaskOrRunCmd, error) {
+	_ = ctx
 	_ = hookID
 	return []dukkha.TaskExecSpec{
 		{
@@ -175,6 +176,7 @@ func (act *Action) genExternalShellActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
 ) (dukkha.RunTaskOrRunCmd, error) {
 	// check other shell
+	_ = ctx
 	switch {
 	case len(act.ExternalShell) > 1:
 		return nil, fmt.Errorf(
