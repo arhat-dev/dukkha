@@ -12,7 +12,36 @@ import (
 )
 
 func TestCreateBuildEnv(t *testing.T) {
-	tests := []struct {
+	goosTests := []struct {
+		mKernel string
+
+		goos string
+	}{
+		{mKernel: "some-custom-goos", goos: "some-custom-goos"},
+	}
+
+	for _, test := range goosTests {
+		t.Run(test.mKernel, func(t *testing.T) {
+			expected := dukkha.Env{
+				{Name: "GOOS", Value: test.goos},
+				{Name: "GOARCH", Value: "amd64"},
+				{Name: "CGO_ENABLED", Value: "0"},
+			}
+
+			rc := dukkha_test.NewTestContext(context.TODO())
+			rc.AddEnv(true, dukkha.EnvEntry{
+				Name:  constant.ENV_MATRIX_KERNEL,
+				Value: test.mKernel,
+			}, dukkha.EnvEntry{
+				Name:  constant.ENV_MATRIX_ARCH,
+				Value: constant.ARCH_AMD64,
+			})
+
+			assert.EqualValues(t, expected, createBuildEnv(rc, CGOSepc{}))
+		})
+	}
+
+	goarchTests := []struct {
 		mArch string
 
 		goarch string
@@ -50,12 +79,13 @@ func TestCreateBuildEnv(t *testing.T) {
 
 		{mArch: constant.ARCH_S390X, goarch: "s390x"},
 
+		{mArch: "some-custom-goarch", goarch: "some-custom-goarch"},
+
 		// {mArch: constant.ARCH_IA64, goarch: "ia64"},
 	}
 
-	for _, test := range tests {
+	for _, test := range goarchTests {
 		t.Run(test.mArch, func(t *testing.T) {
-
 			expected := dukkha.Env{
 				{
 					Name:  "GOOS",
