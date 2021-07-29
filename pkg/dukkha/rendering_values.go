@@ -10,6 +10,7 @@ import (
 
 type GlobalValues interface {
 	SetCacheDir(dir string)
+	OverrideDefaultGitBranch(branch string)
 
 	WorkingDir() string
 	CacheDir() string
@@ -134,6 +135,10 @@ func (c *envValues) AddListEnv(env ...string) {
 
 func (c *envValues) SetCacheDir(dir string) {
 	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = dir
+}
+
+func (c *envValues) OverrideDefaultGitBranch(branch string) {
+	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = branch
 }
 
 func (c *envValues) WorkingDir() string {
