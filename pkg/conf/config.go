@@ -34,18 +34,15 @@ import (
 )
 
 func NewConfig() *Config {
-	return field.Init(&Config{
-		Global: *field.Init(&GlobalConfig{}, dukkha.GlobalInterfaceTypeHandler).(*GlobalConfig),
-	}, dukkha.GlobalInterfaceTypeHandler).(*Config)
+	cfg := field.Init(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
+	_ = field.Init(&cfg.Global, dukkha.GlobalInterfaceTypeHandler)
+	return cfg
 }
 
 type GlobalConfig struct {
 	field.BaseField
 
 	// CacheDir to store script file and temporary task execution data
-	// it is used when
-	// 		- resolving fields using shell renderer
-	// 		- executing tasks need to run commands
 	CacheDir string `yaml:"cache_dir"`
 
 	// Env
@@ -101,7 +98,10 @@ func (c *Config) Merge(a *Config) {
 		c.Global.CacheDir = a.Global.CacheDir
 	}
 
-	c.Global.BaseField.Inherit(&a.Global.BaseField)
+	err = c.Global.BaseField.Inherit(&a.Global.BaseField)
+	if err != nil {
+		panic(fmt.Errorf("failed to inherit other global config: %w", err))
+	}
 
 	c.Shells = append(c.Shells, a.Shells...)
 
@@ -184,7 +184,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			cacheDir = constant.DefaultCacheDir
 		}
 
-		cacheDir, err = filepath.Abs(c.Global.CacheDir)
+		cacheDir, err = filepath.Abs(cacheDir)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute path of cache dir: %w", err)
 		}

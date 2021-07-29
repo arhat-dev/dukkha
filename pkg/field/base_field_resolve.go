@@ -123,7 +123,11 @@ func (f *BaseField) handleResolvedField(
 		}
 	case reflect.Struct:
 	case reflect.Ptr:
+		fallthrough
 	case reflect.Interface:
+		if !targetField.IsValid() || targetField.IsZero() || targetField.IsNil() {
+			return nil
+		}
 	default:
 		// scalar types, no action required
 		return nil

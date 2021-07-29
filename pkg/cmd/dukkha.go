@@ -110,6 +110,8 @@ dukkha buildah in-docker build my-image`,
 				createGlobalEnv(appBaseCtx),
 			)
 
+			_appCtx.AddListEnv(os.Environ()...)
+
 			err = config.Resolve(_appCtx)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)

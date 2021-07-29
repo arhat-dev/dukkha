@@ -1,8 +1,6 @@
 package dukkha
 
 import (
-	"context"
-	"os"
 	"strings"
 	"sync"
 
@@ -43,7 +41,7 @@ type EnvValues interface {
 	AddListEnv(env ...string)
 }
 
-func newEnvValues(ctx context.Context, globalEnv map[string]string) *envValues {
+func newEnvValues(globalEnv map[string]string) *envValues {
 	ret := &envValues{
 		matrixFilter: nil,
 
@@ -53,7 +51,6 @@ func newEnvValues(ctx context.Context, globalEnv map[string]string) *envValues {
 		mu:  new(sync.RWMutex),
 	}
 
-	ret.AddListEnv(os.Environ()...)
 	return ret
 }
 
