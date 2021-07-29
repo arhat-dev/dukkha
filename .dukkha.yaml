@@ -2,10 +2,13 @@ include:
 - scripts/dukkha/entrypoint.yaml
 
 global:
+  default_git_branch: master
   cache_dir: scripts/dukkha/cache
   env:
-  - name: GIT_DEFAULT_BRANCH
-    value: master
+  - name: GLOBAL_ENV_FOO
+    value: foo
+  - name: GLOBAL_ENV_BAR
+    value: ${GLOBAL_ENV_FOO}-bar
 
 renderers:
   http:

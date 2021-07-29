@@ -45,6 +45,8 @@ type GlobalConfig struct {
 	// CacheDir to store script file and temporary task execution data
 	CacheDir string `yaml:"cache_dir"`
 
+	DefaultGitBranch string `yaml:"default_git_branch"`
+
 	// Env
 	Env dukkha.Env `yaml:"env"`
 }
@@ -58,6 +60,11 @@ func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
 	err = g.ResolveFields(rc, -1, "CacheDir")
 	if err != nil {
 		return fmt.Errorf("failed to resolve cache dir: %w", err)
+	}
+
+	err = g.ResolveFields(rc, -1, "DefaultGitBranch")
+	if err != nil {
+		return fmt.Errorf("failed to resolve default git branch: %w", err)
 	}
 
 	return nil
@@ -96,6 +103,10 @@ func (c *Config) Merge(a *Config) {
 	c.Global.Env = append(c.Global.Env, a.Global.Env...)
 	if len(a.Global.CacheDir) != 0 {
 		c.Global.CacheDir = a.Global.CacheDir
+	}
+
+	if len(a.Global.DefaultGitBranch) != 0 {
+		c.Global.DefaultGitBranch = a.Global.DefaultGitBranch
 	}
 
 	err = c.Global.BaseField.Inherit(&a.Global.BaseField)
@@ -192,6 +203,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		err = os.MkdirAll(cacheDir, 0750)
 		if err != nil && !os.IsExist(err) {
 			return fmt.Errorf("failed to ensure cache dir: %w", err)
+		}
+
+		if len(c.Global.DefaultGitBranch) != 0 {
+			appCtx.OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
 		}
 
 		appCtx.SetCacheDir(cacheDir)
