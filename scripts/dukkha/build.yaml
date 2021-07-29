@@ -21,3 +21,62 @@ tools:
 
 golang:build@file: scripts/dukkha/go-build.yml
 golang:test@file: scripts/dukkha/go-test.yml
+
+workflow:run:
+- name: sign-and-upload-blob
+  matrix@file: scripts/dukkha/build-matrix.yml
+  env:
+  - name: COSIGN_PIRVATE_KEY
+    value@env: ${COSIGN_PRIVATE_KEY}
+  - name: COSIGN_PRIVATE_KEY_PASSWORD
+    value@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
+  - name: COSIGN_KEY_FILE
+    value@env: ${DUKKHA_CACHE_DIR}/cosign.key
+  - name: DIST_IMAGE
+    value: ghcr.io/arhat-dev/dist/dukkha
+  hooks:
+    before:
+    - task: docker:login(ghcr)
+    - name: Write private key to cache
+      shell: |-
+        echo "${COSIGN_PIRVATE_KEY}" \
+          | base64 --decode > "${COSIGN_KEY_FILE}"
+
+    after:
+    - name: Remove private key
+      shell: |-
+        rm -f "${COSIGN_KEY_FILE}"
+
+  jobs:
+  - name: Sign the executable
+    shell: |-
+      suffix=""
+      if [[ "${MATRIX_KERNEL}" == "windows" ]]; then
+        suffix="${suffix}.exe"
+      fi
+      target="build/dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}${suffix}"
+
+      printf "%s" "${COSIGN_PRIVATE_KEY_PASSWORD}" \
+        | cosign sign-blob -key "${COSIGN_KEY_FILE}" \
+        "${target}" > "${target}.sig"
+
+  - name: Upload the executable
+    # TODO: oci_variant is not consumed by cosign
+    shell@template: |-
+      {{- $blob_file := printf "build/dukkha.%s.%s" .Env.MATRIX_KERNEL .Env.MATRIX_ARCH -}}
+      {{- $oci_os := getOciOS .Env.MATRIX_KERNEL | default .Env.MATRIX_KERNEL -}}
+      {{- $oci_arch := getOciArch .Env.MATRIX_ARCH | default .Env.MATRIX_ARCH -}}
+      {{- $oci_variant := getOciArchVariant .Env.MATRIX_ARCH -}}
+
+      {{- $oci_platform := printf "%s/%s" $oci_os $oci_arch -}}
+      {{- if $oci_variant -}}
+        {{- $oci_platform = printf "%s/%s/%s" $oci_os $oci_arch $oci_variant -}}
+      {{- end -}}
+
+      {{- $image_name := setDefaultImageTag .Env.DIST_IMAGE -}}
+
+      cosign upload blob -f "{{ $blob_file }}:{{- $oci_platform -}}" \
+        "{{ $image_name }}"
+
+      printf "%s" "${COSIGN_PRIVATE_KEY_PASSWORD}" \
+        | cosign sign -key "${COSIGN_KEY_FILE}" "{{ $image_name }}"

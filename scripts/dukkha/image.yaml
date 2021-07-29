@@ -1,7 +1,7 @@
 tools:
   docker:
   # first tool in this kind will be the default tool
-  - name: local-buildkit
+  - name: local
     env:
     - name: DOCKER_BUILDKIT
       value: "1"
@@ -50,7 +50,8 @@ buildah:build:
   - MATRIX_ARCH={{ .Env.MATRIX_ARCH }}
 
 buildah:login:
-- name: ghcr
+- &login
+  name: ghcr
   registry: ghcr.io
   username: ${GHCR_USER}
   password@env: ${GHCR_PASS}
@@ -63,6 +64,9 @@ buildah:push:
     - task: buildah:login(ghcr)
   matrix@file|template: *dukkha_image_matrix
   image_names: *dukkha_image_names
+
+docker:login:
+- *login
 
 docker:build:
 - *dukkha_image_build
