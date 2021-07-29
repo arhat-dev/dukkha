@@ -7,11 +7,10 @@ Build docker images using [docker (moby)](https://github.com/moby/moby)
 ```yaml
 tools:
   docker:
-  - name: <name your default docker tool>
+  - name: <name your docker tool>
     env: []
-    # - DOCKER_BUILDKIT=1
-    cmd: []
-    # - docker
+    # - name: DOCKER_BUILDKIT
+    #   value: "1"
   - name: <another docker tool>
     cmd: []
     # - ssh

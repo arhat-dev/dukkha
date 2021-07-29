@@ -7,23 +7,29 @@ Build OCI images using [buildah](https://github.com/containers/buildah)
 ```yaml
 tools:
   buildah:
-  - name: <name your default buildah tool>
+  - name: <name your buildah tool>
     env: []
-    cmd: []
-    # - buildah
   - name: <another buildah tool>
-    cmd: []
+    cmd:
     # an example to run buildah in docker
-    # - |-
-    #   docker run -it --rm \
-    #     --workdir $(pwd) \
-    #     -v $(pwd):$(pwd) \
-    #     --security-opt label=disable \
-    #     --security-opt seccomp=unconfined \
-    #     -v buildah-storage:/var/lib/containers \
-    #     --device /dev/fuse:rw \
-    #     quay.io/buildah/stable \
-    #     buildah
+    - docker
+    - run
+    - -it
+    - --rm
+    - --workdir
+    - $(pwd)
+    - -v
+    - $(pwd):$(pwd)
+    - --security-opt
+    - label=disable
+    - --security-opt
+    - seccomp=unconfined
+    - -v
+    - buildah-storage:/var/lib/containers
+    - --device
+    - /dev/fuse:rw
+    - quay.io/buildah/stable
+    - buildah
 ```
 
 ## Supported Tasks
