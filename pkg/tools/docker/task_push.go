@@ -6,6 +6,7 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
@@ -47,7 +48,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			imageName := buildah.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+			imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
 			// docker push <image-name>
 			if imageOrManifestHasFQDN(imageName) {
 				result = append(result, dukkha.TaskExecSpec{
@@ -64,7 +65,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			manifestName := buildah.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
 			result = append(result,
 				// ensure manifest exists
 				dukkha.TaskExecSpec{

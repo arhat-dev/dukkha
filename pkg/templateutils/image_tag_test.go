@@ -1,4 +1,4 @@
-package buildah
+package templateutils
 
 import (
 	"context"

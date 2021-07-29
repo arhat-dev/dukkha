@@ -181,6 +181,13 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				v, _ := constant.GetGolangArch(mArch)
 				return v
 			},
+
+			"setDefaultImageTag": func(imageName string) string {
+				return SetDefaultImageTagIfNoTagSet(rc, imageName)
+			},
+			"setDefaultManifestTag": func(imageName string) string {
+				return SetDefaultImageTagIfNoTagSet(rc, imageName)
+			},
 		}).
 		Funcs(fm)
 }
