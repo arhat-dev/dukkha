@@ -26,8 +26,8 @@ workflow:run:
 - name: sign-and-upload-blob
   matrix@file: scripts/dukkha/build-matrix.yml
   env:
-  - name: COSIGN_PIRVATE_KEY
-    value@env: ${COSIGN_PRIVATE_KEY}
+  - name: COSIGN_PRIVATE_KEY_BASE64
+    value@env: ${COSIGN_PRIVATE_KEY_BASE64}
   - name: COSIGN_PRIVATE_KEY_PASSWORD
     value@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
   - name: COSIGN_KEY_FILE
@@ -36,10 +36,10 @@ workflow:run:
     value: ghcr.io/arhat-dev/dist/dukkha
   hooks:
     before:
-    - task: docker:login(ghcr)
+    # - task: docker:login(ghcr)
     - name: Write private key to cache
       shell: |-
-        echo "${COSIGN_PIRVATE_KEY}" \
+        echo "${COSIGN_PRIVATE_KEY_BASE64}" \
           | base64 --decode > "${COSIGN_KEY_FILE}"
 
     after:
@@ -64,6 +64,10 @@ workflow:run:
     # TODO: oci_variant is not consumed by cosign
     shell@template: |-
       {{- $blob_file := printf "build/dukkha.%s.%s" .Env.MATRIX_KERNEL .Env.MATRIX_ARCH -}}
+      {{- if eq .Env.MATRIX_KERNEL "windows" -}}
+        {{- $blob_file = printf "%s.exe" $blob_file -}}
+      {{- end -}}
+
       {{- $oci_os := getOciOS .Env.MATRIX_KERNEL | default .Env.MATRIX_KERNEL -}}
       {{- $oci_arch := getOciArch .Env.MATRIX_ARCH | default .Env.MATRIX_ARCH -}}
       {{- $oci_variant := getOciArchVariant .Env.MATRIX_ARCH -}}
