@@ -59,6 +59,20 @@ jobs:
 
         ./build/dukkha golang local build dukkha -j $(nproc --all)
 
+    - name: Push built executables
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
+        GHCR_USER: ${{ github.actor }}
+        GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./build/dukkha workflow local run sign-and-upload-blob
+
+    - name: Remove dukkha cache
+      if: always()
+      run: |
+        rm -rf scripts/dukkha/cache
+
     # - name: Package
     #   run: |
     #     make package.dukkha.linux.all

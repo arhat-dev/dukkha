@@ -1,0 +1,50 @@
+kernel:
+- windows
+- linux
+- freebsd
+- netbsd
+- openbsd
+arch:
+- x86
+- arm64
+- amd64
+- armv7
+- armv6
+- armv5
+exclude:
+- kernel:
+  - windows
+  arch: [arm64]
+include:
+# - kernel:
+#   - openbsd
+#   arch:
+#   - mips64
+#   - mips64sf
+- kernel:
+  - darwin
+  arch:
+  - arm64
+  - amd64
+- kernel:
+  - solaris
+  - dragonfly
+  arch: [amd64]
+- kernel:
+  # - aix
+  - linux
+  arch: [ppc64]
+- kernel:
+  - linux
+  arch:
+  - mips
+  - mipssf
+  - mipsle
+  - mipslesf
+  - mips64
+  - mips64sf
+  - mips64le
+  - mips64lesf
+  - ppc64le
+  - s390x
+  - riscv64
