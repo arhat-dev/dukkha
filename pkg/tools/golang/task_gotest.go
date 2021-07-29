@@ -57,16 +57,6 @@ func (c *TaskTest) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
-		mKernel := rc.MatrixKernel()
-		mArch := rc.MatrixArch()
-
-		buildEnv := append(c.CGO.getEnv(
-			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
-			mKernel, mArch,
-			rc.HostOS(),
-			rc.MatrixLibc(),
-		), createBuildEnv(mKernel, mArch)...)
-
 		// get package prefix to be trimed
 		const targetReplaceModuleName = "<MODULE_NAME>"
 		steps = append(steps, dukkha.TaskExecSpec{
@@ -107,6 +97,7 @@ func (c *TaskTest) GetExecSpecs(
 		useShell := options.UseShell()
 		shellName := options.ShellName()
 		chdir := c.Chdir
+		workDir := c.Test.WorkDir
 
 		var compileArgs []string
 		compileArgs = append(compileArgs, c.Build.generateArgs(useShell)...)
@@ -122,6 +113,7 @@ func (c *TaskTest) GetExecSpecs(
 			runArgs = append(runArgs, "--")
 			runArgs = append(runArgs, c.CustomArgs...)
 		}
+		buildEnv := createBuildEnv(rc, c.CGO)
 
 		steps = append(steps, dukkha.TaskExecSpec{
 			AlterExecFunc: func(
@@ -168,7 +160,7 @@ func (c *TaskTest) GetExecSpecs(
 						subRunSpecs := generateRunSpecs(
 							dukkhaWorkingDir,
 							builtTestExecutable,
-							chdir,
+							chdir, workDir,
 							runArgs, pkgRelPath,
 							useShell, shellName,
 						)
@@ -259,6 +251,7 @@ func generateRunSpecs(
 	dukkhaWorkingDir string,
 	builtTestExecutable string,
 	chdir string,
+	workDir string,
 	args []string,
 	pkgRelPath string,
 	useShell bool,
@@ -266,7 +259,7 @@ func generateRunSpecs(
 ) []dukkha.TaskExecSpec {
 	var steps []dukkha.TaskExecSpec
 
-	workdir := dukkhaWorkingDir
+	workdir := workDir
 	if len(workdir) == 0 {
 		// use same default workdir as go test (the pakcage dir)
 		if filepath.IsAbs(chdir) {
@@ -275,6 +268,8 @@ func generateRunSpecs(
 			workdir = filepath.Join(dukkhaWorkingDir, chdir, pkgRelPath)
 		}
 	}
+
+	println(workdir)
 
 	runCmd := append([]string{builtTestExecutable}, args...)
 

@@ -34,7 +34,7 @@ type CGOSepc struct {
 	CXX string `yaml:"cxx"`
 }
 
-func (c *CGOSepc) getEnv(
+func (c CGOSepc) getEnv(
 	doingCrossCompiling bool,
 	mKernel, mArch, hostOS, targetLibc string,
 ) dukkha.Env {

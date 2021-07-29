@@ -43,21 +43,12 @@ func (c *TaskBuild) GetExecSpecs(
 	var buildSteps []dukkha.TaskExecSpec
 
 	err := c.DoAfterFieldsResolved(rc, -1, func() error {
-		mKernel := rc.MatrixKernel()
-		mArch := rc.MatrixArch()
-
-		buildEnv := append(c.CGO.getEnv(
-			rc.HostKernel() != mKernel || rc.HostArch() != mArch,
-			mKernel, mArch,
-			rc.HostOS(),
-			rc.MatrixLibc(),
-		), createBuildEnv(mKernel, mArch)...)
-
 		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
 			outputs = []string{c.BaseTask.TaskName}
 		}
 
+		buildEnv := createBuildEnv(rc, c.CGO)
 		for _, output := range outputs {
 			spec := &dukkha.TaskExecSpec{
 				Chdir: c.Chdir,
