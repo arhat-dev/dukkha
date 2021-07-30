@@ -21,7 +21,7 @@ pkg() {
     go_test="${common_go_test_env} CGO_ENABLED=1 go test ${common_go_test_flags} -race -coverprofile=coverage.pkg.txt -coverpkg=./pkg/..."
 
     set -ex
-    eval "${go_test} ./pkg/..."
+    eval "GIT_DEFAULT_BRANCH=master ${go_test} ./pkg/..."
 }
 
 cmd() {
