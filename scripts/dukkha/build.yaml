@@ -18,69 +18,33 @@ tools:
     - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
     - ghcr.io/arhat-dev/builder-golang:1.16-alpine-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
     - go
+  cosign:
+  - name: local
 
 golang:build@file: scripts/dukkha/go-build.yml
 golang:test@file: scripts/dukkha/go-test.yml
 
-workflow:run:
-- name: sign-and-upload-blob
+cosign:upload:
+- name: dukkha
   matrix@file: scripts/dukkha/build-matrix.yml
-  env:
-  - name: COSIGN_PRIVATE_KEY_BASE64
-    value@env: ${COSIGN_PRIVATE_KEY_BASE64}
-  - name: COSIGN_PRIVATE_KEY_PASSWORD
-    value@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
-  - name: COSIGN_KEY_FILE
-    value@env: ${DUKKHA_CACHE_DIR}/cosign.key
-  - name: DIST_IMAGE
-    value: ghcr.io/arhat-dev/dist/dukkha
   hooks:
     before:
     - task: docker:login(ghcr)
-    - name: Write private key to cache
-      shell: |-
-        echo "${COSIGN_PRIVATE_KEY_BASE64}" \
-          | base64 --decode > "${COSIGN_KEY_FILE}"
-
-    after:
-    - name: Remove private key
-      shell: |-
-        rm -f "${COSIGN_KEY_FILE}"
-
-  jobs:
-  - name: Sign the executable
-    shell: |-
-      suffix=""
-      if [[ "${MATRIX_KERNEL}" == "windows" ]]; then
-        suffix="${suffix}.exe"
-      fi
-      target="build/dukkha.${MATRIX_KERNEL}.${MATRIX_ARCH}${suffix}"
-
-      printf "%s" "${COSIGN_PRIVATE_KEY_PASSWORD}" \
-        | cosign sign-blob -key "${COSIGN_KEY_FILE}" \
-        "${target}" > "${target}.sig"
-
-  - name: Upload the executable
-    # TODO: oci_variant is not consumed by cosign
-    shell@template: |-
+  signing:
+    enabled: true
+    annotations:
+      org.opencontainers.image.source: https://github.com/arhat-dev/dukkha
+    private_key@env: ${COSIGN_PRIVATE_KEY}
+    private_key_password@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
+    verify: true
+    public_key@http: https://arhat.dev/.well-known/cosign.pub
+  files:
+  - path@template: |-
       {{- $blob_file := printf "build/dukkha.%s.%s" .Env.MATRIX_KERNEL .Env.MATRIX_ARCH -}}
       {{- if eq .Env.MATRIX_KERNEL "windows" -}}
         {{- $blob_file = printf "%s.exe" $blob_file -}}
       {{- end -}}
-
-      {{- $oci_os := getOciOS .Env.MATRIX_KERNEL | default .Env.MATRIX_KERNEL -}}
-      {{- $oci_arch := getOciArch .Env.MATRIX_ARCH | default .Env.MATRIX_ARCH -}}
-      {{- $oci_variant := getOciArchVariant .Env.MATRIX_ARCH -}}
-
-      {{- $oci_platform := printf "%s/%s" $oci_os $oci_arch -}}
-      {{- if $oci_variant -}}
-        {{- $oci_platform = printf "%s/%s/%s" $oci_os $oci_arch $oci_variant -}}
-      {{- end -}}
-
-      {{- $image_name := setDefaultImageTag .Env.DIST_IMAGE -}}
-
-      cosign upload blob -f "{{ $blob_file }}:{{- $oci_platform -}}" \
-        "{{ $image_name }}"
-
-      printf "%s" "${COSIGN_PRIVATE_KEY_PASSWORD}" \
-        | cosign sign -key "${COSIGN_KEY_FILE}" "{{ $image_name }}"
+      {{- $blob_file -}}
+    content_type: ""
+  image_names:
+  - image: ghcr.io/arhat-dev/dist/dukkha

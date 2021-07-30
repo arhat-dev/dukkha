@@ -63,12 +63,36 @@ jobs:
     if: contains(github.head_ref, 'deps/') == false
     needs:
     - stylecheck
+    strategy:
+      matrix:
+        include:
+        - name: Test Packages
+          target: test.pkg
+        - name: Test Command And Upload Images
+          target: test.cmd
+          env:
+            PUSH_DUKKHA_IMAGE_IN_CMD_TEST: "true"
+            GHCR_USER: ${{ github.actor }}
+            GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+        - name: Test Command And Upload blobs
+          target: test.cmd
+          env:
+            PUSH_DUKKHA_BLOB_IN_CMD_TEST: "true"
+            COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+            COSIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
+            GHCR_USER: ${{ github.actor }}
+            GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - uses: sigstore/cosign-installer@v1.0.0
+      with:
+        cosign-release: v1.0.0
 
     - name: Install qemu-static
       run: |
@@ -77,21 +101,15 @@ jobs:
         sudo apt update
         sudo apt install -y qemu-user-static
 
-    - name: Test Packages
-      env:
-        # TODO: cannot get GIT_DEFAULT_BRANCH in github actions using actions/checkout
-        #       set manually as a workaround
-        GIT_DEFAULT_BRANCH: master
+    - name: ${{ matrix.name }}
+      env: ${{ matrix.env }}
       run: |
-        make test.pkg
+        make ${{ matrix.target }}
 
-    - name: Test Commands
-      env:
-        PUSH_DUKKHA_IMAGE_IN_CMD_TEST: "true"
-        GHCR_USER: ${{ github.actor }}
-        GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+    - name: Remove dukkha cache
+      if: always()
       run: |
-        make test.cmd
+        rm -rf scripts/dukkha/cache
 
     - uses: sonarsource/sonarqube-scan-action@v1.0.0
       env:

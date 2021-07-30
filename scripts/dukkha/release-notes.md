@@ -21,4 +21,12 @@
 
 ## Images
 
-- `ghcr.io/arhat-dev/dukkha:{{ .Env.GIT_TAG }}`
+- `ghcr.io/arhat-dev/dukkha:{{ .Env.GIT_TAG | trimPrefix "v" }}`
+
+## Artifacts
+
+Fetch signed pre-built executables using [`sget`](https://github.com/sigstore/cosign#blobs)
+
+```bash
+sget -key https://arhat.dev/.well-known/cosign.pub ghcr.io/arhat-dev/dist/dukkha:{{ .Env.GIT_TAG | trimPrefix "v" }}-{KERNEL}-{ARCH}
+```

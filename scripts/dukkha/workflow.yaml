@@ -31,15 +31,22 @@ workflow:run:
 
     before:matrix:
     - shell:bash: echo "check bash shell ${FOO}"
+
     after:matrix:success:
-    - task: golang:test(dukkha, {})
+    - name: Run go test
+      task: golang:test(dukkha, {})
+
     - shell: echo matrix run success
 
     after:matrix:failure:
     - shell: echo matrix run failed
 
     after:matrix:
-    - task: |-
+    - name: Test task reference with matrix spec
+      env:
+      - name: PUSH_DUKKHA_BLOB_IN_CMD_TEST
+        value: "false"
+      task: |-
         golang:build(dukkha, {
           kernel: [
             darwin,
@@ -52,16 +59,21 @@ workflow:run:
     after:failure:
     - shell: printf 'Failed\n'
 
+    # build all executables and images after success
     after:success@shell: |-
-      prefix="buildah:local"
-      if ! command -v buildah >/dev/null 2>&1; then
-        prefix="buildah:in-docker"
+      if [[ "${PUSH_DUKKHA_BLOB_IN_CMD_TEST}" == "true" ]]; then
+        echo "- task: golang:build(dukkha, {})"
+        echo "- task: cosign:upload(dukkha, {})"
       fi
 
-      echo "- task: ${prefix}:build(dukkha, {})"
+      buildah_prefix="buildah:local"
+      if ! command -v buildah >/dev/null 2>&1; then
+        buildah_prefix="buildah:in-docker"
+      fi
 
       if [[ ${PUSH_DUKKHA_IMAGE_IN_CMD_TEST} == "true" ]]; then
-        echo "- task: ${prefix}:push(dukkha, {})"
+        echo "- task: ${buildah_prefix}:build(dukkha, {})"
+        echo "- task: ${buildah_prefix}:push(dukkha, {})"
       fi
 
       echo "- shell: printf 'Succeeded\n'"
@@ -97,6 +109,9 @@ workflow:run:
     shell@http: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
 
   - name: build
+    env:
+    - name: PUSH_DUKKHA_BLOB_IN_CMD_TEST
+      value: "false"
     task: |-
       golang:build(dukkha, {
         kernel: [
