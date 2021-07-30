@@ -56,7 +56,7 @@ func doRun(
 		)
 
 		if es.Stdin != nil {
-			stdin = io.MultiReader(es.Stdin, os.Stdin)
+			stdin = es.Stdin
 		} else {
 			stdin = os.Stdin
 		}

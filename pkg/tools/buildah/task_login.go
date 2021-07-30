@@ -55,10 +55,8 @@ func (c *TaskLogin) GetExecSpecs(
 			)
 		}
 
-		password := c.Password + "\n"
-
 		steps = append(steps, dukkha.TaskExecSpec{
-			Stdin:       strings.NewReader(password),
+			Stdin:       strings.NewReader(c.Password),
 			Command:     append(loginCmd, c.Registry),
 			IgnoreError: false,
 			UseShell:    options.UseShell(),

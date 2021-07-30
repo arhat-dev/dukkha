@@ -79,8 +79,7 @@ func (c *TaskPackage) GetExecSpecs(
 			if len(c.Signing.GPGKeyPassphrase) != 0 {
 				pkgStep.Command = append(pkgStep.Command, "--passphrase-file", "-")
 
-				input := c.Signing.GPGKeyPassphrase
-				pkgStep.Stdin = strings.NewReader(input)
+				pkgStep.Stdin = strings.NewReader(c.Signing.GPGKeyPassphrase)
 			}
 		}
 
