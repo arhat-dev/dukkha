@@ -2,9 +2,13 @@ package golang
 
 import (
 	"strings"
+
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type buildOptions struct {
+	field.BaseField
+
 	Race    bool     `yaml:"race"`
 	LDFlags []string `yaml:"ldflags"`
 	Tags    []string `yaml:"tags"`
