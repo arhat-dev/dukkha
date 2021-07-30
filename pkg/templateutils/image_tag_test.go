@@ -20,6 +20,7 @@ func TestSetDefaultImageTag(t *testing.T) {
 		constant.ENV_GIT_COMMIT:         {"commit"},
 		constant.ENV_GIT_TAG:            {"tag", ""},
 		constant.ENV_MATRIX_ARCH:        {"amd64"},
+		constant.ENV_MATRIX_KERNEL:      {"linux"},
 	}
 
 	caseWorkTreeCleanTagPresent := map[string]string{
@@ -49,9 +50,9 @@ func TestSetDefaultImageTag(t *testing.T) {
 		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), mat)
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 
-		t.Run(spec.String()+"_image", func(t *testing.T) {
+		t.Run(spec.BriefString()+"_image_no_kernel_info", func(t *testing.T) {
 			actual := SetDefaultImageTagIfNoTagSet(
-				rc, SetDefaultImageTagIfNoTagSet(rc, "foo"),
+				rc, SetDefaultImageTagIfNoTagSet(rc, "foo", false), false,
 			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):
@@ -67,7 +68,25 @@ func TestSetDefaultImageTag(t *testing.T) {
 			}
 		})
 
-		t.Run(spec.String()+"_manifest", func(t *testing.T) {
+		t.Run(spec.BriefString()+"_image_with_kernel_info", func(t *testing.T) {
+			actual := SetDefaultImageTagIfNoTagSet(
+				rc, SetDefaultImageTagIfNoTagSet(rc, "foo", true), true,
+			)
+			switch {
+			case spec.Match(caseWorkTreeCleanTagPresent):
+				assert.Equal(t, "foo:tag-linux-amd64", actual)
+			case spec.Match(caseWorkTreeCleanIsDefaultBranch):
+				assert.Equal(t, "foo:latest-linux-amd64", actual)
+			case spec.Match(caseWorkTreeCleanNotDefaultBranch):
+				assert.Equal(t, "foo:e-xtream-branch-commit-linux-amd64", actual)
+			case spec.Match(caseWorkTreeDirty):
+				assert.Equal(t, "foo:dev-e-xtream-branch-linux-amd64", actual)
+			default:
+				assert.Fail(t, "unmatched condition")
+			}
+		})
+
+		t.Run(spec.BriefString()+"_manifest", func(t *testing.T) {
 			actual := SetDefaultManifestTagIfNoTagSet(
 				rc, SetDefaultManifestTagIfNoTagSet(rc, "foo"),
 			)
