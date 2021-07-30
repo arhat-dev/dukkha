@@ -22,7 +22,7 @@ type Action struct {
 	Name string `yaml:"name"`
 
 	// Env specific to this action
-	Env dukkha.Env
+	Env dukkha.Env `yaml:"env"`
 
 	// Task reference of this action
 	//
