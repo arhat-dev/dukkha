@@ -68,20 +68,15 @@ jobs:
         include:
         - name: Test Packages
           target: test.pkg
+          prepare: ""
+
         - name: Test Command And Upload Images
           target: test.cmd
-          env:
-            PUSH_DUKKHA_IMAGE_IN_CMD_TEST: "true"
-            GHCR_USER: ${{ github.actor }}
-            GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+          prepare: export PUSH_DUKKHA_IMAGE_IN_CMD_TEST="true"
+
         - name: Test Command And Upload blobs
           target: test.cmd
-          env:
-            PUSH_DUKKHA_BLOB_IN_CMD_TEST: "true"
-            COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-            COSIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
-            GHCR_USER: ${{ github.actor }}
-            GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
+          prepare: export PUSH_DUKKHA_BLOB_IN_CMD_TEST="true"
 
       fail-fast: false
     runs-on: ubuntu-latest
@@ -102,8 +97,14 @@ jobs:
         sudo apt install -y qemu-user-static
 
     - name: ${{ matrix.name }}
-      env: ${{ matrix.env }}
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
+        GHCR_USER: ${{ github.actor }}
+        GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        ${{ matrix.prepare }}
+
         make ${{ matrix.target }}
 
     - name: Remove dukkha cache
