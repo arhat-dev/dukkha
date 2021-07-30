@@ -36,7 +36,7 @@ workflow:run:
     value: ghcr.io/arhat-dev/dist/dukkha
   hooks:
     before:
-    # - task: docker:login(ghcr)
+    - task: docker:login(ghcr)
     - name: Write private key to cache
       shell: |-
         echo "${COSIGN_PRIVATE_KEY_BASE64}" \
