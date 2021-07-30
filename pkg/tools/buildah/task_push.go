@@ -49,7 +49,7 @@ func (c *TaskPush) GetExecSpecs(
 
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
-				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image, false)
 				imageIDFile := GetImageIDFileForImageName(
 					dukkhaCacheDir, imageName,
 				)

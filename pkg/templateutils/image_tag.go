@@ -8,18 +8,23 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func SetDefaultImageTagIfNoTagSet(rc dukkha.RenderingContext, imageName string) string {
-	return setDefaultTagIfNoTagSet(rc, imageName, false)
+func SetDefaultImageTagIfNoTagSet(
+	rc dukkha.RenderingContext, imageName string, keepKernelInfo bool,
+) string {
+	return setDefaultTagIfNoTagSet(rc, imageName, false, keepKernelInfo)
 }
 
-func SetDefaultManifestTagIfNoTagSet(rc dukkha.RenderingContext, manfiestName string) string {
-	return setDefaultTagIfNoTagSet(rc, manfiestName, true)
+func SetDefaultManifestTagIfNoTagSet(
+	rc dukkha.RenderingContext, manfiestName string,
+) string {
+	return setDefaultTagIfNoTagSet(rc, manfiestName, true, false)
 }
 
 func setDefaultTagIfNoTagSet(
 	rc dukkha.RenderingContext,
 	name string,
 	isManifest bool,
+	keepKernelInfo bool,
 ) string {
 	if hasTag(name) {
 		return name
@@ -29,7 +34,8 @@ func setDefaultTagIfNoTagSet(
 	branch := xstrings.ToKebabCase(strings.ReplaceAll(rawBranch, "/", "-"))
 
 	workTreeClean := rc.GitWorkTreeClean()
-	arch := rc.MatrixArch()
+	mArch := rc.MatrixArch()
+	mKernel := rc.MatrixKernel()
 
 	var tag string
 	if workTreeClean {
@@ -50,8 +56,14 @@ func setDefaultTagIfNoTagSet(
 		tag = "dev-" + branch
 	}
 
-	if !isManifest && len(arch) != 0 {
-		tag += "-" + arch
+	if !isManifest {
+		if keepKernelInfo && len(mKernel) != 0 {
+			tag += "-" + mKernel
+		}
+
+		if len(mArch) != 0 {
+			tag += "-" + mArch
+		}
 	}
 
 	return name + ":" + tag

@@ -48,7 +48,9 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image)
+			imageName := templateutils.SetDefaultImageTagIfNoTagSet(
+				rc, spec.Image, false,
+			)
 			// docker push <image-name>
 			if imageOrManifestHasFQDN(imageName) {
 				result = append(result, dukkha.TaskExecSpec{
@@ -65,7 +67,9 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(
+				rc, spec.Manifest,
+			)
 			result = append(result,
 				// ensure manifest exists
 				dukkha.TaskExecSpec{
