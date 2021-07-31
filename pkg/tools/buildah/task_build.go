@@ -322,6 +322,18 @@ func (c *TaskBuild) createExecSpecs(
 				return subSteps, nil
 			},
 		})
+
+		// check manifests in last matrix execution
+		if options.IsLast() {
+			steps = append(steps, dukkha.TaskExecSpec{
+				Command: sliceutils.NewStrings(
+					options.ToolCmd(), "manifest", "inspect", localManifestName,
+				),
+				IgnoreError: false,
+				UseShell:    options.UseShell(),
+				ShellName:   options.ShellName(),
+			})
+		}
 	}
 
 	return steps, nil
