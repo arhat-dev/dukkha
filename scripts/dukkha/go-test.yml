@@ -8,11 +8,13 @@
     # after:success:
     # - shell: go tool pprof ${PROFILE_OUTPUT_DIR}/mem.out
   matrix:
-    pkg@shell: |-
-      go list ./pkg/... \
-        | template:removePrefix \"$(go list -m)/\" \
-        | template:addPrefix \"- ./\" \
-        | template:addSuffix \"/\"
+    pkg@env|template: |-
+      {{-
+        shell "go list ./pkg/..."
+        | removePrefix "$(go list -m)/"
+        | addPrefix "- ./"
+        | addSuffix "/"
+      -}}
 
   path@env: ${MATRIX_PKG}
   json_output_file@template: |-

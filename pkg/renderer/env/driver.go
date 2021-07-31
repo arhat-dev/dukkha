@@ -14,7 +14,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/shell"
+	"arhat.dev/dukkha/pkg/templateutils"
 )
 
 // nolint:revive
@@ -66,7 +66,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	}
 
 	embeddedShellOutput := &bytes.Buffer{}
-	runner, err := shell.CreateEmbeddedShellRunner(
+	runner, err := templateutils.CreateEmbeddedShellRunner(
 		rc.WorkingDir(), rc, nil, embeddedShellOutput, os.Stderr,
 	)
 	if err != nil {
@@ -90,7 +90,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 			script := string(buf.Bytes()[2 : buf.Len()-1])
 
 			embeddedShellOutput.Reset()
-			err2 = shell.RunScriptInEmbeddedShell(rc, runner, parser, script)
+			err2 = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
 			if err2 != nil {
 				return err2
 			}

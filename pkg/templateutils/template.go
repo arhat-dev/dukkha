@@ -1,16 +1,20 @@
 package templateutils
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"arhat.dev/pkg/hashhelper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/hairyhenderson/gomplate/v3/funcs"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -57,6 +61,32 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateCollFuncs(rc)).
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
+		Funcs(map[string]interface{}{
+			"shell": func(script string, inputs ...string) (string, error) {
+				var stdin io.Reader
+				if len(inputs) != 0 {
+					var readers []io.Reader
+					for _, in := range inputs {
+						readers = append(readers, strings.NewReader(in))
+					}
+
+					stdin = io.MultiReader(readers...)
+				} else {
+					stdin = os.Stdin
+				}
+
+				stdout := &bytes.Buffer{}
+				runner, err := CreateEmbeddedShellRunner(
+					rc.WorkingDir(), rc, stdin, stdout, os.Stderr,
+				)
+				if err != nil {
+					return "", err
+				}
+
+				err = RunScriptInEmbeddedShell(rc, runner, syntax.NewParser(), script)
+				return stdout.String(), err
+			},
+		}).
 		// text functions
 		Funcs(map[string]interface{}{
 			"addPrefix": func(args ...string) string {
