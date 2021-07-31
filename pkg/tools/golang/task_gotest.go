@@ -48,6 +48,9 @@ type TaskTest struct {
 	Benchmark testBenchmarkSpec `yaml:"benchmark"`
 	Profile   testProfileSpec   `yaml:"profile"`
 
+	// CustomCmdPrefix to run compiled test file with this cmd prefix
+	CustomCmdPrefix []string `yaml:"custom_cmd_prefix"`
+
 	// custom args only used when running the test
 	CustomArgs []string `yaml:"custom_args"`
 }
@@ -98,6 +101,7 @@ func (c *TaskTest) GetExecSpecs(
 		shellName := options.ShellName()
 		chdir := c.Chdir
 		workDir := c.Test.WorkDir
+		jsonOutputFile := c.Test.JSONOutputFile
 
 		var compileArgs []string
 		compileArgs = append(compileArgs, c.Build.generateArgs(useShell)...)
@@ -105,6 +109,7 @@ func (c *TaskTest) GetExecSpecs(
 		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Profile.generateArgs(dukkhaWorkingDir, true)...)
 
+		runCmdPrefix := sliceutils.NewStrings(c.CustomCmdPrefix)
 		var runArgs []string
 		runArgs = append(runArgs, c.Test.generateArgs(false)...)
 		runArgs = append(runArgs, c.Benchmark.generateArgs(false)...)
@@ -160,8 +165,15 @@ func (c *TaskTest) GetExecSpecs(
 						subRunSpecs := generateRunSpecs(
 							dukkhaWorkingDir,
 							builtTestExecutable,
-							chdir, workDir,
-							runArgs, pkgRelPath,
+							chdir,
+							workDir,
+
+							toolCmd,
+							runCmdPrefix,
+							runArgs,
+							pkgRelPath,
+							jsonOutputFile,
+
 							useShell, shellName,
 						)
 
@@ -193,6 +205,18 @@ func (c *TaskTest) GetExecSpecs(
 	return steps, err
 }
 
+func getGoTestCompileResultReplaceKey(pkgRelPath string) string {
+	return fmt.Sprintf("<GO_TEST_COMPILE_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+}
+
+func getBuiltTestExecutablePath(dukkhaCacheDir, taskName, pkgRelPath string) string {
+	return filepath.Join(
+		dukkhaCacheDir, "golang-test",
+		taskName+"-"+hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath)))+".test",
+	)
+}
+
+// compile one package for testing at a time
 func generateCompileSpecs(
 	taskName string,
 	dukkhaCacheDir string,
@@ -208,9 +232,8 @@ func generateCompileSpecs(
 ) (string, []dukkha.TaskExecSpec) {
 	var steps []dukkha.TaskExecSpec
 
-	builtTestExecutable := filepath.Join(
-		dukkhaCacheDir, "golang-test",
-		taskName+"-"+hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath)))+".test",
+	builtTestExecutable := getBuiltTestExecutablePath(
+		dukkhaCacheDir, taskName, pkgRelPath,
 	)
 
 	// remove previously built test executable if any
@@ -236,6 +259,8 @@ func generateCompileSpecs(
 	compileCmd = append(compileCmd, args...)
 
 	steps = append(steps, dukkha.TaskExecSpec{
+		StdoutAsReplace: getGoTestCompileResultReplaceKey(pkgRelPath),
+
 		EnvSuggest:  buildEnv,
 		Chdir:       chdir,
 		Command:     append(compileCmd, pkgRelPath),
@@ -247,31 +272,60 @@ func generateCompileSpecs(
 	return builtTestExecutable, steps
 }
 
+func getTestRunResultReplaceKey(pkgRelPath string) string {
+	return fmt.Sprintf("<GO_TEST_RUN_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+}
+
+func getGoToolTest2JsonResultReplaceKey(pkgRelPath string) string {
+	return fmt.Sprintf("<GO_TOOL_TEST2JSON_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+}
+
 func generateRunSpecs(
 	dukkhaWorkingDir string,
 	builtTestExecutable string,
 	chdir string,
-	workDir string,
+	_workdir string,
+
+	toolCmd []string,
+
+	cmdPrefix []string,
 	args []string,
 	pkgRelPath string,
+	jsonOutputFile string,
+
+	// options
 	useShell bool,
 	shellName string,
 ) []dukkha.TaskExecSpec {
 	var steps []dukkha.TaskExecSpec
 
-	workdir := workDir
-	if len(workdir) == 0 {
+	workdir := _workdir
+	switch {
+	case len(workdir) == 0:
 		// use same default workdir as go test (the pakcage dir)
 		if filepath.IsAbs(chdir) {
 			workdir = filepath.Join(chdir, pkgRelPath)
 		} else {
 			workdir = filepath.Join(dukkhaWorkingDir, chdir, pkgRelPath)
 		}
+	case filepath.IsAbs(workdir):
+		// just use it
+	default:
+		// workdir is a relative path
+		if filepath.IsAbs(chdir) {
+			workdir = filepath.Join(chdir, workdir)
+		} else {
+			workdir = filepath.Join(dukkhaWorkingDir, chdir, workdir)
+		}
 	}
 
-	println(workdir)
+	runCmd := sliceutils.NewStrings(cmdPrefix, builtTestExecutable)
+	runCmd = append(runCmd, args...)
 
-	runCmd := append([]string{builtTestExecutable}, args...)
+	stdoutReplaceKey := ""
+	if len(jsonOutputFile) != 0 {
+		stdoutReplaceKey = getTestRunResultReplaceKey(pkgRelPath)
+	}
 
 	// check if compiled test file exists
 	// can be missing if no test was found in the package
@@ -281,24 +335,79 @@ func generateRunSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			_, err := os.Stat(builtTestExecutable)
-			if err != nil {
-				if os.IsNotExist(err) {
-					// no test in that package
-					return nil, nil
-				}
+			// we only compile a package for testing at a time
+			//
+			// so we can check if the package contains tests:
+			// 		if the output of `go test -c` contains "no test file"
+			// 		go test will not produce a test executable
+			//
+			// and we need to skip this package
 
-				return nil, fmt.Errorf("failed to check compiled test executable: %w", err)
+			compileResult, ok := replace[getGoTestCompileResultReplaceKey(pkgRelPath)]
+			if ok && bytes.Contains(compileResult.Data, []byte("no test files")) {
+				// no test
+				return nil, nil
 			}
 
-			// found, run it
+			subSteps := []dukkha.TaskExecSpec{
+				{
+					StdoutAsReplace: stdoutReplaceKey,
 
-			return []dukkha.TaskExecSpec{{
-				Chdir:     workdir,
-				Command:   runCmd,
-				UseShell:  useShell,
-				ShellName: shellName,
-			}}, nil
+					Chdir:     workdir,
+					Command:   runCmd,
+					UseShell:  useShell,
+					ShellName: shellName,
+				},
+			}
+
+			if len(jsonOutputFile) == 0 {
+				return subSteps, nil
+			}
+
+			subSteps = append(subSteps, dukkha.TaskExecSpec{
+				AlterExecFunc: func(
+					replace dukkha.ReplaceEntries,
+					stdin io.Reader,
+					stdout, stderr io.Writer,
+				) (dukkha.RunTaskOrRunCmd, error) {
+					testOutput, ok := replace[stdoutReplaceKey]
+					if !ok {
+						return nil, fmt.Errorf("failed to get test output")
+					}
+
+					resultKey := getGoToolTest2JsonResultReplaceKey(pkgRelPath)
+					return []dukkha.TaskExecSpec{
+						{
+							StdoutAsReplace: resultKey,
+							Stdin:           bytes.NewReader(testOutput.Data),
+							Command:         sliceutils.NewStrings(toolCmd, "tool", "test2json"),
+							UseShell:        useShell,
+							ShellName:       shellName,
+						},
+						{
+							AlterExecFunc: func(
+								replace dukkha.ReplaceEntries,
+								stdin io.Reader,
+								stdout, stderr io.Writer,
+							) (dukkha.RunTaskOrRunCmd, error) {
+								jsonOutput, ok := replace[resultKey]
+								if !ok {
+									return nil, fmt.Errorf("failed to get json result of test")
+								}
+
+								err := os.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
+								if err != nil {
+									return nil, fmt.Errorf("failed to save test json output: %w", err)
+								}
+
+								return nil, nil
+							},
+						},
+					}, nil
+				},
+			})
+
+			return subSteps, nil
 		},
 	})
 
@@ -308,16 +417,36 @@ func generateRunSpecs(
 type testSpec struct {
 	field.BaseField
 
-	LogFile  string        `yaml:"log_file"`
-	Count    int           `yaml:"count"`
-	CPU      []int         `yaml:"cpu"`
-	Parallel int           `yaml:"parallel"`
-	FailFast bool          `yaml:"failfast"`
-	Short    bool          `yaml:"short"`
-	Timeout  time.Duration `yaml:"timeout"`
-	Match    string        `yaml:"match"`
-	Verbose  bool          `yaml:"verbose"`
+	LogFile string `yaml:"log_file"`
 
+	// go test -count
+	Count int `yaml:"count"`
+
+	// go test -cpu
+	CPU []int `yaml:"cpu"`
+
+	// go test -parallel
+	Parallel int `yaml:"parallel"`
+
+	// go test -failfast
+	FailFast bool `yaml:"failfast"`
+
+	// go test -short
+	Short bool `yaml:"short"`
+
+	// go test -timeout
+	Timeout time.Duration `yaml:"timeout"`
+
+	// go test -run
+	Match string `yaml:"match"`
+
+	// go test -v
+	Verbose bool `yaml:"verbose"`
+
+	// JSONOutputFile
+	JSONOutputFile string `yaml:"json_output_file"`
+
+	// Panic on call to os.Exit(0)
 	PanicOnExit0 bool `yaml:"panic_on_exit_0"`
 
 	// WorkDir to run test, defaults to DUKKHA_WORKING_DIR
@@ -365,7 +494,7 @@ func (s testSpec) generateArgs(compileTime bool) []string {
 		args = append(args, prefix+"run", s.Match)
 	}
 
-	if s.Verbose {
+	if s.Verbose || len(s.JSONOutputFile) != 0 {
 		args = append(args, prefix+"v")
 	}
 

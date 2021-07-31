@@ -9,9 +9,27 @@ import (
 type testCoverageProfileSpec struct {
 	field.BaseField
 
-	Enabled  bool     `yaml:"enabled"`
-	Output   string   `yaml:"output"`
-	Mode     string   `yaml:"mode"`
+	Enabled bool `yaml:"enabled"`
+
+	// Output file of the coverage
+	//
+	// go test -coverprofile
+	//
+	// defaults to cover.out if not set and `enabled` is true
+	Output string `yaml:"output"`
+
+	// Mode of coverage
+	//
+	// go test -covermode
+	//
+	// defaults to `atomic` if not set and `enabled` is true
+	Mode string `yaml:"mode"`
+
+	// Packages to coverage
+	//
+	// go test -coverpkg
+	//
+	// no default (use golang default behavior)
 	Packages []string `yaml:"packages"`
 }
 

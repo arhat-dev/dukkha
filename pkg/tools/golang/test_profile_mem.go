@@ -9,9 +9,20 @@ import (
 type testMemoryProfileSpec struct {
 	field.BaseField
 
-	Enabled bool   `yaml:"enabled"`
-	Rate    int    `yaml:"rate"`
-	Output  string `yaml:"output"`
+	// Profile memory during test execution
+	Enabled bool `yaml:"enabled"`
+
+	// Rate of memory profile
+	//
+	// go test -memprofilerate
+	Rate int `yaml:"rate"`
+
+	// Output filename of memory profile
+	//
+	// go test -memprofile
+	//
+	// defaults to mem.out if not set and `enabled` is true
+	Output string `yaml:"output"`
 }
 
 func (s testMemoryProfileSpec) generateArgs(compileTime bool) []string {

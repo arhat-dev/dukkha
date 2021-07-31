@@ -5,8 +5,15 @@ import "arhat.dev/dukkha/pkg/field"
 type testCPUProfileSpec struct {
 	field.BaseField
 
-	Enabled bool   `yaml:"enabled"`
-	Output  string `yaml:"output"`
+	// Profile cpu during test execution
+	Enabled bool `yaml:"enabled"`
+
+	// Output filename of cpu profile
+	//
+	// go test -cpuprofile
+	//
+	// defaults to `cpu.out` if not set and `enabled` is true
+	Output string `yaml:"output"`
 }
 
 func (s testCPUProfileSpec) generateArgs(compileTime bool) []string {

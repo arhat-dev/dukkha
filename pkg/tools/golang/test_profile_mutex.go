@@ -9,9 +9,20 @@ import (
 type testMutexProfileSpec struct {
 	field.BaseField
 
-	Enabled  bool   `yaml:"enabled"`
-	Fraction int    `yaml:"fraction"`
-	Output   string `yaml:"output"`
+	// Profile mutex during test execution
+	Enabled bool `yaml:"enabled"`
+
+	// Fraction number
+	//
+	// go test -mutexprofilefraction
+	Fraction int `yaml:"fraction"`
+
+	// Output filename of mutex profile
+	//
+	// go test -mutexprofile
+	//
+	// defaults to `mutex.out` if not set and `enabled` is true
+	Output string `yaml:"output"`
 }
 
 func (s testMutexProfileSpec) generateArgs(compileTime bool) []string {
