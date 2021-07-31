@@ -260,6 +260,7 @@ func generateCompileSpecs(
 
 	steps = append(steps, dukkha.TaskExecSpec{
 		StdoutAsReplace: getGoTestCompileResultReplaceKey(pkgRelPath),
+		ShowStdout:      true,
 
 		EnvSuggest:  buildEnv,
 		Chdir:       chdir,
