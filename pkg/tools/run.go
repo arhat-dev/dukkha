@@ -78,12 +78,22 @@ func doRun(
 		)
 		if len(es.StdoutAsReplace) != 0 {
 			stdoutBuf = &bytes.Buffer{}
-			stdout = io.MultiWriter(stdout, stdoutBuf)
+
+			if es.ShowStdout {
+				stdout = io.MultiWriter(stdout, stdoutBuf)
+			} else {
+				stdout = stdoutBuf
+			}
 		}
 
 		if len(es.StderrAsReplace) != 0 {
 			stderrBuf = &bytes.Buffer{}
-			stderr = io.MultiWriter(stderr, stderrBuf)
+
+			if es.ShowStderr {
+				stderr = io.MultiWriter(stderr, stderrBuf)
+			} else {
+				stderr = stderrBuf
+			}
 		}
 
 		setReplaceEntry := func(err error) {
