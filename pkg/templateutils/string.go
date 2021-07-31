@@ -2,7 +2,7 @@ package templateutils
 
 import "strings"
 
-// AddPrefix to each seperated string elements
+// AddPrefix to each separated string elements
 func AddPrefix(s, prefix, sep string) string {
 	parts := strings.Split(s, sep)
 	for i, p := range parts {
@@ -16,7 +16,7 @@ func AddPrefix(s, prefix, sep string) string {
 	return strings.Join(parts, sep)
 }
 
-// RemovePrefix of each seperated string elements
+// RemovePrefix of each separated string elements
 func RemovePrefix(s, prefix, sep string) string {
 	parts := strings.Split(s, sep)
 	for i, p := range parts {
@@ -26,7 +26,7 @@ func RemovePrefix(s, prefix, sep string) string {
 	return strings.Join(parts, sep)
 }
 
-// AddSuffix to each seperated string elements
+// AddSuffix to each separated string elements
 func AddSuffix(s, suffix, sep string) string {
 	parts := strings.Split(s, sep)
 	for i, p := range parts {

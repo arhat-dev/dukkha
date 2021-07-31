@@ -10,7 +10,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/shell"
+	"arhat.dev/dukkha/pkg/templateutils"
 )
 
 const DefaultName = "shell"
@@ -54,7 +54,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	}
 
 	buf := &bytes.Buffer{}
-	runner, err := shell.CreateEmbeddedShellRunner(
+	runner, err := templateutils.CreateEmbeddedShellRunner(
 		rc.WorkingDir(), rc, nil, buf, os.Stderr,
 	)
 	if err != nil {
@@ -66,7 +66,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	)
 
 	for _, script := range scripts {
-		err = shell.RunScriptInEmbeddedShell(rc, runner, parser, script)
+		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
 
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)

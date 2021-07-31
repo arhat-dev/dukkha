@@ -1,4 +1,4 @@
-package shell
+package templateutils
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/templateutils"
 )
 
 func CreateEmbeddedShellRunner(
@@ -109,7 +108,7 @@ func ExecCmdAsTemplateFuncCall(
 
 	tpl += ` -}}`
 
-	t, err := templateutils.CreateTemplate(rc).Parse(tpl)
+	t, err := CreateTemplate(rc).Parse(tpl)
 	if err != nil {
 		return fmt.Errorf("failed to convert to template call: %w", err)
 	}
