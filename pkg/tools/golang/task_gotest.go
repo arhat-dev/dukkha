@@ -352,6 +352,7 @@ func generateRunSpecs(
 			subSteps := []dukkha.TaskExecSpec{
 				{
 					StdoutAsReplace: stdoutReplaceKey,
+					ShowStdout:      true,
 
 					Chdir:     workdir,
 					Command:   runCmd,

@@ -183,7 +183,9 @@ func (c *TaskBuild) createExecSpecs(
 	// buildah inspect --type image to get image digest from image id
 	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
 	steps = append(steps, dukkha.TaskExecSpec{
-		StdoutAsReplace:          replaceTargetImageDigest,
+		StdoutAsReplace: replaceTargetImageDigest,
+		ShowStdout:      true,
+
 		FixStdoutValueForReplace: bytes.TrimSpace,
 		Command: sliceutils.NewStrings(
 			options.ToolCmd(), "inspect", "--type", "image",
