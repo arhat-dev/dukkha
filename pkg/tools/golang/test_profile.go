@@ -9,14 +9,26 @@ import (
 type testProfileSpec struct {
 	field.BaseField
 
+	// Directory to save all profile output files
 	OutputDir string `yaml:"output_dir"`
 
+	// Coverage profile
 	Coverage testCoverageProfileSpec `yaml:"coverage"`
-	Block    testBlockProfileSpec    `yaml:"block"`
-	CPU      testCPUProfileSpec      `yaml:"cpu"`
-	Memory   testMemoryProfileSpec   `yaml:"memory"`
-	Mutex    testMutexProfileSpec    `yaml:"mutex"`
-	Trace    testTraceProfileSpec    `yaml:"trace"`
+
+	// Goroutine Block profile
+	Block testBlockProfileSpec `yaml:"block"`
+
+	// CPU profile
+	CPU testCPUProfileSpec `yaml:"cpu"`
+
+	// Memory profile
+	Memory testMemoryProfileSpec `yaml:"memory"`
+
+	// Mutex profile
+	Mutex testMutexProfileSpec `yaml:"mutex"`
+
+	// Trace profile
+	Trace testTraceProfileSpec `yaml:"trace"`
 }
 
 func (s testProfileSpec) generateArgs(dukkhaWorkDir string, compileTime bool) []string {

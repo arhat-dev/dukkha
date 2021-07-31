@@ -5,8 +5,15 @@ import "arhat.dev/dukkha/pkg/field"
 type testTraceProfileSpec struct {
 	field.BaseField
 
-	Enabled bool   `yaml:"enabled"`
-	Output  string `yaml:"output"`
+	// Write test execution trace
+	Enabled bool `yaml:"enabled"`
+
+	// Output filename of trace profile
+	//
+	// go test -trace
+	//
+	// defaults to trace.out if not set and `enabled` is true
+	Output string `yaml:"output"`
 }
 
 func (s testTraceProfileSpec) generateArgs(compileTime bool) []string {

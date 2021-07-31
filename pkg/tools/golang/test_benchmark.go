@@ -10,11 +10,23 @@ import (
 type testBenchmarkSpec struct {
 	field.BaseField
 
-	Enabled  bool          `yaml:"enabled"`
-	Duration time.Duration `yaml:"duration"`
-	Count    int           `yaml:"count"`
-	Match    string        `yaml:"match"`
+	// Run benchmarks during test execution
+	Enabled bool `yaml:"enabled"`
 
+	// Duration of each benchmark run
+	Duration time.Duration `yaml:"duration"`
+
+	// Count of benchmark run
+	Count int `yaml:"count"`
+
+	// Run only regexp matched benchmarks
+	//
+	// go test -bench
+	//
+	// defaults to `.` (all)
+	Match string `yaml:"match"`
+
+	// Memory benchmark settings
 	Memory benchmarkMemorySpec `yaml:"memory"`
 }
 
@@ -48,12 +60,14 @@ func (s testBenchmarkSpec) generateArgs(compileTime bool) []string {
 type benchmarkMemorySpec struct {
 	field.BaseField
 
-	Enabled bool `yaml:"enabled"`
+	// Enbaled by default if benchmark is enabled
+	Enabled *bool `yaml:"enabled"`
+
 	// Allocs  *bool `yaml:""`
 }
 
 func (s benchmarkMemorySpec) generateArgs(compileTime bool) []string {
-	if !s.Enabled {
+	if s.Enabled != nil && !*s.Enabled {
 		return nil
 	}
 

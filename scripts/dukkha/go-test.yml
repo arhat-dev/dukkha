@@ -11,6 +11,11 @@
     pkg@shell: |-
       find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}/...' \;
   path@env: ${MATRIX_PKG}
+  json_output_file@template: |-
+    {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}
+      build/test-profile/result-{{ trimPrefix "./pkg/" .Env.MATRIX_PKG | strings.KebabCase }}.json
+    {{- end -}}
+
   verbose: true
   panic_on_exit_0: true
 

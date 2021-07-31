@@ -9,9 +9,22 @@ import (
 type testBlockProfileSpec struct {
 	field.BaseField
 
-	Enabled bool   `yaml:"enabled"`
-	Rate    int    `yaml:"rate"`
-	Output  string `yaml:"output"`
+	// Profile goroutine blocking during test execution
+	Enabled bool `yaml:"enabled"`
+
+	// Rate of block profile
+	//
+	// go test -blockprofilerate
+	//
+	// no default
+	Rate int `yaml:"rate"`
+
+	// Output filename of block profile
+	//
+	// go test -blockprofile
+	//
+	// defaults to `block.out` if not set and `enabled` is true
+	Output string `yaml:"output"`
 }
 
 func (s testBlockProfileSpec) generateArgs(compileTime bool) []string {
