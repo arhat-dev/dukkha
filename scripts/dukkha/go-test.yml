@@ -9,7 +9,11 @@
     # - shell: go tool pprof ${PROFILE_OUTPUT_DIR}/mem.out
   matrix:
     pkg@shell: |-
-      find ./pkg -mindepth 1 -maxdepth 1 -type d -exec echo '- {}/...' \;
+      go list ./pkg/... \
+        | template:removePrefix \"$(go list -m)/\" \
+        | template:addPrefix \"- ./\" \
+        | template:addSuffix \"/\"
+
   path@env: ${MATRIX_PKG}
   json_output_file@template: |-
     {{- if ne .Env.MATRIX_PKG "./pkg/cmd" -}}

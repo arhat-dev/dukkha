@@ -57,11 +57,47 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateCollFuncs(rc)).
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
+		// text functions
+		Funcs(map[string]interface{}{
+			"addPrefix": func(args ...string) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = args[0]
+				}
+
+				return AddPrefix(args[len(args)-1], args[len(args)-2], sep)
+			},
+			"removePrefix": func(args ...string) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = args[0]
+				}
+
+				return RemovePrefix(args[len(args)-1], args[len(args)-2], sep)
+			},
+			"addSuffix": func(args ...string) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = args[0]
+				}
+
+				return AddSuffix(args[len(args)-1], args[len(args)-2], sep)
+			},
+			"removeSuffix": func(args ...string) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = args[0]
+				}
+
+				return RemoveSuffix(args[len(args)-1], args[len(args)-2], sep)
+			},
+		}).
 		// dukkha specific template func
 		Funcs(map[string]interface{}{
 			"md5sum": func(s string) string {
 				return hex.EncodeToString(hashhelper.MD5Sum([]byte(s)))
 			},
+
 			"os_ReadFile": func(filename string) (string, error) {
 				data, err := os.ReadFile(filename)
 				if err != nil {
