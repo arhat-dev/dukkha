@@ -156,11 +156,17 @@ type TaskExecSpec struct {
 	// use output to stdout of this exec
 	StdoutAsReplace string
 
+	// ShowStdout when StdoutAsReplace is set
+	ShowStdout bool
+
 	FixStdoutValueForReplace func(data []byte) []byte
 
 	// StderrAsReplace to replace same string in following TaskExecSpecs
 	// use output to stderr of this exec
 	StderrAsReplace string
+
+	// ShowStderr when StderrAsReplace is set
+	ShowStderr bool
 
 	FixStderrValueForReplace func(data []byte) []byte
 
