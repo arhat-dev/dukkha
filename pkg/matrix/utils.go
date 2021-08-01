@@ -2,6 +2,18 @@ package matrix
 
 import "sort"
 
+var _ sort.Interface = (*swapper)(nil)
+
+type swapper struct {
+	doSwap func(i, j int)
+	isLess func(i, j int) bool
+	getLen func() int
+}
+
+func (s *swapper) Len() int           { return s.getLen() }
+func (s *swapper) Less(i, j int) bool { return s.isLess(i, j) }
+func (s *swapper) Swap(i, j int)      { s.doSwap(i, j) }
+
 func CartesianProduct(m map[string][]string) []map[string]string {
 	names := make([]string, 0)
 	mat := make([][]string, 0)
@@ -16,12 +28,13 @@ func CartesianProduct(m map[string][]string) []map[string]string {
 	}
 
 	// sort names and mat
-	sort.Slice(names, func(i, j int) bool {
-		ok := names[i] < names[j]
-		if ok {
+	sort.Sort(&swapper{
+		getLen: func() int { return len(names) },
+		isLess: func(i, j int) bool { return names[i] < names[j] },
+		doSwap: func(i, j int) {
+			names[i], names[j] = names[j], names[i]
 			mat[i], mat[j] = mat[j], mat[i]
-		}
-		return ok
+		},
 	})
 
 	listCart := cartNext(mat)
