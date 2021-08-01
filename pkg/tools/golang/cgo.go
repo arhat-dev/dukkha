@@ -32,6 +32,8 @@ type CGOSepc struct {
 	CC string `yaml:"cc"`
 
 	CXX string `yaml:"cxx"`
+
+	FC string `yaml:"fc"`
 }
 
 func (c CGOSepc) getEnv(
@@ -88,14 +90,8 @@ func (c CGOSepc) getEnv(
 		fflags   []string
 		ldflags  []string
 
-		cc  = "gcc"
-		cxx = "g++"
+		cc, cxx string
 	)
-
-	if hostOS == constant.OS_MACOS {
-		cc = "clang"
-		cxx = "clang++"
-	}
 
 	if doingCrossCompiling {
 		switch hostOS {
@@ -111,17 +107,30 @@ func (c CGOSepc) getEnv(
 			case constant.KERNEL_WINDOWS:
 				tripleName, _ = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			default:
+				// not set
 			}
 
-			cc = tripleName + "-gcc"
-			cxx = tripleName + "-g++"
+			if len(tripleName) != 0 {
+				cc = tripleName + "-gcc"
+				cxx = tripleName + "-g++"
+			}
 		case constant.OS_ALPINE:
 			tripleName, _ := constant.GetAlpineTripleName(mArch)
-			cc = tripleName + "-gcc"
-			cxx = tripleName + "-g++"
+
+			if len(tripleName) != 0 {
+				cc = tripleName + "-gcc"
+				cxx = tripleName + "-g++"
+			}
 		case constant.OS_MACOS:
-			cc = "clang"
-			cxx = "clang++"
+			switch mKernel {
+			case constant.KERNEL_DARWIN:
+				// cc = "clang"
+				// cxx = "clang++"
+			case constant.KERNEL_LINUX:
+				// TODO
+			case constant.KERNEL_IOS:
+				// TODO
+			}
 		}
 	}
 
@@ -134,6 +143,7 @@ func (c CGOSepc) getEnv(
 
 	appendEnv("CC", c.CC, cc)
 	appendEnv("CXX", c.CXX, cxx)
+	appendEnv("FC", c.FC, "")
 
 	return ret
 }
