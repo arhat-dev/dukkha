@@ -38,7 +38,7 @@ type EnvValues interface {
 	MatrixKernel() string
 	MatrixLibc() string
 
-	AddEnv(override bool, env ...EnvEntry)
+	AddEnv(override bool, env ...*EnvEntry)
 	AddListEnv(env ...string)
 }
 
@@ -111,7 +111,7 @@ func (c *envValues) MatrixLibc() string {
 	return c.env[constant.ENV_MATRIX_LIBC]
 }
 
-func (c *envValues) AddEnv(override bool, entries ...EnvEntry) {
+func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
 	for _, e := range entries {
 		if _, ok := c.env[e.Name]; ok && !override {
 			continue

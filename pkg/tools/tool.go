@@ -96,7 +96,7 @@ func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
 	return tsk, ok
 }
 
-func (t *BaseTool) GetEnv() []dukkha.EnvEntry { return t.Env }
+func (t *BaseTool) GetEnv() dukkha.Env { return t.Env }
 
 // InitBaseTool must be called in your own version of Init()
 // with correct defaultExecutable name

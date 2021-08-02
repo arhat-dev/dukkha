@@ -19,7 +19,7 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 	}
 
 	if len(goos) != 0 {
-		env = append(env, dukkha.EnvEntry{
+		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOOS",
 			Value: goos,
 		})
@@ -33,24 +33,24 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 	}
 
 	if len(goarch) != 0 {
-		env = append(env, dukkha.EnvEntry{
+		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOARCH",
 			Value: goarch,
 		})
 	}
 
 	if gomips := getGOMIPS(v.MatrixArch()); len(gomips) != 0 {
-		env = append(env, dukkha.EnvEntry{
+		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOMIPS",
 			Value: gomips,
-		}, dukkha.EnvEntry{
+		}, &dukkha.EnvEntry{
 			Name:  "GOMIPS64",
 			Value: gomips,
 		})
 	}
 
 	if goarm := getGOARM(v.MatrixArch()); len(goarm) != 0 {
-		env = append(env, dukkha.EnvEntry{
+		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOARM",
 			Value: goarm,
 		})

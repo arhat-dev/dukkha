@@ -29,10 +29,10 @@ func TestCreateBuildEnv(t *testing.T) {
 			}
 
 			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.AddEnv(true, dukkha.EnvEntry{
+			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
 				Value: test.mKernel,
-			}, dukkha.EnvEntry{
+			}, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_ARCH,
 				Value: constant.ARCH_AMD64,
 			})
@@ -98,31 +98,31 @@ func TestCreateBuildEnv(t *testing.T) {
 			}
 
 			if len(test.goarm) != 0 {
-				expected = append(expected, dukkha.EnvEntry{
+				expected = append(expected, &dukkha.EnvEntry{
 					Name:  "GOARM",
 					Value: test.goarm,
 				})
 			}
 			if len(test.gomips) != 0 {
-				expected = append(expected, dukkha.EnvEntry{
+				expected = append(expected, &dukkha.EnvEntry{
 					Name:  "GOMIPS",
 					Value: test.gomips,
-				}, dukkha.EnvEntry{
+				}, &dukkha.EnvEntry{
 					Name:  "GOMIPS64",
 					Value: test.gomips,
 				})
 			}
 
-			expected = append(expected, dukkha.EnvEntry{
+			expected = append(expected, &dukkha.EnvEntry{
 				Name:  "CGO_ENABLED",
 				Value: "0",
 			})
 
 			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.AddEnv(true, dukkha.EnvEntry{
+			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
 				Value: constant.KERNEL_LINUX,
-			}, dukkha.EnvEntry{
+			}, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_ARCH,
 				Value: test.mArch,
 			})

@@ -168,14 +168,14 @@ func doRun(
 
 			// replace placeholders in env
 			for _, origEnvPart := range es.EnvOverride {
-				ctx.AddEnv(true, dukkha.EnvEntry{
+				ctx.AddEnv(true, &dukkha.EnvEntry{
 					Name:  replacer.Replace(origEnvPart.Name),
 					Value: replacer.Replace(origEnvPart.Value),
 				})
 			}
 
 			for _, origEnvPart := range es.EnvSuggest {
-				ctx.AddEnv(false, dukkha.EnvEntry{
+				ctx.AddEnv(false, &dukkha.EnvEntry{
 					Name:  replacer.Replace(origEnvPart.Name),
 					Value: replacer.Replace(origEnvPart.Value),
 				})

@@ -20,6 +20,11 @@ func ResolveEnv(t field.Field, mCtx RenderingContext, envFieldName string) error
 		fv = fv.Elem()
 	}
 
+	// avoid panic
+	if fv.Kind() != reflect.Struct {
+		return fmt.Errorf("unexpected non struct target: %T", t)
+	}
+
 	env := fv.FieldByName(envFieldName).Interface().(Env)
 	for i := range env {
 		err = env[i].ResolveFields(mCtx, -1, "")
@@ -33,12 +38,12 @@ func ResolveEnv(t field.Field, mCtx RenderingContext, envFieldName string) error
 	return nil
 }
 
-type Env []EnvEntry
+type Env []*EnvEntry
 
 func (orig Env) Clone() Env {
 	ret := make(Env, 0, len(orig))
 	for _, entry := range orig {
-		ret = append(ret, EnvEntry{
+		ret = append(ret, &EnvEntry{
 			Name:  entry.Name,
 			Value: entry.Value,
 		})
