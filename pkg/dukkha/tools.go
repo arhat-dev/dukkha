@@ -31,7 +31,7 @@ type Tool interface {
 
 	GetCmd() []string
 
-	GetEnv() []EnvEntry
+	GetEnv() Env
 
 	UseShell() bool
 

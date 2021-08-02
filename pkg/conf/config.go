@@ -210,7 +210,6 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		}
 
 		appCtx.SetCacheDir(cacheDir)
-		appCtx.AddEnv(true, c.Global.Env...)
 	}
 
 	// step 3: resolve renderers

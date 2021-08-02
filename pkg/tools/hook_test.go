@@ -29,13 +29,13 @@ func TestHookFixtures(t *testing.T) {
 		name  string
 		input []byte
 
-		env      []dukkha.EnvEntry
+		env      dukkha.Env
 		expected []byte
 	}{
 		{
 			name:  "001-hook-script-whitespace-trimed-after-rendering",
 			input: hookScriptWhitespaceTrimedAfterRendering,
-			env: []dukkha.EnvEntry{
+			env: dukkha.Env{
 				{Name: "VERSION", Value: "1.26.1"},
 			},
 			expected: _expected_001,

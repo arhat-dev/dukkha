@@ -99,7 +99,7 @@ func (s *signingSpec) genSignAndVerifySpec(
 
 		var env dukkha.Env
 		if len(s.Repo) != 0 {
-			env = append(env, dukkha.EnvEntry{
+			env = append(env, &dukkha.EnvEntry{
 				Name:  "COSIGN_REPOSITORY",
 				Value: s.Repo,
 			})

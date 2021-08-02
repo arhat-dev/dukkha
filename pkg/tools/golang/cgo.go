@@ -50,7 +50,7 @@ func (c CGOSepc) getEnv(
 	}
 
 	var ret dukkha.Env
-	ret = append(ret, dukkha.EnvEntry{
+	ret = append(ret, &dukkha.EnvEntry{
 		Name:  "CGO_ENABLED",
 		Value: "1",
 	})
@@ -62,7 +62,7 @@ func (c CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, dukkha.EnvEntry{
+			ret = append(ret, &dukkha.EnvEntry{
 				Name:  name,
 				Value: strings.Join(actual, " "),
 			})
@@ -76,7 +76,7 @@ func (c CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, dukkha.EnvEntry{
+			ret = append(ret, &dukkha.EnvEntry{
 				Name:  name,
 				Value: actual,
 			})
