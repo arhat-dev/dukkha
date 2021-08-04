@@ -57,6 +57,9 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	case string:
 		url = t
 		client = d.defaultClient
+	case []byte:
+		url = string(t)
+		client = d.defaultClient
 	default:
 		rawBytes, err := renderer.ToYamlBytes(rawData)
 		if err != nil {
