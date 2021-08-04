@@ -79,6 +79,9 @@ workflow:run:
       echo "- shell: printf 'Succeeded\n'"
 
   jobs@template:
+  - name: test merged golang build
+    task: golang:build(dukkha-local, {})
+
   - name: test dukkha working with nested rendering suffix
     shell:python: print({{- "\"test\"" -}})
 
@@ -125,5 +128,3 @@ workflow:run:
         ],
       })
 
-  - name: test merged golang build
-    task: golang:build(dukkha-local)
