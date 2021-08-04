@@ -192,6 +192,48 @@ func (f *BaseField) handleUnResolvedField(
 		)
 
 		for _, renderer := range v.renderers {
+			// a patch is implied when renderer has a `!` suffix
+
+			var patchSpec *PatchSpec
+			if strings.HasSuffix(renderer, "!") {
+				renderer = renderer[:len(renderer)-1]
+
+				var patchSpecBytes []byte
+				switch t := toResolve.(type) {
+				case string:
+					patchSpecBytes = []byte(t)
+				case []byte:
+					patchSpecBytes = t
+				default:
+					patchSpecBytes, err = yaml.Marshal(toResolve)
+					if err != nil {
+						return fmt.Errorf(
+							"field: failed to marshal renderer data to patch spec bytes: %w",
+							err,
+						)
+					}
+				}
+
+				patchSpec = Init(&PatchSpec{}, f.ifaceTypeHandler).(*PatchSpec)
+				err = yaml.Unmarshal(patchSpecBytes, patchSpec)
+				if err != nil {
+					return fmt.Errorf(
+						"field: failed to unmarshal patch spec\n\n%s\n\nfor renderer %q of %s.%s: %w",
+						string(patchSpecBytes), renderer, structName, fieldName, err,
+					)
+				}
+
+				err = patchSpec.ResolveFields(rc, -1)
+				if err != nil {
+					return fmt.Errorf(
+						"field: failed to resolve patch spec\n\n%s\n\nfor renderer %q of %s.%s: %w",
+						string(patchSpecBytes), renderer, structName, fieldName, err,
+					)
+				}
+
+				toResolve = patchSpec.Value
+			}
+
 			resolvedValue, err = rc.RenderYaml(renderer, toResolve)
 			if err != nil {
 				return fmt.Errorf(
@@ -200,7 +242,17 @@ func (f *BaseField) handleUnResolvedField(
 				)
 			}
 
-			toResolve = resolvedValue
+			if patchSpec != nil {
+				resolvedValue, err = patchSpec.ApplyTo(resolvedValue)
+				if err != nil {
+					return fmt.Errorf(
+						"field: failed to apply patches to %s.%s: %w",
+						structName, fieldName, err,
+					)
+				}
+			} else {
+				toResolve = resolvedValue
+			}
 		}
 
 		// handle special cases:
@@ -305,6 +357,11 @@ func (f *BaseField) addUnresolvedField(
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 		case reflect.Interface:
+			if oe.Type() == rawInterfaceType {
+				// no type information proviede, decode using go-yaml directly
+				break
+			}
+
 			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				return fmt.Errorf("failed to create interface field: %w", err)
