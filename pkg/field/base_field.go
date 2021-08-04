@@ -407,6 +407,10 @@ fieldLoop:
 	)
 }
 
+var (
+	rawInterfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
+)
+
 // nolint:revive
 func (self *BaseField) unmarshal(
 	yamlKey string,
@@ -510,6 +514,11 @@ func (self *BaseField) unmarshal(
 
 			return nil
 		case reflect.Interface:
+			if oe.Type() == rawInterfaceType {
+				// no type information proviede, decode using go-yaml directly
+				break
+			}
+
 			fVal, err := self.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				return fmt.Errorf("failed to create interface field: %w", err)
@@ -525,7 +534,7 @@ func (self *BaseField) unmarshal(
 			// DO NOT use outField directly, which will always match reflect.Interface
 			return self.unmarshal(yamlKey, in, val, keepOld)
 		case reflect.Ptr:
-			// process later
+			// handled after switch
 		default:
 			// scalar types or struct/array/func/chan/unsafe.Pointer
 			// hand it to go-yaml
@@ -543,10 +552,10 @@ func (self *BaseField) unmarshal(
 	}
 
 	var out interface{}
-	if outField.Kind() != reflect.Ptr {
-		out = outField.Addr().Interface()
+	if oe.Kind() != reflect.Ptr {
+		out = oe.Addr().Interface()
 	} else {
-		out = outField.Interface()
+		out = oe.Interface()
 	}
 
 	fVal, canCallInit := out.(Field)
