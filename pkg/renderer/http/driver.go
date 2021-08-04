@@ -76,7 +76,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 			)
 		}
 
-		err = cfg.ResolveFields(rc, -1, "")
+		err = cfg.ResolveFields(rc, -1)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: failed to resolve input config: %w",

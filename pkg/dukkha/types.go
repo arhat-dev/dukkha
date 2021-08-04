@@ -27,7 +27,7 @@ func ResolveEnv(t field.Field, mCtx RenderingContext, envFieldName string) error
 
 	env := fv.FieldByName(envFieldName).Interface().(Env)
 	for i := range env {
-		err = env[i].ResolveFields(mCtx, -1, "")
+		err = env[i].ResolveFields(mCtx, -1)
 		if err != nil {
 			return fmt.Errorf("failed to resolve env %q: %w", env[i].Name, err)
 		}

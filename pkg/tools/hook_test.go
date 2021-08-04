@@ -50,7 +50,7 @@ func TestHookFixtures(t *testing.T) {
 
 			actual := field.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.input, actual))
-			assert.NoError(t, actual.ResolveFields(ctx, -1, ""))
+			assert.NoError(t, actual.ResolveFields(ctx, -1))
 
 			expected := field.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.expected, expected))

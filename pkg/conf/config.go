@@ -227,7 +227,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			)
 
 			logger.D("resolving renderer config fields")
-			err = r.ResolveFields(appCtx, -1, "")
+			err = r.ResolveFields(appCtx, -1)
 			if err != nil {
 				return fmt.Errorf("failed to resolve renderer %q config: %w", name, err)
 			}
@@ -261,7 +261,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			)
 
 			logger.D("resolving shell config fields")
-			err := v.ResolveFields(appCtx, -1, "")
+			err := v.ResolveFields(appCtx, -1)
 			if err != nil {
 				return fmt.Errorf("failed to resolve shell %q #%d config: %w", v.Name(), i, err)
 			}
@@ -280,7 +280,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 
 	// step 5: resolve tools and tasks
 	logger.D("resolving top level config")
-	err := c.ResolveFields(appCtx, 1, "")
+	err := c.ResolveFields(appCtx, 1)
 	if err != nil {
 		return fmt.Errorf("failed to resolve top-level config: %w", err)
 	}
@@ -329,7 +329,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			)
 
 			logger.D("resolving tool config fields")
-			err = t.ResolveFields(appCtx, -1, "")
+			err = t.ResolveFields(appCtx, -1)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tool %q config: %w",

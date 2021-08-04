@@ -13,7 +13,7 @@ func (f *BaseField) HasUnresolvedField() bool {
 	return len(f.unresolvedFields) != 0
 }
 
-func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName string) error {
+func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...string) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field resolve: struct not intialized with Init()")
 	}
@@ -22,34 +22,36 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldName stri
 		return nil
 	}
 
-	resolveAll := len(fieldName) == 0
-
 	parentStruct := f._parentValue.Type().Elem()
 	structName := parentStruct.String()
 
-	for i := 1; i < f._parentValue.Elem().NumField(); i++ {
-		sf := parentStruct.Field(i)
-		if !(sf.Name[0] >= 'A' && sf.Name[0] <= 'Z') {
-			// unexported
-			continue
-		}
-
-		fv := f._parentValue.Elem().Field(i)
-		if !resolveAll {
-			if sf.Name == fieldName {
-				// this is the target field to be resolved
-
-				return f.resolveSingleField(
-					rc, depth, structName, sf.Name, fv,
-				)
-			}
-
-			continue
-		}
-
+	if len(fieldNames) == 0 {
 		// resolve all
 
-		err := f.resolveSingleField(rc, depth, structName, sf.Name, fv)
+		for i := 1; i < f._parentValue.Elem().NumField(); i++ {
+			sf := parentStruct.Field(i)
+			if !IsExported(sf.Name) {
+				continue
+			}
+
+			err := f.resolveSingleField(
+				rc, depth, structName, sf.Name, f._parentValue.Elem().Field(i),
+			)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	for _, name := range fieldNames {
+		fv := f._parentValue.Elem().FieldByName(name)
+		if !fv.IsValid() {
+			return fmt.Errorf("no such field %q in struct %q", name, parentStruct.String())
+		}
+
+		err := f.resolveSingleField(rc, depth, structName, name, fv)
 		if err != nil {
 			return err
 		}
@@ -111,6 +113,7 @@ func (f *BaseField) handleResolvedField(
 		fallthrough
 	case reflect.Slice:
 		if targetField.IsNil() {
+			// this is a resolved field, slice/array empty means no value
 			return nil
 		}
 
@@ -122,6 +125,7 @@ func (f *BaseField) handleResolvedField(
 			}
 		}
 	case reflect.Struct:
+		// handled after switch
 	case reflect.Ptr:
 		fallthrough
 	case reflect.Interface:
@@ -136,17 +140,18 @@ func (f *BaseField) handleResolvedField(
 	if targetField.CanInterface() {
 		fVal, canCallResolve := targetField.Interface().(Field)
 		if canCallResolve {
-			return fVal.ResolveFields(rc, depth-1, "")
+			return fVal.ResolveFields(rc, depth-1)
 		}
 	}
 
 	if targetField.CanAddr() && targetField.Addr().CanInterface() {
 		fVal, canCallResolve := targetField.Addr().Interface().(Field)
 		if canCallResolve {
-			return fVal.ResolveFields(rc, depth-1, "")
+			return fVal.ResolveFields(rc, depth-1)
 		}
 	}
 
+	// no field to resolve
 	return nil
 }
 
@@ -198,7 +203,14 @@ func (f *BaseField) handleUnResolvedField(
 			toResolve = resolvedValue
 		}
 
-		// if it's target is a string
+		// handle special cases:
+		//
+		// 1. string:
+		// 		calling yaml.Unmarshal on string data may success (even when data is not yaml)
+		// 		but will change original data on next calling of yaml.Marshal
+		// 2. map[string]string: same as string
+		// 3. map[string][]byte: rare, just to save some cpu time
+
 		switch {
 		case target.Type() == stringPtrType:
 			// resolved value is the target value
@@ -236,7 +248,7 @@ func (f *BaseField) handleUnResolvedField(
 			}
 		}
 
-		// TODO: currently we alway keepOld when the filed has tag
+		// TODO: currently we always keepOld when the filed has tag
 		// 		 `dukkha:"other"`, need to ensure this behavior won't
 		// 	     leave inconsistent data
 
@@ -252,7 +264,7 @@ func (f *BaseField) handleUnResolvedField(
 		return nil
 	}
 
-	err := innerF.ResolveFields(rc, depth-1, "")
+	err := innerF.ResolveFields(rc, depth-1)
 	if err != nil {
 		return fmt.Errorf("failed to resolve inner field: %w", err)
 	}
@@ -340,7 +352,6 @@ func (f *BaseField) addUnresolvedField(
 
 	if old, exists := f.unresolvedFields[key]; exists {
 		old.rawData = append(old.rawData, rawData)
-		old.isCatchOtherField = isCatchOtherField
 		return nil
 	}
 

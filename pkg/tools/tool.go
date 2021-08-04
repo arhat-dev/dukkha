@@ -162,21 +162,21 @@ func (t *BaseTool) DoAfterFieldsResolved(
 
 	if len(fieldNames) == 0 {
 		// resolve all fields of the real task type
-		err = resolveFields(ctx, t.impl, depth, t.fieldsToResolve)
+		err = t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
 			return fmt.Errorf("failed to resolve tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTool.", fieldNames)
 		if len(forBase) != 0 {
-			err := resolveFields(ctx, t, depth, forBase)
+			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
 				return fmt.Errorf("failed to resolve requested BaseTool fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
-			err := resolveFields(ctx, t.impl, depth, forImpl)
+			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
 				return fmt.Errorf("failed to resolve requested fields: %w", err)
 			}
@@ -205,15 +205,4 @@ func separateBaseAndImpl(basePrefix string, fieldNames []string) (forBase, forIm
 	}
 
 	return
-}
-
-func resolveFields(rh field.RenderingHandler, f field.Field, depth int, fieldNames []string) error {
-	for _, name := range fieldNames {
-		err := f.ResolveFields(rh, depth, name)
-		if err != nil {
-			return fmt.Errorf("failed to resolve field %q: %w", name, err)
-		}
-	}
-
-	return nil
 }
