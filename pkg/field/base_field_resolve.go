@@ -150,6 +150,12 @@ func (f *BaseField) handleResolvedField(
 	return nil
 }
 
+var (
+	stringPtrType         = reflect.TypeOf((*string)(nil))
+	stringMapPtrType      = reflect.TypeOf((*map[string]string)(nil))
+	stringBytesMapPtrType = reflect.TypeOf((*map[string][]byte)(nil))
+)
+
 func (f *BaseField) handleUnResolvedField(
 	rc RenderingHandler,
 	depth int,

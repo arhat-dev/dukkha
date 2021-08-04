@@ -29,12 +29,6 @@ type (
 	}
 )
 
-var (
-	stringPtrType         = reflect.TypeOf((*string)(nil))
-	stringMapPtrType      = reflect.TypeOf((*map[string]string)(nil))
-	stringBytesMapPtrType = reflect.TypeOf((*map[string][]byte)(nil))
-)
-
 type BaseField struct {
 	_initialized uint32
 
