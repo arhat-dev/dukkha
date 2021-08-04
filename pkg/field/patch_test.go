@@ -13,6 +13,7 @@ func TestMergeMap(t *testing.T) {
 
 		original   map[string]interface{}
 		additional map[string]interface{}
+		unique     bool
 
 		expectErr bool
 		expected  map[string]interface{}
@@ -34,7 +35,7 @@ func TestMergeMap(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := mergeMap(test.original, test.additional)
+			result, err := mergeMap(test.original, test.additional, test.unique)
 			if test.expectErr {
 				assert.Error(t, err)
 				return
@@ -83,7 +84,7 @@ func TestUniqueList(t *testing.T) {
 	}
 }
 
-func createMergeValue(t *testing.T, i interface{}) interface{} {
+func createMergeValue(t *testing.T, i interface{}) []MergeSource {
 	data, err := yaml.Marshal(i)
 	if !assert.NoError(t, err) {
 		t.FailNow()
@@ -96,7 +97,7 @@ func createMergeValue(t *testing.T, i interface{}) interface{} {
 		return nil
 	}
 
-	return ret
+	return []MergeSource{{Data: ret}}
 }
 
 func createExpectedValue(t *testing.T, i interface{}) []byte {
@@ -120,12 +121,10 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 		expected  []byte
 	}{
 		{
-			name:  "Valid Nop List Merge",
-			spec:  PatchSpec{},
-			input: `[a, b, c]`,
-			// not using createExpectedValue because the return value is expected
-			// to be the same as input
-			expected: []byte("[a, b, c]"),
+			name:     "Valid Nop List Merge",
+			spec:     PatchSpec{},
+			input:    `[a, b, c]`,
+			expected: createExpectedValue(t, []string{"a", "b", "c"}),
 		},
 		{
 			name: "Valid List Merge Only",
@@ -165,12 +164,10 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 			expected: createExpectedValue(t, []string{"a", "c", "d", "f"}),
 		},
 		{
-			name:  "Valid Nop Map Merge",
-			spec:  PatchSpec{},
-			input: `foo: bar`,
-			// not using createExpectedValue because the return value is expected
-			// to be the same as input
-			expected: []byte("foo: bar"),
+			name:     "Valid Nop Map Merge",
+			spec:     PatchSpec{},
+			input:    `foo: bar`,
+			expected: createExpectedValue(t, map[string]string{"foo": "bar"}),
 		},
 		{
 			name: "Valid Map Merge Only",

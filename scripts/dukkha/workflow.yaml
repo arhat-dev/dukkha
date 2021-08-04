@@ -127,4 +127,3 @@ workflow:run:
           amd64, arm64,
         ],
       })
-

@@ -10,6 +10,12 @@ import (
 	jsonpatch "github.com/evanphx/json-patch/v5"
 )
 
+type MergeSource struct {
+	BaseField `yaml:"-" json:"-"`
+
+	Data interface{} `yaml:"data,omitempty"`
+}
+
 type PatchSpec struct {
 	BaseField
 
@@ -25,7 +31,7 @@ type PatchSpec struct {
 	Value interface{} `yaml:"value"`
 
 	// Merge additional data into Value
-	Merge interface{} `yaml:"merge,omitempty"`
+	Merge []MergeSource `yaml:"merge,omitempty"`
 
 	// Patches Value using standard rfc6902 json-patch
 	Patches []JSONPatchSpec `yaml:"patches"`
@@ -40,58 +46,79 @@ type PatchSpec struct {
 	MapListItemUnique bool `yaml:"map_list_item_unique"`
 }
 
-// Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *PatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
+func (s *PatchSpec) merge(yamlData []byte) (interface{}, error) {
 	var data interface{}
-	err := yaml.Unmarshal(yamlData, &data)
-	if err != nil {
-		return nil, err
+	if len(yamlData) != 0 {
+		err := yaml.Unmarshal(yamlData, &data)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	mergeSrc := s.Merge
+
+doMerge:
 	switch dt := data.(type) {
 	case []interface{}:
-		switch mt := s.Merge.(type) {
-		case []interface{}:
-			dt = append(dt, mt...)
+		for _, merge := range mergeSrc {
+			switch mt := merge.Data.(type) {
+			case []interface{}:
+				dt = append(dt, mt...)
 
-			if !s.Unique {
-				data = dt
-			} else {
-				data = uniqueList(dt)
+				if s.Unique {
+					dt = uniqueList(dt)
+				}
+			case nil:
+				// no value to merge, skip
+			default:
+				// invalid type, not able to merge
+				return nil, fmt.Errorf("unexpected non list value of merge, got %T", mt)
 			}
-		case nil:
-			// no value to merge, skip if no patch
-			if len(s.Patches) == 0 {
-				return yamlData, nil
-			}
-		default:
-			// invalid type, not able to merge
-			return nil, fmt.Errorf("unexpected non list value of merge, got %T", mt)
 		}
+
+		return dt, nil
 	case map[string]interface{}:
-		switch mt := s.Merge.(type) {
-		case map[string]interface{}:
-			data, err = mergeMap(dt, mt)
-			if err != nil {
-				return nil, fmt.Errorf("failed to merge map value: %w", err)
+		var err error
+		for _, merge := range mergeSrc {
+			switch mt := merge.Data.(type) {
+			case map[string]interface{}:
+				dt, err = mergeMap(dt, mt, s.Unique)
+				if err != nil {
+					return nil, fmt.Errorf("failed to merge map value: %w", err)
+				}
+			case nil:
+				// no value to merge, skip
+			default:
+				// invalid type, not able to merge
+				return nil, fmt.Errorf("unexpected non map value of merge, got %T", mt)
 			}
-		case nil:
-			// no value to merge, skip if no patch
-			if len(s.Patches) == 0 {
-				return yamlData, nil
-			}
-		default:
-			// invalid type, not able to merge
-			return nil, fmt.Errorf("unexpected non map value of merge, got %T", mt)
 		}
+
+		return dt, nil
 	case nil:
 		// TODO: do we really want to allow empty value?
-		data = s.Merge
-	default:
-		// scalar types
-		if s.Merge != nil {
-			return nil, fmt.Errorf("patching scalar types are not supported")
+		// 		 could it be some kind of error that should be checked during merging?
+		switch len(mergeSrc) {
+		case 0:
+			return nil, nil
+		case 1:
+			return mergeSrc[0].Data, nil
+		default:
+			data = mergeSrc[0].Data
+			mergeSrc = mergeSrc[1:]
+			goto doMerge
 		}
+	default:
+		// scalar types, not supported
+		return nil, fmt.Errorf("mergering scalar type value is not supported")
+	}
+}
+
+// Apply Merge and Patch to Value, Unique is ensured if set to true
+func (s *PatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
+	data, err := s.merge(yamlData)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(s.Patches) == 0 {
@@ -121,7 +148,7 @@ func (s *PatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
 	})
 }
 
-func mergeMap(original, additional map[string]interface{}) (map[string]interface{}, error) {
+func mergeMap(original, additional map[string]interface{}, unique bool) (map[string]interface{}, error) {
 	out := make(map[string]interface{}, len(original))
 	for k, v := range original {
 		out[k] = v
@@ -133,7 +160,7 @@ func mergeMap(original, additional map[string]interface{}) (map[string]interface
 		case map[string]interface{}:
 			if bv, ok := out[k]; ok {
 				if bv, ok := bv.(map[string]interface{}); ok {
-					out[k], err = mergeMap(bv, v)
+					out[k], err = mergeMap(bv, v, unique)
 					if err != nil {
 						return nil, err
 					}
@@ -148,7 +175,12 @@ func mergeMap(original, additional map[string]interface{}) (map[string]interface
 		case []interface{}:
 			if bv, ok := out[k]; ok {
 				if bv, ok := bv.([]interface{}); ok {
-					out[k] = append(bv, v...)
+					if unique {
+						out[k] = uniqueList(append(bv, v...))
+					} else {
+						out[k] = append(bv, v...)
+					}
+
 					continue
 				} else {
 					return nil, fmt.Errorf("unexpected non list data %q: %v", k, bv)
