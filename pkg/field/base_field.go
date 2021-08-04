@@ -1,6 +1,7 @@
 package field
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -514,13 +515,13 @@ func (self *BaseField) unmarshal(
 
 			return nil
 		case reflect.Interface:
-			if oe.Type() == rawInterfaceType {
-				// no type information proviede, decode using go-yaml directly
-				break
-			}
-
 			fVal, err := self.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
+				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
+					// no type information proviede, decode using go-yaml directly
+					break
+				}
+
 				return fmt.Errorf("failed to create interface field: %w", err)
 			}
 
