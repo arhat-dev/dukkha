@@ -94,6 +94,9 @@ workflow:run:
   - name: test task specific env
     shell@env: echo "${FROM_TOOL}+${FOO}"
 
+  - name: test echo renderer
+    shell@echo: echo "echo renderer"
+
   - name: test raw cmd
     # yamllint disable-line rule:quoted-strings
     cmd: [echo, "raw echo ${FOO} not expanded"]

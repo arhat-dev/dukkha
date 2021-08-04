@@ -26,6 +26,7 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
@@ -155,6 +156,9 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 	{
 		logger.V("creating essential renderers")
 
+		// TODO: let user decide what renderers to use
+		// 		 resolve renderers first?
+		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault())
 		appCtx.AddRenderer(env.DefaultName, env.NewDefault())
 		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault())
 		appCtx.AddRenderer(template.DefaultName, template.NewDefault())
