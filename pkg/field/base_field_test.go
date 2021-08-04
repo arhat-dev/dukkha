@@ -169,7 +169,7 @@ func TestBaseField_UnmarshalYAML_Init(t *testing.T) {
 		assert.Len(t, out.Foo.BaseField.unresolvedFields, 0)
 		assert.EqualValues(t, 1, out.Foo.BaseField._initialized)
 
-		out.ResolveFields(rh, -1, "")
+		out.ResolveFields(rh, -1)
 
 		assert.EqualValues(t, "rendered-bar", out.Foo.Foo)
 	})

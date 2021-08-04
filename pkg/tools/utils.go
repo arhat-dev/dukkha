@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/hashhelper"
+
+	"arhat.dev/dukkha/pkg/field"
 )
 
 func GetScriptCache(cacheDir, script string) (string, error) {
@@ -34,7 +36,7 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 	var ret []string
 	for i := 1; i < typ.NumField(); i++ {
 		f := typ.Field(i)
-		if !(f.Name[0] >= 'A' && f.Name[0] <= 'Z') {
+		if !field.IsExported(f.Name) {
 			// unexported, ignore
 			continue
 		}
@@ -44,14 +46,21 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 			continue
 		}
 
-		val, ok := f.Tag.Lookup("yaml")
-		if !ok {
-			// no yaml field, ignore
-			continue
-		}
+		dukkhaTags, hasDukkhaTags := f.Tag.Lookup(field.TagName)
+		yamlTags, hasYamlTags := f.Tag.Lookup("yaml")
 
-		if strings.Contains(val, "-") {
-			// ignored explicitly
+		switch {
+		case hasYamlTags:
+			if strings.Contains(yamlTags, "-") {
+				// ignored explicitly
+				continue
+			}
+		case hasDukkhaTags:
+			if !strings.Contains(dukkhaTags, "other") {
+				continue
+			}
+		default:
+			// no yaml tag, not a catch other field, ignore
 			continue
 		}
 

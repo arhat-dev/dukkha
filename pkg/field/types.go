@@ -6,6 +6,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	TagNameDukkha = "dukkha"
+
+	TagName = TagNameDukkha
+)
+
 type Field interface {
 	yaml.Unmarshaler
 
@@ -16,7 +22,7 @@ type Field interface {
 	//
 	// when fieldName is not empty, resolve single field
 	// when fieldName is empty, resolve all fields in the struct
-	ResolveFields(rc RenderingHandler, depth int, fieldName string) error
+	ResolveFields(rc RenderingHandler, depth int, fieldNames ...string) error
 }
 
 type RenderingHandler interface {

@@ -64,7 +64,7 @@ func (act *Action) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *
 		return fmt.Errorf("failed to resolve action specific env: %w", err)
 	}
 
-	err = act.ResolveFields(mCtx, -1, "")
+	err = act.ResolveFields(mCtx, -1)
 	if err != nil {
 		return fmt.Errorf("failed to resolve fields: %w", err)
 	}

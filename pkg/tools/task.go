@@ -67,21 +67,21 @@ func (t *BaseTask) DoAfterFieldsResolved(
 
 	if len(fieldNames) == 0 {
 		// resolve all fields of the real task type
-		err := resolveFields(ctx, t.impl, depth, t.fieldsToResolve)
+		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
 			return fmt.Errorf("failed to resolve tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTask.", fieldNames)
 		if len(forBase) != 0 {
-			err := resolveFields(ctx, t, depth, forBase)
+			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
 				return fmt.Errorf("failed to resolve requested BaseTask fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
-			err := resolveFields(ctx, t.impl, depth, forImpl)
+			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
 				return fmt.Errorf("failed to resolve requested fields: %w", err)
 			}
