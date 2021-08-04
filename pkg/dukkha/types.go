@@ -160,7 +160,10 @@ func (h *typeManager) Create(typ reflect.Type, yamlKey string) (interface{}, err
 
 	v, ok := h.types[key]
 	if !ok {
-		return nil, fmt.Errorf("interface type %q not registered", typ.String())
+		return nil, fmt.Errorf(
+			"interface type %q not registered: %w",
+			typ.String(), field.ErrInterfaceTypeNotHandled,
+		)
 	}
 
 	for _, impl := range v.factories {

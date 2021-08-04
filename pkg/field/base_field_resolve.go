@@ -1,6 +1,7 @@
 package field
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -357,13 +358,13 @@ func (f *BaseField) addUnresolvedField(
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 		case reflect.Interface:
-			if oe.Type() == rawInterfaceType {
-				// no type information proviede, decode using go-yaml directly
-				break
-			}
-
 			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
+				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
+					// no type information proviede, decode using go-yaml directly
+					break
+				}
+
 				return fmt.Errorf("failed to create interface field: %w", err)
 			}
 
