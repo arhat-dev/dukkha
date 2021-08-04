@@ -5,11 +5,6 @@
     - darwin
     - windows
     arch:
-    - x86
-    - arm64
     - amd64
-    - armv7
-    - armv6
-    - armv5
   path: ./cmd/dukkha
   outputs: [build/dukkha-local]
