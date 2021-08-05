@@ -30,11 +30,12 @@ cmd() {
     set -ex
     eval "${go_test} -c -o ./build/dukkha.test -coverpkg=./... ./cmd/..."
 
-    ./build/dukkha.test \
-      -test.timeout=1h \
-      -test.coverprofile=coverage.cmd.txt \
-      -- \
-      workflow local run test
+    ./build/dukkha.test -test.run '^TestRender$' \
+      -test.timeout=5m -test.v \
+      -test.coverprofile=coverage.cmd-render.txt --
+
+    ./build/dukkha.test -test.run '^TestMain$' \
+      -test.coverprofile=coverage.cmd-main.txt --
 }
 
 $1

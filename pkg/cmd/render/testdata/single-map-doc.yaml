@@ -1,4 +1,0 @@
-foo@env: ${SHELL}
-bar@shell: template:getDebianArch \"amd64\"
-woo@template:
-- hello {{ getAlpineArch .Env.HOST_ARCH }}
