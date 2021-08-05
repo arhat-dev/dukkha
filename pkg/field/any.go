@@ -29,12 +29,7 @@ func (ad *arrayData) MarshalYAML() (interface{}, error) { return ad.data, nil }
 func (ad *arrayData) MarshalJSON() ([]byte, error)      { return json.Marshal(ad.data) }
 
 func (ad *arrayData) UnmarshalYAML(n *yaml.Node) error {
-	dataBytes, err := yaml.Marshal(n)
-	if err != nil {
-		return err
-	}
-
-	return yaml.Unmarshal(dataBytes, &ad.data)
+	return n.Decode(&ad.data)
 }
 
 // AnyObject is a `interface{}` equivalent with rendering suffix support
@@ -68,24 +63,15 @@ func (o *AnyObject) MarshalJSON() ([]byte, error) {
 }
 
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
-	switch n.ShortTag() {
-	case "!!seq":
+	switch n.Kind {
+	case yaml.SequenceNode:
 		o.arrayData = &arrayData{}
-
-		return o.arrayData.UnmarshalYAML(n)
-	case "!!map":
-		md := Init(&mapData{}, nil).(*mapData)
-		err := md.UnmarshalYAML(n)
-		o.mapData = md
-
-		return err
+		return n.Decode(o.arrayData)
+	case yaml.MappingNode:
+		o.mapData = Init(&mapData{}, nil).(*mapData)
+		return n.Decode(o.mapData)
 	default:
-		dataBytes, err := yaml.Marshal(n)
-		if err != nil {
-			return err
-		}
-
-		return yaml.Unmarshal(dataBytes, &o.scalarData)
+		return n.Decode(&o.scalarData)
 	}
 }
 

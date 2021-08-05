@@ -62,8 +62,12 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Foo",
 							fieldValue: reflect.Value{},
-							rawData:    []interface{}{"echo bar"},
-							renderers:  []string{"a"},
+							rawData: []*alterInterface{
+								{
+									scalarData: "echo bar",
+								},
+							},
+							renderers: []string{"a"},
 						},
 					},
 				},
@@ -87,8 +91,12 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Other",
 							fieldValue: reflect.Value{},
-							rawData: []interface{}{
-								map[string]interface{}{"other_field_1": "foo"},
+							rawData: []*alterInterface{
+								{
+									mapData: map[string]*alterInterface{
+										"other_field_1": {scalarData: "foo"},
+									},
+								},
 							},
 							renderers:         []string{"a"},
 							isCatchOtherField: true,
@@ -99,8 +107,12 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Other",
 							fieldValue: reflect.Value{},
-							rawData: []interface{}{
-								map[string]interface{}{"other_field_2": "bar"},
+							rawData: []*alterInterface{
+								{
+									mapData: map[string]*alterInterface{
+										"other_field_2": {scalarData: "bar"},
+									},
+								},
 							},
 							renderers:         []string{"b"},
 							isCatchOtherField: true,
