@@ -100,14 +100,14 @@ func createMergeValue(t *testing.T, i interface{}) []MergeSource {
 	return []MergeSource{{Data: ret}}
 }
 
-func createExpectedValue(t *testing.T, i interface{}) []byte {
+func createExpectedYamlValue(t *testing.T, i interface{}) string {
 	data, err := yaml.Marshal(i)
 	if !assert.NoError(t, err) {
 		t.FailNow()
-		return nil
+		return ""
 	}
 
-	return data
+	return string(data)
 }
 
 func TestPatchSpec_ApplyTo(t *testing.T) {
@@ -118,13 +118,13 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 		input string
 
 		expectErr bool
-		expected  []byte
+		expected  interface{}
 	}{
 		{
 			name:     "Valid Nop List Merge",
 			spec:     PatchSpec{},
 			input:    `[a, b, c]`,
-			expected: createExpectedValue(t, []string{"a", "b", "c"}),
+			expected: []string{"a", "b", "c"},
 		},
 		{
 			name: "Valid List Merge Only",
@@ -132,7 +132,7 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 				Merge: createMergeValue(t, []string{"a", "b", "c"}),
 			},
 			input:    ``,
-			expected: createExpectedValue(t, []string{"a", "b", "c"}),
+			expected: []string{"a", "b", "c"},
 		},
 		{
 			name: "Invalid List Merge Type Not Match",
@@ -148,11 +148,11 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 				Merge: createMergeValue(t, []string{"c", "d", "e", "f"}),
 			},
 			input: `[a, b, c]`,
-			expected: createExpectedValue(t, []string{
+			expected: []string{
 				"a", "b", "c",
 				"c", // expected dup
 				"d", "e", "f",
-			}),
+			},
 		},
 		{
 			name: "List Merge Unique",
@@ -161,13 +161,13 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 				Unique: true,
 			},
 			input:    `[a, c, c]`,
-			expected: createExpectedValue(t, []string{"a", "c", "d", "f"}),
+			expected: []string{"a", "c", "d", "f"},
 		},
 		{
 			name:     "Valid Nop Map Merge",
 			spec:     PatchSpec{},
 			input:    `foo: bar`,
-			expected: createExpectedValue(t, map[string]string{"foo": "bar"}),
+			expected: map[string]string{"foo": "bar"},
 		},
 		{
 			name: "Valid Map Merge Only",
@@ -177,7 +177,7 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 				}),
 			},
 			input:    ``,
-			expected: createExpectedValue(t, map[string]string{"foo": "bar"}),
+			expected: map[string]string{"foo": "bar"},
 		},
 		{
 			name: "Simple Map Merge",
@@ -187,9 +187,9 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 				}),
 			},
 			input: `a: [b, c]`,
-			expected: createExpectedValue(t, map[string][]string{
+			expected: map[string][]string{
 				"a": {"b", "c", "a"},
-			}),
+			},
 		},
 	}
 
@@ -202,7 +202,11 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, string(test.expected), string(result))
+
+			assert.Equal(t,
+				createExpectedYamlValue(t, test.expected),
+				string(result),
+			)
 		})
 	}
 }
