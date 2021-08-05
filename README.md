@@ -65,23 +65,27 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
   - Chain your renderers with pipe symbol `|`
 
   ```yaml
-  # in the following yaml example example, dukkha will render the content three times
-  #   1. Fetch content from remote http server
-  #   2. Execute the fetched content as a go template
-  #   3. Expand environment variables in the resulted data
+  # in the following yaml example, dukkha will render the content three times
+  #   1. (http) Fetch content from remote http server as specified by the url
+  #   2. (template) Execute the fetched content as a go template
+  #   3. (env) Expand environment variables in the resulted data
   foo@http|template|env: https://example.com/foo.yaml
   ```
 
 - Patching and merging: Combine multiple yaml documents into one
-  - Add `!` suffix to rendering suffix
+  - Append suffix `!` to existing rendering suffix
 
   ```yaml
   foo@http!: # notice the suffix `!`
-    # value for this renderer (`http`)
+    # value for this renderer (http)
     value: https://example.com/bar.yaml
+    # merge other yaml docs
     merge:
     - data@file: ./foo.yaml
-    - data@file: ./local-bar.yaml
+    - data: [plain, yaml]
+    # json patch (rfc6902) in yaml format
+    patches:
+    - { op: add, path: /a/b/c, value: foo }
   ```
 
 ### Task Execution Features
