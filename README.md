@@ -29,7 +29,7 @@ workflow:run:
       echo.sh
 ```
 
-__NOTE:__ You can find more live examples in [arhat-dev/dockerfile](https://github.com/arhat-dev/dockerfile)
+__NOTE:__ You can find more live examples in [arhat-dev/dockerfile](https://github.com/arhat-dev/dockerfile) and [examples](./examples)
 
 ## Goals
 
@@ -87,6 +87,9 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
     patches:
     - { op: add, path: /a/b/c, value: foo }
   ```
+
+- Available as a cli for custom content rendering
+  - Run `dukkha render` over your own yaml docs using rendering suffix
 
 ### Task Execution Features
 
@@ -150,6 +153,16 @@ sget -key https://arhat.dev/.well-known/cosign.pub -o dukkha \
   "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
 chmod +x dukkha
 ```
+
+## Further Thoughts
+
+As you may have noticed, the core of `dukkha` is the rendering suffix, we have more toughts on the usage of rendering suffix as it dramatically eases the management of yaml config:
+
+- Extend dukkha to be something like `systemd` for system configration and process management
+- Manage kubernetes manifests in GitOps pipeline
+- Infrastructure as Config instead of Infrastructure as Code
+
+More to come up with ...
 
 ## LICENSE
 

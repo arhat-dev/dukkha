@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels@file|env: &labels source/templates/labels.yaml
+  name@env: ${deployment_name}
+spec:
+  replicas@env: ${replicas}
+  selector:
+    matchLabels@file|env: *labels
+  template:
+    metadata:
+      labels@file|env: *labels
+    spec:
+      containers:
+      - name: nginx
+        image@env: docker.io/library/nginx:${nginx_version}
+        resources: {}
