@@ -8,13 +8,37 @@
 
 Make YAML files Makefiles
 
+## Quick Example
+
+```yaml
+workflow:run:
+- name: quick-example
+  matrix:
+    kernel: [linux]
+    arch: [amd64]
+  # render inner go templates
+  jobs@template:
+  # render environment variables before shell evaluation
+  - shell@env: |-
+      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
+  # run shell script from http server
+  - shell@template|http: |-
+      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
+      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
+      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
+      echo.sh
+```
+
+__NOTE:__ You can find more live examples in [arhat-dev/dockerfile](https://github.com/arhat-dev/dockerfile)
+
 ## Goals
 
-- Type checked configuration (e.g. workflow definition for github actions)
-- Language and tool specific support (e.g. `goreleaser` for go/docker/npm builds)
-- Flexible scripting (e.g. `Makefile`, shell scripts)
+- Type checked configuration (like workflow definition for github actions)
+- Language and tool specific support (like `goreleaser` support for go/docker/npm builds)
+- Flexible scripting in yaml files (e.g. `Makefile`, shell scripts)
+- Content generation and certral management of config recipes
 
-A typical build automation tool only take one or two from the above, but we'd take three in `dukkha`!
+A typical build automation tool only take one or two from the above, but we'd take all in `dukkha`!
 
 ## Non-Goals
 
@@ -24,36 +48,109 @@ A typical build automation tool only take one or two from the above, but we'd ta
 
 ## Features
 
-- Rendering suffix, get configuration updated dynamically at runtime
+### Content Rendering Features
+
+Please refer to [docs/rendering](./docs/rendering.md) for more details
+
+- Rendering suffix: get configuration rendered dynamically at runtime
   - Just `@some-renderer` in your yaml field key
-    - e.g. `foo@env: ${FOO}` will expand all referenced the environment variable
-  - Also supports renderer chaning
-    - e.g. `foo@http|template|env` first to fetch content from remote http server, then execute it as a go template, and finally expand environment variables in the resulted data
-- Flexible yet strict typing, not always string value for renderer input
-  - Some Renderer can accept any kind of value to keep your yaml file highlighted as it should be
+
+  ```yaml
+  # environment variable FOO will be expanded and its value is used to set
+  # `foo` field
+  foo@env: ${FOO}
+  ```
+
+- Renderer chaning: Combine multiple renderers to achieve even more flexibility.
+  - Chain your renderers with pipe symbol `|`
+
+  ```yaml
+  # in the following yaml example example, dukkha will render the content three times
+  #   1. Fetch content from remote http server
+  #   2. Execute the fetched content as a go template
+  #   3. Expand environment variables in the resulted data
+  foo@http|template|env: https://example.com/foo.yaml
+  ```
+
+- Patching and merging: Combine multiple yaml documents into one
+  - Add `!` suffix to rendering suffix
+
+  ```yaml
+  foo@http!: # notice the suffix `!`
+    # value for this renderer (`http`)
+    value: https://example.com/bar.yaml
+    merge:
+    - data@file: ./foo.yaml
+    - data@file: ./local-bar.yaml
+  ```
+
+### Task Execution Features
+
 - Customizable task matrix execution everywhere
-- Shell completion for tools, tasks and task matrix
 
 ```yaml
 workflow:run:
-- name@env: ${WORKFLOW_NAME}
+- name: matrix-example
   matrix:
-    kernel: [linux]
-    arch: [amd64]
-  jobs@template:
-  - shell@env: |-
-      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
-  - shell@template|http: |-
-      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
-      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
-      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
-      echo.sh
+    # add your matrix spec
+    kernel: [linux, windows]
+    arch: [amd64, arm64]
+
+    # and exclude some
+    exclude: # `exclude` is reserved
+    # match certain matrix
+    - kernel: [windows]
+      arch: [amd64]
+    # partial matching is supported as well
+    - arch: arm64
+
+    # and include extra matrix
+    include: # `include` is reserved field
+    - kernel: [linux]
+      arch: [x86, riscv64]
+    - kernel: [darwin]
+      arch: [arm64]
+```
+
+- Shell completion for tools, tasks and task matrix
+  - Run `dukkha completion --help` for instructions
+
+
+## Installation
+
+### Build from source
+
+```bash
+make dukkha
+```
+
+### Download Pre-built Executables
+
+Before you start, set what version you would like to download
+
+```bash
+# set dukkha version
+export VERSION=latest
+# set to your host kernel (same as GOOS value)
+export KERNEL=linux
+# set to your host arch (slightly different from GOARCH, see ./docs/constants.md)
+export ARCH=amd64
+```
+
+__NOTE:__ Combinations of `KERNEL` and `ARCH` are available at [scripts/dukkha/build-matrix.yml](./scripts/dukkha/build-matrix.yml)
+
+- Option 1: Download and verify signature of dukkha with [`sget`]()
+
+```bash
+sget -key https://arhat.dev/.well-known/cosign.pub -o dukkha \
+  "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
+chmod +x dukkha
 ```
 
 ## LICENSE
 
 ```text
-Copyright 2020 The arhat.dev Authors.
+Copyright 2021 The arhat.dev Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
