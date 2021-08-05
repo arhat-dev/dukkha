@@ -358,6 +358,11 @@ func (f *BaseField) addUnresolvedField(
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 		case reflect.Interface:
+			if f.ifaceTypeHandler == nil {
+				// use default behavior for interface{} types
+				break
+			}
+
 			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
