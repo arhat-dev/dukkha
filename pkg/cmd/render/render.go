@@ -225,6 +225,7 @@ func renderYamlFileOrDir(
 			for {
 				_, err = os.Stat(targetDir)
 				if err == nil {
+					// already exists, do nothing
 					break
 				}
 
@@ -232,12 +233,25 @@ func renderYamlFileOrDir(
 					return fmt.Errorf("failed to check dest dir %q: %w", targetDir, err)
 				}
 
+				mkdir := targetDir
+				src := srcEq
+				perm, ok := srcPerm[src]
+				if !ok {
+					// checking parent dir of user priveded src dir
+					info, err := os.Stat(src)
+					if err != nil {
+						return fmt.Errorf("failed to check src parent dir %q: %w", src, err)
+					}
+
+					perm = info.Mode().Perm()
+				}
+
 				doMkdir = append(doMkdir, func() error {
-					err = os.Mkdir(targetDir, srcPerm[srcEq])
+					err = os.Mkdir(mkdir, perm)
 					if err != nil {
 						return fmt.Errorf(
-							"failed to create dest dir for src dir %q: %w",
-							srcEq, err,
+							"failed to create dest dir %q for src dir %q: %w",
+							mkdir, src, err,
 						)
 					}
 
