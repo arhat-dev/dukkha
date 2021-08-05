@@ -1,0 +1,4 @@
+foo@env: GLOBAL_ENV_FOO=${GLOBAL_ENV_FOO}
+bar@shell: template:getDebianArch \"amd64\"
+woo@template:
+- hello {{ getAlpineArch "arm64" }}
