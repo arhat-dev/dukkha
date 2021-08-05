@@ -134,6 +134,8 @@ type encoder interface {
 
 type encoderCreateFunc func(w io.Writer) (encoder, error)
 
+// TODO: refactor
+// nolint:gocyclo
 func renderYamlFileOrDir(
 	rc field.RenderingHandler,
 	srcPath string,
@@ -238,9 +240,9 @@ func renderYamlFileOrDir(
 				perm, ok := srcPerm[src]
 				if !ok {
 					// checking parent dir of user priveded src dir
-					info, err := os.Stat(src)
-					if err != nil {
-						return fmt.Errorf("failed to check src parent dir %q: %w", src, err)
+					info, err2 := os.Stat(src)
+					if err2 != nil {
+						return fmt.Errorf("failed to check src parent dir %q: %w", src, err2)
 					}
 
 					perm = info.Mode().Perm()

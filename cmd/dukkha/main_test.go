@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"github.com/stretchr/testify/assert"
 )
 
 func clearOSArgs() {
