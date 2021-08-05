@@ -36,7 +36,7 @@ var (
 )
 
 type InterfaceTypeHandler interface {
-	// Create request interface type using yaml infomation
+	// Create request interface type using yaml information
 	Create(typ reflect.Type, yamlKey string) (interface{}, error)
 }
 
