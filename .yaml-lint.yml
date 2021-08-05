@@ -10,6 +10,7 @@ ignore: |
   private/
   scripts/dukkha/*.yml
   **/testdata/**
+  build/
 
 rules:
   braces:
