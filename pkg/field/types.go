@@ -39,3 +39,9 @@ type InterfaceTypeHandler interface {
 	// Create request interface type using yaml infomation
 	Create(typ reflect.Type, yamlKey string) (interface{}, error)
 }
+
+type InterfaceTypeHandleFunc func(typ reflect.Type, yamlKey string) (interface{}, error)
+
+func (f InterfaceTypeHandleFunc) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
+	return f(typ, yamlKey)
+}
