@@ -196,8 +196,8 @@ type TaskExecSpec struct {
 	// when `UseShell` is true
 	//
 	// the availability of the shells denpends on `shells` in dukkha config
-	// a special shell name is `bootstrap`, which will use the bootstrap
-	// section as shell interpreter
+	// a special shell name is `embedded`, which will use the built-in shell
+	// for command evaluation
 	ShellName string
 }
 

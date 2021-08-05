@@ -1,14 +1,16 @@
-# Rendering Suffix
+# Rendering
+
+## Rendering Suffix
 
 The way how `dukkha` make YAML files Makefiles
 
 It's no magic, but a custom yaml unmarshaling method for all structs in `dukkha` with the help of [`field.BaseField`](https://pkg.go.dev/arhat.dev/dukkha/pkg/field#BaseField)
 
-## What Renderer Suffix is Not?
+### What Renderer Suffix is Not?
 
 It's not a yaml extension, do not mess with the reserved yaml keyword `@`
 
-## What is a Rendering Suffix?
+### What is a Rendering Suffix?
 
 It's a yaml parsing extension supported by `dukkha`.
 
@@ -57,11 +59,11 @@ foo@another-renderer: cool
 
 Can also be parsed as the `Example` type with `foo` field resolved in dukkha.
 
-## What Can Rendering Suffix Do?
+### What Can Rendering Suffix Do?
 
 To generate field value dynamically, aka. Conditional Rendering
 
-## How Rendering Suffix Works?
+### How Rendering Suffix Works?
 
 Without Rendering Suffix, your yaml file is static, values are parsed as is, for example, parsing `foo: bar` and you will get foo=bar as a result in you application.
 
