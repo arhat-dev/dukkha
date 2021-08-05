@@ -515,6 +515,11 @@ func (self *BaseField) unmarshal(
 
 			return nil
 		case reflect.Interface:
+			if self.ifaceTypeHandler == nil {
+				// use default behavior for interface{} types
+				break
+			}
+
 			fVal, err := self.ifaceTypeHandler.Create(oe.Type(), yamlKey)
 			if err != nil {
 				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
