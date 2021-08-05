@@ -1,0 +1,16 @@
+foo@env: SHELL=${SHELL}
+bar@shell: template:getDebianArch \"amd64\"
+woo@template:
+- hello {{ getAlpineArch .Env.HOST_ARCH }}
+---
+a@echo: I'm a
+b:
+  c@echo:
+    d@template:
+      e@http: https://arhat.dev/.well-known/cosign.pub
+---
+- 1
+- 2
+- foo@env:
+    bar: HOME=${HOME}
+    woo@echo: nested rendering

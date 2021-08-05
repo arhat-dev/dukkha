@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"arhat.dev/dukkha/pkg/cmd/render"
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -136,11 +137,6 @@ dukkha buildah in-docker build my-image`,
 		"path to your config files and directories, only files with .yaml extension are parsed",
 	)
 
-	globalFlags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
-	globalFlags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
-	globalFlags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
-	globalFlags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter, format: -m <name>=<value>")
-
 	// logging for debugging purpose
 	globalFlags.StringVarP(
 		&logConfig.Level, "log.level", "v",
@@ -157,12 +153,21 @@ dukkha buildah in-docker build my-image`,
 		"stderr", "file path to write log output, including `stdout` and `stderr`",
 	)
 
+	flags := rootCmd.Flags()
+
+	flags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
+	flags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
+	flags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
+	flags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter, format: -m <name>=<value>")
+
 	setupTaskCompletion(&appCtx, rootCmd)
 
 	err := setupMatrixCompletion(&appCtx, rootCmd, "matrix")
 	if err != nil {
 		panic(fmt.Errorf("failed to setup matrix flag completion: %w", err))
 	}
+
+	rootCmd.AddCommand(render.NewRenderCmd(&appCtx))
 
 	return rootCmd
 }
