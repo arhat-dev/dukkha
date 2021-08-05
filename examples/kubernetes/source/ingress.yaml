@@ -1,0 +1,6 @@
+apiVersion@env: networking.k8s.io/${ingress_api_version}
+kind: Ingress
+metadata:
+  name@env: ${deployment_name}
+  labels@file|env: &labels source/templates/labels.yaml
+spec@env|file|template: source/templates/ingress_spec_${ingress_api_version}.yaml
