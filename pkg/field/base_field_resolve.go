@@ -156,12 +156,6 @@ func (f *BaseField) handleResolvedField(
 	return nil
 }
 
-var (
-	stringPtrType         = reflect.TypeOf((*string)(nil))
-	stringMapPtrType      = reflect.TypeOf((*map[string]string)(nil))
-	stringBytesMapPtrType = reflect.TypeOf((*map[string][]byte)(nil))
-)
-
 func (f *BaseField) handleUnResolvedField(
 	rc RenderingHandler,
 	depth int,
@@ -184,7 +178,7 @@ func (f *BaseField) handleUnResolvedField(
 	for i, rawData := range v.rawData {
 		toResolve := rawData
 		if v.isCatchOtherField {
-			toResolve = rawData.(map[string]interface{})[key.yamlKey]
+			toResolve = rawData.mapData[key.yamlKey]
 		}
 
 		var (
@@ -200,13 +194,13 @@ func (f *BaseField) handleUnResolvedField(
 				renderer = renderer[:len(renderer)-1]
 
 				var patchSpecBytes []byte
-				switch t := toResolve.(type) {
+				switch t := toResolve.Value().(type) {
 				case string:
 					patchSpecBytes = []byte(t)
 				case []byte:
 					patchSpecBytes = t
 				default:
-					patchSpecBytes, err = yaml.Marshal(toResolve)
+					patchSpecBytes, err = yaml.Marshal(toResolve.Value())
 					if err != nil {
 						return fmt.Errorf(
 							"field: failed to marshal renderer data to patch spec bytes: %w",
@@ -235,7 +229,7 @@ func (f *BaseField) handleUnResolvedField(
 				toResolve = patchSpec.Value
 			}
 
-			resolvedValue, err = rc.RenderYaml(renderer, toResolve)
+			resolvedValue, err = rc.RenderYaml(renderer, toResolve.Value())
 			if err != nil {
 				return fmt.Errorf(
 					"field: failed to render value of %s.%s: %w",
@@ -251,43 +245,15 @@ func (f *BaseField) handleUnResolvedField(
 						structName, fieldName, err,
 					)
 				}
-			} else {
-				toResolve = resolvedValue
+			}
+
+			toResolve = &alterInterface{
+				scalarData: resolvedValue,
 			}
 		}
 
-		// handle special cases:
-		//
-		// 1. string:
-		// 		calling yaml.Unmarshal on string data may success (even when data is not yaml)
-		// 		but will change original data on next calling of yaml.Marshal
-		// 2. map[string]string: same as string
-		// 3. map[string][]byte: rare, just to save some cpu time
-
-		switch {
-		case target.Type() == stringPtrType:
-			// resolved value is the target value
-			target.Elem().SetString(string(resolvedValue))
-			continue
-		case v.isCatchOtherField &&
-			target.Type().AssignableTo(stringMapPtrType):
-
-			target.Elem().SetMapIndex(
-				reflect.ValueOf(key.yamlKey),
-				reflect.ValueOf(string(resolvedValue)),
-			)
-			continue
-		case v.isCatchOtherField &&
-			target.Type().AssignableTo(stringBytesMapPtrType):
-			target.Elem().SetMapIndex(
-				reflect.ValueOf(key.yamlKey),
-				reflect.ValueOf(resolvedValue),
-			)
-			continue
-		}
-
-		var tmp interface{}
-		err = yaml.Unmarshal(resolvedValue, &tmp)
+		tmp := &alterInterface{}
+		err = yaml.Unmarshal(resolvedValue, tmp)
 		if err != nil {
 			return fmt.Errorf(
 				"field: failed to unmarshal resolved value %q to interface: %w",
@@ -295,9 +261,23 @@ func (f *BaseField) handleUnResolvedField(
 			)
 		}
 
+		// go-yaml will change original data when input is not yaml,
+		// without any error
+		//
+		// revert that change by checking and resetting scalarData to resolvedValue
+		switch tmp.scalarData.(type) {
+		case string:
+			tmp.scalarData = string(resolvedValue)
+		case []byte:
+			tmp.scalarData = string(resolvedValue)
+		case nil:
+		}
+
 		if v.isCatchOtherField {
-			tmp = map[string]interface{}{
-				key.yamlKey: tmp,
+			tmp = &alterInterface{
+				mapData: map[string]*alterInterface{
+					key.yamlKey: tmp,
+				},
 			}
 		}
 
@@ -334,7 +314,7 @@ func (f *BaseField) addUnresolvedField(
 	fieldName string,
 	fieldValue reflect.Value,
 	isCatchOtherField bool,
-	rawData interface{},
+	rawData *alterInterface,
 ) error {
 	if f.unresolvedFields == nil {
 		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
@@ -421,7 +401,7 @@ func (f *BaseField) addUnresolvedField(
 	f.unresolvedFields[key] = &unresolvedFieldValue{
 		fieldName:  fieldName,
 		fieldValue: fieldValue,
-		rawData:    []interface{}{rawData},
+		rawData:    []*alterInterface{rawData},
 		renderers:  strings.Split(suffix, "|"),
 
 		isCatchOtherField: isCatchOtherField,

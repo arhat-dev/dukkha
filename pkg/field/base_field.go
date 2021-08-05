@@ -23,12 +23,61 @@ type (
 	unresolvedFieldValue struct {
 		fieldName  string
 		fieldValue reflect.Value
-		rawData    []interface{}
+		rawData    []*alterInterface
 		renderers  []string
 
 		isCatchOtherField bool
 	}
 )
+
+// alterInterface is a direct `interface{}`` replacement for data unmarshaling
+// with no support of rendering suffix
+type alterInterface struct {
+	mapData map[string]*alterInterface
+	arrData []*alterInterface
+
+	scalarData interface{}
+}
+
+func (f *alterInterface) Value() interface{} {
+	if f.mapData != nil {
+		return f.mapData
+	}
+
+	if f.arrData != nil {
+		return f.arrData
+	}
+
+	return f.scalarData
+}
+
+func (f *alterInterface) UnmarshalYAML(n *yaml.Node) error {
+	switch n.Kind {
+	case yaml.ScalarNode:
+		switch n.ShortTag() {
+		case "!!str":
+			f.scalarData = n.Value
+		case "!!binary":
+			f.scalarData = n.Value
+		default:
+			return n.Decode(&f.scalarData)
+		}
+
+		return nil
+	case yaml.MappingNode:
+		f.mapData = make(map[string]*alterInterface)
+		return n.Decode(&f.mapData)
+	case yaml.SequenceNode:
+		f.arrData = make([]*alterInterface, 0)
+		return n.Decode(&f.arrData)
+	default:
+		return fmt.Errorf("unexpected node tag %q", n.ShortTag())
+	}
+}
+
+func (f *alterInterface) MarshalYAML() (interface{}, error) {
+	return f.Value(), nil
+}
 
 type BaseField struct {
 	_initialized uint32
@@ -286,19 +335,14 @@ fieldLoop:
 		}
 	}
 
-	switch n.ShortTag() {
-	case "!!map":
+	switch n.Kind {
+	case yaml.MappingNode:
 	default:
 		return fmt.Errorf("field: unsupported yaml tag %q when handling %s", n.Tag, pt.String())
 	}
 
-	dataBytes, err := yaml.Marshal(n)
-	if err != nil {
-		return fmt.Errorf("field: data marshal back failed for %s: %w", pt.String(), err)
-	}
-
-	m := make(map[string]interface{})
-	err = yaml.Unmarshal(dataBytes, &m)
+	m := make(map[string]*alterInterface)
+	err := n.Decode(&m)
 	if err != nil {
 		return fmt.Errorf("field: data unmarshal failed for %s: %w", pt.String(), err)
 	}
@@ -328,8 +372,10 @@ fieldLoop:
 				}
 
 				fSpec = catchOtherField
-				v = map[string]interface{}{
-					yamlKey: v,
+				v = &alterInterface{
+					mapData: map[string]*alterInterface{
+						yamlKey: v,
+					},
 				}
 			}
 
@@ -365,8 +411,10 @@ fieldLoop:
 			}
 
 			fSpec = catchOtherField
-			v = map[string]interface{}{
-				yamlKey: v,
+			v = &alterInterface{
+				mapData: map[string]*alterInterface{
+					yamlKey: v,
+				},
 			}
 		}
 
@@ -412,10 +460,10 @@ var (
 	rawInterfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
 )
 
-// nolint:revive
+// nolint:revive,gocyclo
 func (self *BaseField) unmarshal(
 	yamlKey string,
-	in interface{},
+	in *alterInterface,
 	outField reflect.Value,
 	keepOld bool,
 ) error {
@@ -424,15 +472,11 @@ func (self *BaseField) unmarshal(
 	for {
 		switch oe.Kind() {
 		case reflect.Slice:
-			switch in.(type) {
-			case []interface{}:
-			case nil:
-				return nil
-			default:
+			if in.arrData == nil && in.Value() != nil {
 				return fmt.Errorf("unexpected non slice data for %q", outField.String())
 			}
 
-			inSlice := in.([]interface{})
+			inSlice := in.arrData
 			size := len(inSlice)
 
 			sliceVal := reflect.MakeSlice(oe.Type(), size, size)
@@ -459,14 +503,16 @@ func (self *BaseField) unmarshal(
 
 			return nil
 		case reflect.Map:
+			if in.mapData == nil && in.Value() != nil {
+				return fmt.Errorf("unexpected non map value for %q", outField.String())
+			}
+
 			// map key MUST be string
 			if oe.IsNil() || !keepOld {
 				oe.Set(reflect.MakeMap(oe.Type()))
 			}
 
 			valType := oe.Type().Elem()
-
-			iterIn := reflect.ValueOf(in).MapRange()
 
 			isCatchOtherField := self.isCatchOtherField(yamlKey)
 			if isCatchOtherField {
@@ -475,7 +521,7 @@ func (self *BaseField) unmarshal(
 				}
 			}
 
-			for iterIn.Next() {
+			for k, v := range in.mapData {
 				// since indexed map value is not addressable
 				// we have to keep the original data in BaseField cache
 
@@ -484,12 +530,12 @@ func (self *BaseField) unmarshal(
 				var val reflect.Value
 
 				if isCatchOtherField {
-					cachedData, ok := self.catchOtherCache[iterIn.Key().String()]
+					cachedData, ok := self.catchOtherCache[k]
 					if ok {
 						val = cachedData
 					} else {
 						val = reflect.New(valType)
-						self.catchOtherCache[iterIn.Key().String()] = val
+						self.catchOtherCache[k] = val
 					}
 				} else {
 					val = reflect.New(valType)
@@ -499,18 +545,18 @@ func (self *BaseField) unmarshal(
 					// use iter.Key() rather than `yamlKey`
 					// because it can be the field catching other
 					// (field tag: `dukkha:"other"`)
-					iterIn.Key().String(),
-					iterIn.Value().Interface(),
+					k,
+					v,
 					val,
 					keepOld,
 				)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
-						valType.String(), iterIn.Key().String(), err,
+						valType.String(), k, err,
 					)
 				}
 
-				oe.SetMapIndex(iterIn.Key(), val.Elem())
+				oe.SetMapIndex(reflect.ValueOf(k), val.Elem())
 			}
 
 			return nil
