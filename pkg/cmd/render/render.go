@@ -137,7 +137,7 @@ type encoderCreateFunc func(w io.Writer) (encoder, error)
 // TODO: refactor
 // nolint:gocyclo
 func renderYamlFileOrDir(
-	rc field.RenderingHandler,
+	rc dukkha.Context,
 	srcPath string,
 	destPath *string,
 	outputFormat string,
@@ -293,6 +293,19 @@ func renderYamlFileOrDir(
 			}
 		}
 	}
+
+	err = os.Chdir(filepath.Dir(srcPath))
+	if err != nil {
+		return fmt.Errorf("failed to change working dir to source parent: %w", err)
+	}
+	defer func() {
+		err = os.Chdir(rc.WorkingDir())
+		if err != nil {
+			panic(fmt.Errorf(
+				"failed to go back to dukkha working dir: %w", err,
+			))
+		}
+	}()
 
 	for _, doc := range ret {
 		obj := doc.(*field.AnyObject)
