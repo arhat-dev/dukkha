@@ -21,10 +21,10 @@ type (
 	}
 
 	unresolvedFieldValue struct {
-		fieldName  string
-		fieldValue reflect.Value
-		rawData    []*alterInterface
-		renderers  []string
+		fieldName   string
+		fieldValue  reflect.Value
+		rawDataList []*alterInterface
+		renderers   []string
 
 		isCatchOtherField bool
 	}
@@ -113,7 +113,7 @@ func (f *BaseField) Inherit(b *BaseField) error {
 				fieldName:         v.fieldName,
 				fieldValue:        f._parentValue.Elem().FieldByName(v.fieldName),
 				isCatchOtherField: v.isCatchOtherField,
-				rawData:           v.rawData,
+				rawDataList:       v.rawDataList,
 				renderers:         v.renderers,
 			}
 
@@ -129,7 +129,7 @@ func (f *BaseField) Inherit(b *BaseField) error {
 			)
 		}
 
-		existingV.rawData = append(existingV.rawData, v.rawData...)
+		existingV.rawDataList = append(existingV.rawDataList, v.rawDataList...)
 	}
 
 	if len(b.catchOtherCache) != 0 {
@@ -424,14 +424,11 @@ fieldLoop:
 		// don't forget the raw name with rendering suffix
 		handledYamlValues[rawYamlKey] = struct{}{}
 
-		err = fSpec.base.addUnresolvedField(
+		fSpec.base.addUnresolvedField(
 			yamlKey, suffix,
 			fSpec.fieldName, fSpec.fieldValue, fSpec.isCatchOther,
 			v,
 		)
-		if err != nil {
-			return fmt.Errorf("field: failed to add unresolved field: %w", err)
-		}
 	}
 
 	for k := range handledYamlValues {

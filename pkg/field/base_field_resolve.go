@@ -1,7 +1,6 @@
 package field
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -179,7 +178,7 @@ func (f *BaseField) handleUnResolvedField(
 		target = v.fieldValue.Addr()
 	}
 
-	for i, rawData := range v.rawData {
+	for i, rawData := range v.rawDataList {
 		toResolve := rawData
 		if v.isCatchOtherField {
 			toResolve = rawData.mapData[key.yamlKey]
@@ -309,7 +308,7 @@ func (f *BaseField) addUnresolvedField(
 	fieldValue reflect.Value,
 	isCatchOtherField bool,
 	rawData *alterInterface,
-) error {
+) {
 	if f.unresolvedFields == nil {
 		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
 	}
@@ -318,65 +317,6 @@ func (f *BaseField) addUnresolvedField(
 		// yamlKey@suffix: ...
 		yamlKey: yamlKey,
 		suffix:  suffix,
-	}
-
-	oe := fieldValue
-	for {
-		switch oe.Kind() {
-		case reflect.Slice:
-			if oe.IsNil() {
-				oe.Set(reflect.MakeSlice(oe.Type(), 0, 0))
-			}
-		case reflect.Map:
-			if oe.IsNil() {
-				oe.Set(reflect.MakeMap(oe.Type()))
-			}
-		case reflect.Interface:
-			if f.ifaceTypeHandler == nil {
-				// use default behavior for interface{} types
-				break
-			}
-
-			fVal, err := f.ifaceTypeHandler.Create(oe.Type(), yamlKey)
-			if err != nil {
-				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
-					// no type information proviede, decode using go-yaml directly
-					break
-				}
-
-				return fmt.Errorf("failed to create interface field: %w", err)
-			}
-
-			oe.Set(reflect.ValueOf(fVal))
-		case reflect.Ptr:
-			// process later
-		default:
-			// scalar types or struct/array/func/chan/unsafe.Pointer
-			// hand it to go-yaml
-		}
-
-		if oe.Kind() != reflect.Ptr {
-			break
-		}
-
-		if oe.IsZero() {
-			oe.Set(reflect.New(oe.Type().Elem()))
-		}
-
-		oe = oe.Elem()
-	}
-
-	var iface interface{}
-	switch fieldValue.Kind() {
-	case reflect.Ptr:
-		iface = fieldValue.Interface()
-	default:
-		iface = fieldValue.Addr().Interface()
-	}
-
-	fVal, canCallInit := iface.(Field)
-	if canCallInit {
-		_ = Init(fVal, f.ifaceTypeHandler)
 	}
 
 	if isCatchOtherField {
@@ -388,20 +328,18 @@ func (f *BaseField) addUnresolvedField(
 	}
 
 	if old, exists := f.unresolvedFields[key]; exists {
-		old.rawData = append(old.rawData, rawData)
-		return nil
+		old.rawDataList = append(old.rawDataList, rawData)
+		return
 	}
 
 	f.unresolvedFields[key] = &unresolvedFieldValue{
-		fieldName:  fieldName,
-		fieldValue: fieldValue,
-		rawData:    []*alterInterface{rawData},
-		renderers:  strings.Split(suffix, "|"),
+		fieldName:   fieldName,
+		fieldValue:  fieldValue,
+		rawDataList: []*alterInterface{rawData},
+		renderers:   strings.Split(suffix, "|"),
 
 		isCatchOtherField: isCatchOtherField,
 	}
-
-	return nil
 }
 
 func (f *BaseField) isCatchOtherField(yamlKey string) bool {
