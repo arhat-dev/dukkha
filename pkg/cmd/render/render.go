@@ -134,8 +134,6 @@ type encoder interface {
 
 type encoderCreateFunc func(w io.Writer) (encoder, error)
 
-// TODO: refactor
-// nolint:gocyclo
 func renderYamlFileOrDir(
 	rc dukkha.Context,
 	srcPath string,
@@ -221,54 +219,9 @@ func renderYamlFileOrDir(
 		} else {
 			// prepare destination parent dir if not exists
 
-			targetDir := filepath.Dir(*destPath)
-			srcEq := filepath.Dir(srcPath)
-			var doMkdir []func() error
-			for {
-				_, err = os.Stat(targetDir)
-				if err == nil {
-					// already exists, do nothing
-					break
-				}
-
-				if !os.IsNotExist(err) {
-					return fmt.Errorf("failed to check dest dir %q: %w", targetDir, err)
-				}
-
-				mkdir := targetDir
-				src := srcEq
-				perm, ok := srcPerm[src]
-				if !ok {
-					// checking parent dir of user priveded src dir
-					info, err2 := os.Stat(src)
-					if err2 != nil {
-						return fmt.Errorf("failed to check src parent dir %q: %w", src, err2)
-					}
-
-					perm = info.Mode().Perm()
-				}
-
-				doMkdir = append(doMkdir, func() error {
-					err = os.Mkdir(mkdir, perm)
-					if err != nil {
-						return fmt.Errorf(
-							"failed to create dest dir %q for src dir %q: %w",
-							mkdir, src, err,
-						)
-					}
-
-					return nil
-				})
-
-				srcEq = filepath.Dir(srcEq)
-				targetDir = filepath.Dir(targetDir)
-			}
-
-			for i := len(doMkdir) - 1; i >= 0; i-- {
-				err = doMkdir[i]()
-				if err != nil {
-					return err
-				}
+			err = ensureDestDir(srcPath, *destPath, srcPerm)
+			if err != nil {
+				return err
 			}
 
 			dest := *destPath
@@ -322,6 +275,62 @@ func renderYamlFileOrDir(
 	}
 
 	return err
+}
+
+func ensureDestDir(srcPath, destPath string, srcPerm map[string]os.FileMode) error {
+	srcPath = filepath.Dir(srcPath)
+	destPath = filepath.Dir(destPath)
+	var doMkdir []func() error
+
+	for {
+		_, err := os.Stat(destPath)
+		if err == nil {
+			// already exists, do nothing
+			break
+		}
+
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to check dest dir %q: %w", destPath, err)
+		}
+
+		perm, ok := srcPerm[srcPath]
+		if !ok {
+			// checking parent dir of user priveded src dir
+			info, err2 := os.Stat(srcPath)
+			if err2 != nil {
+				return fmt.Errorf("failed to check src parent dir %q: %w", srcPath, err2)
+			}
+
+			perm = info.Mode().Perm()
+		}
+
+		// copy value, do not reference srcPath and destDir directly
+		targetDir := destPath
+		src := srcPath
+		doMkdir = append(doMkdir, func() error {
+			err = os.Mkdir(targetDir, perm)
+			if err != nil {
+				return fmt.Errorf(
+					"failed to create dest dir %q for src dir %q: %w",
+					targetDir, src, err,
+				)
+			}
+
+			return nil
+		})
+
+		srcPath = filepath.Dir(srcPath)
+		destPath = filepath.Dir(destPath)
+	}
+
+	for i := len(doMkdir) - 1; i >= 0; i-- {
+		err := doMkdir[i]()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func parseYaml(dec *yaml.Decoder, createOutObj func() interface{}) ([]interface{}, error) {
