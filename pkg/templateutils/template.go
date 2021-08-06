@@ -57,7 +57,6 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateFilePathFuncs(rc)).
 		Funcs(funcs.CreatePathFuncs(rc)).
 		Funcs(funcs.CreateSockaddrFuncs(rc)).
-		Funcs(funcs.CreateTestFuncs(rc)).
 		Funcs(funcs.CreateCollFuncs(rc)).
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).

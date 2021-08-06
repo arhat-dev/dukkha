@@ -16,13 +16,17 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	mvdan.cc/sh/v3 v3.3.0
+	mvdan.cc/sh/v3 v3.3.1
 )
 
 replace (
-	github.com/BurntSushi/toml-test => github.com/BurntSushi/toml-test v0.1.1-0.20210704114940-e6948edce1c5
+	github.com/BurntSushi/toml-test => github.com/BurntSushi/toml-test v1.0.0
 	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
-	github.com/hairyhenderson/toml => github.com/BurntSushi/toml v0.3.2-0.20210704121015-ebe1404fc680
+)
+
+replace (
+	github.com/BurntSushi/toml => github.com/BurntSushi/toml v0.4.1
+	github.com/hairyhenderson/gomplate/v3 => ./third_party/gomplate
 )
 
 replace (

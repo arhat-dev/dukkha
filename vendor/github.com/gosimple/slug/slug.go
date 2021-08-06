@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rainycape/unidecode"
+	"github.com/gosimple/unidecode"
 )
 
 var (
@@ -65,14 +65,22 @@ func MakeLang(s string, lang string) (slug string) {
 		slug = SubstituteRune(slug, esSub)
 	case "fi", "fin":
 		slug = SubstituteRune(slug, fiSub)
+	case "fr", "fra":
+		slug = SubstituteRune(slug, frSub)
 	case "gr", "el", "ell":
 		slug = SubstituteRune(slug, grSub)
 	case "kz", "kk", "kaz":
 		slug = SubstituteRune(slug, kkSub)
+	case "nb", "nob":
+		slug = SubstituteRune(slug, nbSub)
 	case "nl", "nld":
 		slug = SubstituteRune(slug, nlSub)
+	case "nn", "nno":
+		slug = SubstituteRune(slug, nnSub)
 	case "pl", "pol":
 		slug = SubstituteRune(slug, plSub)
+	case "sl", "slv":
+		slug = SubstituteRune(slug, slSub)
 	case "sv", "swe":
 		slug = SubstituteRune(slug, svSub)
 	case "tr", "tur":
