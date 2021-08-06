@@ -80,14 +80,18 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "include",
 			in: Spec{
-				Include: []map[string][]string{
+				Include: []*specItem{
 					{
-						"kernel": []string{"windows"},
-						"arch":   []string{"arm64", "amd64"},
+						Data: map[string][]string{
+							"kernel": {"windows"},
+							"arch":   {"arm64", "amd64"},
+						},
 					},
 					{
-						"kernel": []string{"darwin"},
-						"arch":   []string{"arm64"},
+						Data: map[string][]string{
+							"kernel": {"darwin"},
+							"arch":   {"arm64"},
+						},
 					},
 				},
 				Kernel: []string{"linux"},
@@ -115,14 +119,18 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "include+filter",
 			in: Spec{
-				Include: []map[string][]string{
+				Include: []*specItem{
 					{
-						"kernel": []string{"aix"},
-						"arch":   []string{"ppc64le"},
+						Data: map[string][]string{
+							"kernel": {"aix"},
+							"arch":   {"ppc64le"},
+						},
 					},
 					{
-						"kernel": []string{"darwin"},
-						"arch":   []string{"arm64"},
+						Data: map[string][]string{
+							"kernel": {"darwin"},
+							"arch":   {"arm64"},
+						},
 					},
 				},
 				Kernel: []string{"linux"},
@@ -141,10 +149,12 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "exclude-all-full-match",
 			in: Spec{
-				Exclude: []map[string][]string{
+				Exclude: []*specItem{
 					{
-						"kernel": []string{"linux"},
-						"arch":   []string{"arm64", "amd64"},
+						Data: map[string][]string{
+							"kernel": {"linux"},
+							"arch":   {"arm64", "amd64"},
+						},
 					},
 				},
 				Kernel: []string{"linux"},
@@ -155,9 +165,11 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "exclude-all-single-match",
 			in: Spec{
-				Exclude: []map[string][]string{
+				Exclude: []*specItem{
 					{
-						"kernel": []string{"linux"},
+						Data: map[string][]string{
+							"kernel": {"linux"},
+						},
 					},
 				},
 				Kernel: []string{"linux"},
