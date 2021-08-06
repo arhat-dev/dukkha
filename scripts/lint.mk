@@ -20,7 +20,7 @@ lint.file:
 
 lint.shell:
 	${RUN_LINTER} koalaman/shellcheck-alpine:stable \
-		sh -c "find . | grep -E -e '.sh\$$' | \
+		sh -c "find . | grep -E -e '\.sh\$$' | \
 			grep -v vendor | grep -v \.git | \
 			xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
