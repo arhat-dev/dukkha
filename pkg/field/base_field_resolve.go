@@ -138,21 +138,25 @@ func (f *BaseField) handleResolvedField(
 		return nil
 	}
 
+	return tryResolve(rc, targetField, depth)
+}
+
+func tryResolve(rc RenderingHandler, targetField reflect.Value, depth int) error {
 	if targetField.CanInterface() {
 		fVal, canCallResolve := targetField.Interface().(Field)
 		if canCallResolve {
-			return fVal.ResolveFields(rc, depth-1)
+			return fVal.ResolveFields(rc, depth)
 		}
 	}
 
 	if targetField.CanAddr() && targetField.Addr().CanInterface() {
 		fVal, canCallResolve := targetField.Addr().Interface().(Field)
 		if canCallResolve {
-			return fVal.ResolveFields(rc, depth-1)
+			return fVal.ResolveFields(rc, depth)
 		}
 	}
 
-	// no field to resolve
+	// no more field to resolve
 	return nil
 }
 
@@ -292,17 +296,7 @@ func (f *BaseField) handleUnResolvedField(
 		}
 	}
 
-	innerF, canCallResolve := target.Interface().(Field)
-	if !canCallResolve {
-		return nil
-	}
-
-	err := innerF.ResolveFields(rc, depth-1)
-	if err != nil {
-		return fmt.Errorf("failed to resolve inner field: %w", err)
-	}
-
-	return nil
+	return tryResolve(rc, target, depth-1)
 }
 
 func (f *BaseField) addUnresolvedField(

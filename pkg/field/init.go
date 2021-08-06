@@ -104,6 +104,7 @@ findStruct:
 	}
 }
 
+// nolint:unparam
 func tryInit(fieldValue reflect.Value, h InterfaceTypeHandler) bool {
 	if fieldValue.CanInterface() {
 		fVal, canCallInit := fieldValue.Interface().(Field)
