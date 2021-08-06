@@ -80,3 +80,24 @@ is equivalent to the yaml without rendering suffix:
 ```yaml
 foo: bar
 ```
+
+### FAQ about rendering suffix
+
+- Why adding suffix to field names, not extending yaml?
+
+  - Build another yaml parser to support this feature is feasible, but your yaml file will not be parsed by any other yaml parsers unless you do such extension to other yaml parsers or this is standardized in yaml spec (which is not likely to happen to yaml spec for dynamic content generation)
+
+  - Hacking field names means yaml files using renderering suffix feature from `dukkha` can be validated with any existing yaml parsers, you can limit renderer usage in your own validator
+
+    - for golang, you can include rendering suffix in yaml field tag
+
+      ```go
+      // struct Foo is a struct without rendering suffix support
+      // it is used to validate exsiting yaml files using rendering suffix
+      type Foo struct {
+        // limit bar to always use `http` renderer only
+        Bar string `yaml:"bar@http"`
+        // limit woo to not using any renderer
+        Woo string `yaml:"woo"`
+      }
+      ```
