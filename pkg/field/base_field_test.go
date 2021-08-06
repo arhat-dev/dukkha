@@ -62,7 +62,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Foo",
 							fieldValue: reflect.Value{},
-							rawData: []*alterInterface{
+							rawDataList: []*alterInterface{
 								{
 									scalarData: "echo bar",
 								},
@@ -91,7 +91,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Other",
 							fieldValue: reflect.Value{},
-							rawData: []*alterInterface{
+							rawDataList: []*alterInterface{
 								{
 									mapData: map[string]*alterInterface{
 										"other_field_1": {scalarData: "foo"},
@@ -107,7 +107,7 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						}: {
 							fieldName:  "Other",
 							fieldValue: reflect.Value{},
-							rawData: []*alterInterface{
+							rawDataList: []*alterInterface{
 								{
 									mapData: map[string]*alterInterface{
 										"other_field_2": {scalarData: "bar"},
@@ -119,8 +119,9 @@ func TestBaseField_UnmarshalYAML(t *testing.T) {
 						},
 					},
 				},
-				// `Other` field should be initialized as a empty slice for resolving
-				Other: []string{},
+				// `Other` field should NOT be initialized
+				// it will be initialized during resolving
+				Other: nil,
 			},
 		},
 	}

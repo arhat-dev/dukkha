@@ -78,7 +78,7 @@ func TestAnyObject(t *testing.T) {
 
 			expectedUnmarshaled: &AnyObject{
 				mapData: &mapData{
-					Data: map[string]*AnyObject{},
+					Data: nil,
 				},
 			},
 			expectedResolved: &AnyObject{
@@ -100,8 +100,8 @@ func TestAnyObject(t *testing.T) {
 			expectedUnmarshaled: &AnyObject{
 				arrayData: &arrayData{
 					data: []*AnyObject{
-						{mapData: &mapData{Data: make(map[string]*AnyObject)}},
-						{mapData: &mapData{Data: make(map[string]*AnyObject)}},
+						{mapData: &mapData{Data: nil}},
+						{mapData: &mapData{Data: nil}},
 					},
 				},
 			},
