@@ -3,8 +3,13 @@
     kernel:
     - linux
     - darwin
-    - windows
     arch:
     - amd64
+    include@echo:
+    - kernel: [windows]
+      arch: [amd64]
+    exclude@echo:
+    - kernel: [darwin]
+
   path: ./cmd/dukkha
   outputs: [build/dukkha-local]

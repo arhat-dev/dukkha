@@ -4,11 +4,19 @@ import (
 	"arhat.dev/dukkha/pkg/field"
 )
 
+// specItem is a helper type to support rendering suffix
+// for list of maps, used in Include/Exclude
+type specItem struct {
+	field.BaseField
+
+	Data map[string][]string `dukkha:"other"`
+}
+
 type Spec struct {
 	field.BaseField
 
-	Include []map[string][]string `yaml:"include"`
-	Exclude []map[string][]string `yaml:"exclude"`
+	Include []*specItem `yaml:"include"`
+	Exclude []*specItem `yaml:"exclude"`
 
 	// TODO: validate kernel and arch values to ensure
 	// 		 tools get expected value set
@@ -60,7 +68,7 @@ func (mc *Spec) GenerateEntries(
 	// remove excluded
 	var removeMatchList []map[string]string
 	for _, ex := range mc.Exclude {
-		removeMatchList = append(removeMatchList, CartesianProduct(ex)...)
+		removeMatchList = append(removeMatchList, CartesianProduct(ex.Data)...)
 	}
 
 	var result []Entry
@@ -96,7 +104,7 @@ loop:
 
 	// add included
 	for _, inc := range mc.Include {
-		mat := CartesianProduct(inc)
+		mat := CartesianProduct(inc.Data)
 	addInclude:
 		for i := range mat {
 			includeEntry := Entry(mat[i])
