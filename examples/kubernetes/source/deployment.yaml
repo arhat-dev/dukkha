@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels@file|env: &labels source/templates/labels.yaml
+  labels@file|env: &labels templates/labels.yaml
   name@env: ${deployment_name}
 spec:
   replicas@env: ${replicas}
