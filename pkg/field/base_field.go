@@ -97,22 +97,21 @@ type BaseField struct {
 	catchOtherFields map[string]struct{}
 }
 
-// nolint:revive
-func (self *BaseField) Inherit(b *BaseField) error {
+func (f *BaseField) Inherit(b *BaseField) error {
 	if len(b.unresolvedFields) == 0 {
 		return nil
 	}
 
-	if self.unresolvedFields == nil {
-		self.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
+	if f.unresolvedFields == nil {
+		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
 	}
 
 	for k, v := range b.unresolvedFields {
-		existingV, ok := self.unresolvedFields[k]
+		existingV, ok := f.unresolvedFields[k]
 		if !ok {
-			self.unresolvedFields[k] = &unresolvedFieldValue{
+			f.unresolvedFields[k] = &unresolvedFieldValue{
 				fieldName:         v.fieldName,
-				fieldValue:        self._parentValue.Elem().FieldByName(v.fieldName),
+				fieldValue:        f._parentValue.Elem().FieldByName(v.fieldName),
 				isCatchOtherField: v.isCatchOtherField,
 				rawData:           v.rawData,
 				renderers:         v.renderers,
@@ -134,22 +133,22 @@ func (self *BaseField) Inherit(b *BaseField) error {
 	}
 
 	if len(b.catchOtherCache) != 0 {
-		if self.catchOtherCache == nil {
-			self.catchOtherCache = make(map[string]reflect.Value)
+		if f.catchOtherCache == nil {
+			f.catchOtherCache = make(map[string]reflect.Value)
 		}
 
 		for k, v := range b.catchOtherCache {
-			self.catchOtherCache[k] = v
+			f.catchOtherCache[k] = v
 		}
 	}
 
 	if len(b.catchOtherFields) != 0 {
-		if self.catchOtherFields == nil {
-			self.catchOtherFields = make(map[string]struct{})
+		if f.catchOtherFields == nil {
+			f.catchOtherFields = make(map[string]struct{})
 		}
 
 		for k, v := range b.catchOtherFields {
-			self.catchOtherFields[k] = v
+			f.catchOtherFields[k] = v
 		}
 	}
 
@@ -158,9 +157,9 @@ func (self *BaseField) Inherit(b *BaseField) error {
 
 // UnmarshalYAML handles parsing of rendering suffix and normal yaml
 // unmarshaling
-// nolint:gocyclo,revive
-func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
-	if atomic.LoadUint32(&self._initialized) == 0 {
+// nolint:gocyclo
+func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
+	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("field unmarshal: struct not intialized with Init()")
 	}
 
@@ -177,7 +176,7 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	fields := make(map[fieldKey]*fieldSpec)
-	pt := self._parentValue.Type().Elem()
+	pt := f._parentValue.Type().Elem()
 
 	addField := func(
 		yamlKey, fieldName string,
@@ -210,10 +209,10 @@ func (self *BaseField) UnmarshalYAML(n *yaml.Node) error {
 fieldLoop:
 	for i := 1; i < pt.NumField(); i++ {
 		fieldType := pt.Field(i)
-		fieldValue := self._parentValue.Elem().Field(i)
+		fieldValue := f._parentValue.Elem().Field(i)
 
 		// initialize struct fields accepted by Init(), in case being used later
-		InitRecursively(fieldValue, self.ifaceTypeHandler)
+		InitRecursively(fieldValue, f.ifaceTypeHandler)
 
 		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
 
@@ -228,7 +227,7 @@ fieldLoop:
 		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
-			if !addField(yamlKey, fieldType.Name, fieldValue, self) {
+			if !addField(yamlKey, fieldType.Name, fieldValue, f) {
 				return fmt.Errorf(
 					"field: duplicate yaml key %q in %s",
 					yamlKey, pt.String(),
@@ -252,7 +251,7 @@ fieldLoop:
 				}
 
 				inlineFv := fieldValue
-				inlineFt := self._parentValue.Type().Elem().Field(i).Type
+				inlineFt := f._parentValue.Type().Elem().Field(i).Type
 
 				var iface interface{}
 				switch inlineFv.Kind() {
@@ -262,7 +261,7 @@ fieldLoop:
 					iface = inlineFv.Addr().Interface()
 				}
 
-				base := self
+				base := f
 				fVal, canCallInit := iface.(Field)
 				if canCallInit {
 					innerBaseF := reflect.ValueOf(
@@ -324,7 +323,7 @@ fieldLoop:
 				catchOtherField = &fieldSpec{
 					fieldName:  fieldType.Name,
 					fieldValue: fieldValue,
-					base:       self,
+					base:       f,
 
 					isCatchOther: true,
 				}
@@ -379,7 +378,7 @@ fieldLoop:
 				}
 			}
 
-			err = self.unmarshal(
+			err = f.unmarshal(
 				yamlKey, v, fSpec.fieldValue, fSpec.isCatchOther,
 			)
 			if err != nil {
@@ -460,140 +459,14 @@ var (
 	rawInterfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
 )
 
-// nolint:revive,gocyclo
-func (self *BaseField) unmarshal(
+func (f *BaseField) unmarshal(
 	yamlKey string,
 	in *alterInterface,
 	outVal reflect.Value,
 	keepOld bool,
 ) error {
-	for {
-		switch outVal.Kind() {
-		case reflect.Slice:
-			if in.arrData == nil && in.Value() != nil {
-				return fmt.Errorf("unexpected non slice data for %q", outVal.String())
-			}
-
-			inSlice := in.arrData
-			size := len(inSlice)
-
-			sliceVal := reflect.MakeSlice(outVal.Type(), size, size)
-
-			for i := 0; i < size; i++ {
-				itemVal := sliceVal.Index(i)
-
-				err := self.unmarshal(
-					yamlKey, inSlice[i], itemVal,
-					// always drop existing inner data
-					// (actually doesn't matter since it's new)
-					false,
-				)
-				if err != nil {
-					return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
-				}
-			}
-
-			if outVal.IsZero() || !keepOld {
-				outVal.Set(sliceVal)
-			} else {
-				outVal.Set(reflect.AppendSlice(outVal, sliceVal))
-			}
-
-			return nil
-		case reflect.Map:
-			if in.mapData == nil && in.Value() != nil {
-				return fmt.Errorf("unexpected non map value for %q", outVal.String())
-			}
-
-			// map key MUST be string
-			if outVal.IsNil() || !keepOld {
-				outVal.Set(reflect.MakeMap(outVal.Type()))
-			}
-
-			valType := outVal.Type().Elem()
-
-			isCatchOtherField := self.isCatchOtherField(yamlKey)
-			if isCatchOtherField {
-				if self.catchOtherCache == nil {
-					self.catchOtherCache = make(map[string]reflect.Value)
-				}
-			}
-
-			for k, v := range in.mapData {
-				// since indexed map value is not addressable
-				// we have to keep the original data in BaseField cache
-
-				// TODO: test keepOld behavior with cached data
-
-				var val reflect.Value
-
-				if isCatchOtherField {
-					cachedData, ok := self.catchOtherCache[k]
-					if ok {
-						val = cachedData
-					} else {
-						val = reflect.New(valType)
-						self.catchOtherCache[k] = val
-					}
-				} else {
-					val = reflect.New(valType)
-				}
-
-				err := self.unmarshal(
-					// use iter.Key() rather than `yamlKey`
-					// because it can be the field catching other
-					// (field tag: `dukkha:"other"`)
-					k,
-					v,
-					val,
-					keepOld,
-				)
-				if err != nil {
-					return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
-						valType.String(), k, err,
-					)
-				}
-
-				outVal.SetMapIndex(reflect.ValueOf(k), val.Elem())
-			}
-
-			return nil
-		case reflect.Interface:
-			if self.ifaceTypeHandler == nil {
-				// use default behavior for interface{} types
-				break
-			}
-
-			fVal, err := self.ifaceTypeHandler.Create(outVal.Type(), yamlKey)
-			if err != nil {
-				if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
-					// no type information proviede, decode using go-yaml directly
-					break
-				}
-
-				return fmt.Errorf("failed to create interface field: %w", err)
-			}
-
-			val := reflect.ValueOf(fVal)
-			if outVal.CanSet() {
-				outVal.Set(val)
-			} else {
-				outVal.Elem().Set(val)
-			}
-
-			// DO NOT use outVal directly, which will always match reflect.Interface
-			return self.unmarshal(yamlKey, in, val, keepOld)
-		case reflect.Ptr:
-			// handled after switch
-		default:
-			// scalar types or struct/array/func/chan/unsafe.Pointer
-			// hand it to go-yaml
-		}
-
-		if outVal.Kind() != reflect.Ptr {
-			break
-		}
-
+	for outVal.Kind() == reflect.Ptr {
+		// we are trying to set value of it, so init it when not set
 		if outVal.IsZero() {
 			outVal.Set(reflect.New(outVal.Type().Elem()))
 		}
@@ -601,6 +474,41 @@ func (self *BaseField) unmarshal(
 		outVal = outVal.Elem()
 	}
 
+	switch kind := outVal.Kind(); kind {
+	case reflect.Array:
+		return f.unmarshalArray(yamlKey, in, outVal)
+	case reflect.Slice:
+		return f.unmarshalSlice(yamlKey, in, outVal, keepOld)
+	case reflect.Map:
+		return f.unmarshalMap(yamlKey, in, outVal, keepOld)
+	case reflect.Struct:
+		return f.unmarshalRaw(in, outVal)
+	case reflect.Interface:
+		handled, err := f.unmarshalInterface(yamlKey, in, outVal, keepOld)
+		if !handled {
+			// using default go-yaml behavior
+			return f.unmarshalRaw(in, outVal)
+		}
+
+		return err
+	default:
+		// scalar types
+		switch t := in.Value().(type) {
+		case string:
+			if kind == reflect.String {
+				outVal.SetString(t)
+				return nil
+			}
+
+			return f.unmarshalRaw(in, outVal)
+		default:
+			outVal.Set(reflect.ValueOf(in.Value()))
+		}
+		return nil
+	}
+}
+
+func (f *BaseField) unmarshalRaw(in *alterInterface, outVal reflect.Value) error {
 	var out interface{}
 	if outVal.Kind() != reflect.Ptr {
 		out = outVal.Addr().Interface()
@@ -610,13 +518,172 @@ func (self *BaseField) unmarshal(
 
 	fVal, canCallInit := out.(Field)
 	if canCallInit {
-		_ = Init(fVal, self.ifaceTypeHandler)
+		_ = Init(fVal, f.ifaceTypeHandler)
 	}
 
 	dataBytes, err := yaml.Marshal(in)
 	if err != nil {
-		return fmt.Errorf("field: failed to marshal back yaml field %q: %w", yamlKey, err)
+		return fmt.Errorf("field: failed to marshal back yaml for %q: %w", outVal.String(), err)
 	}
 
-	return yaml.Unmarshal(dataBytes, out)
+	err = yaml.Unmarshal(dataBytes, out)
+	if err != nil {
+		return err
+	}
+
+	_ = tryInit(outVal, f.ifaceTypeHandler)
+	return nil
+}
+
+func (f *BaseField) unmarshalInterface(
+	yamlKey string,
+	in *alterInterface,
+	outVal reflect.Value,
+	keepOld bool,
+) (bool, error) {
+	if f.ifaceTypeHandler == nil {
+		// use default behavior for interface{} types
+		return false, nil
+	}
+
+	fVal, err := f.ifaceTypeHandler.Create(outVal.Type(), yamlKey)
+	if err != nil {
+		if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
+			// no type information provided, decode using go-yaml directly
+			return false, nil
+		}
+
+		return true, fmt.Errorf("failed to create interface field: %w", err)
+	}
+
+	val := reflect.ValueOf(fVal)
+	if outVal.CanSet() {
+		outVal.Set(val)
+	} else {
+		outVal.Elem().Set(val)
+	}
+
+	// DO NOT use outVal directly, which will always match reflect.Interface
+	return true, f.unmarshal(yamlKey, in, val, keepOld)
+}
+
+func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal reflect.Value) error {
+	if in.arrData == nil && in.Value() != nil {
+		return fmt.Errorf("unexpected non array data for %q", outVal.String())
+	}
+
+	size := len(in.arrData)
+	if size != outVal.Len() {
+		return fmt.Errorf(
+			"array size not match for %q: want %d got %d",
+			outVal.String(), outVal.Len(), size,
+		)
+	}
+
+	for i := 0; i < size; i++ {
+		itemVal := outVal.Index(i)
+
+		err := f.unmarshal(
+			yamlKey, in.arrData[i], itemVal,
+			// always drop existing inner data
+			// (actually doesn't matter since it's new)
+			false,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
+		}
+	}
+
+	return nil
+}
+
+func (f *BaseField) unmarshalSlice(yamlKey string, in *alterInterface, outVal reflect.Value, keepOld bool) error {
+	if in.arrData == nil && in.Value() != nil {
+		return fmt.Errorf("unexpected non slice data for %q", outVal.String())
+	}
+
+	size := len(in.arrData)
+	sliceVal := reflect.MakeSlice(outVal.Type(), size, size)
+
+	for i := 0; i < size; i++ {
+		itemVal := sliceVal.Index(i)
+
+		err := f.unmarshal(
+			yamlKey, in.arrData[i], itemVal,
+			// always drop existing inner data
+			// (actually doesn't matter since it's new)
+			false,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
+		}
+	}
+
+	if outVal.IsZero() || !keepOld {
+		outVal.Set(sliceVal)
+	} else {
+		outVal.Set(reflect.AppendSlice(outVal, sliceVal))
+	}
+
+	return nil
+}
+
+func (f *BaseField) unmarshalMap(yamlKey string, in *alterInterface, outVal reflect.Value, keepOld bool) error {
+	if in.mapData == nil && in.Value() != nil {
+		return fmt.Errorf("unexpected non map value for %q", outVal.String())
+	}
+
+	// map key MUST be string
+	if outVal.IsNil() || !keepOld {
+		outVal.Set(reflect.MakeMap(outVal.Type()))
+	}
+
+	valType := outVal.Type().Elem()
+
+	isCatchOtherField := f.isCatchOtherField(yamlKey)
+	if isCatchOtherField {
+		if f.catchOtherCache == nil {
+			f.catchOtherCache = make(map[string]reflect.Value)
+		}
+	}
+
+	for k, v := range in.mapData {
+		// since indexed map value is not addressable
+		// we have to keep the original data in BaseField cache
+
+		// TODO: test keepOld behavior with cached data
+
+		var val reflect.Value
+
+		if isCatchOtherField {
+			cachedData, ok := f.catchOtherCache[k]
+			if ok {
+				val = cachedData
+			} else {
+				val = reflect.New(valType)
+				f.catchOtherCache[k] = val
+			}
+		} else {
+			val = reflect.New(valType)
+		}
+
+		err := f.unmarshal(
+			// use k rather than `yamlKey`
+			// because it can be the field catching other
+			// (field tag: `dukkha:"other"`)
+			k,
+			v,
+			val,
+			keepOld,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
+				valType.String(), k, err,
+			)
+		}
+
+		outVal.SetMapIndex(reflect.ValueOf(k), val.Elem())
+	}
+
+	return nil
 }
