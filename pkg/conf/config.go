@@ -74,14 +74,14 @@ func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
 type Config struct {
 	field.BaseField
 
-	// Global has no rendering suffix support
+	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
 
 	// Include other files using path relative to this config
-	// also no rendering suffix support
+	// no rendering suffix for this field
 	Include []string `yaml:"include"`
 
-	// Shells for rendering and command execution
+	// Shells for command execution
 	//
 	// this option is host specific and do not support
 	// renderers like `http`
