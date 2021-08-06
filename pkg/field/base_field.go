@@ -464,22 +464,20 @@ var (
 func (self *BaseField) unmarshal(
 	yamlKey string,
 	in *alterInterface,
-	outField reflect.Value,
+	outVal reflect.Value,
 	keepOld bool,
 ) error {
-	oe := outField
-
 	for {
-		switch oe.Kind() {
+		switch outVal.Kind() {
 		case reflect.Slice:
 			if in.arrData == nil && in.Value() != nil {
-				return fmt.Errorf("unexpected non slice data for %q", outField.String())
+				return fmt.Errorf("unexpected non slice data for %q", outVal.String())
 			}
 
 			inSlice := in.arrData
 			size := len(inSlice)
 
-			sliceVal := reflect.MakeSlice(oe.Type(), size, size)
+			sliceVal := reflect.MakeSlice(outVal.Type(), size, size)
 
 			for i := 0; i < size; i++ {
 				itemVal := sliceVal.Index(i)
@@ -495,24 +493,24 @@ func (self *BaseField) unmarshal(
 				}
 			}
 
-			if oe.IsZero() || !keepOld {
-				oe.Set(sliceVal)
+			if outVal.IsZero() || !keepOld {
+				outVal.Set(sliceVal)
 			} else {
-				oe.Set(reflect.AppendSlice(oe, sliceVal))
+				outVal.Set(reflect.AppendSlice(outVal, sliceVal))
 			}
 
 			return nil
 		case reflect.Map:
 			if in.mapData == nil && in.Value() != nil {
-				return fmt.Errorf("unexpected non map value for %q", outField.String())
+				return fmt.Errorf("unexpected non map value for %q", outVal.String())
 			}
 
 			// map key MUST be string
-			if oe.IsNil() || !keepOld {
-				oe.Set(reflect.MakeMap(oe.Type()))
+			if outVal.IsNil() || !keepOld {
+				outVal.Set(reflect.MakeMap(outVal.Type()))
 			}
 
-			valType := oe.Type().Elem()
+			valType := outVal.Type().Elem()
 
 			isCatchOtherField := self.isCatchOtherField(yamlKey)
 			if isCatchOtherField {
@@ -556,7 +554,7 @@ func (self *BaseField) unmarshal(
 					)
 				}
 
-				oe.SetMapIndex(reflect.ValueOf(k), val.Elem())
+				outVal.SetMapIndex(reflect.ValueOf(k), val.Elem())
 			}
 
 			return nil
@@ -566,9 +564,9 @@ func (self *BaseField) unmarshal(
 				break
 			}
 
-			fVal, err := self.ifaceTypeHandler.Create(oe.Type(), yamlKey)
+			fVal, err := self.ifaceTypeHandler.Create(outVal.Type(), yamlKey)
 			if err != nil {
-				if errors.Is(err, ErrInterfaceTypeNotHandled) && oe.Type() == rawInterfaceType {
+				if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
 					// no type information proviede, decode using go-yaml directly
 					break
 				}
@@ -577,13 +575,13 @@ func (self *BaseField) unmarshal(
 			}
 
 			val := reflect.ValueOf(fVal)
-			if outField.CanSet() {
-				outField.Set(val)
+			if outVal.CanSet() {
+				outVal.Set(val)
 			} else {
-				outField.Elem().Set(val)
+				outVal.Elem().Set(val)
 			}
 
-			// DO NOT use outField directly, which will always match reflect.Interface
+			// DO NOT use outVal directly, which will always match reflect.Interface
 			return self.unmarshal(yamlKey, in, val, keepOld)
 		case reflect.Ptr:
 			// handled after switch
@@ -592,22 +590,22 @@ func (self *BaseField) unmarshal(
 			// hand it to go-yaml
 		}
 
-		if oe.Kind() != reflect.Ptr {
+		if outVal.Kind() != reflect.Ptr {
 			break
 		}
 
-		if oe.IsZero() {
-			oe.Set(reflect.New(oe.Type().Elem()))
+		if outVal.IsZero() {
+			outVal.Set(reflect.New(outVal.Type().Elem()))
 		}
 
-		oe = oe.Elem()
+		outVal = outVal.Elem()
 	}
 
 	var out interface{}
-	if oe.Kind() != reflect.Ptr {
-		out = oe.Addr().Interface()
+	if outVal.Kind() != reflect.Ptr {
+		out = outVal.Addr().Interface()
 	} else {
-		out = oe.Interface()
+		out = outVal.Interface()
 	}
 
 	fVal, canCallInit := out.(Field)
