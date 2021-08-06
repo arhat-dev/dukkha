@@ -29,12 +29,12 @@ workflow:run:
       echo.sh
 ```
 
-__NOTE:__ You can find more live examples in [arhat-dev/dockerfile](https://github.com/arhat-dev/dockerfile) and [examples](./examples)
+__NOTE:__ You can find more live examples [examples](./examples)
 
 ## Goals
 
-- Type checked configuration (like workflow definition for github actions)
-- Language and tool specific support (like `goreleaser` support for go/docker/npm builds)
+- Type checked configuration (like workflow definitions for github actions)
+- Language and tool specific support (like `goreleaser` support for go/docker/rpm builds)
 - Flexible scripting in yaml files (e.g. `Makefile`, shell scripts)
 - Content generation and certral management of config recipes
 
@@ -121,7 +121,6 @@ workflow:run:
 
 - Shell completion for tools, tasks and task matrix
   - Run `dukkha completion --help` for instructions
-
 
 ## Installation
 
