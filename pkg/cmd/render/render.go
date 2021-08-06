@@ -104,7 +104,7 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 	flags.StringVarP(&indentStyle, "indent-style", "s", "space",
 		"set indent style, custom string or one of [space, tab]",
 	)
-	flags.BoolVarP(&recursive, "recursive", "r", true,
+	flags.BoolVarP(&recursive, "recursive", "r", false,
 		"render directories recursively",
 	)
 
