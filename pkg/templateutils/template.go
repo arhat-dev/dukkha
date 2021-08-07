@@ -14,10 +14,12 @@ import (
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/hairyhenderson/gomplate/v3/funcs"
+	"gopkg.in/yaml.v3"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/field"
 )
 
 type TemplateFuncFactory func(rc dukkha.RenderingContext) interface{}
@@ -84,6 +86,26 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 
 				err = RunScriptInEmbeddedShell(rc, runner, syntax.NewParser(), script)
 				return stdout.String(), err
+			},
+		}).
+		Funcs(map[string]interface{}{
+			"fromYaml": func(v string) interface{} {
+				out := new(field.AnyObject)
+				err := yaml.Unmarshal([]byte(v), out)
+				if err != nil {
+					panic(fmt.Errorf("failed to unmarshal yaml data\n\n%s\n\nerr: %w", v, err))
+				}
+
+				err = out.ResolveFields(rc, -1)
+				if err != nil {
+					panic(fmt.Errorf("failed to resolve yaml data\n\n%s\n\nerr: %w", v, err))
+				}
+
+				return out
+			},
+			"toYaml": func(v interface{}) string {
+				data, _ := yaml.Marshal(v)
+				return string(data)
 			},
 		}).
 		// text functions

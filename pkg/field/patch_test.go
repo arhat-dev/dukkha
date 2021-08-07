@@ -182,11 +182,24 @@ func TestPatchSpec_ApplyTo(t *testing.T) {
 			expected: map[string]string{"foo": "bar"},
 		},
 		{
-			name: "Simple Map Merge",
+			name: "Map Merge No List Append",
 			spec: PatchSpec{
 				Merge: createMergeValue(t, map[string][]string{
 					"a": {"a"},
 				}),
+			},
+			input: `a: [b, c]`,
+			expected: map[string][]string{
+				"a": {"a"},
+			},
+		},
+		{
+			name: "Map Merge Append List",
+			spec: PatchSpec{
+				Merge: createMergeValue(t, map[string][]string{
+					"a": {"a"},
+				}),
+				MapListAppend: true,
 			},
 			input: `a: [b, c]`,
 			expected: map[string][]string{

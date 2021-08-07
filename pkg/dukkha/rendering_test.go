@@ -17,7 +17,7 @@ func TestGenEnvForValues(t *testing.T) {
 			name:   "Simple",
 			values: map[string]interface{}{"foo": "bar"},
 			expected: map[string]expand.Variable{
-				"VALUES.foo": createVariable(`bar`),
+				"Values.foo": createVariable(`bar`),
 			},
 		},
 		{
@@ -28,8 +28,8 @@ func TestGenEnvForValues(t *testing.T) {
 				},
 			},
 			expected: map[string]expand.Variable{
-				"VALUES.foo":     createVariable(`{"bar":"woo"}`),
-				"VALUES.foo.bar": createVariable(`woo`),
+				"Values.foo":     createVariable(`{"bar":"woo"}`),
+				"Values.foo.bar": createVariable(`woo`),
 			},
 		},
 		{
@@ -42,9 +42,9 @@ func TestGenEnvForValues(t *testing.T) {
 				},
 			},
 			expected: map[string]expand.Variable{
-				"VALUES.foo":         createVariable(`{"bar":{"woo":"few"}}`),
-				"VALUES.foo.bar":     createVariable(`{"woo":"few"}`),
-				"VALUES.foo.bar.woo": createVariable(`few`),
+				"Values.foo":         createVariable(`{"bar":{"woo":"few"}}`),
+				"Values.foo.bar":     createVariable(`{"woo":"few"}`),
+				"Values.foo.bar.woo": createVariable(`few`),
 			},
 		},
 	}

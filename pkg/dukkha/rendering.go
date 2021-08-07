@@ -224,10 +224,12 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	}
 }
 
+const valuesEnvPrefix = "Values."
+
 func genEnvForValues(values map[string]interface{}) (map[string]expand.Variable, error) {
 	out := make(map[string]expand.Variable)
 	for k, v := range values {
-		err := doGenEnvForInterface("Values."+k, v, &out)
+		err := doGenEnvForInterface(valuesEnvPrefix+k, v, &out)
 		if err != nil {
 			return nil, err
 		}

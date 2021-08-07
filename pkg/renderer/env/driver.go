@@ -62,7 +62,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 
 	word, err := parser.Document(strings.NewReader(toExpand))
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: invalid expansion text: %w", DefaultName, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: invalid expansion text %q: %w",
+			DefaultName, toExpand, err,
+		)
 	}
 
 	embeddedShellOutput := &bytes.Buffer{}
