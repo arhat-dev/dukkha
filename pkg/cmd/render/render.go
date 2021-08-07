@@ -73,10 +73,20 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 				}
 			}
 
+			var stdoutEnc encoder
+
 			for _, src := range args {
 				err := renderYamlFileOrDir(
 					*ctx, src, om[src], outputFormat,
 					func(w io.Writer) (encoder, error) {
+						if w == os.Stdout {
+							var err error
+							if stdoutEnc == nil {
+								stdoutEnc, err = newEncoder(os.Stdout, outputFormat, indentStr, indentSize)
+							}
+
+							return stdoutEnc, err
+						}
 						return newEncoder(w, outputFormat, indentStr, indentSize)
 					},
 					recursive,
