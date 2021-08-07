@@ -30,7 +30,7 @@ type (
 	}
 )
 
-// alterInterface is a direct `interface{}`` replacement for data unmarshaling
+// alterInterface is a direct `interface{}` replacement for data unmarshaling
 // with no support of rendering suffix
 type alterInterface struct {
 	mapData map[string]*alterInterface
