@@ -12,8 +12,10 @@ global:
 
   values:
     testdata:
+      __just_call_template@template: |-
+        {{- setValue "testdata.render.a" "I'm a" -}}
       render:
-        a: I'm a
+        # a: I'm a
         b:
           c@echo:
             d@template:

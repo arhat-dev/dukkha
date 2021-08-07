@@ -21,52 +21,35 @@ type mapData struct {
 func (md *mapData) MarshalYAML() (interface{}, error) { return md.Data, nil }
 func (md *mapData) MarshalJSON() ([]byte, error)      { return json.Marshal(md.Data) }
 
-type arrayData struct {
-	data []*AnyObject
-}
-
-func (ad *arrayData) MarshalYAML() (interface{}, error) { return ad.data, nil }
-func (ad *arrayData) MarshalJSON() ([]byte, error)      { return json.Marshal(ad.data) }
-
-func (ad *arrayData) UnmarshalYAML(n *yaml.Node) error {
-	return n.Decode(&ad.data)
-}
-
 // AnyObject is a `interface{}` equivalent with rendering suffix support
 type AnyObject struct {
-	mapData   *mapData
-	arrayData *arrayData
+	mapData *mapData
+
+	// TODO: currently there is no way to support rendering suffix
+	// 	     for array object
+	arrayData []*AnyObject
 
 	scalarData interface{}
 }
 
-func (o *AnyObject) MarshalYAML() (interface{}, error) {
+func (o *AnyObject) Value() interface{} {
 	switch {
 	case o.mapData != nil:
-		return o.mapData, nil
+		return o.mapData
 	case o.arrayData != nil:
-		return o.arrayData, nil
+		return o.arrayData
 	default:
-		return o.scalarData, nil
+		return o.scalarData
 	}
 }
 
-func (o *AnyObject) MarshalJSON() ([]byte, error) {
-	switch {
-	case o.mapData != nil:
-		return json.Marshal(o.mapData)
-	case o.arrayData != nil:
-		return json.Marshal(o.arrayData)
-	default:
-		return json.Marshal(o.scalarData)
-	}
-}
+func (o *AnyObject) MarshalYAML() (interface{}, error) { return o.Value(), nil }
+func (o *AnyObject) MarshalJSON() ([]byte, error)      { return json.Marshal(o.Value()) }
 
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 	switch n.Kind {
 	case yaml.SequenceNode:
-		o.arrayData = &arrayData{}
-		return n.Decode(o.arrayData)
+		return n.Decode(&o.arrayData)
 	case yaml.MappingNode:
 		o.mapData = Init(&mapData{}, nil).(*mapData)
 		return n.Decode(o.mapData)
@@ -81,7 +64,7 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 	}
 
 	if o.arrayData != nil {
-		for _, v := range o.arrayData.data {
+		for _, v := range o.arrayData {
 			err := v.ResolveFields(rc, depth, fieldNames...)
 			if err != nil {
 				return err

@@ -55,19 +55,15 @@ func TestAnyObject(t *testing.T) {
 			input: `[foo, bar]`,
 
 			expectedUnmarshaled: &AnyObject{
-				arrayData: &arrayData{
-					data: []*AnyObject{
-						{scalarData: "foo"},
-						{scalarData: "bar"},
-					},
+				arrayData: []*AnyObject{
+					{scalarData: "foo"},
+					{scalarData: "bar"},
 				},
 			},
 			expectedResolved: &AnyObject{
-				arrayData: &arrayData{
-					data: []*AnyObject{
-						{scalarData: "foo"},
-						{scalarData: "bar"},
-					},
+				arrayData: []*AnyObject{
+					{scalarData: "foo"},
+					{scalarData: "bar"},
 				},
 			},
 			expectedEquivalent: []string{"foo", "bar"},
@@ -98,37 +94,29 @@ func TestAnyObject(t *testing.T) {
 			input: `[{foo@echo: [a,b]}, {bar@echo: [c,d]}]`,
 
 			expectedUnmarshaled: &AnyObject{
-				arrayData: &arrayData{
-					data: []*AnyObject{
-						{mapData: &mapData{Data: nil}},
-						{mapData: &mapData{Data: nil}},
-					},
+				arrayData: []*AnyObject{
+					{mapData: &mapData{Data: nil}},
+					{mapData: &mapData{Data: nil}},
 				},
 			},
 			expectedResolved: &AnyObject{
-				arrayData: &arrayData{
-					data: []*AnyObject{
-						{mapData: &mapData{Data: map[string]*AnyObject{
-							"foo": {
-								arrayData: &arrayData{
-									data: []*AnyObject{
-										{scalarData: "a"},
-										{scalarData: "b"},
-									},
-								},
+				arrayData: []*AnyObject{
+					{mapData: &mapData{Data: map[string]*AnyObject{
+						"foo": {
+							arrayData: []*AnyObject{
+								{scalarData: "a"},
+								{scalarData: "b"},
 							},
-						}}},
-						{mapData: &mapData{Data: map[string]*AnyObject{
-							"bar": {
-								arrayData: &arrayData{
-									data: []*AnyObject{
-										{scalarData: "c"},
-										{scalarData: "d"},
-									},
-								},
+						},
+					}}},
+					{mapData: &mapData{Data: map[string]*AnyObject{
+						"bar": {
+							arrayData: []*AnyObject{
+								{scalarData: "c"},
+								{scalarData: "d"},
 							},
-						}}},
-					},
+						},
+					}}},
 				},
 			},
 			expectedEquivalent: []interface{}{
@@ -191,7 +179,7 @@ func unsetAnyObjectBaseField(obj *AnyObject) {
 	}
 
 	if obj.arrayData != nil {
-		for _, v := range obj.arrayData.data {
+		for _, v := range obj.arrayData {
 			unsetAnyObjectBaseField(v)
 		}
 	}

@@ -19,7 +19,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 type TemplateFuncFactory func(rc dukkha.RenderingContext) interface{}
@@ -63,6 +62,56 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
 		Funcs(map[string]interface{}{
+			"setValue": func(key string, v interface{}) (interface{}, error) {
+				var err error
+				// parse yaml/json doc when v is string or bytes
+				switch t := v.(type) {
+				case string:
+					v, err = fromYaml(rc, t)
+				case []byte:
+					v, err = fromYaml(rc, string(t))
+				default:
+					// do nothing
+				}
+
+				if err != nil {
+					return v, err
+				}
+
+				// TODO: support jq path reference so we can operate on array
+				//       entries
+
+				// const newValueJQVarName = "$dukkha_new_value_for_jq"
+				// query, err := gojq.Parse(fmt.Sprintf(".%s = %s", key, newValueJQVarName))
+				// if err != nil {
+				// 	return v, err
+				// }
+				// _, _, err = textquery.RunQuery(query, newValues, map[string]interface{}{
+				// 	newValueJQVarName: v,
+				// })
+				// if err != nil {
+				// 	return v, err
+				// }
+
+				newValues := make(map[string]interface{})
+
+				err = genNewVal(key, v, &newValues)
+				if err != nil {
+					return v, fmt.Errorf(
+						"failed to generate new values for key %q: %w",
+						key, err,
+					)
+				}
+
+				err = rc.AddValues(newValues)
+				if err != nil {
+					return v, fmt.Errorf("failed to add new value: %w", err)
+				}
+
+				return v, nil
+			},
+		}).
+		Funcs(map[string]interface{}{
 			"shell": func(script string, inputs ...string) (string, error) {
 				var stdin io.Reader
 				if len(inputs) != 0 {
@@ -90,18 +139,11 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		}).
 		Funcs(map[string]interface{}{
 			"fromYaml": func(v string) interface{} {
-				out := new(field.AnyObject)
-				err := yaml.Unmarshal([]byte(v), out)
+				ret, err := fromYaml(rc, v)
 				if err != nil {
-					panic(fmt.Errorf("failed to unmarshal yaml data\n\n%s\n\nerr: %w", v, err))
+					panic(err)
 				}
-
-				err = out.ResolveFields(rc, -1)
-				if err != nil {
-					panic(fmt.Errorf("failed to resolve yaml data\n\n%s\n\nerr: %w", v, err))
-				}
-
-				return out
+				return ret
 			},
 			"toYaml": func(v interface{}) string {
 				data, _ := yaml.Marshal(v)
