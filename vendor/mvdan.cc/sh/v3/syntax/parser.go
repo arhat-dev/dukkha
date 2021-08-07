@@ -1429,12 +1429,15 @@ func ValidName(val string) bool {
 	if val == "" {
 		return false
 	}
+
+	isValuesRef := strings.HasPrefix(val, "Values.")
 	for i, r := range val {
 		switch {
 		case 'a' <= r && r <= 'z':
 		case 'A' <= r && r <= 'Z':
 		case r == '_':
 		case i > 0 && '0' <= r && r <= '9':
+		case r == '.' && isValuesRef:
 		default:
 			return false
 		}

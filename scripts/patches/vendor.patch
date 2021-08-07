@@ -1,0 +1,20 @@
+diff --git a/vendor/mvdan.cc/sh/v3/syntax/parser.go b/vendor/mvdan.cc/sh/v3/syntax/parser.go
+index dc2c749..5a9b5b6 100644
+--- a/vendor/mvdan.cc/sh/v3/syntax/parser.go
++++ b/vendor/mvdan.cc/sh/v3/syntax/parser.go
+@@ -1429,12 +1429,15 @@ func ValidName(val string) bool {
+ 	if val == "" {
+ 		return false
+ 	}
++
++	isValuesRef := strings.HasPrefix(val, "Values.")
+ 	for i, r := range val {
+ 		switch {
+ 		case 'a' <= r && r <= 'z':
+ 		case 'A' <= r && r <= 'Z':
+ 		case r == '_':
+ 		case i > 0 && '0' <= r && r <= '9':
++		case r == '.' && isValuesRef:
+ 		default:
+ 			return false
+ 		}
