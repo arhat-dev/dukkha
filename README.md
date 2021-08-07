@@ -29,7 +29,7 @@ workflow:run:
       echo.sh
 ```
 
-__NOTE:__ You can find more live examples [examples](./examples)
+__NOTE:__ You can find more [examples here](./docs/examples)
 
 ## Goals
 
