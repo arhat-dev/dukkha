@@ -35,7 +35,9 @@ func TestMergeMap(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := mergeMap(test.original, test.additional, test.unique)
+			result, err := MergeMap(
+				test.original, test.additional, true, test.unique,
+			)
 			if test.expectErr {
 				assert.Error(t, err)
 				return

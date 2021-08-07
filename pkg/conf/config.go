@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 
 	"arhat.dev/pkg/log"
 
@@ -36,7 +37,7 @@ import (
 
 func NewConfig() *Config {
 	cfg := field.Init(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
-	_ = field.Init(&cfg.Global, dukkha.GlobalInterfaceTypeHandler)
+	field.InitRecursively(reflect.ValueOf(cfg), dukkha.GlobalInterfaceTypeHandler)
 	return cfg
 }
 
@@ -50,9 +51,32 @@ type GlobalConfig struct {
 
 	// Env
 	Env dukkha.Env `yaml:"env"`
+
+	Values dukkha.ArbitraryValues `yaml:"values"`
 }
 
-func (g *GlobalConfig) Resolve(rc dukkha.ConfigResolvingContext) error {
+func (g *GlobalConfig) Merge(a *GlobalConfig) {
+	err := g.BaseField.Inherit(&a.BaseField)
+	if err != nil {
+		panic(fmt.Errorf("failed to inherit other global config: %w", err))
+	}
+
+	g.Env = append(g.Env, a.Env...)
+	if len(a.CacheDir) != 0 {
+		g.CacheDir = a.CacheDir
+	}
+
+	if len(a.DefaultGitBranch) != 0 {
+		g.DefaultGitBranch = a.DefaultGitBranch
+	}
+
+	err = g.Values.ShallowMerge(&a.Values)
+	if err != nil {
+		panic(fmt.Errorf("failed to merge global values: %w", err))
+	}
+}
+
+func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
 	err := dukkha.ResolveEnv(g, rc, "Env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve global env: %w", err)
@@ -101,19 +125,7 @@ func (c *Config) Merge(a *Config) {
 		panic(fmt.Errorf("failed to inherit other top level base field: %w", err))
 	}
 
-	c.Global.Env = append(c.Global.Env, a.Global.Env...)
-	if len(a.Global.CacheDir) != 0 {
-		c.Global.CacheDir = a.Global.CacheDir
-	}
-
-	if len(a.Global.DefaultGitBranch) != 0 {
-		c.Global.DefaultGitBranch = a.Global.DefaultGitBranch
-	}
-
-	err = c.Global.BaseField.Inherit(&a.Global.BaseField)
-	if err != nil {
-		panic(fmt.Errorf("failed to inherit other global config: %w", err))
-	}
+	c.Global.Merge(&a.Global)
 
 	c.Shells = append(c.Shells, a.Shells...)
 
@@ -149,7 +161,8 @@ func (c *Config) Merge(a *Config) {
 
 // Resolve resolves all top level dukkha config
 // to gain an overview of all tools and tasks
-func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
+// nolint:gocyclo
+func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
 	logger := log.Log.WithName("config")
 
 	// step 1: create essential renderers
@@ -179,7 +192,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		}
 	}
 
-	// step 2: resolve global config, ensure cache dir exists
+	// step 2: resolve global config (except Values), ensure cache dir exists
 	{
 		logger.D("resolving global config")
 		err := c.ResolveFields(appCtx, 1, "Global")
@@ -187,7 +200,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			return fmt.Errorf("failed to get global config overview: %w", err)
 		}
 
-		err = c.Global.Resolve(appCtx)
+		err = c.Global.ResolveAllButValues(appCtx)
 		if err != nil {
 			return fmt.Errorf("failed to resolve global config: %w", err)
 		}
@@ -218,10 +231,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 
 	// step 3: resolve renderers
 	{
-		logger.D("resolving global config overview")
+		logger.D("resolving renderers config overview")
 		err := c.ResolveFields(appCtx, 1, "Renderers")
 		if err != nil {
-			return fmt.Errorf("failed to get global config overview: %w", err)
+			return fmt.Errorf("failed to get renderers config overview: %w", err)
 		}
 
 		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
@@ -244,10 +257,32 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 			appCtx.AddRenderer(name, c.Renderers[name])
 		}
 		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
-
 	}
 
-	// step 4: resolve shells
+	// step 4: resolve global Values
+	{
+		logger.D("resolving global values")
+
+		err := c.Global.ResolveFields(appCtx, -1, "Values")
+		if err != nil {
+			return fmt.Errorf("failed to resolve global values: %w", err)
+		}
+
+		logger.V("resolved global values", log.Any("values", c.Global.Values))
+
+		logger.D("adding global values")
+		values, err := c.Global.Values.Normalize()
+		if err != nil {
+			return fmt.Errorf("failed to normalize global values: %w", err)
+		}
+
+		err = appCtx.AddValues(values)
+		if err != nil {
+			return fmt.Errorf("failed to add global values: %w", err)
+		}
+	}
+
+	// step 5: resolve shells
 	{
 		logger.D("resolving shell config overview")
 
@@ -282,7 +317,12 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext) error {
 		}
 	}
 
-	// step 5: resolve tools and tasks
+	// save some time if the command is not interacting with tasks
+	if !needTasks {
+		return nil
+	}
+
+	// step 6: resolve tools and tasks
 	logger.D("resolving top level config")
 	err := c.ResolveFields(appCtx, 1)
 	if err != nil {
