@@ -10,6 +10,19 @@ global:
   - name: GLOBAL_ENV_BAR
     value: ${GLOBAL_ENV_FOO}-bar
 
+  values:
+    testdata:
+      render:
+        a: I'm a
+        b:
+          c@echo:
+            d@template:
+              e@http: |-
+                https://gist.githubusercontent.com/arhatbot/{{- /* join */ -}}
+                d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* join */ -}}
+                1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* join */ -}}
+                echo.sh
+
 renderers:
   http:
     enable_cache: true
