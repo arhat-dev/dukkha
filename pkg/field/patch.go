@@ -44,6 +44,9 @@ type PatchSpec struct {
 	// MapListItemUnique to ensure items are unique in all merged lists respectively
 	// lists with no merge data input are untouched
 	MapListItemUnique bool `yaml:"map_list_item_unique"`
+
+	// MapListAppend to append lists instead of replacing existing list
+	MapListAppend bool `yaml:"map_list_append"`
 }
 
 func (s *PatchSpec) merge(yamlData []byte) (interface{}, error) {
@@ -82,7 +85,7 @@ doMerge:
 		for _, merge := range mergeSrc {
 			switch mt := merge.Data.(type) {
 			case map[string]interface{}:
-				dt, err = mergeMap(dt, mt, s.Unique)
+				dt, err = MergeMap(dt, mt, s.MapListAppend, s.MapListItemUnique)
 				if err != nil {
 					return nil, fmt.Errorf("failed to merge map value: %w", err)
 				}
@@ -148,7 +151,13 @@ func (s *PatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
 	})
 }
 
-func mergeMap(original, additional map[string]interface{}, unique bool) (map[string]interface{}, error) {
+func MergeMap(
+	original, additional map[string]interface{},
+
+	// options
+	appendList bool,
+	uniqueInListItems bool,
+) (map[string]interface{}, error) {
 	out := make(map[string]interface{}, len(original))
 	for k, v := range original {
 		out[k] = v
@@ -156,40 +165,46 @@ func mergeMap(original, additional map[string]interface{}, unique bool) (map[str
 
 	var err error
 	for k, v := range additional {
-		switch v := v.(type) {
+		switch newVal := v.(type) {
 		case map[string]interface{}:
-			if bv, ok := out[k]; ok {
-				if bv, ok := bv.(map[string]interface{}); ok {
-					out[k], err = mergeMap(bv, v, unique)
+			if originalVal, ok := out[k]; ok {
+				if orignalMap, ok := originalVal.(map[string]interface{}); ok {
+					out[k], err = MergeMap(orignalMap, newVal, appendList, uniqueInListItems)
 					if err != nil {
 						return nil, err
 					}
 
 					continue
 				} else {
-					return nil, fmt.Errorf("unexpected non map data %q: %v", k, bv)
+					return nil, fmt.Errorf("unexpected non map data %q: %v", k, orignalMap)
 				}
 			} else {
-				out[k] = v
+				out[k] = newVal
 			}
 		case []interface{}:
-			if bv, ok := out[k]; ok {
-				if bv, ok := bv.([]interface{}); ok {
-					if unique {
-						out[k] = uniqueList(append(bv, v...))
+			if originalVal, ok := out[k]; ok {
+				if originalList, ok := originalVal.([]interface{}); ok {
+					if appendList {
+						originalList = append(originalList, newVal...)
 					} else {
-						out[k] = append(bv, v...)
+						originalList = newVal
 					}
+
+					if uniqueInListItems {
+						originalList = uniqueList(originalList)
+					}
+
+					out[k] = originalList
 
 					continue
 				} else {
-					return nil, fmt.Errorf("unexpected non list data %q: %v", k, bv)
+					return nil, fmt.Errorf("unexpected non list data %q: %v", k, originalList)
 				}
 			} else {
-				out[k] = v
+				out[k] = newVal
 			}
 		default:
-			out[k] = v
+			out[k] = newVal
 		}
 	}
 

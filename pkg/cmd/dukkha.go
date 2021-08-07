@@ -113,7 +113,15 @@ dukkha buildah in-docker build my-image`,
 
 			_appCtx.AddListEnv(os.Environ()...)
 
-			err = config.Resolve(_appCtx)
+			var needTasks bool
+			switch {
+			case strings.HasPrefix(cmd.Use, "render"):
+				needTasks = false
+			default:
+				needTasks = true
+			}
+
+			err = config.Resolve(_appCtx, needTasks)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
