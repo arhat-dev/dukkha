@@ -160,12 +160,9 @@ func (c *contextRendering) Get(name string) expand.Variable {
 		v = strconv.FormatInt(int64(os.Getuid()), 10)
 	default:
 		kind := expand.Unset
-		if strings.HasPrefix(name, "VALUES.") {
-			valRef := strings.TrimPrefix(name, "VALUES.")
+		if strings.HasPrefix(name, valuesEnvPrefix) {
+			valRef := strings.TrimPrefix(name, valuesEnvPrefix)
 
-			// TODO: user can query with jq syntax in this way
-			// 		 to make it consistent with template .Values reference
-			// 		 we need to limit the query to only contain `.` path
 			query, err := gojq.Parse("." + valRef)
 			if err != nil {
 				goto ret

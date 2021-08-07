@@ -19,6 +19,7 @@ GOMOD := GOPROXY=direct GOSUMDB=off go mod
 vendor:
 	${GOMOD} tidy
 	${GOMOD} vendor
+	patch -u -p1 --verbose -i scripts/patches/vendor.patch
 
 GOOS ?= $(shell go env GOHOSTOS)
 GOARCH ?= $(shell go env GOHOSTARCH)
