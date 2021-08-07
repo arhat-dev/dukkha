@@ -1,17 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels@file|env: &labels templates/labels.yaml
-  name@env: ${deployment_name}
+  labels@file: &labels templates/labels.yaml
+  name@template: "{{ .Values.name }}"
 spec:
-  replicas@env: ${replicas}
+  replicas@template: "{{ .Values.replicas }}"
   selector:
-    matchLabels@file|env: *labels
+    matchLabels@file: *labels
   template:
     metadata:
-      labels@file|env: *labels
-    spec:
-      containers:
-      - name: nginx
-        image@env: docker.io/library/nginx:${nginx_version}
-        resources: {}
+      labels@file: *labels
+    spec@file: templates/core/v1/pod.spec.yaml

@@ -1,19 +1,24 @@
 global:
+  # env values are resolved before values
   env:
-  - name: deployment_name
-    value: nginx
-
-  - name: replicas
-    value: "1"
   - name: nginx_version
     value: latest
+
   - name: kubernetes_version
     value@shell: |-
-      kubectl version --output json | template:jq \".serverVersion.gitVersion\"
-  - name: ingress_api_version
-    value@env|template: |-
-      {{- if semverCompare ">=1.19-0" .Env.kubernetes_version -}}
-        v1
-      {{- else -}}
-        v1beta1
-      {{- end -}}
+      kubectl version --output json | template:jq '".serverVersion.gitVersion"'
+
+  values@template!:
+    value@file: values.yaml
+    merge:
+    - data:
+        versions:
+          kubernetes@env: ${kubernetes_version}
+          ingress@template: |-
+            {{- if semverCompare ">=1.19-0" .Env.kubernetes_version -}}
+              networking.k8s.io/v1
+            {{- else if semverCompare ">=1.14-0" -}}
+              networking.k8s.io/v1beta1
+            {{- else -}}
+              extensions/v1beta1
+            {{- end -}}

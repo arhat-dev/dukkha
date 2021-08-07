@@ -1,2 +1,2 @@
 app: nginx
-instance: ${deployment_name}
+instance@template: "{{ .Values.name }}"
