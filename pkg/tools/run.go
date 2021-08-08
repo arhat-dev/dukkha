@@ -111,7 +111,7 @@ func doRun(
 
 			if stderrBuf != nil {
 				stderrValue := stderrBuf.Bytes()
-				if es.FixStdoutValueForReplace != nil {
+				if es.FixStderrValueForReplace != nil {
 					stderrValue = es.FixStderrValueForReplace(stderrValue)
 				}
 
