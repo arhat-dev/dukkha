@@ -170,13 +170,7 @@ func (f *BaseField) handleUnResolvedField(
 	v *unresolvedFieldValue,
 	keepOld bool,
 ) error {
-	var target reflect.Value
-	switch v.fieldValue.Kind() {
-	case reflect.Ptr:
-		target = v.fieldValue
-	default:
-		target = v.fieldValue.Addr()
-	}
+	target := v.fieldValue
 
 	for i, rawData := range v.rawDataList {
 		toResolve := rawData
@@ -256,24 +250,38 @@ func (f *BaseField) handleUnResolvedField(
 		}
 
 		tmp := &alterInterface{}
-		err = yaml.Unmarshal(resolvedValue, tmp)
-		if err != nil {
-			return fmt.Errorf(
-				"field: failed to unmarshal resolved value %q to interface: %w",
-				resolvedValue, err,
-			)
+		switch {
+		case target.Kind() == reflect.String:
+			tmp.scalarData = string(resolvedValue)
+		case target.Kind() == reflect.Slice && target.Type().Elem().Kind() == reflect.Uint8:
+			tmp.scalarData = resolvedValue
+		default:
+			err = yaml.Unmarshal(resolvedValue, tmp)
 		}
 
-		// go-yaml will change original data when input is not yaml,
-		// without any error
-		//
-		// revert that change by checking and resetting scalarData to resolvedValue
-		switch tmp.scalarData.(type) {
-		case string:
-			tmp.scalarData = string(resolvedValue)
-		case []byte:
-			tmp.scalarData = string(resolvedValue)
-		case nil:
+		if err != nil {
+			switch {
+			case target.Type() == rawInterfaceType:
+				tmp.scalarData = string(resolvedValue)
+			default:
+				return fmt.Errorf(
+					"field: failed to unmarshal resolved value %q to interface: %w",
+					resolvedValue, err,
+				)
+			}
+		} else {
+			// sometimes go-yaml will parse the input as string when it is not yaml
+			//
+			// revert that change by checking and resetting scalarData to resolvedValue
+			switch tmp.scalarData.(type) {
+			case string:
+				tmp.scalarData = string(resolvedValue)
+			case []byte:
+				tmp.scalarData = resolvedValue
+			case nil:
+			case interface{}:
+				tmp.scalarData = string(resolvedValue)
+			}
 		}
 
 		if v.isCatchOtherField {
