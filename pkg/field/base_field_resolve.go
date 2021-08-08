@@ -278,8 +278,18 @@ func (f *BaseField) handleUnResolvedField(
 				tmp.scalarData = string(resolvedValue)
 			case []byte:
 				tmp.scalarData = resolvedValue
-			case nil:
+			case nil, bool, uintptr,
+				complex64, complex128,
+				float32, float64,
+				int, int8, int16, int32, int64,
+				uint, uint8, uint16, uint32, uint64:
+				// unmarshaled scalar types, do nothing
 			case interface{}:
+				// TODO: narrow down the interface{} match
+				// 		 this case will match all other types
+
+				// map/struct and array/slice types are handled in arrayData and mapData
+				// so we don't have to worry about these cases here
 				tmp.scalarData = string(resolvedValue)
 			}
 		}
@@ -292,14 +302,14 @@ func (f *BaseField) handleUnResolvedField(
 			}
 		}
 
-		// TODO: currently we always keepOld when the filed has tag
+		// TODO: currently we always keepOld when the field has tag
 		// 		 `dukkha:"other"`, need to ensure this behavior won't
 		// 	     leave inconsistent data
 
 		actualKeepOld := keepOld || v.isCatchOtherField || i != 0
 		err = f.unmarshal(key.yamlKey, tmp, target, actualKeepOld)
 		if err != nil {
-			return fmt.Errorf("field: failed to unmarshal resolved value %T: %w", target, err)
+			return fmt.Errorf("field: failed to unmarshal resolved value to %T: %w", tmp.Value(), err)
 		}
 	}
 
