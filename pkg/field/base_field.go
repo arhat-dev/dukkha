@@ -31,10 +31,10 @@ type (
 )
 
 // alterInterface is a direct `interface{}` replacement for data unmarshaling
-// with no support of rendering suffix
+// with no rendering suffix support
 type alterInterface struct {
-	mapData map[string]*alterInterface
-	arrData []*alterInterface
+	mapData   map[string]*alterInterface
+	sliceData []*alterInterface
 
 	scalarData interface{}
 }
@@ -44,8 +44,8 @@ func (f *alterInterface) Value() interface{} {
 		return f.mapData
 	}
 
-	if f.arrData != nil {
-		return f.arrData
+	if f.sliceData != nil {
+		return f.sliceData
 	}
 
 	return f.scalarData
@@ -68,8 +68,8 @@ func (f *alterInterface) UnmarshalYAML(n *yaml.Node) error {
 		f.mapData = make(map[string]*alterInterface)
 		return n.Decode(&f.mapData)
 	case yaml.SequenceNode:
-		f.arrData = make([]*alterInterface, 0)
-		return n.Decode(&f.arrData)
+		f.sliceData = make([]*alterInterface, 0)
+		return n.Decode(&f.sliceData)
 	default:
 		return fmt.Errorf("unexpected node tag %q", n.ShortTag())
 	}
@@ -505,6 +505,7 @@ func (f *BaseField) unmarshal(
 	}
 }
 
+// unmarshalRaw unmarshals interface{} type value to outVal
 func (f *BaseField) unmarshalRaw(in *alterInterface, outVal reflect.Value) error {
 	var out interface{}
 	if outVal.Kind() != reflect.Ptr {
@@ -532,6 +533,7 @@ func (f *BaseField) unmarshalRaw(in *alterInterface, outVal reflect.Value) error
 	return nil
 }
 
+// unmarshalInterface handles interface type creation
 func (f *BaseField) unmarshalInterface(
 	yamlKey string,
 	in *alterInterface,
@@ -565,11 +567,11 @@ func (f *BaseField) unmarshalInterface(
 }
 
 func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal reflect.Value) error {
-	if in.arrData == nil && in.Value() != nil {
+	if in.sliceData == nil && in.Value() != nil {
 		return fmt.Errorf("unexpected non array data for %q", outVal.String())
 	}
 
-	size := len(in.arrData)
+	size := len(in.sliceData)
 	if size != outVal.Len() {
 		return fmt.Errorf(
 			"array size not match for %q: want %d got %d",
@@ -581,7 +583,7 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal re
 		itemVal := outVal.Index(i)
 
 		err := f.unmarshal(
-			yamlKey, in.arrData[i], itemVal,
+			yamlKey, in.sliceData[i], itemVal,
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
 			false,
@@ -595,18 +597,18 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal re
 }
 
 func (f *BaseField) unmarshalSlice(yamlKey string, in *alterInterface, outVal reflect.Value, keepOld bool) error {
-	if in.arrData == nil && in.Value() != nil {
+	if in.sliceData == nil && in.Value() != nil {
 		return fmt.Errorf("unexpected non slice data for %q", outVal.String())
 	}
 
-	size := len(in.arrData)
+	size := len(in.sliceData)
 	sliceVal := reflect.MakeSlice(outVal.Type(), size, size)
 
 	for i := 0; i < size; i++ {
 		itemVal := sliceVal.Index(i)
 
 		err := f.unmarshal(
-			yamlKey, in.arrData[i], itemVal,
+			yamlKey, in.sliceData[i], itemVal,
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
 			false,
