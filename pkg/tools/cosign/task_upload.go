@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -33,7 +33,7 @@ func init() {
 }
 
 type TaskUpload struct {
-	field.BaseField
+	rs.BaseField
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -45,14 +45,14 @@ type TaskUpload struct {
 }
 
 type FileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	Path        string `yaml:"path"`
 	ContentType string `yaml:"content_type"`
 }
 
 type signingSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	Enabled bool `yaml:"enabled"`
 

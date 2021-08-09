@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	baseFieldPtrType    = reflect.TypeOf(&BaseField{})
+	baseFieldPtrType    = reflect.TypeOf((*BaseField)(nil))
 	baseFieldStructType = baseFieldPtrType.Elem()
 )
 
@@ -19,14 +19,14 @@ var (
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
 func Init(in Field, h InterfaceTypeHandler) Field {
-	v := reflect.ValueOf(in)
-	switch v.Kind() {
+	parentVal := reflect.ValueOf(in)
+	switch parentVal.Kind() {
 	case reflect.Struct:
 	case reflect.Ptr:
 		// no pointer to pointer support
-		v = v.Elem()
+		parentVal = parentVal.Elem()
 
-		if v.Kind() != reflect.Struct {
+		if parentVal.Kind() != reflect.Struct {
 			// the target is not a struct, not using BaseField
 			return in
 		}
@@ -34,16 +34,16 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 		return in
 	}
 
-	if !v.CanAddr() {
+	if !parentVal.CanAddr() {
 		panic("invalid non addressable value")
 	}
 
-	if v.NumField() == 0 {
+	if parentVal.NumField() == 0 {
 		// empty struct, no BaseField
 		return in
 	}
 
-	firstField := v.Field(0)
+	firstField := parentVal.Field(0)
 
 	var baseField *BaseField
 	switch firstField.Type() {
@@ -71,7 +71,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 		return in
 	}
 
-	baseField._parentValue = v.Addr()
+	baseField._parentValue = parentVal
 	baseField.ifaceTypeHandler = h
 
 	return in

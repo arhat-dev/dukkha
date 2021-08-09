@@ -13,13 +13,14 @@ import (
 	"arhat.dev/pkg/hashhelper"
 	lru "github.com/die-net/lrucache"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/utils"
 )
 
 type CacheConfig struct {
-	field.BaseField
+	rs.BaseField
 
 	EnableCache    bool          `yaml:"enable_cache"`
 	CacheSizeLimit utils.Size    `yaml:"cache_size_limit"`

@@ -13,8 +13,7 @@ import (
 	"mvdan.cc/sh/v3/expand"
 
 	"arhat.dev/pkg/textquery"
-
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type RenderingContext interface {
@@ -32,13 +31,13 @@ type RenderingContext interface {
 
 	Values() map[string]interface{}
 
-	field.InterfaceTypeHandler
-	field.RenderingHandler
+	rs.InterfaceTypeHandler
+	rs.RenderingHandler
 }
 
 // Renderer to handle rendering suffix
 type Renderer interface {
-	field.Field
+	rs.Field
 
 	// Init the renderer and add itself to the context
 	Init(ctx ConfigResolvingContext) error
@@ -54,7 +53,7 @@ type RendererManager interface {
 
 func newContextRendering(
 	ctx context.Context,
-	ifaceTypeHandler field.InterfaceTypeHandler,
+	ifaceTypeHandler rs.InterfaceTypeHandler,
 	globalEnv map[string]string,
 ) *contextRendering {
 	return &contextRendering{
@@ -78,7 +77,7 @@ type contextRendering struct {
 
 	*envValues
 
-	ifaceTypeHandler field.InterfaceTypeHandler
+	ifaceTypeHandler rs.InterfaceTypeHandler
 	renderers        map[string]Renderer
 
 	values map[string]interface{}
@@ -103,7 +102,7 @@ func (c *contextRendering) Env() map[string]string {
 }
 
 func (c *contextRendering) AddValues(values map[string]interface{}) error {
-	mergedValues, err := field.MergeMap(c.values, values, false, false)
+	mergedValues, err := rs.MergeMap(c.values, values, false, false)
 	if err != nil {
 		return err
 	}

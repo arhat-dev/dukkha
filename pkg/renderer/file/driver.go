@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -25,7 +26,7 @@ func NewDefault() dukkha.Renderer {
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
-	field.BaseField
+	rs.BaseField
 
 	renderer.CacheConfig `yaml:",inline"`
 

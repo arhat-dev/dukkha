@@ -1,9 +1,9 @@
 package golang
 
-import "arhat.dev/dukkha/pkg/field"
+import "arhat.dev/rs"
 
 type testCPUProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Profile cpu during test execution
 	Enabled bool `yaml:"enabled"`

@@ -23,10 +23,10 @@ import (
 	"reflect"
 
 	"arhat.dev/pkg/log"
+	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -36,13 +36,13 @@ import (
 )
 
 func NewConfig() *Config {
-	cfg := field.Init(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
-	field.InitRecursively(reflect.ValueOf(cfg), dukkha.GlobalInterfaceTypeHandler)
+	cfg := rs.Init(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
+	rs.InitRecursively(reflect.ValueOf(cfg), dukkha.GlobalInterfaceTypeHandler)
 	return cfg
 }
 
 type GlobalConfig struct {
-	field.BaseField
+	rs.BaseField
 
 	// CacheDir to store script file and temporary task execution data
 	CacheDir string `yaml:"cache_dir"`
@@ -96,7 +96,7 @@ func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) err
 }
 
 type Config struct {
-	field.BaseField
+	rs.BaseField
 
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
@@ -116,7 +116,7 @@ type Config struct {
 	// Language or tool specific tools
 	Tools map[string][]dukkha.Tool `yaml:"tools"`
 
-	Tasks map[string][]dukkha.Task `dukkha:"other"`
+	Tasks map[string][]dukkha.Task `rs:"other"`
 }
 
 func (c *Config) Merge(a *Config) {

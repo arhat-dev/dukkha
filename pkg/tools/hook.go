@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"arhat.dev/pkg/log"
+	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 type TaskHooks struct {
-	field.BaseField
+	rs.BaseField
 
 	// Before runs before the task execution start
 	// if this hook failed, the whole task execution is canceled

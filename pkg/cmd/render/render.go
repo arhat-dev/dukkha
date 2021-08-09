@@ -13,8 +13,9 @@ import (
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
@@ -215,7 +216,7 @@ func renderYamlFileOrDir(
 	defer func() { _ = srcFile.Close() }()
 
 	dec := yaml.NewDecoder(srcFile)
-	ret, err := parseYaml(dec, func() interface{} { return new(field.AnyObject) })
+	ret, err := parseYaml(dec, func() interface{} { return new(rs.AnyObject) })
 
 	// always write parsed yaml docs, regardless of errors
 
@@ -271,7 +272,7 @@ func renderYamlFileOrDir(
 	}()
 
 	for _, doc := range ret {
-		obj := doc.(*field.AnyObject)
+		obj := doc.(*rs.AnyObject)
 
 		err2 := obj.ResolveFields(rc, -1)
 		if err2 != nil {

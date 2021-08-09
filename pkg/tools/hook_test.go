@@ -7,9 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer/env"
 
 	_ "embed"
@@ -48,11 +49,11 @@ func TestHookFixtures(t *testing.T) {
 			ctx.AddRenderer("env", env.NewDefault())
 			ctx.AddEnv(true, test.env...)
 
-			actual := field.Init(&Action{}, nil).(*Action)
+			actual := rs.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.input, actual))
 			assert.NoError(t, actual.ResolveFields(ctx, -1))
 
-			expected := field.Init(&Action{}, nil).(*Action)
+			expected := rs.Init(&Action{}, nil).(*Action)
 			assert.NoError(t, yaml.Unmarshal(test.expected, expected))
 
 			t.Log(actual)

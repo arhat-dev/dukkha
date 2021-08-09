@@ -3,11 +3,11 @@ package golang
 import (
 	"strconv"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type testBlockProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Profile goroutine blocking during test execution
 	Enabled bool `yaml:"enabled"`

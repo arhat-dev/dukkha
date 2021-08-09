@@ -3,13 +3,14 @@ package golang
 import (
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 type CGOSepc struct {
-	field.BaseField
+	rs.BaseField
 
 	// Enable cgo
 	Enabled bool `yaml:"enabled"`

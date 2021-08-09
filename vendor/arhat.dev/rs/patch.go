@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"encoding/json"

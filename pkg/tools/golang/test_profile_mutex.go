@@ -3,11 +3,11 @@ package golang
 import (
 	"strconv"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type testMutexProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Profile mutex during test execution
 	Enabled bool `yaml:"enabled"`

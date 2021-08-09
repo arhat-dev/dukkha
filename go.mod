@@ -4,9 +4,9 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.5.8
+	arhat.dev/rs v0.1.0
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0
-	github.com/evanphx/json-patch/v5 v5.5.0
 	github.com/fatih/color v1.12.0
 	github.com/hairyhenderson/gomplate/v3 v3.9.0
 	github.com/huandu/xstrings v1.3.2

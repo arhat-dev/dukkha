@@ -7,8 +7,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
@@ -34,9 +35,9 @@ type GlobalValues interface {
 
 // ArbitraryValues with rendering suffix support
 type ArbitraryValues struct {
-	field.BaseField
+	rs.BaseField
 
-	Data map[string]*field.AnyObject `dukkha:"other"`
+	Data map[string]*rs.AnyObject `rs:"other"`
 }
 
 func (val *ArbitraryValues) Normalize() (map[string]interface{}, error) {

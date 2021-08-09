@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
-func ResolveEnv(t field.Field, mCtx RenderingContext, envFieldName string) error {
+func ResolveEnv(t rs.Field, mCtx RenderingContext, envFieldName string) error {
 	err := t.ResolveFields(mCtx, 1, envFieldName)
 	if err != nil {
 		return fmt.Errorf("failed to get env overview: %w", err)
@@ -53,7 +53,7 @@ func (orig Env) Clone() Env {
 }
 
 type EnvEntry struct {
-	field.BaseField
+	rs.BaseField
 
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
@@ -70,7 +70,7 @@ var globalTypeManager = &typeManager{
 	types: make(map[ifaceTypeKey]*ifaceFactory),
 }
 
-var GlobalInterfaceTypeHandler field.InterfaceTypeHandler = globalTypeManager
+var GlobalInterfaceTypeHandler rs.InterfaceTypeHandler = globalTypeManager
 
 // type values for interface type registration
 var (
@@ -147,7 +147,7 @@ type (
 	}
 )
 
-var _ field.InterfaceTypeHandler = (*typeManager)(nil)
+var _ rs.InterfaceTypeHandler = (*typeManager)(nil)
 
 type typeManager struct {
 	types map[ifaceTypeKey]*ifaceFactory
@@ -162,7 +162,7 @@ func (h *typeManager) Create(typ reflect.Type, yamlKey string) (interface{}, err
 	if !ok {
 		return nil, fmt.Errorf(
 			"interface type %q not registered: %w",
-			typ.String(), field.ErrInterfaceTypeNotHandled,
+			typ.String(), rs.ErrInterfaceTypeNotHandled,
 		)
 	}
 

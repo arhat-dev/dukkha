@@ -3,9 +3,10 @@ package golang
 import (
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
@@ -85,7 +86,7 @@ func getGOMIPS(mArch string) string {
 }
 
 type buildOptions struct {
-	field.BaseField
+	rs.BaseField
 
 	Race    bool     `yaml:"race"`
 	LDFlags []string `yaml:"ldflags"`

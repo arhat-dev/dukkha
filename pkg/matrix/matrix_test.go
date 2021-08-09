@@ -3,10 +3,9 @@ package matrix
 import (
 	"testing"
 
+	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/field"
 
 	_ "embed"
 )
@@ -216,7 +215,7 @@ func TestMatrixConfig_GenerateEntries_Fixture(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			spec := field.Init(&Spec{}, nil).(*Spec)
+			spec := rs.Init(&Spec{}, nil).(*Spec)
 			if !assert.NoError(t, yaml.Unmarshal(test.yamlMatrixSpec, spec)) {
 				return
 			}

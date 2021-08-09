@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -26,7 +27,7 @@ func init() {
 }
 
 type TaskRelease struct {
-	field.BaseField
+	rs.BaseField
 
 	tools.BaseTask `yaml:",inline"`
 

@@ -1,11 +1,11 @@
 package dukkha
 
 import (
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type Shell interface {
-	field.Field
+	rs.Field
 
 	GetExecSpec(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
 }

@@ -11,8 +11,9 @@ import (
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
@@ -33,7 +34,7 @@ func NewDefault() dukkha.Renderer {
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
-	field.BaseField
+	rs.BaseField
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {

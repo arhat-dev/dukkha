@@ -3,18 +3,18 @@ package http
 import (
 	"net/http"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type rendererHTTPConfig struct {
-	field.BaseField
+	rs.BaseField
 
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 }
 
 type inputHTTPConfig struct {
-	field.BaseField
+	rs.BaseField
 
 	URL string `yaml:"url"`
 

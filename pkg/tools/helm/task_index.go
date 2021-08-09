@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -24,7 +25,7 @@ func init() {
 }
 
 type TaskIndex struct {
-	field.BaseField
+	rs.BaseField
 
 	tools.BaseTask `yaml:",inline"`
 

@@ -13,10 +13,10 @@ import (
 
 	"arhat.dev/pkg/hashhelper"
 	"arhat.dev/pkg/textquery"
+	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -47,7 +47,7 @@ func init() {
 }
 
 type TaskBuild struct {
-	field.BaseField
+	rs.BaseField
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -62,7 +62,7 @@ type TaskBuild struct {
 }
 
 type ImageNameSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	Image    string `yaml:"image"`
 	Manifest string `yaml:"manifest"`

@@ -3,8 +3,9 @@ package workflow
 import (
 	"fmt"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -22,7 +23,7 @@ func init() {
 }
 
 type TaskTest struct {
-	field.BaseField
+	rs.BaseField
 
 	tools.BaseTask `yaml:",inline"`
 }

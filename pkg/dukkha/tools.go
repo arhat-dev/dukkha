@@ -1,8 +1,6 @@
 package dukkha
 
-import (
-	"arhat.dev/dukkha/pkg/field"
-)
+import "arhat.dev/rs"
 
 type (
 	ToolKind string
@@ -20,7 +18,7 @@ func (k ToolKey) String() string {
 
 // nolint:revive
 type Tool interface {
-	field.Field
+	rs.Field
 
 	// Kind of the tool, e.g. golang, docker
 	Kind() ToolKind

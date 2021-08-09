@@ -6,11 +6,11 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
-func fromYaml(rc field.RenderingHandler, v string) (interface{}, error) {
-	out := new(field.AnyObject)
+func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
+	out := new(rs.AnyObject)
 	err := yaml.Unmarshal([]byte(v), out)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal yaml data\n\n%s\n\nerr: %w", v, err)

@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"fmt"
@@ -22,20 +22,20 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 		return nil
 	}
 
-	parentStruct := f._parentValue.Type().Elem()
+	parentStruct := f._parentValue.Type()
 	structName := parentStruct.String()
 
 	if len(fieldNames) == 0 {
 		// resolve all
 
-		for i := 1; i < f._parentValue.Elem().NumField(); i++ {
+		for i := 1; i < f._parentValue.NumField(); i++ {
 			sf := parentStruct.Field(i)
-			if !IsExported(sf.Name) {
+			if !isExported(sf.Name) {
 				continue
 			}
 
 			err := f.resolveSingleField(
-				rc, depth, structName, sf.Name, f._parentValue.Elem().Field(i),
+				rc, depth, structName, sf.Name, f._parentValue.Field(i),
 			)
 			if err != nil {
 				return err
@@ -46,7 +46,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 	}
 
 	for _, name := range fieldNames {
-		fv := f._parentValue.Elem().FieldByName(name)
+		fv := f._parentValue.FieldByName(name)
 		if !fv.IsValid() {
 			return fmt.Errorf("no such field %q in struct %q", name, parentStruct.String())
 		}
@@ -303,7 +303,7 @@ func (f *BaseField) handleUnResolvedField(
 		}
 
 		// TODO: currently we always keepOld when the field has tag
-		// 		 `dukkha:"other"`, need to ensure this behavior won't
+		// 		 `rs:"other"`, need to ensure this behavior won't
 		// 	     leave inconsistent data
 
 		actualKeepOld := keepOld || v.isCatchOtherField || i != 0

@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ var (
 type mapData struct {
 	BaseField `yaml:"-"`
 
-	Data map[string]*AnyObject `dukkha:"other"`
+	Data map[string]*AnyObject `rs:"other"`
 }
 
 func (md *mapData) MarshalYAML() (interface{}, error) { return md.Data, nil }

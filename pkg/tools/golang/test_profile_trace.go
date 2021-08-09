@@ -1,9 +1,9 @@
 package golang
 
-import "arhat.dev/dukkha/pkg/field"
+import "arhat.dev/rs"
 
 type testTraceProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Write test execution trace
 	Enabled bool `yaml:"enabled"`
