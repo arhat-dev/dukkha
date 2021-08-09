@@ -44,7 +44,7 @@ func (p *ANSIWriter) Write(data []byte) (int, error) {
 		return int(n), err
 	}
 
-	// write lines if reached threshhold
+	// write lines if reached threshold
 	if len(*p.lines) >= 16 {
 		_, err = p.flushBufferredLines()
 	}
@@ -63,7 +63,7 @@ func (p *ANSIWriter) Flush() (int, error) {
 func (p *ANSIWriter) flushBufferredLines() (int, error) {
 	var (
 		sum     int
-		lastIdx int = -1
+		lastIdx = -1
 	)
 
 	for i, line := range *p.lines {
