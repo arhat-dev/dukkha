@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+var (
+	_ context.Context = (*contextStd)(nil)
+)
+
 func newContextStd(parent context.Context) *contextStd {
 	stdCtx := &contextStd{}
 	stdCtx.ctx, stdCtx.cancel = context.WithCancel(parent)

@@ -3,7 +3,7 @@ package utils
 import (
 	"io"
 
-	"github.com/fatih/color"
+	"github.com/muesli/termenv"
 )
 
 type prefixWriter struct {
@@ -46,13 +46,18 @@ func (p *prefixWriter) Write(data []byte) (n int, err error) {
 	// 		}
 	// 	}
 
-	return p.writeOutput(data)
+	n, err = p.writeOutput(data)
+	if n > len(data) {
+		n = len(data)
+	}
+
+	return n, err
 }
 
-func PrefixWriter(
+func TermWriter(
 	prefix string,
 	useColor bool,
-	prefixColor, outputColor *color.Color,
+	prefixColor, outputColor termenv.Color,
 	w io.Writer,
 ) io.Writer {
 	prefixBytes := []byte(prefix)
@@ -67,15 +72,17 @@ func PrefixWriter(
 
 	if useColor {
 		if prefixColor != nil {
+			style := termenv.Style{}.Foreground(prefixColor)
 			writePrefix = func() error {
-				_, err := prefixColor.Fprint(w, prefix)
+				_, err := w.Write([]byte(style.Styled(prefix)))
 				return err
 			}
 		}
 
 		if outputColor != nil {
+			style := termenv.Style{}.Foreground(outputColor)
 			writeOutput = func(p []byte) (int, error) {
-				return outputColor.Fprint(w, string(p))
+				return w.Write([]byte(style.Styled(string(p))))
 			}
 		}
 	}
