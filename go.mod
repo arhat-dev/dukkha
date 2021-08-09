@@ -6,15 +6,16 @@ require (
 	arhat.dev/pkg v0.5.8
 	arhat.dev/rs v0.1.0
 	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/die-net/lrucache v0.0.0-20210724224853-653a274e85b0
-	github.com/fatih/color v1.12.0
 	github.com/hairyhenderson/gomplate/v3 v3.9.0
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.4
+	github.com/muesli/termenv v0.9.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	mvdan.cc/sh/v3 v3.3.1
