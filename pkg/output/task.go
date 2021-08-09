@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/muesli/termenv"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
-	"github.com/muesli/termenv"
 )
 
 func WriteTaskStart(
