@@ -16,6 +16,9 @@ github.com/Masterminds/semver/v3
 # github.com/Masterminds/sprig/v3 v3.2.2
 ## explicit
 github.com/Masterminds/sprig/v3
+# github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
+## explicit
+github.com/aoldershaw/ansi
 # github.com/creack/pty v1.1.13 => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
@@ -25,9 +28,6 @@ github.com/davecgh/go-spew/spew
 github.com/die-net/lrucache
 # github.com/evanphx/json-patch/v5 v5.5.0
 github.com/evanphx/json-patch/v5
-# github.com/fatih/color v1.12.0
-## explicit
-github.com/fatih/color
 # github.com/google/uuid v1.3.0
 github.com/google/uuid
 # github.com/gosimple/slug v1.10.0
@@ -67,18 +67,25 @@ github.com/inconshreveable/mousetrap
 github.com/itchyny/gojq
 # github.com/itchyny/timefmt-go v0.1.3
 github.com/itchyny/timefmt-go
-# github.com/mattn/go-colorable v0.1.8
-github.com/mattn/go-colorable
+# github.com/lucasb-eyer/go-colorful v1.2.0
+github.com/lucasb-eyer/go-colorful
 # github.com/mattn/go-isatty v0.0.13
 github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.13
+github.com/mattn/go-runewidth
 # github.com/mitchellh/copystructure v1.0.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
+# github.com/muesli/termenv v0.9.0
+## explicit
+github.com/muesli/termenv
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/rivo/uniseg v0.2.0
+github.com/rivo/uniseg
 # github.com/shopspring/decimal v1.2.0
 github.com/shopspring/decimal
 # github.com/spf13/afero v1.6.0
@@ -113,7 +120,7 @@ golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+# golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
