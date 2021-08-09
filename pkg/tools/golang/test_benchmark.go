@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"time"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type testBenchmarkSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Run benchmarks during test execution
 	Enabled bool `yaml:"enabled"`
@@ -58,7 +58,7 @@ func (s testBenchmarkSpec) generateArgs(compileTime bool) []string {
 }
 
 type benchmarkMemorySpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Enbaled by default if benchmark is enabled
 	Enabled *bool `yaml:"enabled"`

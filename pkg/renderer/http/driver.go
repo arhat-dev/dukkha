@@ -7,8 +7,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
@@ -28,7 +29,7 @@ func NewDefault() dukkha.Renderer {
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
-	field.BaseField
+	rs.BaseField
 
 	renderer.CacheConfig `yaml:",inline"`
 
@@ -68,7 +69,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 			)
 		}
 
-		cfg := field.Init(&inputHTTPConfig{}, rc).(*inputHTTPConfig)
+		cfg := rs.Init(&inputHTTPConfig{}, rc).(*inputHTTPConfig)
 		err = yaml.Unmarshal(rawBytes, cfg)
 		if err != nil {
 			return nil, fmt.Errorf(

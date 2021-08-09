@@ -3,11 +3,11 @@ package golang
 import (
 	"path/filepath"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type testProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	// Directory to save all profile output files
 	OutputDir string `yaml:"output_dir"`

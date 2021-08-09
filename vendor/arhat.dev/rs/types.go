@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"errors"
@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	TagNameDukkha = "dukkha"
-
-	TagName = TagNameDukkha
+	TagNameRS = "rs"
+	TagName   = TagNameRS
 )
 
 type Field interface {

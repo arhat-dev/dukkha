@@ -3,14 +3,14 @@ package tools
 import (
 	"encoding/hex"
 	"fmt"
+	"go/token"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 
 	"arhat.dev/pkg/hashhelper"
-
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 func GetScriptCache(cacheDir, script string) (string, error) {
@@ -36,7 +36,7 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 	var ret []string
 	for i := 1; i < typ.NumField(); i++ {
 		f := typ.Field(i)
-		if !field.IsExported(f.Name) {
+		if !token.IsExported(f.Name) {
 			// unexported, ignore
 			continue
 		}
@@ -46,7 +46,7 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 			continue
 		}
 
-		dukkhaTags, hasDukkhaTags := f.Tag.Lookup(field.TagName)
+		dukkhaTags, hasDukkhaTags := f.Tag.Lookup(rs.TagName)
 		yamlTags, hasYamlTags := f.Tag.Lookup("yaml")
 
 		switch {

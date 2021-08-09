@@ -5,8 +5,9 @@ import (
 	"reflect"
 	"sync"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/matrix"
 )
 
@@ -21,7 +22,7 @@ func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 }
 
 type BaseTask struct {
-	field.BaseField
+	rs.BaseField
 
 	TaskName string      `yaml:"name"`
 	Env      dukkha.Env  `yaml:"env"`

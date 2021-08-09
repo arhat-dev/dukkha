@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
@@ -80,7 +80,7 @@ type dukkhaContext struct {
 
 func NewConfigResolvingContext(
 	parent context.Context,
-	ifaceTypeHandler field.InterfaceTypeHandler,
+	ifaceTypeHandler rs.InterfaceTypeHandler,
 	failFast bool,
 	colorOutput bool,
 	workers int,

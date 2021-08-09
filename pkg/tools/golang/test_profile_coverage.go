@@ -3,11 +3,11 @@ package golang
 import (
 	"strings"
 
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 type testCoverageProfileSpec struct {
-	field.BaseField
+	rs.BaseField
 
 	Enabled bool `yaml:"enabled"`
 

@@ -9,14 +9,15 @@ import (
 
 	"mvdan.cc/sh/v3/syntax"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
 type Action struct {
-	field.BaseField
+	rs.BaseField
 
 	// Name of this action, optional
 	Name string `yaml:"name"`
@@ -37,7 +38,7 @@ type Action struct {
 	// EmbeddedShell script for this action
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	ExternalShell map[string]string `dukkha:"other"`
+	ExternalShell map[string]string `rs:"other"`
 
 	// Cmd execution, not in any shell
 	//

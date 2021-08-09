@@ -1,4 +1,4 @@
-package field
+package rs
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 type (
 	unresolvedFieldKey struct {
 		// NOTE: put `suffix` and `yamlKey` in key is to support fields with
-		// 		 `dukkha:"other"` field tag, each item should be able
+		// 		 `rs:"other"` field tag, each item should be able
 		// 		 to have its own renderer
 		yamlKey string
 		suffix  string
@@ -82,8 +82,7 @@ func (f *alterInterface) MarshalYAML() (interface{}, error) {
 type BaseField struct {
 	_initialized uint32
 
-	// _parentValue is always a pointer type with .Elem() to the struct
-	// when initialized
+	// _parentValue represents the parent struct value after being initialized
 	_parentValue reflect.Value
 
 	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
@@ -111,7 +110,7 @@ func (f *BaseField) Inherit(b *BaseField) error {
 		if !ok {
 			f.unresolvedFields[k] = &unresolvedFieldValue{
 				fieldName:         v.fieldName,
-				fieldValue:        f._parentValue.Elem().FieldByName(v.fieldName),
+				fieldValue:        f._parentValue.FieldByName(v.fieldName),
 				isCatchOtherField: v.isCatchOtherField,
 				rawDataList:       v.rawDataList,
 				renderers:         v.renderers,
@@ -176,7 +175,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	fields := make(map[fieldKey]*fieldSpec)
-	pt := f._parentValue.Type().Elem()
+	pt := f._parentValue.Type()
 
 	addField := func(
 		yamlKey, fieldName string,
@@ -209,7 +208,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 fieldLoop:
 	for i := 1; i < pt.NumField(); i++ {
 		fieldType := pt.Field(i)
-		fieldValue := f._parentValue.Elem().Field(i)
+		fieldValue := f._parentValue.Field(i)
 
 		// initialize struct fields accepted by Init(), in case being used later
 		InitRecursively(fieldValue, f.ifaceTypeHandler)
@@ -251,7 +250,7 @@ fieldLoop:
 				}
 
 				inlineFv := fieldValue
-				inlineFt := f._parentValue.Type().Elem().Field(i).Type
+				inlineFt := f._parentValue.Type().Field(i).Type
 
 				var iface interface{}
 				switch inlineFv.Kind() {
@@ -305,8 +304,8 @@ fieldLoop:
 			}
 		}
 
-		// dukkha tag is used to extend yaml tag
-		dTags := strings.Split(fieldType.Tag.Get("dukkha"), ",")
+		// rs tag is used to extend yaml tag
+		dTags := strings.Split(fieldType.Tag.Get(TagNameRS), ",")
 		for _, t := range dTags {
 			switch t {
 			case "other":
@@ -315,7 +314,7 @@ fieldLoop:
 
 				if catchOtherField != nil {
 					return fmt.Errorf(
-						"field: bad field tags in %s: only one map in a struct can have `dukkha:\"other\"` tag",
+						"field: bad field tags in %s: only one map in a struct can have `rs:\"other\"` tag",
 						pt.String(),
 					)
 				}
@@ -669,7 +668,7 @@ func (f *BaseField) unmarshalMap(yamlKey string, in *alterInterface, outVal refl
 		err := f.unmarshal(
 			// use k rather than `yamlKey`
 			// because it can be the field catching other
-			// (field tag: `dukkha:"other"`)
+			// (field tag: `rs:"other"`)
 			k,
 			v,
 			val,

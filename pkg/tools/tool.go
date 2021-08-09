@@ -6,15 +6,16 @@ import (
 	"strings"
 	"sync"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 var _ dukkha.Tool = (*BaseToolWithInit)(nil)
 
 type BaseToolWithInit struct {
-	field.BaseField
+	rs.BaseField
 
 	BaseTool `yaml:",inline"`
 }
@@ -50,7 +51,7 @@ func (t *BaseToolWithInit) GetExecSpec(
 }
 
 type BaseTool struct {
-	field.BaseField
+	rs.BaseField
 
 	ToolName string     `yaml:"name"`
 	Env      dukkha.Env `yaml:"env"`

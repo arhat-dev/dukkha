@@ -1,19 +1,19 @@
 package matrix
 
 import (
-	"arhat.dev/dukkha/pkg/field"
+	"arhat.dev/rs"
 )
 
 // specItem is a helper type to support rendering suffix
 // for list of maps, used in Include/Exclude
 type specItem struct {
-	field.BaseField
+	rs.BaseField
 
-	Data map[string][]string `dukkha:"other"`
+	Data map[string][]string `rs:"other"`
 }
 
 type Spec struct {
-	field.BaseField
+	rs.BaseField
 
 	Include []*specItem `yaml:"include"`
 	Exclude []*specItem `yaml:"exclude"`
@@ -24,7 +24,7 @@ type Spec struct {
 	Arch   []string `yaml:"arch"`
 
 	// catch other matrix fields
-	Custom map[string][]string `dukkha:"other"`
+	Custom map[string][]string `rs:"other"`
 }
 
 func defaultSpecs(hostKernel, hostArch string) []Entry {

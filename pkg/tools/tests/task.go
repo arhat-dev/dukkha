@@ -6,8 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 type ExecSpecGenerationTestCase struct {
@@ -53,7 +54,7 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 		}
 	}
 
-	field.InitRecursively(reflect.ValueOf(test.Task), nil)
+	rs.InitRecursively(reflect.ValueOf(test.Task), nil)
 
 	// nolint:gocritic
 	switch t := test.Task.(type) {

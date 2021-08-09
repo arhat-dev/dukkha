@@ -5,14 +5,15 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/field"
 )
 
 var _ dukkha.Renderer = (*echoRenderer)(nil)
 
 type echoRenderer struct {
-	field.BaseField
+	rs.BaseField
 }
 
 func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error {
