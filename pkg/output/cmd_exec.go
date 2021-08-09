@@ -5,21 +5,21 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/muesli/termenv"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func WriteExecStart(
-	prefixColor *color.Color,
+	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	cmd []string,
 	scriptName string,
 ) {
-	output := []interface{}{
+	output := []string{
 		">>>",
 		// task name
-		k.Name,
+		string(k.Name),
 		// commands
 		"[", strings.Join(cmd, " "), "]",
 	}
@@ -29,14 +29,14 @@ func WriteExecStart(
 	}
 
 	if prefixColor != nil {
-		_, _ = prefixColor.Println(output...)
+		printlnWithColor(output, prefixColor)
 	} else {
-		_, _ = fmt.Println(output...)
+		_, _ = fmt.Println(strings.Join(output, " "))
 	}
 }
 
 func WriteExecResult(
-	prefixColor *color.Color,
+	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
 	matrixSpec string,
@@ -47,10 +47,10 @@ func WriteExecResult(
 		resultKind = "ERROR"
 	}
 
-	output := []interface{}{
+	output := []string{
 		resultKind,
 		AssembleTaskKindID(k, tk.Kind),
-		"[", tk.Name, "]",
+		"[", string(tk.Name), "]",
 		"{", matrixSpec,
 	}
 
@@ -61,8 +61,8 @@ func WriteExecResult(
 	}
 
 	if prefixColor != nil {
-		_, _ = prefixColor.Fprintln(os.Stderr, output...)
+		printlnWithColor(output, prefixColor)
 	} else {
-		_, _ = fmt.Fprintln(os.Stderr, output...)
+		_, _ = fmt.Fprintln(os.Stderr, strings.Join(output, " "))
 	}
 }

@@ -1,13 +1,16 @@
 package output
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/fatih/color"
+	"github.com/muesli/termenv"
 )
 
 func WriteUsingExpiredCacheWarning(key string) {
-	_, _ = color.New(color.FgHiYellow).Fprintf(os.Stderr,
-		"[WARNING] using expired local cache for %q\n", key,
+	_, _ = fmt.Fprintln(os.Stderr,
+		termenv.String(
+			fmt.Sprintf("[WARNING] using expired local cache for %q\n", key),
+		).Foreground(termenv.ANSIBrightYellow).String(),
 	)
 }

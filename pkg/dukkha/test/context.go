@@ -45,6 +45,8 @@ func NewTestContextWithGlobalEnv(
 		dukkha.GlobalInterfaceTypeHandler,
 		true,
 		false, // turn off color output
+		false, // do not translate ansi stream
+		false, // retainANSIStyle is not used when translateANSIStream is disabled
 		1,
 		globalEnv,
 	)

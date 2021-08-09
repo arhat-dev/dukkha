@@ -1,18 +1,20 @@
 package output
 
-import "github.com/fatih/color"
+import (
+	"github.com/muesli/termenv"
+)
 
-func PickColor(i int) (prefixColor, outputColor *color.Color) {
+func PickColor(i int) (prefixColor, outputColor termenv.Color) {
 	// TODO: generate colors dynamically with consistent result
 
-	var colorList = [][2]*color.Color{
-		{color.New(color.FgHiWhite), color.New(color.FgWhite)},
-		{color.New(color.FgHiCyan), color.New(color.FgCyan)},
-		{color.New(color.FgHiGreen), color.New(color.FgGreen)},
-		{color.New(color.FgHiMagenta), color.New(color.FgMagenta)},
-		{color.New(color.FgHiYellow), color.New(color.FgYellow)},
-		{color.New(color.FgHiBlue), color.New(color.FgBlue)},
-		{color.New(color.FgHiRed), color.New(color.FgRed)},
+	var colorList = [][2]termenv.Color{
+		{termenv.ANSIBrightWhite, termenv.ANSIWhite},
+		{termenv.ANSIBrightCyan, termenv.ANSICyan},
+		{termenv.ANSIBrightGreen, termenv.ANSIGreen},
+		{termenv.ANSIBrightMagenta, termenv.ANSIMagenta},
+		{termenv.ANSIBrightYellow, termenv.ANSIYellow},
+		{termenv.ANSIBrightBlue, termenv.ANSIBlue},
+		{termenv.ANSIBrightRed, termenv.ANSIRed},
 	}
 
 	colorSet := colorList[i%len(colorList)]

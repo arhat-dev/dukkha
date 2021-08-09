@@ -42,6 +42,9 @@ func NewRootCmd() *cobra.Command {
 		forceColor   = false
 		matrixFilter []string
 
+		translateANSIStream = false
+		retainANSIStyle     = false
+
 		configPaths []string
 		// merged config
 		config = conf.NewConfig()
@@ -103,10 +106,25 @@ dukkha buildah in-docker build my-image`,
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
+
+			stdoutIsPty := term.IsTerminal(int(os.Stdout.Fd()))
+
+			translateANSIFlag := cmd.Flag("translate-ansi-stream")
+			var actualTranslateANSIStream bool
+			// only translate ansi stream when
+			// 	- (automatic) flag --translate-ansi-stream not set and stdout is not a pty
+			actualTranslateANSIStream = (translateANSIFlag == nil || !translateANSIFlag.Changed) && !stdoutIsPty
+			// 	- (manual) flag --translate-ansi-stream set to true
+			actualTranslateANSIStream = actualTranslateANSIStream || translateANSIStream
+
+			actualRetainANSIStyle := actualTranslateANSIStream && retainANSIStyle
+
 			_appCtx := dukkha.NewConfigResolvingContext(
 				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
 				failFast,
-				term.IsTerminal(int(os.Stdout.Fd())) || forceColor,
+				stdoutIsPty || forceColor,
+				actualTranslateANSIStream,
+				actualRetainANSIStyle,
 				workerCount,
 				createGlobalEnv(appBaseCtx),
 			)
@@ -168,6 +186,15 @@ dukkha buildah in-docker build my-image`,
 	flags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
 	flags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
 	flags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter, format: -m <name>=<value>")
+	flags.BoolVar(&translateANSIStream, "translate-ansi-stream", false,
+		"when set to true, will translate ansi stream to plain text before write to stdout/stderr, "+
+			"when set to false, do nothing to the ansi stream, "+
+			"when not set, will behavior as set to true if stdout/stderr is not a pty environment",
+	)
+	flags.BoolVar(&retainANSIStyle, "retain-ansi-style", retainANSIStyle,
+		"when set to true, will retain ansi style when write to stdout/stderr, only effective "+
+			"when ansi stream is going to be translated",
+	)
 
 	setupTaskCompletion(&appCtx, rootCmd)
 

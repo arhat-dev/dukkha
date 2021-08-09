@@ -4,30 +4,34 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
+	"github.com/muesli/termenv"
 )
 
 func WriteTaskStart(
-	prefixColor *color.Color,
+	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
 	matrixSpec matrix.Entry,
 ) {
-	output := []interface{}{
+	output := []string{
 		"---",
 		AssembleTaskKindID(k, tk.Kind),
-		"[", tk.Name, "]",
+		"[", string(tk.Name), "]",
 		"{", matrixSpec.String(), "}",
 	}
 
 	if prefixColor != nil {
-		_, _ = prefixColor.Println(output...)
+		printlnWithColor(output, prefixColor)
 	} else {
-		_, _ = fmt.Println(output...)
+		_, _ = fmt.Println(strings.Join(output, " "))
 	}
+}
+
+func printlnWithColor(parts []string, color termenv.Color) {
+	style := termenv.String(parts...).Foreground(color)
+	_, _ = fmt.Println(style.String())
 }
 
 func AssembleTaskKindID(

@@ -61,15 +61,63 @@ func doRun(
 			stdin = os.Stdin
 		}
 
-		stderr = utils.PrefixWriter(
+		if !ctx.TranslateANSIStream() {
+			stdout = os.Stdout
+			stderr = os.Stderr
+		} else {
+			stdoutW := utils.NewANSIWriter(
+				os.Stdout, ctx.RetainANSIStyle(),
+			)
+
+			stdout = stdoutW
+			stderr = stdoutW
+
+			exit := make(chan struct{})
+			defer func() {
+				close(exit)
+				_, err := stdoutW.Flush()
+				if err != nil {
+					log.Log.I(
+						"failed to flush translated plain text data to stdout",
+						log.Error(err),
+					)
+					return
+				}
+			}()
+
+			go func() {
+				// TODO: make flush interval customizable
+				ticker := time.NewTicker(2 * time.Second)
+				defer ticker.Stop()
+
+				for {
+					select {
+					case <-ticker.C:
+						_, err := stdoutW.Flush()
+						if err != nil {
+							log.Log.I(
+								"failed to flush translated plain text data to stdout",
+								log.Error(err),
+							)
+							return
+						}
+					case <-exit:
+						return
+					}
+				}
+			}()
+		}
+
+		stdout = utils.TermWriter(
 			ctx.OutputPrefix(), ctx.ColorOutput(),
 			ctx.PrefixColor(), ctx.OutputColor(),
-			os.Stderr,
+			stdout,
 		)
-		stdout = utils.PrefixWriter(
+
+		stderr = utils.TermWriter(
 			ctx.OutputPrefix(), ctx.ColorOutput(),
 			ctx.PrefixColor(), ctx.OutputColor(),
-			os.Stdout,
+			stderr,
 		)
 
 		var (

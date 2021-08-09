@@ -31,6 +31,8 @@ type TaskExecContext interface {
 
 	Cancel()
 
+	TranslateANSIStream() bool
+	RetainANSIStyle() bool
 	ColorOutput() bool
 	FailFast() bool
 	ClaimWorkers(n int) int
@@ -73,9 +75,11 @@ type dukkhaContext struct {
 	*contextExec
 
 	// application settings
-	failFast    bool
-	colorOutput bool
-	workers     int
+	failFast            bool
+	colorOutput         bool
+	translateANSIStream bool
+	retainANSIStyle     bool
+	workers             int
 }
 
 func NewConfigResolvingContext(
@@ -83,6 +87,8 @@ func NewConfigResolvingContext(
 	ifaceTypeHandler rs.InterfaceTypeHandler,
 	failFast bool,
 	colorOutput bool,
+	translateANSIStream bool,
+	retainANSIStyle bool,
 	workers int,
 	globalEnv map[string]string,
 ) ConfigResolvingContext {
@@ -99,9 +105,11 @@ func NewConfigResolvingContext(
 			ctxStd.ctx, ifaceTypeHandler, globalEnv,
 		),
 
-		failFast:    failFast,
-		colorOutput: colorOutput,
-		workers:     workers,
+		failFast:            failFast,
+		colorOutput:         colorOutput,
+		translateANSIStream: translateANSIStream,
+		retainANSIStyle:     retainANSIStyle,
+		workers:             workers,
 	}
 
 	return dukkhaCtx
@@ -121,9 +129,11 @@ func (c *dukkhaContext) DeriveNew() Context {
 		// initialized later
 		contextExec: nil,
 
-		failFast:    c.failFast,
-		colorOutput: c.colorOutput,
-		workers:     c.workers,
+		failFast:            c.failFast,
+		colorOutput:         c.colorOutput,
+		translateANSIStream: c.translateANSIStream,
+		retainANSIStyle:     c.retainANSIStyle,
+		workers:             c.workers,
 	}
 
 	if c.contextExec != nil {
@@ -151,6 +161,14 @@ func (c *dukkhaContext) FailFast() bool {
 
 func (c *dukkhaContext) ColorOutput() bool {
 	return c.colorOutput
+}
+
+func (c *dukkhaContext) TranslateANSIStream() bool {
+	return c.translateANSIStream
+}
+
+func (c *dukkhaContext) RetainANSIStyle() bool {
+	return c.retainANSIStyle
 }
 
 func (c *dukkhaContext) ClaimWorkers(n int) int {
