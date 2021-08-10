@@ -95,32 +95,37 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
 
 - Customizable task matrix execution everywhere
 
-```yaml
-workflow:run:
-- name: matrix-example
-  matrix:
-    # add your matrix spec
-    kernel: [linux, windows]
-    arch: [amd64, arm64]
+  ```yaml
+  workflow:run:
+  - name: matrix-example
+    matrix:
+      # add your matrix spec
+      kernel: [linux, windows]
+      arch: [amd64, arm64]
 
-    # and exclude some
-    exclude: # `exclude` is reserved
-    # match certain matrix
-    - kernel: [windows]
-      arch: [amd64]
-    # partial matching is supported as well
-    - arch: arm64
+      # and exclude some
+      exclude: # `exclude` is reserved
+      # match certain matrix
+      - kernel: [windows]
+        arch: [amd64]
+      # partial matching is supported as well
+      - arch: arm64
 
-    # and include extra matrix
-    include: # `include` is reserved field
-    - kernel: [linux]
-      arch: [x86, riscv64]
-    - kernel: [darwin]
-      arch: [arm64]
-```
+      # and include extra matrix
+      include: # `include` is reserved field
+      - kernel: [linux]
+        arch: [x86, riscv64]
+      - kernel: [darwin]
+        arch: [arm64]
+  ```
 
 - Shell completion for tools, tasks and task matrix
   - Run `dukkha completion --help` for instructions
+
+- ANSI escape sequence handling for commands not respecting tty settings to avoid lengthy while meaningless log output (e.g. maven)
+  - Automatically enabled when stdout/stderr is not a tty
+  - Can be manually enabled by setting flag `--translate-ansi-stream` and `--retain-ansi-style` when running task
+  - This functionality is largely based on [`github.com/aoldershaw/ansi`](https://github.com/aoldershaw/ansi)
 
 ## Installation
 
