@@ -30,6 +30,8 @@ type ANSIWriter struct {
 	ansiWriter  *ansi.Writer
 	retainStyle bool
 
+	currentAt int
+
 	w io.Writer
 
 	mu sync.Mutex
@@ -45,7 +47,7 @@ func (p *ANSIWriter) Write(data []byte) (int, error) {
 	}
 
 	// write lines if reached threshold
-	if len(*p.lines) >= 16 {
+	if len((*p.lines)[p.currentAt]) >= 16 {
 		_, err = p.flushBufferredLines()
 	}
 
@@ -66,7 +68,11 @@ func (p *ANSIWriter) flushBufferredLines() (int, error) {
 		lastIdx = -1
 	)
 
-	for i, line := range *p.lines {
+	if l := p.ansiWriter.Position.Line; l < p.currentAt {
+		p.currentAt = l
+	}
+
+	for i, line := range (*p.lines)[p.currentAt:] {
 		if len(line) == 0 {
 			continue
 		}
@@ -88,9 +94,7 @@ func (p *ANSIWriter) flushBufferredLines() (int, error) {
 		n, err := p.w.Write(append(lineBytes, '\n'))
 		sum += n
 		if err != nil {
-			lines := (*p.lines)[lastIdx+1:]
-			p.lines = &lines
-			p.ansiWriter.Output = p.lines
+			p.currentAt += lastIdx + 1
 			return sum, err
 		}
 
@@ -98,10 +102,7 @@ func (p *ANSIWriter) flushBufferredLines() (int, error) {
 	}
 
 	if lastIdx != -1 {
-		// wrote all buffered lines
-		lines := (*p.lines)[0:0]
-		p.lines = &lines
-		p.ansiWriter.Output = p.lines
+		p.currentAt += lastIdx + 1
 	}
 
 	return sum, nil
