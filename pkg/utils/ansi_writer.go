@@ -47,7 +47,7 @@ func (p *ANSIWriter) Write(data []byte) (int, error) {
 	}
 
 	// write lines if reached threshold
-	if len((*p.lines)[p.currentAt]) >= 16 {
+	if len((*p.lines)[p.currentAt:]) >= 16 {
 		_, err = p.flushBufferredLines()
 	}
 
