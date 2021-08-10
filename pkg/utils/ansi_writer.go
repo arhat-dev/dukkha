@@ -73,10 +73,6 @@ func (p *ANSIWriter) flushBufferredLines() (int, error) {
 	}
 
 	for i, line := range (*p.lines)[p.currentAt:] {
-		if len(line) == 0 {
-			continue
-		}
-
 		var lineBytes []byte
 		for _, chk := range line {
 			data := string(chk.Data)
@@ -85,10 +81,6 @@ func (p *ANSIWriter) flushBufferredLines() (int, error) {
 			}
 
 			lineBytes = append(lineBytes, data...)
-		}
-
-		if len(lineBytes) == 0 {
-			continue
 		}
 
 		n, err := p.w.Write(append(lineBytes, '\n'))
