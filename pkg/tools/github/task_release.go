@@ -67,8 +67,13 @@ func (c *TaskRelease) GetExecSpecs(
 		}
 
 		if len(c.Title) != 0 {
+			title := c.Title
+			if options.UseShell() {
+				title = fmt.Sprintf("%q", c.Title)
+			}
+
 			createCmd = append(createCmd,
-				"--title", fmt.Sprintf("%q", c.Title),
+				"--title", title,
 			)
 		}
 
@@ -97,15 +102,21 @@ func (c *TaskRelease) GetExecSpecs(
 
 			for i, file := range matches {
 				var arg string
+				if options.UseShell() {
+					arg = `'`
+				}
+
 				if len(spec.Label) != 0 {
-					arg = `'` + file + `#` + spec.Label
+					arg += file + `#` + spec.Label
 					if i != 0 {
 						arg += " " + strconv.FormatInt(int64(i), 10)
 					}
-
-					arg += `'`
 				} else {
-					arg = `'` + file + `#` + filepath.Base(file) + `'`
+					arg += file + `#` + filepath.Base(file)
+				}
+
+				if options.UseShell() {
+					arg += `'`
 				}
 
 				createCmd = append(createCmd, arg)
