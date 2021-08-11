@@ -22,12 +22,8 @@ require (
 )
 
 replace (
-	github.com/BurntSushi/toml-test => github.com/BurntSushi/toml-test v1.0.0
-	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
-)
-
-replace (
 	github.com/BurntSushi/toml => github.com/BurntSushi/toml v0.4.1
+	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
 	github.com/hairyhenderson/gomplate/v3 => ./third_party/gomplate
 )
 
