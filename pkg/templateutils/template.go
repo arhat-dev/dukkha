@@ -323,6 +323,19 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"setDefaultManifestTag": func(imageName string, flags ...string) string {
 				return SetDefaultManifestTagIfNoTagSet(rc, imageName)
 			},
+
+			"getDefaultImageTag": func(imageName string, flags ...string) string {
+				keepKernelInfo := false
+				for _, f := range flags {
+					if f == "keepKernelInfo" {
+						keepKernelInfo = true
+					}
+				}
+				return GetDefaultImageTag(rc, imageName, keepKernelInfo)
+			},
+			"getDefaultManifestTag": func(imageName string, flags ...string) string {
+				return GetDefaultManifestTag(rc, imageName)
+			},
 		}).
 		Funcs(fm)
 }

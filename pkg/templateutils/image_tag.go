@@ -8,28 +8,44 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
+func GetDefaultImageTag(
+	rc dukkha.RenderingContext, imageName string, keepKernelInfo bool,
+) string {
+	return GetDefaultTag(rc, imageName, false, keepKernelInfo)
+}
+
+func GetDefaultManifestTag(
+	rc dukkha.RenderingContext, manifestName string,
+) string {
+	return GetDefaultTag(rc, manifestName, true, false)
+}
+
 func SetDefaultImageTagIfNoTagSet(
 	rc dukkha.RenderingContext, imageName string, keepKernelInfo bool,
 ) string {
-	return setDefaultTagIfNoTagSet(rc, imageName, false, keepKernelInfo)
+	if hasTag(imageName) {
+		return imageName
+	}
+
+	return imageName + ":" + GetDefaultTag(rc, imageName, false, keepKernelInfo)
 }
 
 func SetDefaultManifestTagIfNoTagSet(
-	rc dukkha.RenderingContext, manfiestName string,
+	rc dukkha.RenderingContext, manifestName string,
 ) string {
-	return setDefaultTagIfNoTagSet(rc, manfiestName, true, false)
+	if hasTag(manifestName) {
+		return manifestName
+	}
+
+	return manifestName + ":" + GetDefaultTag(rc, manifestName, true, false)
 }
 
-func setDefaultTagIfNoTagSet(
+func GetDefaultTag(
 	rc dukkha.RenderingContext,
 	name string,
 	isManifest bool,
 	keepKernelInfo bool,
 ) string {
-	if hasTag(name) {
-		return name
-	}
-
 	rawBranch := rc.GitBranch()
 	branch := xstrings.ToKebabCase(strings.ReplaceAll(rawBranch, "/", "-"))
 
@@ -42,7 +58,7 @@ func setDefaultTagIfNoTagSet(
 		gitTag := rc.GitTag()
 		switch {
 		case len(gitTag) != 0:
-			tag = gitTag
+			tag = strings.TrimPrefix(gitTag, "v")
 		case rawBranch == rc.GitDefaultBranch():
 			tag = "latest"
 		default:
@@ -66,7 +82,7 @@ func setDefaultTagIfNoTagSet(
 		}
 	}
 
-	return name + ":" + tag
+	return tag
 }
 
 func hasTag(name string) bool {
