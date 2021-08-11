@@ -7,9 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"mvdan.cc/sh/v3/syntax"
-
 	"arhat.dev/rs"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"

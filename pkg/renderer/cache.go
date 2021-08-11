@@ -11,9 +11,8 @@ import (
 	"time"
 
 	"arhat.dev/pkg/hashhelper"
-	lru "github.com/die-net/lrucache"
-
 	"arhat.dev/rs"
+	lru "github.com/die-net/lrucache"
 
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/utils"
