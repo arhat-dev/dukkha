@@ -88,4 +88,4 @@ jobs:
       run: |
         make dukkha
 
-        ./build/dukkkha github release dukkha
+        ./build/dukkha github local release dukkha
