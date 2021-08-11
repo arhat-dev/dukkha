@@ -5,9 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sliceutils"

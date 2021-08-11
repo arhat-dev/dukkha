@@ -4,10 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"

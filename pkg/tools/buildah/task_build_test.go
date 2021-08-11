@@ -3,10 +3,10 @@ package buildah
 import (
 	"testing"
 
-	_ "embed"
-
 	"arhat.dev/pkg/textquery"
 	"github.com/stretchr/testify/assert"
+
+	_ "embed"
 )
 
 var (

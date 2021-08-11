@@ -5,9 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"

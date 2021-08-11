@@ -9,11 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/itchyny/gojq"
-	"mvdan.cc/sh/v3/expand"
-
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
+	"github.com/itchyny/gojq"
+	"mvdan.cc/sh/v3/expand"
 )
 
 type RenderingContext interface {

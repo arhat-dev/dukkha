@@ -4,9 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"arhat.dev/rs"
+	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )

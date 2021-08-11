@@ -9,11 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"arhat.dev/rs"
 	"github.com/spf13/cobra"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )

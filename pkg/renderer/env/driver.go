@@ -8,10 +8,9 @@ import (
 	"os"
 	"strings"
 
+	"arhat.dev/rs"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
-
-	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
