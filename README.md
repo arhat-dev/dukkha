@@ -130,11 +130,24 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
 
 ## Installation
 
-### Build from source
+### Build from source (not stripped)
 
-```bash
-make dukkha
-```
+- Option 1: Build directly with `go` 1.16+
+
+  ```bash
+  export VERSION=latest
+  go get -u arhat.dev/dukkha/cmd/dukkha@${VERSION}
+  ```
+
+- Option 2: Clone and build with `make` and `go` 1.16+
+
+  ```bash
+  git clone https://github.com/arhat-dev/dukkha.git
+  cd dukkha
+  # checkout branch or commit as you prefer
+  make dukkha
+  # then you can find the built executable in build/dukkha
+  ```
 
 ### Download Pre-built Executables
 
@@ -158,6 +171,8 @@ sget -key https://arhat.dev/.well-known/cosign.pub -o dukkha \
   "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
 chmod +x dukkha
 ```
+
+- Option 2: Download pre-built artifacts from [releases](https://github.com/arhat-dev/dukkha/releases)
 
 ## Further Thoughts
 
