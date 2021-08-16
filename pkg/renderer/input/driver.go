@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"golang.org/x/term"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 // nolint:revive
