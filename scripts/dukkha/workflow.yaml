@@ -5,7 +5,14 @@ tools:
     - name: TOOL_SPECIFIC_ENV
       value: tool_specific_env
 
+renderers:
+  input: {}
+
 workflow:run:
+- name: test-prompt
+  jobs:
+  - shell@input: "Enter your script: "
+
 - name: test
   env:
   - name: FROM_TOOL
