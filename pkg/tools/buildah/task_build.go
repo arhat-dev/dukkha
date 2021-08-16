@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 
@@ -389,11 +389,11 @@ func createManifestOsArchVariantQueryForDigest(mKernel, mArch string) string {
 }
 
 func getLocalImageName(imageName string) string {
-	return hex.EncodeToString(hashhelper.MD5Sum([]byte(imageName)))
+	return hex.EncodeToString(md5helper.Sum([]byte(imageName)))
 }
 
 func getLocalManifestName(manifestName string) string {
-	return hex.EncodeToString(hashhelper.MD5Sum([]byte(manifestName)))
+	return hex.EncodeToString(md5helper.Sum([]byte(manifestName)))
 }
 
 func GetImageIDFileForImageName(dukkhaCacheDir, imageName string) string {

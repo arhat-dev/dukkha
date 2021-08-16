@@ -10,15 +10,15 @@ import (
 	"strings"
 	"text/template"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
-	"github.com/hairyhenderson/gomplate/v3/funcs"
 	"gopkg.in/yaml.v3"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/third_party/gomplate/funcs"
 )
 
 type TemplateFuncFactory func(rc dukkha.RenderingContext) interface{}
@@ -188,7 +188,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		// dukkha specific template func
 		Funcs(map[string]interface{}{
 			"md5sum": func(s string) string {
-				return hex.EncodeToString(hashhelper.MD5Sum([]byte(s)))
+				return hex.EncodeToString(md5helper.Sum([]byte(s)))
 			},
 
 			"os_ReadFile": func(filename string) (string, error) {

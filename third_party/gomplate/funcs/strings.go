@@ -14,13 +14,13 @@ import (
 
 	"github.com/pkg/errors"
 
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 	"github.com/Masterminds/goutils"
-	"github.com/hairyhenderson/gomplate/v3/conv"
 
 	"strings"
 
+	gompstrings "arhat.dev/dukkha/third_party/gomplate/strings"
 	"github.com/gosimple/slug"
-	gompstrings "github.com/hairyhenderson/gomplate/v3/strings"
 )
 
 var (

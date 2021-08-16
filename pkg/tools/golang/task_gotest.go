@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -206,13 +206,13 @@ func (c *TaskTest) GetExecSpecs(
 }
 
 func getGoTestCompileResultReplaceKey(pkgRelPath string) string {
-	return fmt.Sprintf("<GO_TEST_COMPILE_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+	return fmt.Sprintf("<GO_TEST_COMPILE_RESULT:%s>", hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath))))
 }
 
 func getBuiltTestExecutablePath(dukkhaCacheDir, taskName, pkgRelPath string) string {
 	return filepath.Join(
 		dukkhaCacheDir, "golang-test",
-		taskName+"-"+hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath)))+".test",
+		taskName+"-"+hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath)))+".test",
 	)
 }
 
@@ -274,11 +274,11 @@ func generateCompileSpecs(
 }
 
 func getTestRunResultReplaceKey(pkgRelPath string) string {
-	return fmt.Sprintf("<GO_TEST_RUN_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+	return fmt.Sprintf("<GO_TEST_RUN_RESULT:%s>", hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath))))
 }
 
 func getGoToolTest2JsonResultReplaceKey(pkgRelPath string) string {
-	return fmt.Sprintf("<GO_TOOL_TEST2JSON_RESULT:%s>", hex.EncodeToString(hashhelper.MD5Sum([]byte(pkgRelPath))))
+	return fmt.Sprintf("<GO_TOOL_TEST2JSON_RESULT:%s>", hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath))))
 }
 
 func generateRunSpecs(

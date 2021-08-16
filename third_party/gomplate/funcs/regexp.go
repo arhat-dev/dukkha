@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
-	"github.com/hairyhenderson/gomplate/v3/regexp"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
+	"arhat.dev/dukkha/third_party/gomplate/regexp"
 )
 
 var (

@@ -8,9 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"arhat.dev/pkg/hashhelper"
 	"github.com/stretchr/testify/assert"
 	"mvdan.cc/sh/v3/syntax"
+
+	"arhat.dev/pkg/md5helper"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
@@ -24,17 +25,17 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 		{
 			name:     "Simple md5sum",
 			script:   `template:md5sum \"test\"`,
-			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
+			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Piped md5sum",
 			script:   `printf "test" | template:md5sum`,
-			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
+			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Subcmd md5sum",
 			script:   `template:md5sum \"$(printf "test")\"`,
-			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
+			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}
 
@@ -76,7 +77,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 		{
 			name:     "Valid Simple md5sum",
 			args:     []string{"md5sum", `"test"`},
-			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
+			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:      "Invalid Template Func Not Defined",
@@ -87,7 +88,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 			name:     "Input for md5sum",
 			input:    "test",
 			args:     []string{"md5sum"},
-			expected: hex.EncodeToString(hashhelper.MD5Sum([]byte("test"))),
+			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}
 

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
@@ -35,7 +35,7 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
-	tplBytes, err := renderer.ToYamlBytes(rawData)
+	tplBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
 	}

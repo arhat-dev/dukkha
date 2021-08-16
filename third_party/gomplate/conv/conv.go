@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	iconv "github.com/hairyhenderson/gomplate/v3/internal/conv"
+	iconv "arhat.dev/dukkha/third_party/gomplate/internal/conv"
 )
 
 // Bool converts a string to a boolean value, using strconv.ParseBool under the covers.

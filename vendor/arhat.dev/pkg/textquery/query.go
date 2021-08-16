@@ -7,6 +7,8 @@ import (
 	"github.com/itchyny/gojq"
 )
 
+// Query runs jq query over general text data bytes with custom
+// marshaling/unmarshaling func for data serialization/deserialization
 func Query(
 	query string,
 	input []byte,
@@ -34,6 +36,8 @@ func Query(
 	return HandleQueryResult(result, marshalFunc), err
 }
 
+// RunQuery runs jq query over arbitrary data with optional
+// predefined key value pairs
 func RunQuery(
 	query *gojq.Query,
 	data interface{},
@@ -78,6 +82,7 @@ func RunQuery(
 	return result, len(result) != 0, nil
 }
 
+// HandleQueryResult from RunQuery
 func HandleQueryResult(
 	result []interface{},
 	marshalFunc func(in interface{}) ([]byte, error),

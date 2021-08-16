@@ -1,18 +1,10 @@
 package matrix
 
-import "sort"
+import (
+	"sort"
 
-var _ sort.Interface = (*swapper)(nil)
-
-type swapper struct {
-	doSwap func(i, j int)
-	isLess func(i, j int) bool
-	getLen func() int
-}
-
-func (s *swapper) Len() int           { return s.getLen() }
-func (s *swapper) Less(i, j int) bool { return s.isLess(i, j) }
-func (s *swapper) Swap(i, j int)      { s.doSwap(i, j) }
+	"arhat.dev/pkg/sorthelper"
+)
 
 func CartesianProduct(m map[string][]string) []map[string]string {
 	names := make([]string, 0)
@@ -28,14 +20,14 @@ func CartesianProduct(m map[string][]string) []map[string]string {
 	}
 
 	// sort names and mat
-	sort.Sort(&swapper{
-		getLen: func() int { return len(names) },
-		isLess: func(i, j int) bool { return names[i] < names[j] },
-		doSwap: func(i, j int) {
+	sort.Sort(sorthelper.NewCustomSortable(
+		func(i, j int) {
 			names[i], names[j] = names[j], names[i]
 			mat[i], mat[j] = mat[j], mat[i]
 		},
-	})
+		func(i, j int) bool { return names[i] < names[j] },
+		func() int { return len(names) },
+	))
 
 	listCart := cartNext(mat)
 	if len(listCart) == 0 {

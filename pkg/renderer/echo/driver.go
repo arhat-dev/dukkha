@@ -1,10 +1,10 @@
 package echo
 
 import (
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 )
 
 // nolint:revive
@@ -31,12 +31,5 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
-	switch t := rawData.(type) {
-	case string:
-		return []byte(t), nil
-	case []byte:
-		return t, nil
-	default:
-		return renderer.ToYamlBytes(t)
-	}
+	return yamlhelper.ToYamlBytes(rawData)
 }

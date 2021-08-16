@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
@@ -42,7 +42,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		scripts = append(scripts, string(t))
 	case []interface{}:
 		for _, v := range t {
-			scriptBytes, err := renderer.ToYamlBytes(v)
+			scriptBytes, err := yamlhelper.ToYamlBytes(v)
 			if err != nil {
 				return nil, fmt.Errorf("renderer.%s: unexpected list item type %T: %w", DefaultName, v, err)
 			}

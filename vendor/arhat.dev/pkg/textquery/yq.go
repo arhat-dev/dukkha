@@ -4,10 +4,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// JQ runs query over json data
 func YQ(query, data string) (string, error) {
 	return YQBytes(query, []byte(data))
 }
 
-func YQBytes(query string, input []byte) (string, error) {
-	return Query(query, input, yaml.Unmarshal, yaml.Marshal)
+// JQ runs query over yaml data bytes
+func YQBytes(query string, dataBytes []byte) (string, error) {
+	return Query(query, dataBytes, yaml.Unmarshal, yaml.Marshal)
 }

@@ -9,12 +9,12 @@ import (
 	"reflect"
 	"strings"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/sha256helper"
 	"arhat.dev/rs"
 )
 
 func GetScriptCache(cacheDir, script string) (string, error) {
-	scriptName := hex.EncodeToString(hashhelper.Sha256Sum([]byte(script)))
+	scriptName := hex.EncodeToString(sha256helper.Sum([]byte(script)))
 	scriptPath := filepath.Join(cacheDir, scriptName)
 
 	_, err := os.Stat(scriptPath)

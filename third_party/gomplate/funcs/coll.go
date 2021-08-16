@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hairyhenderson/gomplate/v3/coll"
-	"github.com/hairyhenderson/gomplate/v3/conv"
+	"arhat.dev/dukkha/third_party/gomplate/coll"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 var (
@@ -46,7 +46,6 @@ func CreateCollFuncs(ctx context.Context) map[string]interface{} {
 	f["reverse"] = CollNS().Reverse
 	f["merge"] = CollNS().Merge
 	f["sort"] = CollNS().Sort
-	f["jsonpath"] = CollNS().JSONPath
 	f["flatten"] = CollNS().Flatten
 	return f
 }
@@ -123,11 +122,6 @@ func (f *CollFuncs) Sort(args ...interface{}) ([]interface{}, error) {
 		list = args[1]
 	}
 	return coll.Sort(key, list)
-}
-
-// JSONPath -
-func (f *CollFuncs) JSONPath(p string, in interface{}) (interface{}, error) {
-	return coll.JSONPath(p, in)
 }
 
 // Flatten -
