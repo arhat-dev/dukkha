@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -188,7 +188,7 @@ func (s *signingSpec) ensurePrivateKey(dukkhaCacheDir string) (string, error) {
 		fmt.Sprintf(
 			"private-key-%s",
 			hex.EncodeToString(
-				hashhelper.MD5Sum([]byte(s.PrivateKey)),
+				md5helper.Sum([]byte(s.PrivateKey)),
 			),
 		),
 	)

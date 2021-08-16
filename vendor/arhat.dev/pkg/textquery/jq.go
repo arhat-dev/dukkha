@@ -19,13 +19,15 @@ package textquery
 import (
 	"encoding/json"
 
-	"arhat.dev/pkg/decodehelper"
+	"arhat.dev/pkg/jsonhelper"
 )
 
+// JQ runs query over json data
 func JQ(query, data string) (string, error) {
 	return JQBytes(query, []byte(data))
 }
 
-func JQBytes(query string, input []byte) (string, error) {
-	return Query(query, input, decodehelper.UnmarshalJSON, json.Marshal)
+// JQ runs query over json data bytes
+func JQBytes(query string, dataBytes []byte) (string, error) {
+	return Query(query, dataBytes, jsonhelper.UnmarshalJSON, json.Marshal)
 }

@@ -1,3 +1,5 @@
+// +build !nohashhelper_sha256
+
 /*
 Copyright 2020 The arhat.dev Authors.
 
@@ -14,4 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package hashhelper
+package sha256helper
+
+import (
+	"crypto/sha256"
+)
+
+func Sum(data []byte) []byte {
+	h := sha256.New()
+	_, _ = h.Write(data)
+	return h.Sum(nil)
+}

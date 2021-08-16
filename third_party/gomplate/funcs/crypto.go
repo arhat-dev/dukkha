@@ -11,8 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
-	"github.com/hairyhenderson/gomplate/v3/crypto"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
+	"arhat.dev/dukkha/third_party/gomplate/crypto"
 	"golang.org/x/crypto/bcrypt"
 )
 

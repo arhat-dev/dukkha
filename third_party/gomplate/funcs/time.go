@@ -8,9 +8,9 @@ import (
 	"sync"
 	gotime "time"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
-	"github.com/hairyhenderson/gomplate/v3/env"
-	"github.com/hairyhenderson/gomplate/v3/time"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
+	"arhat.dev/dukkha/third_party/gomplate/env"
+	"arhat.dev/dukkha/third_party/gomplate/time"
 )
 
 var (

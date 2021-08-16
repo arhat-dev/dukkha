@@ -8,12 +8,12 @@ import (
 	"os"
 	"strings"
 
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
@@ -41,21 +41,12 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
-	var toExpand string
-
-	switch t := rawData.(type) {
-	case string:
-		toExpand = t
-	case []byte:
-		toExpand = string(t)
-	default:
-		dataBytes, err := renderer.ToYamlBytes(rawData)
-		if err != nil {
-			return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
-		}
-		toExpand = string(dataBytes)
+	bytesToExpand, err := yamlhelper.ToYamlBytes(rawData)
+	if err != nil {
+		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
 	}
 
+	toExpand := string(bytesToExpand)
 	parser := syntax.NewParser(
 		syntax.Variant(syntax.LangBash),
 	)

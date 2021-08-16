@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 
 	"github.com/google/uuid"
 )

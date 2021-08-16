@@ -142,7 +142,7 @@ func Prepare(s Spec) (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-// Do execute command directly in host
+// Do execute command directly in local host
 func Do(s Spec) (*Cmd, error) {
 	cmd, err := Prepare(s)
 	if err != nil {

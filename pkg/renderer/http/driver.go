@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
@@ -61,7 +62,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		url = string(t)
 		client = d.defaultClient
 	default:
-		rawBytes, err := renderer.ToYamlBytes(rawData)
+		rawBytes, err := yamlhelper.ToYamlBytes(rawData)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unexpected non yaml input: %w", DefaultName, err,

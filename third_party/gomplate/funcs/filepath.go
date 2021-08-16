@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 var (

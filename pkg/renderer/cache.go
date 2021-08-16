@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"arhat.dev/pkg/hashhelper"
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 	lru "github.com/die-net/lrucache"
 
@@ -59,7 +59,7 @@ func CreateRefreshFuncForRemote(
 	doRemoteFetch CacheRefreshFunc,
 ) CacheRefreshFunc {
 	return func(key string) ([]byte, error) {
-		localCacheFilePrefix := hex.EncodeToString(hashhelper.MD5Sum([]byte(key)))
+		localCacheFilePrefix := hex.EncodeToString(md5helper.Sum([]byte(key)))
 
 		// find from local cache
 		// ${DUKKHA_CACHE_DIR}/renderer-<rendererName>/<md5sum(key)>-<unix-timestamp>

@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hairyhenderson/gomplate/v3/base64"
-	"github.com/hairyhenderson/gomplate/v3/conv"
+	"arhat.dev/dukkha/third_party/gomplate/base64"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 var (

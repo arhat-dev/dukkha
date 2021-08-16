@@ -8,9 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
-	iconv "github.com/hairyhenderson/gomplate/v3/internal/conv"
-	"github.com/hairyhenderson/gomplate/v3/random"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
+	iconv "arhat.dev/dukkha/third_party/gomplate/internal/conv"
+	"arhat.dev/dukkha/third_party/gomplate/random"
 )
 
 var (

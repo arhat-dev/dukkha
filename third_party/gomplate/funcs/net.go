@@ -5,8 +5,8 @@ import (
 	stdnet "net"
 	"sync"
 
-	"github.com/hairyhenderson/gomplate/v3/conv"
-	"github.com/hairyhenderson/gomplate/v3/net"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
+	"arhat.dev/dukkha/third_party/gomplate/net"
 )
 
 var (
