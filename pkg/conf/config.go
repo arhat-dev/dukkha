@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/rshelper"
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -36,9 +37,7 @@ import (
 )
 
 func NewConfig() *Config {
-	cfg := rs.Init(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
-	rs.InitRecursively(reflect.ValueOf(cfg), dukkha.GlobalInterfaceTypeHandler)
-	return cfg
+	return rshelper.InitAll(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
 }
 
 type GlobalConfig struct {
@@ -55,10 +54,10 @@ type GlobalConfig struct {
 	Values dukkha.ArbitraryValues `yaml:"values"`
 }
 
-func (g *GlobalConfig) Merge(a *GlobalConfig) {
+func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 	err := g.BaseField.Inherit(&a.BaseField)
 	if err != nil {
-		panic(fmt.Errorf("failed to inherit other global config: %w", err))
+		return fmt.Errorf("failed to inherit other global config: %w", err)
 	}
 
 	g.Env = append(g.Env, a.Env...)
@@ -72,8 +71,10 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) {
 
 	err = g.Values.ShallowMerge(&a.Values)
 	if err != nil {
-		panic(fmt.Errorf("failed to merge global values: %w", err))
+		return fmt.Errorf("failed to merge global values: %w", err)
 	}
+
+	return nil
 }
 
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
@@ -114,18 +115,48 @@ type Config struct {
 	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
 
 	// Language or tool specific tools
-	Tools map[string][]dukkha.Tool `yaml:"tools"`
+	Tools Tools `yaml:"tools"`
 
 	Tasks map[string][]dukkha.Task `rs:"other"`
 }
 
-func (c *Config) Merge(a *Config) {
-	err := c.BaseField.Inherit(&a.BaseField)
+var _ yaml.Unmarshaler = (*Tools)(nil)
+
+type Tools struct {
+	rs.BaseField
+
+	Data map[string][]dukkha.Tool `rs:"other"`
+}
+
+func (m *Tools) Merge(a *Tools) error {
+	err := m.BaseField.Inherit(&a.BaseField)
 	if err != nil {
-		panic(fmt.Errorf("failed to inherit other top level base field: %w", err))
+		return fmt.Errorf("failed to inherit other tools config: %w", err)
 	}
 
-	c.Global.Merge(&a.Global)
+	if len(a.Data) != 0 {
+		if m.Data == nil {
+			m.Data = make(map[string][]dukkha.Tool)
+		}
+
+		for k := range a.Data {
+			m.Data[k] = append(m.Data[k], a.Data[k]...)
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) Merge(a *Config) error {
+	err := c.BaseField.Inherit(&a.BaseField)
+	if err != nil {
+		return fmt.Errorf("failed to inherit other top level base field: %w", err)
+	}
+
+	err = c.Global.Merge(&a.Global)
+	if err != nil {
+		return err
+	}
 
 	c.Shells = append(c.Shells, a.Shells...)
 
@@ -138,14 +169,9 @@ func (c *Config) Merge(a *Config) {
 		}
 	}
 
-	if len(a.Tools) != 0 {
-		if c.Tools == nil {
-			c.Tools = make(map[string][]dukkha.Tool)
-		}
-
-		for k := range a.Tools {
-			c.Tools[k] = append(c.Tools[k], a.Tools[k]...)
-		}
+	err = c.Tools.Merge(&a.Tools)
+	if err != nil {
+		return err
 	}
 
 	if len(a.Tasks) != 0 {
@@ -157,6 +183,8 @@ func (c *Config) Merge(a *Config) {
 			c.Tasks[k] = append(c.Tasks[k], a.Tasks[k]...)
 		}
 	}
+
+	return nil
 }
 
 // Resolve resolves all top level dukkha config
@@ -343,8 +371,8 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		)
 	}
 
-	logger.V("resolving tools", log.Int("count", len(c.Tools)))
-	for tk, toolSet := range c.Tools {
+	logger.V("resolving tools", log.Int("count", len(c.Tools.Data)))
+	for tk, toolSet := range c.Tools.Data {
 		toolKind := dukkha.ToolKind(tk)
 
 		visited := make(map[dukkha.ToolName]struct{})
@@ -416,7 +444,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				)
 			}
 
-			appCtx.AddTool(key, c.Tools[string(toolKind)][i])
+			appCtx.AddTool(key, c.Tools.Data[string(toolKind)][i])
 		}
 	}
 
