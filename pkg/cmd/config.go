@@ -36,7 +36,10 @@ func readAndMergeConfigFile(
 
 	log.Log.V("config unmarshaled", log.String("file", file), log.Any("config", current))
 
-	mergedConfig.Merge(current)
+	err = mergedConfig.Merge(current)
+	if err != nil {
+		return fmt.Errorf("failed to merge config file %q: %w", file, err)
+	}
 
 	for _, inc := range current.Include {
 		log.Log.V("working on include entry", log.String("value", inc))
