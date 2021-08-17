@@ -13,7 +13,7 @@ github:release:
         openssl dgst -sha512 dukkha.* > sha512.txt
         openssl dgst -md5 dukkha.* > md5.txt
   draft: true
-  tag: ${GIT_TAG}
+  tag@env: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
   notes@file|template: scripts/dukkha/release-notes.md
