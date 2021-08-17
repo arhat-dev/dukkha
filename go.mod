@@ -28,7 +28,6 @@ require (
 )
 
 replace (
-	arhat.dev/rs => arhat.dev/rs v0.1.0
 	github.com/BurntSushi/toml => github.com/BurntSushi/toml v0.4.1
 	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
 )
