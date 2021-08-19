@@ -31,11 +31,12 @@ var _ dukkha.Renderer = (*driver)(nil)
 type driver struct {
 	rs.BaseField
 
+	Hide bool `yaml:"hide"`
+
 	name string
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	ctx.AddRenderer(DefaultName, d)
 	return nil
 }
 
@@ -46,8 +47,13 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	}
 
 	fmt.Print(string(promptBytes))
-	ret, err := term.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Println()
+	if d.Hide {
+		ret, err := term.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Println()
+		return ret, err
+	}
 
+	ret, err := readline(os.Stdin)
+	fmt.Println()
 	return ret, err
 }
