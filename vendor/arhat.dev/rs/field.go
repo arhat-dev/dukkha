@@ -471,6 +471,11 @@ func (f *BaseField) unmarshal(
 	outVal reflect.Value,
 	keepOld bool,
 ) error {
+	if in == nil {
+		outVal.Set(reflect.Zero(outVal.Type()))
+		return nil
+	}
+
 	for outVal.Kind() == reflect.Ptr {
 		// we are trying to set value of it, so init it when not set
 		if outVal.IsZero() {
