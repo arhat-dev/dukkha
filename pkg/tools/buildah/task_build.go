@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -86,7 +85,7 @@ func (c *TaskBuild) createExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
 	dukkhaCacheDir := rc.CacheDir()
-	tmpImageIDFile, err := ioutil.TempFile(dukkhaCacheDir, "buildah-build-image-id-*")
+	tmpImageIDFile, err := os.CreateTemp(dukkhaCacheDir, "buildah-build-image-id-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
 	}

@@ -2,7 +2,7 @@ package github
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -79,7 +79,7 @@ func (c *TaskRelease) GetExecSpecs(
 
 		if len(c.Notes) != 0 {
 			cacheDir := rc.CacheDir()
-			f, err := ioutil.TempFile(cacheDir, "github-release-note-*")
+			f, err := os.CreateTemp(cacheDir, "github-release-note-*")
 			if err != nil {
 				return fmt.Errorf("failed to create temporary release note file: %w", err)
 			}

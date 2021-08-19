@@ -8,10 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"arhat.dev/pkg/md5helper"
 	"github.com/stretchr/testify/assert"
 	"mvdan.cc/sh/v3/syntax"
-
-	"arhat.dev/pkg/md5helper"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
