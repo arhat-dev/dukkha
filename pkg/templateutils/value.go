@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 )
 
 func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {

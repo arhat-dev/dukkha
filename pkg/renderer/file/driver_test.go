@@ -3,7 +3,6 @@ package file
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -26,7 +25,7 @@ func TestDriver_Render(t *testing.T) {
 	randomData := hex.EncodeToString(buf)
 	expectedData := "Test DUKKHA File Renderer " + randomData
 
-	tempFile, err := ioutil.TempFile(os.TempDir(), "dukkha-test-*")
+	tempFile, err := os.CreateTemp(os.TempDir(), "dukkha-test-*")
 	if !assert.NoError(t, err, "failed to create temp file") {
 		return
 	}

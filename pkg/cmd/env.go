@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -120,7 +120,7 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 			Context: ctx,
 			Command: e.command,
 			Stdout:  buf,
-			Stderr:  ioutil.Discard,
+			Stderr:  io.Discard,
 		})
 		if err2 != nil {
 			result[e.name] = e.onError()

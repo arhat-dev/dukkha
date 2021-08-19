@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -109,10 +108,25 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 			return nil
 		},
 		ProcSubst: nil,
-		ReadDir:   ioutil.ReadDir,
-		GlobStar:  true,
-		NullGlob:  true,
-		NoUnset:   true,
+		ReadDir: func(s string) ([]os.FileInfo, error) {
+			ents, err2 := os.ReadDir(s)
+			if err2 != nil {
+				return nil, err2
+			}
+
+			ret := make([]os.FileInfo, len(ents))
+			for i, e := range ents {
+				ret[i], err2 = e.Info()
+				if err2 != nil {
+					return nil, err2
+				}
+			}
+
+			return ret, nil
+		},
+		GlobStar: true,
+		NullGlob: true,
+		NoUnset:  true,
 	},
 		word,
 	)

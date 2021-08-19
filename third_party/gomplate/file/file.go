@@ -2,14 +2,13 @@
 package file
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/pkg/errors"
-
 	"github.com/spf13/afero"
 )
 
@@ -24,7 +23,7 @@ func Read(filename string) (string, error) {
 	}
 	// nolint: errcheck
 	defer inFile.Close()
-	bytes, err := ioutil.ReadAll(inFile)
+	bytes, err := io.ReadAll(inFile)
 	if err != nil {
 		err = errors.Wrapf(err, "read failed for %s", filename)
 		return "", err
