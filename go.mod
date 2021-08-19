@@ -14,15 +14,16 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.4
+	github.com/minio/minio-go/v7 v7.0.12
 	github.com/muesli/termenv v0.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
-	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-	golang.org/x/sys v0.0.0-20210816074244-15123e1e1f71
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
+	golang.org/x/sys v0.0.0-20210819072135-bce67f096156
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	mvdan.cc/sh/v3 v3.3.1
