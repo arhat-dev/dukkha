@@ -3,12 +3,13 @@ package s3
 import (
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 )
 
 // nolint:revive
