@@ -23,3 +23,6 @@ install.fuzz:
 
 test.fuzz:
 	sh scripts/fuzz.sh run
+
+test.unit:
+	dukkha golang local test rs

@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.6.0
-	arhat.dev/rs v0.1.0
+	arhat.dev/rs v0.1.1
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -28,6 +28,6 @@ require (
 )
 
 replace (
-	github.com/BurntSushi/toml => github.com/BurntSushi/toml v0.4.1
+	arhat.dev/rs => arhat.dev/rs v0.1.1
 	github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210531091229-b834701fbcc6
 )

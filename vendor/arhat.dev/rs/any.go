@@ -27,7 +27,7 @@ type AnyObject struct {
 
 	// TODO: currently there is no way to support rendering suffix
 	// 	     for array object
-	arrayData []*AnyObject
+	sliceData []*AnyObject
 
 	scalarData interface{}
 }
@@ -36,8 +36,8 @@ func (o *AnyObject) Value() interface{} {
 	switch {
 	case o.mapData != nil:
 		return o.mapData
-	case o.arrayData != nil:
-		return o.arrayData
+	case o.sliceData != nil:
+		return o.sliceData
 	default:
 		return o.scalarData
 	}
@@ -49,7 +49,7 @@ func (o *AnyObject) MarshalJSON() ([]byte, error)      { return json.Marshal(o.V
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 	switch n.Kind {
 	case yaml.SequenceNode:
-		return n.Decode(&o.arrayData)
+		return n.Decode(&o.sliceData)
 	case yaml.MappingNode:
 		o.mapData = Init(&mapData{}, nil).(*mapData)
 		return n.Decode(o.mapData)
@@ -63,8 +63,8 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 		return o.mapData.ResolveFields(rc, depth, fieldNames...)
 	}
 
-	if o.arrayData != nil {
-		for _, v := range o.arrayData {
+	if o.sliceData != nil {
+		for _, v := range o.sliceData {
 			err := v.ResolveFields(rc, depth, fieldNames...)
 			if err != nil {
 				return err
