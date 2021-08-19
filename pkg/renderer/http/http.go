@@ -24,14 +24,26 @@ func init() {
 	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault() dukkha.Renderer {
-	return &driver{CacheConfig: renderer.CacheConfig{EnableCache: true}}
+func NewDefault(name string) dukkha.Renderer {
+	if len(name) != 0 {
+		name = DefaultName + ":" + name
+	} else {
+		name = DefaultName
+	}
+
+	return &driver{
+		name: name,
+		CacheConfig: renderer.CacheConfig{
+			EnableCache: true,
+		},
+	}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	rs.BaseField
+	name string
 
 	renderer.CacheConfig `yaml:",inline"`
 
@@ -75,7 +87,7 @@ func (d *driver) RenderYaml(
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unexpected non yaml input: %w",
-				DefaultName, err,
+				d.name, err,
 			)
 		}
 
@@ -84,7 +96,7 @@ func (d *driver) RenderYaml(
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: failed to unmarshal input as config: %w",
-				DefaultName, err,
+				d.name, err,
 			)
 		}
 
@@ -92,7 +104,7 @@ func (d *driver) RenderYaml(
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: failed to resolve input config: %w",
-				DefaultName, err,
+				d.name, err,
 			)
 		}
 
@@ -103,7 +115,7 @@ func (d *driver) RenderYaml(
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: failed to create http client for spec: %w",
-				DefaultName, err,
+				d.name, err,
 			)
 		}
 
@@ -133,7 +145,7 @@ func (d *driver) RenderYaml(
 	if err != nil {
 		return nil, fmt.Errorf(
 			"renderer.%s failed to fetch http content: %w",
-			DefaultName, err,
+			d.name, err,
 		)
 	}
 

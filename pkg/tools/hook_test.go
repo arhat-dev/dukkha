@@ -45,7 +45,7 @@ func TestHookFixtures(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.AddRenderer("env", env.NewDefault())
+			ctx.AddRenderer("env", env.NewDefault(""))
 			ctx.AddEnv(true, test.env...)
 
 			actual := rs.Init(&Action{}, nil).(*Action)

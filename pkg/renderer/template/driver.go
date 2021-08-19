@@ -20,14 +20,24 @@ func init() {
 	)
 }
 
-func NewDefault() dukkha.Renderer {
-	return &driver{}
+func NewDefault(name string) dukkha.Renderer {
+	if len(name) != 0 {
+		name = DefaultName + ":" + name
+	} else {
+		name = DefaultName
+	}
+
+	return &driver{
+		name: name,
+	}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	rs.BaseField
+
+	name string
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
@@ -37,19 +47,28 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	tplBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: unsupported input type %T: %w",
+			d.name, rawData, err,
+		)
 	}
 
 	tplStr := string(tplBytes)
 	tpl, err := templateutils.CreateTemplate(rc).Parse(tplStr)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: failed to parse template \n\n%s\n\n %w", DefaultName, tplStr, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: failed to parse template \n\n%s\n\n %w",
+			d.name, tplStr, err,
+		)
 	}
 
 	buf := &bytes.Buffer{}
 	err = tpl.Execute(buf, rc)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: failed to execute template \n\n%s\n\n %w", DefaultName, tplStr, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: failed to execute template \n\n%s\n\n %w",
+			d.name, tplStr, err,
+		)
 	}
 
 	return buf.Bytes(), nil

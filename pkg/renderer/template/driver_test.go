@@ -7,5 +7,5 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	assert.NotNil(t, NewDefault())
+	assert.NotNil(t, NewDefault(""))
 }

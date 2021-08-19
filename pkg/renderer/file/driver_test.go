@@ -11,11 +11,11 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	assert.NotNil(t, NewDefault())
+	assert.NotNil(t, NewDefault(""))
 }
 
 func TestDriver_Render(t *testing.T) {
-	d := NewDefault()
+	d := NewDefault("")
 
 	buf := make([]byte, 32)
 	_, err := rand.Read(buf)

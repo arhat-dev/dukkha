@@ -11,13 +11,13 @@ import (
 )
 
 func TestNewDriver(t *testing.T) {
-	ret := NewDefault()
+	ret := NewDefault("")
 
 	assert.NotNil(t, ret)
 }
 
 func TestDriver_Render(t *testing.T) {
-	d := NewDefault().(*driver)
+	d := NewDefault("").(*driver)
 
 	rv := dukkha_test.NewTestContext(context.TODO())
 	rv.AddEnv(true, &dukkha.EnvEntry{

@@ -60,7 +60,7 @@ type EnvEntry struct {
 }
 
 type (
-	RendererCreateFunc func() Renderer
+	RendererCreateFunc func(name string) Renderer
 
 	ToolCreateFunc func() Tool
 	TaskCreateFunc func(toolName string) Task
@@ -86,9 +86,13 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 
 	globalTypeManager.register(
 		rendererType,
-		regexp.MustCompile(fmt.Sprintf(`^%s$`, name)),
+		regexp.MustCompile(fmt.Sprintf(`^%s(:.+){0,1}$`, name)),
 		func(subMatches []string) interface{} {
-			return create()
+			if len(subMatches) > 1 {
+				return create(subMatches[1])
+			}
+
+			return create("")
 		},
 	)
 }
