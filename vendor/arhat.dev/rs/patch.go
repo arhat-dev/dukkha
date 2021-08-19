@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/yaml.v3"
-
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"gopkg.in/yaml.v3"
 )
 
 type MergeSource struct {
@@ -16,16 +15,16 @@ type MergeSource struct {
 	Data interface{} `yaml:"data,omitempty"`
 }
 
-type PatchSpec struct {
+type renderingPatchSpec struct {
 	BaseField
 
 	// Value for the renderer
 	//
-	// 	say we have a yaml list ([bar]) stored at https://example.com/dukkha.yaml
+	// 	say we have a yaml list ([bar]) stored at https://example.com/bar.yaml
 	//
 	// 		foo@http!:
-	// 		  value: https://example.com/dukkha.yaml
-	// 		  merge: [foo]
+	// 		  value: https://example.com/bar.yaml
+	// 		  merge: { data: [foo] }
 	//
 	// then the resolve value of foo will be [bar, foo]
 	Value *alterInterface `yaml:"value"`
@@ -49,7 +48,7 @@ type PatchSpec struct {
 	MapListAppend bool `yaml:"map_list_append"`
 }
 
-func (s *PatchSpec) merge(yamlData []byte) (interface{}, error) {
+func (s *renderingPatchSpec) merge(yamlData []byte) (interface{}, error) {
 	var data interface{}
 	if len(yamlData) != 0 {
 		err := yaml.Unmarshal(yamlData, &data)
@@ -69,7 +68,7 @@ doMerge:
 				dt = append(dt, mt...)
 
 				if s.Unique {
-					dt = uniqueList(dt)
+					dt = UniqueList(dt)
 				}
 			case nil:
 				// no value to merge, skip
@@ -118,7 +117,7 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *PatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
+func (s *renderingPatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
 	data, err := s.merge(yamlData)
 	if err != nil {
 		return nil, err
@@ -191,7 +190,7 @@ func MergeMap(
 					}
 
 					if uniqueInListItems {
-						originalList = uniqueList(originalList)
+						originalList = UniqueList(originalList)
 					}
 
 					out[k] = originalList
@@ -211,7 +210,7 @@ func MergeMap(
 	return out, nil
 }
 
-func uniqueList(dt []interface{}) []interface{} {
+func UniqueList(dt []interface{}) []interface{} {
 	var ret []interface{}
 	dupAt := make(map[int]struct{})
 	for i := range dt {

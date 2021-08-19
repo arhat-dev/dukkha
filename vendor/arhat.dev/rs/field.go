@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// TODO: make field name as key
 	unresolvedFieldKey struct {
 		// NOTE: put `suffix` and `yamlKey` in key is to support fields with
 		// 		 `rs:"other"` field tag, each item should be able
@@ -123,7 +124,7 @@ func (f *BaseField) Inherit(b *BaseField) error {
 		case existingV.fieldName != v.fieldName,
 			existingV.isCatchOtherField != v.isCatchOtherField:
 			return fmt.Errorf(
-				"invalid not match for same target, want %q, got %q",
+				"rs: invalid field not match, want %q, got %q",
 				existingV.fieldName, v.fieldName,
 			)
 		}
@@ -159,7 +160,16 @@ func (f *BaseField) Inherit(b *BaseField) error {
 // nolint:gocyclo
 func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
-		return fmt.Errorf("field unmarshal: struct not intialized with Init()")
+		return fmt.Errorf("rs: struct not intialized before unmarshaling")
+	}
+
+	parentStructType := f._parentValue.Type()
+
+	if n.Kind != yaml.MappingNode {
+		return fmt.Errorf(
+			"rs: unexpected non map data %q for struct %q unmarshaling",
+			n.Tag, parentStructType.String(),
+		)
 	}
 
 	type fieldKey struct {
@@ -175,7 +185,6 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	fields := make(map[fieldKey]*fieldSpec)
-	pt := f._parentValue.Type()
 
 	addField := func(
 		yamlKey, fieldName string,
@@ -206,14 +215,16 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 	// get expected fields first, skip the first field (the BaseField itself)
 fieldLoop:
-	for i := 1; i < pt.NumField(); i++ {
-		fieldType := pt.Field(i)
+	for i := 1; i < parentStructType.NumField(); i++ {
+		sf := parentStructType.Field(i)
 		fieldValue := f._parentValue.Field(i)
 
 		// initialize struct fields accepted by Init(), in case being used later
+		// DO NOT USE tryInit, that will only init current field, which will cause
+		// error when user try to resolve data not unmarshaled from yaml
 		InitRecursively(fieldValue, f.ifaceTypeHandler)
 
-		yTags := strings.Split(fieldType.Tag.Get("yaml"), ",")
+		yTags := strings.Split(sf.Tag.Get("yaml"), ",")
 
 		// check if ignored
 		for _, t := range yTags {
@@ -226,10 +237,10 @@ fieldLoop:
 		// get yaml field name
 		yamlKey := yTags[0]
 		if len(yamlKey) != 0 {
-			if !addField(yamlKey, fieldType.Name, fieldValue, f) {
+			if !addField(yamlKey, sf.Name, fieldValue, f) {
 				return fmt.Errorf(
-					"field: duplicate yaml key %q in %s",
-					yamlKey, pt.String(),
+					"rs: duplicate yaml key %q for %s.%s",
+					yamlKey, parentStructType.String(), sf.Name,
 				)
 			}
 		}
@@ -238,14 +249,14 @@ fieldLoop:
 		for _, t := range yTags[1:] {
 			switch t {
 			case "inline":
-				kind := fieldType.Type.Kind()
+				kind := sf.Type.Kind()
 				switch {
 				case kind == reflect.Struct:
-				case kind == reflect.Ptr && fieldType.Type.Elem().Kind() == reflect.Struct:
+				case kind == reflect.Ptr && sf.Type.Elem().Kind() == reflect.Struct:
 				default:
 					return fmt.Errorf(
-						"field: inline tag applied to non struct nor pointer field %s.%s",
-						pt.String(), fieldType.Name,
+						"rs: inline tag applied to non struct nor pointer field %s.%s",
+						parentStructType.String(), sf.Name,
 					)
 				}
 
@@ -294,8 +305,8 @@ fieldLoop:
 
 					if !addField(innerYamlKey, innerFt.Name, innerFv, base) {
 						return fmt.Errorf(
-							"field: duplicate yaml key %q in inline field %s of %s",
-							innerYamlKey, innerFt.Name, pt.String(),
+							"rs: duplicate yaml key %q in inline field %s of %s",
+							innerYamlKey, innerFt.Name, parentStructType.String(),
 						)
 					}
 				}
@@ -305,7 +316,7 @@ fieldLoop:
 		}
 
 		// rs tag is used to extend yaml tag
-		dTags := strings.Split(fieldType.Tag.Get(TagNameRS), ",")
+		dTags := strings.Split(sf.Tag.Get(TagNameRS), ",")
 		for _, t := range dTags {
 			switch t {
 			case "other":
@@ -314,13 +325,13 @@ fieldLoop:
 
 				if catchOtherField != nil {
 					return fmt.Errorf(
-						"field: bad field tags in %s: only one map in a struct can have `rs:\"other\"` tag",
-						pt.String(),
+						"rs: bad field tags in %s: only one map in a struct can have `rs:\"other\"` tag",
+						parentStructType.String(),
 					)
 				}
 
 				catchOtherField = &fieldSpec{
-					fieldName:  fieldType.Name,
+					fieldName:  sf.Name,
 					fieldValue: fieldValue,
 					base:       f,
 
@@ -328,35 +339,28 @@ fieldLoop:
 				}
 			case "":
 			default:
-				return fmt.Errorf("field: unknown dukkha tag value %q", t)
+				return fmt.Errorf("rs: unknown rs tag value %q", t)
 			}
 		}
-	}
-
-	switch n.Kind {
-	case yaml.MappingNode:
-	default:
-		return fmt.Errorf("field: unsupported yaml tag %q when handling %s", n.Tag, pt.String())
 	}
 
 	m := make(map[string]*alterInterface)
 	err := n.Decode(&m)
 	if err != nil {
-		return fmt.Errorf("field: data unmarshal failed for %s: %w", pt.String(), err)
+		return fmt.Errorf("rs: data unmarshal failed for %s: %w", parentStructType.String(), err)
 	}
 
 	handledYamlValues := make(map[string]struct{})
 	// handle rendering suffix
 	for rawYamlKey, v := range m {
+		suffixAt := strings.LastIndexByte(rawYamlKey, '@')
 		yamlKey := rawYamlKey
-
-		parts := strings.SplitN(rawYamlKey, "@", 2)
-		if len(parts) == 1 {
+		if suffixAt == -1 {
 			// no rendering suffix, fill value
 
 			if _, ok := handledYamlValues[yamlKey]; ok {
 				return fmt.Errorf(
-					"field: duplicate yaml field name %q",
+					"rs: duplicate yaml field %q",
 					yamlKey,
 				)
 			}
@@ -366,7 +370,10 @@ fieldLoop:
 			fSpec := getField(yamlKey)
 			if fSpec == nil {
 				if catchOtherField == nil {
-					return fmt.Errorf("field: unknown yaml field %q for %s", yamlKey, pt.String())
+					return fmt.Errorf(
+						"rs: unknown yaml field %q in %s",
+						yamlKey, parentStructType.String(),
+					)
 				}
 
 				fSpec = catchOtherField
@@ -382,8 +389,8 @@ fieldLoop:
 			)
 			if err != nil {
 				return fmt.Errorf(
-					"field: failed to unmarshal yaml field %q to struct field %q: %w",
-					yamlKey, fSpec.fieldName, err,
+					"rs: failed to unmarshal yaml field %q to struct field %s.%s: %w",
+					yamlKey, parentStructType.String(), fSpec.fieldName, err,
 				)
 			}
 
@@ -392,20 +399,23 @@ fieldLoop:
 
 		// has rendering suffix
 
-		yamlKey, suffix := parts[0], parts[1]
+		yamlKey, suffix := rawYamlKey[:suffixAt], rawYamlKey[suffixAt+1:]
 
 		if _, ok := handledYamlValues[yamlKey]; ok {
 			return fmt.Errorf(
-				"field: duplicate yaml field name %q, please note"+
+				"rs: duplicate yaml field name %q for %s, please note"+
 					" rendering suffix won't change the field name",
-				yamlKey,
+				yamlKey, parentStructType.String(),
 			)
 		}
 
 		fSpec := getField(yamlKey)
 		if fSpec == nil {
 			if catchOtherField == nil {
-				return fmt.Errorf("field: unknown yaml field %q for %s", yamlKey, pt.String())
+				return fmt.Errorf(
+					"rs: unknown yaml field %q for %s",
+					yamlKey, parentStructType.String(),
+				)
 			}
 
 			fSpec = catchOtherField
@@ -417,7 +427,7 @@ fieldLoop:
 		}
 
 		// do not unmarshal now, we will render the value
-		// and unmarshal at runtime
+		// and unmarshal when calling ResolveFields
 
 		handledYamlValues[yamlKey] = struct{}{}
 		// don't forget the raw name with rendering suffix
@@ -446,8 +456,8 @@ fieldLoop:
 	sort.Strings(unknownFields)
 
 	return fmt.Errorf(
-		"field: unknown yaml fields for %s: %s",
-		pt.String(), strings.Join(unknownFields, ", "),
+		"rs: unknown yaml fields to %s: %s",
+		parentStructType.String(), strings.Join(unknownFields, ", "),
 	)
 }
 
@@ -498,7 +508,12 @@ func (f *BaseField) unmarshal(
 
 			return f.unmarshalRaw(in, outVal)
 		default:
-			outVal.Set(reflect.ValueOf(in.Value()))
+			val := reflect.ValueOf(in.Value())
+			if err := checkAssignable(yamlKey, val, outVal); err != nil {
+				return err
+			}
+
+			outVal.Set(val)
 		}
 		return nil
 	}
@@ -506,6 +521,16 @@ func (f *BaseField) unmarshal(
 
 // unmarshalRaw unmarshals interface{} type value to outVal
 func (f *BaseField) unmarshalRaw(in *alterInterface, outVal reflect.Value) error {
+	tryInit(outVal, f.ifaceTypeHandler)
+
+	dataBytes, err := yaml.Marshal(in)
+	if err != nil {
+		return fmt.Errorf(
+			"rs: failed to marshal back yaml for %q: %w",
+			outVal.String(), err,
+		)
+	}
+
 	var out interface{}
 	if outVal.Kind() != reflect.Ptr {
 		out = outVal.Addr().Interface()
@@ -513,22 +538,11 @@ func (f *BaseField) unmarshalRaw(in *alterInterface, outVal reflect.Value) error
 		out = outVal.Interface()
 	}
 
-	fVal, canCallInit := out.(Field)
-	if canCallInit {
-		_ = Init(fVal, f.ifaceTypeHandler)
-	}
-
-	dataBytes, err := yaml.Marshal(in)
-	if err != nil {
-		return fmt.Errorf("field: failed to marshal back yaml for %q: %w", outVal.String(), err)
-	}
-
 	err = yaml.Unmarshal(dataBytes, out)
 	if err != nil {
 		return err
 	}
 
-	_ = tryInit(outVal, f.ifaceTypeHandler)
 	return nil
 }
 
@@ -551,10 +565,18 @@ func (f *BaseField) unmarshalInterface(
 			return false, nil
 		}
 
-		return true, fmt.Errorf("failed to create interface field: %w", err)
+		return true, fmt.Errorf(
+			"failed to create interface field: %w",
+			err,
+		)
 	}
 
 	val := reflect.ValueOf(fVal)
+
+	if err := checkAssignable(yamlKey, val, outVal); err != nil {
+		return true, err
+	}
+
 	if outVal.CanSet() {
 		outVal.Set(val)
 	} else {
@@ -567,14 +589,17 @@ func (f *BaseField) unmarshalInterface(
 
 func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal reflect.Value) error {
 	if in.sliceData == nil && in.Value() != nil {
-		return fmt.Errorf("unexpected non array data for %q", outVal.String())
+		return fmt.Errorf(
+			"unexpected non array data of yaml field %q for %s",
+			yamlKey, outVal.Type().String(),
+		)
 	}
 
 	size := len(in.sliceData)
 	if size != outVal.Len() {
 		return fmt.Errorf(
-			"array size not match for %q: want %d got %d",
-			outVal.String(), outVal.Len(), size,
+			"array size not match for %s: want %d got %d",
+			outVal.Type().String(), outVal.Len(), size,
 		)
 	}
 
@@ -588,7 +613,10 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal re
 			false,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
+			return fmt.Errorf(
+				"failed to unmarshal #%d array item of yaml field %q for %s: %w",
+				i, yamlKey, outVal.Type().String(), err,
+			)
 		}
 	}
 
@@ -597,7 +625,10 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *alterInterface, outVal re
 
 func (f *BaseField) unmarshalSlice(yamlKey string, in *alterInterface, outVal reflect.Value, keepOld bool) error {
 	if in.sliceData == nil && in.Value() != nil {
-		return fmt.Errorf("unexpected non slice data for %q", outVal.String())
+		return fmt.Errorf(
+			"unexpected non slice data of yaml field %q for %s",
+			yamlKey, outVal.Type().String(),
+		)
 	}
 
 	size := len(in.sliceData)
@@ -613,8 +644,15 @@ func (f *BaseField) unmarshalSlice(yamlKey string, in *alterInterface, outVal re
 			false,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal slice item %s: %w", itemVal.Type().String(), err)
+			return fmt.Errorf(
+				"failed to unmarshal #%d slice item of yaml field %q for %s: %w",
+				i, yamlKey, outVal.Type().String(), err,
+			)
 		}
+	}
+
+	if err := checkAssignable(yamlKey, sliceVal, outVal); err != nil {
+		return err
 	}
 
 	if outVal.IsZero() || !keepOld {
@@ -628,7 +666,10 @@ func (f *BaseField) unmarshalSlice(yamlKey string, in *alterInterface, outVal re
 
 func (f *BaseField) unmarshalMap(yamlKey string, in *alterInterface, outVal reflect.Value, keepOld bool) error {
 	if in.mapData == nil && in.Value() != nil {
-		return fmt.Errorf("unexpected non map value for %q", outVal.String())
+		return fmt.Errorf(
+			"unexpected non map data of yaml field %q for %s",
+			yamlKey, outVal.Type().String(),
+		)
 	}
 
 	// map key MUST be string
@@ -669,10 +710,7 @@ func (f *BaseField) unmarshalMap(yamlKey string, in *alterInterface, outVal refl
 			// use k rather than `yamlKey`
 			// because it can be the field catching other
 			// (field tag: `rs:"other"`)
-			k,
-			v,
-			val,
-			keepOld,
+			k, v, val, keepOld,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
@@ -681,6 +719,17 @@ func (f *BaseField) unmarshalMap(yamlKey string, in *alterInterface, outVal refl
 		}
 
 		outVal.SetMapIndex(reflect.ValueOf(k), val.Elem())
+	}
+
+	return nil
+}
+
+func checkAssignable(yamlKey string, in, out reflect.Value) error {
+	if !in.Type().AssignableTo(out.Type()) {
+		return fmt.Errorf(
+			"unexpected value of yaml field %s: want %s, got %s",
+			yamlKey, out.Type().String(), in.Type().String(),
+		)
 	}
 
 	return nil

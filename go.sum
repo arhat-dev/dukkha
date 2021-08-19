@@ -1,7 +1,7 @@
 arhat.dev/pkg v0.6.0 h1:2q7ZEtSnZqufnMHIlfUxSYcoUCCzNijpz6TTM9AVZ5M=
 arhat.dev/pkg v0.6.0/go.mod h1:/HJ2qzos5IN8anZgIzFfmfx6mW+tyBcG+gCtrfhzUkY=
-arhat.dev/rs v0.1.0 h1:U/hA14g4IqAIUKAjf6UDF6CpVDyb8AUlGceT8Uvjauk=
-arhat.dev/rs v0.1.0/go.mod h1:D4bmMd7Z8AkXCL9ykEogjMVY9s/Sq94rdNsgmwHnSJE=
+arhat.dev/rs v0.1.1 h1:buACs+fLXg0cI4JE6+SyWInrA3XwIp/VtCmHAFqLX/o=
+arhat.dev/rs v0.1.1/go.mod h1:D4bmMd7Z8AkXCL9ykEogjMVY9s/Sq94rdNsgmwHnSJE=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -41,7 +41,7 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
