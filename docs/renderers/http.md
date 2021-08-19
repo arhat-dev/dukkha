@@ -47,7 +47,7 @@ renderers:
 ## Supported value types
 
 - `string` of target url
-- yaml doc
+- yaml config
 
   ```yaml
   url: http://url.example
@@ -59,4 +59,4 @@ renderers:
 
 ## Suggested Use Cases
 
-Organization to share build receipes using certral http service
+Organization to share build recipes using certral http service
