@@ -33,6 +33,24 @@ __NOTE:__ You can find more source code usage examples in [`arhat-dev/dukkha`](h
 
 ## Known Limitations
 
+- Inline field marshaling issue, see [go-yaml/yaml#362](https://github.com/go-yaml/yaml/issues/362)
+  - Cause: rs.BaseField implemented `yaml.UnmarshalYAML`
+
+  Sample Code:
+
+  ```go
+  type A struct{
+    rs.BaseField
+  }
+
+  type B struct{
+    rs.BaseField
+
+    // UseA will not be marshaled
+    UseA A `yaml:",inline"`
+  }
+  ```
+
 - Built-in map data structure with rendering suffix applied to map key are not supported
 
   Sample Code:
