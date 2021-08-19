@@ -27,12 +27,6 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	if len(name) != 0 {
-		name = DefaultName + ":" + name
-	} else {
-		name = DefaultName
-	}
-
 	return &driver{
 		name: name,
 	}

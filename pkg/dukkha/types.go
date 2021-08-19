@@ -89,10 +89,10 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 		regexp.MustCompile(fmt.Sprintf(`^%s(:.+){0,1}$`, name)),
 		func(subMatches []string) interface{} {
 			if len(subMatches) > 1 {
-				return create(subMatches[1])
+				return create(name + ":" + subMatches[1])
 			}
 
-			return create("")
+			return create(name)
 		},
 	)
 }
