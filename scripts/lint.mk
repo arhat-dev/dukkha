@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RUN_LINTER := docker run -t --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)"
+DOCKER_CLI ?= docker
+RUN_LINTER := ${DOCKER_CLI} run --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)"
 
 lint.file:
 	${RUN_LINTER} ghcr.io/arhat-dev/editorconfig-checker:2.3 \
@@ -20,9 +21,10 @@ lint.file:
 
 lint.shell:
 	${RUN_LINTER} koalaman/shellcheck-alpine:stable \
-		sh -c "find . | grep -E -e '\.sh\$$' | \
-			grep -v vendor | grep -v \.git | \
-			xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
+		sh -c "find . \
+			| grep -E -e '\.sh\$$' \
+			| grep -v vendor | grep -v \.git \
+			| xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
 lint.go:
 	${RUN_LINTER} ghcr.io/arhat-dev/golangci-lint:1.41 \
