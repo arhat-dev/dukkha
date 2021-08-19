@@ -199,11 +199,11 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		// TODO: let user decide what renderers to use
 		// 		 resolve renderers first?
-		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault())
-		appCtx.AddRenderer(env.DefaultName, env.NewDefault())
-		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault())
-		appCtx.AddRenderer(template.DefaultName, template.NewDefault())
-		appCtx.AddRenderer(file.DefaultName, file.NewDefault())
+		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(""))
+		appCtx.AddRenderer(env.DefaultName, env.NewDefault(""))
+		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
+		appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
+		appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
 
 		essentialRenderers := appCtx.AllRenderers()
 		logger.D("initializing essential renderers",

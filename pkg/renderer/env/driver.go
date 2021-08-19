@@ -26,14 +26,24 @@ func init() {
 	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault() dukkha.Renderer {
-	return &driver{}
+func NewDefault(name string) dukkha.Renderer {
+	if len(name) != 0 {
+		name = DefaultName + ":" + name
+	} else {
+		name = DefaultName
+	}
+
+	return &driver{
+		name: name,
+	}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	rs.BaseField
+
+	name string
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
@@ -43,7 +53,10 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
 	bytesToExpand, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: unsupported input type %T: %w", DefaultName, rawData, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: unsupported input type %T: %w",
+			d.name, rawData, err,
+		)
 	}
 
 	toExpand := string(bytesToExpand)
@@ -55,7 +68,7 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	if err != nil {
 		return nil, fmt.Errorf(
 			"renderer.%s: invalid expansion text %q: %w",
-			DefaultName, toExpand, err,
+			d.name, toExpand, err,
 		)
 	}
 
@@ -64,7 +77,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		rc.WorkingDir(), rc, nil, embeddedShellOutput, os.Stderr,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: failed to create runner for env: %w", DefaultName, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: failed to create runner for env: %w",
+			d.name, err,
+		)
 	}
 
 	printer := syntax.NewPrinter(
@@ -108,7 +124,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: env expansion failed: %w", DefaultName, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: env expansion failed: %w",
+			d.name, err,
+		)
 	}
 
 	return []byte(result), nil

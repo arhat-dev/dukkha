@@ -19,14 +19,24 @@ func init() {
 	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault() dukkha.Renderer {
-	return &driver{}
+func NewDefault(name string) dukkha.Renderer {
+	if len(name) != 0 {
+		name = DefaultName + ":" + name
+	} else {
+		name = DefaultName
+	}
+
+	return &driver{
+		name: name,
+	}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	rs.BaseField
+
+	name string
 }
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
@@ -44,13 +54,19 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		for _, v := range t {
 			scriptBytes, err := yamlhelper.ToYamlBytes(v)
 			if err != nil {
-				return nil, fmt.Errorf("renderer.%s: unexpected list item type %T: %w", DefaultName, v, err)
+				return nil, fmt.Errorf(
+					"renderer.%s: unexpected list item type %T: %w",
+					d.name, v, err,
+				)
 			}
 
 			scripts = append(scripts, string(scriptBytes))
 		}
 	default:
-		return nil, fmt.Errorf("renderer.%s: unsupported input type %T", DefaultName, rawData)
+		return nil, fmt.Errorf(
+			"renderer.%s: unsupported input type %T",
+			d.name, rawData,
+		)
 	}
 
 	buf := &bytes.Buffer{}
@@ -58,7 +74,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		rc.WorkingDir(), rc, nil, buf, os.Stderr,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: failed to create embedded shell: %w", DefaultName, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: failed to create embedded shell: %w",
+			d.name, err,
+		)
 	}
 
 	parser := syntax.NewParser(
@@ -69,7 +88,10 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
 
 		if err != nil {
-			return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
+			return nil, fmt.Errorf(
+				"renderer.%s: %w",
+				d.name, err,
+			)
 		}
 	}
 

@@ -19,14 +19,24 @@ func init() {
 	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault() dukkha.Renderer {
-	return &driver{CacheConfig: renderer.CacheConfig{EnableCache: false}}
+func NewDefault(name string) dukkha.Renderer {
+	if len(name) != 0 {
+		name = DefaultName + ":" + name
+	} else {
+		name = DefaultName
+	}
+
+	return &driver{
+		name:        name,
+		CacheConfig: renderer.CacheConfig{EnableCache: false},
+	}
 }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
 	rs.BaseField
+	name string
 
 	renderer.CacheConfig `yaml:",inline"`
 
@@ -50,7 +60,10 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	case []byte:
 		path = string(t)
 	default:
-		return nil, fmt.Errorf("renderer.%s: unexpected non-string input %T", DefaultName, rawData)
+		return nil, fmt.Errorf(
+			"renderer.%s: unexpected non-string input %T",
+			d.name, rawData,
+		)
 	}
 
 	var (
@@ -65,7 +78,10 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("renderer.%s: %w", DefaultName, err)
+		return nil, fmt.Errorf(
+			"renderer.%s: %w",
+			d.name, err,
+		)
 	}
 
 	return data, err
