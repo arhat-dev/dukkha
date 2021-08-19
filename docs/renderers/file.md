@@ -22,10 +22,6 @@ renderers:
 
 - `string`
 
-## Variants
-
-None
-
 ## Suggested Use Cases
 
 Config reuse
