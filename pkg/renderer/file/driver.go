@@ -20,12 +20,6 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	if len(name) != 0 {
-		name = DefaultName + ":" + name
-	} else {
-		name = DefaultName
-	}
-
 	return &driver{
 		name:        name,
 		CacheConfig: renderer.CacheConfig{EnableCache: false},
@@ -48,7 +42,6 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
 	}
 
-	ctx.AddRenderer(DefaultName, d)
 	return nil
 }
 

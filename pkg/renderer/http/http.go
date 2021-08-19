@@ -25,12 +25,6 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	if len(name) != 0 {
-		name = DefaultName + ":" + name
-	} else {
-		name = DefaultName
-	}
-
 	return &driver{
 		name: name,
 		CacheConfig: renderer.CacheConfig{
@@ -130,7 +124,7 @@ func (d *driver) RenderYaml(
 	if d.cache != nil {
 		data, err = d.cache.Get(reqURL,
 			renderer.CreateRefreshFuncForRemote(
-				renderer.FormatCacheDir(rc.CacheDir(), DefaultName),
+				renderer.FormatCacheDir(rc.CacheDir(), d.name),
 				d.CacheMaxAge,
 				func(key string) ([]byte, error) {
 					// key is the url we passed in
