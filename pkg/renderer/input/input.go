@@ -48,9 +48,9 @@ func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]b
 
 	fmt.Print(string(promptBytes))
 	if d.Hide {
-		ret, err := term.ReadPassword(int(os.Stdin.Fd()))
+		ret, err2 := term.ReadPassword(int(os.Stdin.Fd()))
 		fmt.Println()
-		return ret, err
+		return ret, err2
 	}
 
 	ret, err := readline(os.Stdin)
