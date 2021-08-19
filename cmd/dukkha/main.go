@@ -28,7 +28,6 @@ import (
 	// Add extra renderers (enabled when config is set)
 	_ "arhat.dev/dukkha/pkg/renderer/http"
 	_ "arhat.dev/dukkha/pkg/renderer/input"
-	_ "arhat.dev/dukkha/pkg/renderer/s3"
 
 	// Add tools
 	_ "arhat.dev/dukkha/pkg/tools/buildah"
