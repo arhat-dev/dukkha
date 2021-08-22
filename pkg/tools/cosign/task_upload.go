@@ -19,14 +19,14 @@ import (
 	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
-const TaskKindBuild = "upload"
+const TaskKindUpload = "upload"
 
 func init() {
 	dukkha.RegisterTask(
-		ToolKind, TaskKindBuild,
+		ToolKind, TaskKindUpload,
 		func(toolName string) dukkha.Task {
 			t := &TaskUpload{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindUpload, t)
 			return t
 		},
 	)
