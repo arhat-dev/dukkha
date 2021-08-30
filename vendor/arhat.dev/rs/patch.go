@@ -12,6 +12,10 @@ import (
 type MergeSource struct {
 	BaseField `yaml:"-" json:"-"`
 
+	Data *AnyObject `yaml:"data,omitempty"`
+}
+
+type resolvedMergeSource struct {
 	Data interface{} `yaml:"data,omitempty"`
 }
 
@@ -27,7 +31,7 @@ type renderingPatchSpec struct {
 	// 		  merge: { data: [foo] }
 	//
 	// then the resolve value of foo will be [bar, foo]
-	Value *alterInterface `yaml:"value"`
+	Value *AnyObject `yaml:"value"`
 
 	// Merge additional data into Value
 	Merge []MergeSource `yaml:"merge,omitempty"`
@@ -48,19 +52,25 @@ type renderingPatchSpec struct {
 	MapListAppend bool `yaml:"map_list_append"`
 }
 
-func (s *renderingPatchSpec) merge(yamlData []byte) (interface{}, error) {
-	var data interface{}
-	if len(yamlData) != 0 {
-		err := yaml.Unmarshal(yamlData, &data)
+func (s *renderingPatchSpec) merge(resolvedValueData, resolvedMergeData []byte) (interface{}, error) {
+	var valueData interface{}
+	if len(resolvedValueData) != 0 {
+		err := yaml.Unmarshal(resolvedValueData, &valueData)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	mergeSrc := s.Merge
+	var mergeSrc []resolvedMergeSource
+	if len(resolvedMergeData) != 0 {
+		err := yaml.Unmarshal(resolvedMergeData, &mergeSrc)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 doMerge:
-	switch dt := data.(type) {
+	switch dt := valueData.(type) {
 	case []interface{}:
 		for _, merge := range mergeSrc {
 			switch mt := merge.Data.(type) {
@@ -106,7 +116,7 @@ doMerge:
 		case 1:
 			return mergeSrc[0].Data, nil
 		default:
-			data = mergeSrc[0].Data
+			valueData = mergeSrc[0].Data
 			mergeSrc = mergeSrc[1:]
 			goto doMerge
 		}
@@ -117,8 +127,8 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *renderingPatchSpec) ApplyTo(yamlData []byte) ([]byte, error) {
-	data, err := s.merge(yamlData)
+func (s *renderingPatchSpec) ApplyTo(resolvedValueData, resolvedMergeData []byte) ([]byte, error) {
+	data, err := s.merge(resolvedValueData, resolvedMergeData)
 	if err != nil {
 		return nil, err
 	}

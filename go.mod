@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.6.2
-	arhat.dev/rs v0.1.2
+	arhat.dev/rs v0.1.3
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -30,3 +30,5 @@ require (
 )
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210829095153-afe7d20a1998
+
+replace arhat.dev/rs => arhat.dev/rs v0.1.3
