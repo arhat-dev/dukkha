@@ -46,7 +46,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		// check list of files
 		v, ok := map[string]string{
 			ARCH_X86:   "i386-linux-musl",
-			ARCH_AMD64: "x86_64-linux-musl",
+			ARCH_AMD64: "x86-64-linux-musl",
 
 			ARCH_ARM_V5: "arm-linux-musleabi",
 			ARCH_ARM_V6: "arm-linux-musleabi",
@@ -91,7 +91,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			ARCH_X86: "i686-w64-mingw32",
 			// https://packages.debian.org/buster/mingw-w64-x86-64-dev
 			// check list of files
-			ARCH_AMD64: "x86_64-w64-mingw32",
+			ARCH_AMD64: "x86-64-w64-mingw32",
 
 			ARCH_IA64: "",
 
@@ -127,7 +127,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 	default:
 		v, ok := map[string]string{
 			ARCH_X86:   "i686-linux-gnu",
-			ARCH_AMD64: "x86_64-linux-gnu",
+			ARCH_AMD64: "x86-64-linux-gnu",
 
 			ARCH_ARM_V5: "arm-linux-gnueabi",
 			ARCH_ARM_V6: "arm-linux-gnueabi",
