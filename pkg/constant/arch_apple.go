@@ -2,6 +2,7 @@ package constant
 
 // https://github.com/tpoechtrager/osxcross
 
+// TODO: determine apple arch
 func GetAppleArch(mArch string) (string, bool) {
 	v, ok := map[string]string{
 		ARCH_AMD64: "x86_64",

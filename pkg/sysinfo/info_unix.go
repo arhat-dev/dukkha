@@ -1,5 +1,5 @@
-// +build darwin linux freebsd openbsd netbsd dragonfly solaris aix
 //go:build darwin || linux || freebsd || openbsd || netbsd || dragonfly || solaris || aix
+// +build darwin linux freebsd openbsd netbsd dragonfly solaris aix
 
 package sysinfo
 

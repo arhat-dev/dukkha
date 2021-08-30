@@ -124,6 +124,24 @@ func TestArchMapping(t *testing.T) {
 			name:        "QemuArch",
 			mappingFunc: GetQemuArch,
 		},
+		{
+			name:        "LLVMArch",
+			mappingFunc: GetLLVMArch,
+		},
+		{
+			name:        "ZigArch",
+			mappingFunc: GetZigArch,
+		},
+		{
+			name:        "RustArch",
+			mappingFunc: GetRustArch,
+		},
+		{
+			name: "DockerHubArch",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetDockerHubArch(mArch, "linux")
+			},
+		},
 	}
 
 	for _, test := range tests {
