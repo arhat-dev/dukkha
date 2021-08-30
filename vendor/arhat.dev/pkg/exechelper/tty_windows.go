@@ -23,18 +23,17 @@ import (
 	"github.com/creack/pty"
 )
 
-func startCmdWithTty(
-	cmd *exec.Cmd,
-) (
+func startCmdWithTty(cmd *exec.Cmd) (
 	doResize resizeFunc,
 	close func(),
 	stdin io.WriteCloser,
 	stdout io.ReadCloser,
 	err error,
 ) {
-	f, err := pty.Start(cmd)
+	var f pty.Pty
+	f, err = pty.Start(cmd)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return
 	}
 
 	doResize = func(cols, rows uint32) error {
