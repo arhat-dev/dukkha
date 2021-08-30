@@ -29,6 +29,6 @@ require (
 	mvdan.cc/sh/v3 v3.3.1
 )
 
-replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210829095153-afe7d20a1998
+replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210830133150-f61334f89fa5
 
 replace arhat.dev/rs => arhat.dev/rs v0.1.3
