@@ -36,7 +36,7 @@ type Spec struct {
 
 	ExtraLookupPaths []string
 
-	// stdin/stdout/stderr streams, not used if tty required
+	// stdin/stdout/stderr streams, not used if Tty is set to true
 	Stdin          io.Reader
 	Stdout, Stderr io.Writer
 
