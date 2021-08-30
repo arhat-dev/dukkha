@@ -37,3 +37,39 @@ const (
 
 	ARCH_IA64 = "ia64"
 )
+
+type ArchMappingValues struct {
+	Alpine string
+	Debian string
+
+	Golang string
+	Docker string
+	OCI    string
+
+	DockerHub string
+
+	Qemu string
+
+	// TODO
+	LLVM string
+	Zig  string
+	Rust string
+}
+
+// mapping lower case values to ArchMappingValues Field Names
+var supportedPlatforms = map[string]string{
+	"alpine": "Alpine",
+	"debian": "Debian",
+
+	"golang": "Golang",
+	"docker": "Docker",
+	"oci":    "OCI",
+
+	"dockerhub": "DockerHub",
+
+	"qemu": "Qemu",
+
+	"llvm": "LLVM",
+	"zig":  "Zig",
+	"rust": "Rust",
+}

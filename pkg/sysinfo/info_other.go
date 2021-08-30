@@ -1,5 +1,5 @@
-//go:build not (windows || darwin || linux || freebsd || openbsd || netbsd || dragonfly || solaris || aix)
-// +build !darwin,!linux,!freebsd,!openbsd,!netbsd,!dragonfly,!solaris,!aix,!windows
+//go:build !(windows || darwin || linux || freebsd || openbsd || netbsd || dragonfly || solaris || aix)
+// +build !windows,!darwin,!linux,!freebsd,!openbsd,!netbsd,!dragonfly,!solaris,!aix
 
 package sysinfo
 

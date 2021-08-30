@@ -1,0 +1,334 @@
+package constant
+
+import (
+	"reflect"
+	"strings"
+)
+
+func GetArch(platform, mArch string) (string, bool) {
+	platform = strings.ToLower(platform)
+	fieldName, ok := supportedPlatforms[platform]
+	if !ok {
+		return "", false
+	}
+
+	m, ok := archMapping[mArch]
+	if ok {
+		return reflect.ValueOf(m).FieldByName(fieldName).String(), true
+	}
+
+	return "", false
+}
+
+func GetDebianArch(mArch string) (string, bool) { return GetArch("debian", mArch) }
+func GetAlpineArch(mArch string) (string, bool) { return GetArch("alpine", mArch) }
+
+func GetGolangArch(mArch string) (string, bool) { return GetArch("golang", mArch) }
+func GetOciArch(mArch string) (string, bool)    { return GetArch("oci", mArch) }
+func GetDockerArch(mArch string) (string, bool) { return GetArch("docker", mArch) }
+
+func GetQemuArch(mArch string) (string, bool) { return GetArch("qemu", mArch) }
+
+func GetLLVMArch(mArch string) (string, bool) { return GetArch("llvm", mArch) }
+func GetZigArch(mArch string) (string, bool)  { return GetArch("zig", mArch) }
+func GetRustArch(mArch string) (string, bool) { return GetArch("rust", mArch) }
+
+func GetDockerHubArch(mArch, mKernel string) (string, bool) {
+	arch, ok := GetArch("dockerhub", mArch)
+
+	switch mKernel {
+	case KERNEL_WINDOWS:
+		if !ok {
+			return "", false
+		}
+		return "win" + arch, ok
+	case KERNEL_LINUX:
+		fallthrough
+	default:
+		return arch, ok
+	}
+}
+
+var archMapping = map[string]ArchMappingValues{
+	ARCH_X86: {
+		Alpine: "x86",
+		Debian: "i386",
+
+		Golang: "386",
+		Docker: "386",
+		OCI:    "386",
+
+		Qemu: "i386",
+
+		DockerHub: "i386",
+	},
+	ARCH_AMD64: {
+		Alpine: "x86_64",
+		Debian: "amd64",
+
+		Golang: "amd64",
+		Docker: "amd64",
+		OCI:    "amd64",
+
+		Qemu: "x86_64",
+
+		DockerHub: "amd64",
+	},
+
+	ARCH_ARM_V5: {
+		Alpine: "armv5l",
+		Debian: "armel",
+
+		Golang: "arm",
+		Docker: "arm",
+		OCI:    "arm",
+
+		Qemu: "arm",
+
+		DockerHub: "arm32v5",
+	},
+	ARCH_ARM_V6: {
+		Alpine: "armhf",
+		Debian: "armel",
+
+		Golang: "arm",
+		Docker: "arm",
+		OCI:    "arm",
+
+		Qemu: "arm",
+
+		DockerHub: "arm32v6",
+	},
+	ARCH_ARM_V7: {
+		Alpine: "armv7",
+		Debian: "armhf",
+
+		Golang: "arm",
+		Docker: "arm",
+		OCI:    "arm",
+
+		Qemu: "arm",
+
+		DockerHub: "arm32v7",
+	},
+	ARCH_ARM64: {
+		Alpine: "aarch64",
+		Debian: "arm64",
+
+		Golang: "arm64",
+		Docker: "arm64",
+		OCI:    "arm64",
+
+		Qemu: "aarch64",
+
+		DockerHub: "arm64v8",
+	},
+
+	ARCH_PPC: {
+		Alpine: "",
+		Debian: "",
+
+		Golang: "ppc",
+		Docker: "ppc",
+		OCI:    "ppc",
+
+		Qemu: "ppc",
+
+		DockerHub: "",
+	},
+	ARCH_PPC_SF: {
+		Alpine: "",
+		Debian: "",
+
+		Golang: "ppc",
+		Docker: "ppc",
+		OCI:    "ppc",
+
+		Qemu: "ppc",
+
+		DockerHub: "",
+	},
+	ARCH_PPC_LE: {
+		Alpine: "",
+		Debian: "",
+
+		Golang: "",
+		Docker: "",
+		OCI:    "",
+
+		Qemu: "",
+
+		DockerHub: "",
+	},
+	ARCH_PPC_LE_SF: {
+		Alpine: "",
+		Debian: "",
+
+		Golang: "",
+		Docker: "",
+		OCI:    "",
+
+		Qemu: "",
+
+		DockerHub: "",
+	},
+
+	ARCH_PPC64: {
+		Alpine: "ppc64",
+		Debian: "ppc64",
+
+		Golang: "ppc64",
+		Docker: "ppc64",
+		OCI:    "ppc64",
+
+		Qemu: "ppc64",
+
+		DockerHub: "",
+	},
+	ARCH_PPC64_LE: {
+		Alpine: "ppc64le",
+		Debian: "ppc64el",
+
+		Golang: "ppc64le",
+		Docker: "ppc64le",
+		OCI:    "ppc64le",
+
+		Qemu: "ppc64le",
+
+		DockerHub: "ppc64le",
+	},
+
+	ARCH_MIPS: {
+		Alpine: "mips",
+		Debian: "mips",
+
+		Golang: "mips",
+		Docker: "mips",
+		OCI:    "mips",
+
+		Qemu: "mips",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS_SF: {
+		Alpine: "mips",
+		Debian: "mips",
+
+		Golang: "mips",
+		Docker: "mips",
+		OCI:    "mips",
+
+		Qemu: "mips",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS_LE: {
+		Alpine: "mipsel",
+		Debian: "mipsel",
+
+		Golang: "mipsle",
+		Docker: "mipsle",
+		OCI:    "mipsle",
+
+		Qemu: "mipsel",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS_LE_SF: {
+		Alpine: "mipsel",
+		Debian: "mipsel",
+
+		Golang: "mipsle",
+		Docker: "mipsle",
+		OCI:    "mipsle",
+
+		Qemu: "mipsel",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS64: {
+		Alpine: "mips64",
+		Debian: "mips64",
+
+		Golang: "mips64",
+		Docker: "mips64",
+		OCI:    "mips64",
+
+		Qemu: "mips64",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS64_SF: {
+		Alpine: "mips64",
+		Debian: "mips64",
+
+		Golang: "mips64",
+		Docker: "mips64",
+		OCI:    "mips64",
+
+		Qemu: "mips64",
+
+		DockerHub: "",
+	},
+	ARCH_MIPS64_LE: {
+		Alpine: "mips64el",
+		Debian: "mips64el",
+
+		Golang: "mips64le",
+		Docker: "mips64le",
+		OCI:    "mips64le",
+
+		Qemu: "mips64el",
+
+		DockerHub: "mips64le",
+	},
+	ARCH_MIPS64_LE_SF: {
+		Alpine: "mips64el",
+		Debian: "mips64el",
+
+		Golang: "mips64le",
+		Docker: "mips64le",
+		OCI:    "mips64le",
+
+		Qemu: "mips64el",
+
+		DockerHub: "mips64le",
+	},
+
+	ARCH_RISCV_64: {
+		Alpine: "riscv64",
+		Debian: "riscv64",
+
+		Golang: "riscv64",
+		Docker: "riscv64",
+		OCI:    "riscv64",
+
+		Qemu:      "riscv64",
+		DockerHub: "riscv64",
+	},
+	ARCH_S390X: {
+		Alpine: "s390x",
+		Debian: "s390x",
+
+		Golang: "s390x",
+		Docker: "s390x",
+		OCI:    "s390x",
+
+		Qemu: "s390x",
+
+		DockerHub: "s390x",
+	},
+
+	ARCH_IA64: {
+		Alpine: "",
+		Debian: "",
+
+		Golang: "",
+		Docker: "",
+		OCI:    "",
+
+		Qemu: "",
+
+		DockerHub: "",
+	},
+}
