@@ -26,7 +26,7 @@ github.com/Masterminds/sprig/v3
 # github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 ## explicit
 github.com/aoldershaw/ansi
-# github.com/creack/pty v1.1.15 => github.com/jeffreystoke/pty v1.1.12-0.20210829095153-afe7d20a1998
+# github.com/creack/pty v1.1.15 => github.com/jeffreystoke/pty v1.1.12-0.20210830133150-f61334f89fa5
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -185,5 +185,5 @@ mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
-# github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210829095153-afe7d20a1998
+# github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210830133150-f61334f89fa5
 # arhat.dev/rs => arhat.dev/rs v0.1.3
