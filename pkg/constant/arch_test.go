@@ -88,6 +88,29 @@ func TestArchMapping(t *testing.T) {
 		},
 
 		{
+			name:        "GNUArch",
+			mappingFunc: GetGNUArch,
+		},
+		{
+			name: "GNUTripleName GLIBC",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetGNUTripleName(mArch, "", LIBC_GLIBC)
+			},
+		},
+		{
+			name: "GNUTripleName MUSL",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetGNUTripleName(mArch, "", LIBC_MUSL)
+			},
+		},
+		{
+			name: "GNUTripleName MSVC",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetGNUTripleName(mArch, "", LIBC_MSVC)
+			},
+		},
+
+		{
 			name:        "GolangArch",
 			mappingFunc: GetGolangArch,
 		},

@@ -248,6 +248,23 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return v
 			},
 
+			"getGNUArch": func(mArch string) string {
+				v, _ := constant.GetGNUArch(mArch)
+				return v
+			},
+			"getGNUTripleName": func(mArch string, other ...string) string {
+				targetKernel, targetLibc := "", ""
+				if len(other) > 0 {
+					targetKernel = other[0]
+				}
+				if len(other) > 1 {
+					targetLibc = other[1]
+				}
+
+				v, _ := constant.GetGNUTripleName(mArch, targetKernel, targetLibc)
+				return v
+			},
+
 			"getQemuArch": func(mArch string) string {
 				v, _ := constant.GetQemuArch(mArch)
 				return v
