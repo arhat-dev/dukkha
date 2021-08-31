@@ -41,6 +41,7 @@ const (
 type ArchMappingValues struct {
 	Alpine string
 	Debian string
+	GNU    string
 
 	Golang string
 	Docker string
@@ -60,6 +61,7 @@ type ArchMappingValues struct {
 var supportedPlatforms = map[string]string{
 	"alpine": "Alpine",
 	"debian": "Debian",
+	"gnu":    "GNU",
 
 	"golang": "Golang",
 	"docker": "Docker",

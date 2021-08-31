@@ -22,6 +22,7 @@ func GetArch(platform, mArch string) (string, bool) {
 
 func GetDebianArch(mArch string) (string, bool) { return GetArch("debian", mArch) }
 func GetAlpineArch(mArch string) (string, bool) { return GetArch("alpine", mArch) }
+func GetGNUArch(mArch string) (string, bool)    { return GetArch("gnu", mArch) }
 
 func GetGolangArch(mArch string) (string, bool) { return GetArch("golang", mArch) }
 func GetOciArch(mArch string) (string, bool)    { return GetArch("oci", mArch) }
@@ -49,10 +50,13 @@ func GetDockerHubArch(mArch, mKernel string) (string, bool) {
 	}
 }
 
+// Ref:
+// for GNU values: https://salsa.debian.org/dpkg-team/dpkg/-/blob/main/data/cputable
 var archMapping = map[string]ArchMappingValues{
 	ARCH_X86: {
 		Alpine: "x86",
 		Debian: "i386",
+		GNU:    "i686",
 
 		Golang: "386",
 		Docker: "386",
@@ -65,6 +69,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_AMD64: {
 		Alpine: "x86_64",
 		Debian: "amd64",
+		GNU:    "x86_64",
 
 		Golang: "amd64",
 		Docker: "amd64",
@@ -78,6 +83,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_ARM_V5: {
 		Alpine: "armv5l",
 		Debian: "armel",
+		GNU:    "arm",
 
 		Golang: "arm",
 		Docker: "arm",
@@ -90,6 +96,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_ARM_V6: {
 		Alpine: "armhf",
 		Debian: "armel",
+		GNU:    "arm",
 
 		Golang: "arm",
 		Docker: "arm",
@@ -102,6 +109,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_ARM_V7: {
 		Alpine: "armv7",
 		Debian: "armhf",
+		GNU:    "arm",
 
 		Golang: "arm",
 		Docker: "arm",
@@ -114,6 +122,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_ARM64: {
 		Alpine: "aarch64",
 		Debian: "arm64",
+		GNU:    "aarch64",
 
 		Golang: "arm64",
 		Docker: "arm64",
@@ -126,7 +135,8 @@ var archMapping = map[string]ArchMappingValues{
 
 	ARCH_PPC: {
 		Alpine: "",
-		Debian: "",
+		Debian: "powerpc",
+		GNU:    "powerpc",
 
 		Golang: "ppc",
 		Docker: "ppc",
@@ -138,7 +148,8 @@ var archMapping = map[string]ArchMappingValues{
 	},
 	ARCH_PPC_SF: {
 		Alpine: "",
-		Debian: "",
+		Debian: "powerpc",
+		GNU:    "powerpc",
 
 		Golang: "ppc",
 		Docker: "ppc",
@@ -150,7 +161,8 @@ var archMapping = map[string]ArchMappingValues{
 	},
 	ARCH_PPC_LE: {
 		Alpine: "",
-		Debian: "",
+		Debian: "powerpcel",
+		GNU:    "powerpcle",
 
 		Golang: "",
 		Docker: "",
@@ -162,7 +174,8 @@ var archMapping = map[string]ArchMappingValues{
 	},
 	ARCH_PPC_LE_SF: {
 		Alpine: "",
-		Debian: "",
+		Debian: "powerpcel",
+		GNU:    "powerpcle",
 
 		Golang: "",
 		Docker: "",
@@ -176,6 +189,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_PPC64: {
 		Alpine: "ppc64",
 		Debian: "ppc64",
+		GNU:    "powerpc64",
 
 		Golang: "ppc64",
 		Docker: "ppc64",
@@ -188,6 +202,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_PPC64_LE: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
+		GNU:    "powerpc64le",
 
 		Golang: "ppc64le",
 		Docker: "ppc64le",
@@ -201,6 +216,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS: {
 		Alpine: "mips",
 		Debian: "mips",
+		GNU:    "mips",
 
 		Golang: "mips",
 		Docker: "mips",
@@ -213,6 +229,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS_SF: {
 		Alpine: "mips",
 		Debian: "mips",
+		GNU:    "mips",
 
 		Golang: "mips",
 		Docker: "mips",
@@ -225,6 +242,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS_LE: {
 		Alpine: "mipsel",
 		Debian: "mipsel",
+		GNU:    "mipsel",
 
 		Golang: "mipsle",
 		Docker: "mipsle",
@@ -237,6 +255,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS_LE_SF: {
 		Alpine: "mipsel",
 		Debian: "mipsel",
+		GNU:    "mipsel",
 
 		Golang: "mipsle",
 		Docker: "mipsle",
@@ -249,6 +268,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS64: {
 		Alpine: "mips64",
 		Debian: "mips64",
+		GNU:    "mips64",
 
 		Golang: "mips64",
 		Docker: "mips64",
@@ -261,6 +281,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS64_SF: {
 		Alpine: "mips64",
 		Debian: "mips64",
+		GNU:    "mips64",
 
 		Golang: "mips64",
 		Docker: "mips64",
@@ -273,6 +294,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS64_LE: {
 		Alpine: "mips64el",
 		Debian: "mips64el",
+		GNU:    "mips64el",
 
 		Golang: "mips64le",
 		Docker: "mips64le",
@@ -285,6 +307,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_MIPS64_LE_SF: {
 		Alpine: "mips64el",
 		Debian: "mips64el",
+		GNU:    "mips64el",
 
 		Golang: "mips64le",
 		Docker: "mips64le",
@@ -298,6 +321,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_RISCV_64: {
 		Alpine: "riscv64",
 		Debian: "riscv64",
+		GNU:    "riscv64",
 
 		Golang: "riscv64",
 		Docker: "riscv64",
@@ -309,6 +333,7 @@ var archMapping = map[string]ArchMappingValues{
 	ARCH_S390X: {
 		Alpine: "s390x",
 		Debian: "s390x",
+		GNU:    "s390x",
 
 		Golang: "s390x",
 		Docker: "s390x",
@@ -321,7 +346,8 @@ var archMapping = map[string]ArchMappingValues{
 
 	ARCH_IA64: {
 		Alpine: "",
-		Debian: "",
+		Debian: "ia64",
+		GNU:    "ia64",
 
 		Golang: "",
 		Docker: "",
