@@ -28,9 +28,11 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/plugin"
 	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/renderer/http"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/tools"
@@ -50,6 +52,8 @@ type GlobalConfig struct {
 
 	// Env
 	Env dukkha.Env `yaml:"env"`
+
+	Plugins []plugin.PluginReference
 
 	Values dukkha.ArbitraryValues `yaml:"values"`
 }
@@ -204,6 +208,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
 		appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
 		appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
+		appCtx.AddRenderer(http.DefaultName, http.NewDefault(""))
 
 		essentialRenderers := appCtx.AllRenderers()
 		logger.D("initializing essential renderers",

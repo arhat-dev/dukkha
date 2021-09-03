@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
@@ -29,6 +30,9 @@ func NewDefault(name string) dukkha.Renderer {
 		name: name,
 		CacheConfig: renderer.CacheConfig{
 			EnableCache: true,
+			// 64KB cache
+			CacheSizeLimit: 64 * 1024,
+			CacheMaxAge:    time.Hour,
 		},
 	}
 }
