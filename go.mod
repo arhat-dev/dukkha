@@ -20,6 +20,7 @@ require (
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
+	github.com/traefik/yaegi v0.9.23
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
