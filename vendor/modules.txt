@@ -5,6 +5,7 @@ arhat.dev/pkg/exechelper
 arhat.dev/pkg/jsonhelper
 arhat.dev/pkg/log
 arhat.dev/pkg/md5helper
+arhat.dev/pkg/randhelper
 arhat.dev/pkg/rshelper
 arhat.dev/pkg/sha256helper
 arhat.dev/pkg/sorthelper
