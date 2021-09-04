@@ -112,3 +112,7 @@ issues:
   - text: 'shadow: declaration of "logger" shadows declaration'
     linters:
     - govet
+
+  - text: string `main`
+    linters:
+    - goconst

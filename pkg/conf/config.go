@@ -53,12 +53,14 @@ type GlobalConfig struct {
 	// Env
 	Env dukkha.Env `yaml:"env"`
 
-	Plugins []plugin.PluginReference
-
 	Values dukkha.ArbitraryValues `yaml:"values"`
 }
 
 func (g *GlobalConfig) Merge(a *GlobalConfig) error {
+	if a == nil {
+		return nil
+	}
+
 	err := g.BaseField.Inherit(&a.BaseField)
 	if err != nil {
 		return fmt.Errorf("failed to inherit other global config: %w", err)
@@ -100,11 +102,39 @@ func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) err
 	return nil
 }
 
+type PluginsConfig struct {
+	rs.BaseField
+
+	Renderers []plugin.RendererSpec `yaml:"renderers"`
+	Tools     []plugin.ToolSpec     `yaml:"tools"`
+	Tasks     []plugin.TaskSpec     `yaml:"tasks"`
+}
+
+func (p *PluginsConfig) Merge(a *PluginsConfig) error {
+	if a == nil {
+		return nil
+	}
+
+	err := p.BaseField.Inherit(&a.BaseField)
+	if err != nil {
+		return fmt.Errorf("failed to inherit other plugins config: %w", err)
+	}
+
+	p.Renderers = append(p.Renderers, a.Renderers...)
+	p.Tools = append(p.Tools, a.Tools...)
+	p.Tasks = append(p.Tasks, a.Tasks...)
+
+	return nil
+}
+
 type Config struct {
 	rs.BaseField
 
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
+
+	// Plugins
+	Plugins PluginsConfig `yaml:"plugins"`
 
 	// Include other files using path relative to this config
 	// no rendering suffix for this field
@@ -133,6 +163,10 @@ type Tools struct {
 }
 
 func (m *Tools) Merge(a *Tools) error {
+	if a == nil {
+		return nil
+	}
+
 	err := m.BaseField.Inherit(&a.BaseField)
 	if err != nil {
 		return fmt.Errorf("failed to inherit other tools config: %w", err)
@@ -152,12 +186,21 @@ func (m *Tools) Merge(a *Tools) error {
 }
 
 func (c *Config) Merge(a *Config) error {
+	if a == nil {
+		return nil
+	}
+
 	err := c.BaseField.Inherit(&a.BaseField)
 	if err != nil {
 		return fmt.Errorf("failed to inherit other top level base field: %w", err)
 	}
 
 	err = c.Global.Merge(&a.Global)
+	if err != nil {
+		return err
+	}
+
+	err = c.Plugins.Merge(&a.Plugins)
 	if err != nil {
 		return err
 	}
