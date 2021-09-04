@@ -107,14 +107,16 @@ func (t *BaseTool) InitBaseTool(
 	kind dukkha.ToolKind,
 	defaultExecutable,
 	cacheDir string,
-	impl dukkha.Tool,
+	// TODO: type of impl should be dukkha.Tool, but yaegi doesn't allow
+	// 		 interface assigment, so we use interface{} for now
+	impl interface{},
 ) error {
 	t.kind = kind
 
 	t.cacheDir = cacheDir
 	t.defaultExecutable = defaultExecutable
 
-	t.impl = impl
+	t.impl = impl.(dukkha.Tool)
 	t.tasks = make(map[dukkha.TaskKey]dukkha.Task)
 
 	typ := reflect.TypeOf(impl).Elem()

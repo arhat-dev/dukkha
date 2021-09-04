@@ -1,12 +1,36 @@
 package plugin
 
 import (
+	"context"
+	"reflect"
 	"testing"
 
+	"arhat.dev/pkg/log"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 
 	_ "embed"
 )
+
+var (
+	_ dukkha.Renderer = (*fooRenderer)(nil)
+	_ dukkha.Tool     = (*fooTool)(nil)
+	_ dukkha.Task     = (*fooTask)(nil)
+)
+
+func init() {
+	log.SetDefaultLogger(log.ConfigSet{
+		{
+			Level:  "verbose",
+			Format: "console",
+			Destination: log.Destination{
+				File: "stderr",
+			},
+		},
+	})
+}
 
 // nolint:deadcode,unused,varcheck
 //go:embed plugin_example_test.go
@@ -134,19 +158,29 @@ func TestSrcRef_Register(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var err error
 			switch spec := test.spec.(type) {
 			case *RendererSpec:
-				err = spec.SrcRef.Register(spec, t.TempDir())
+				err := spec.SrcRef.Register(spec, t.TempDir())
+				assert.NoError(t, err)
+
+				rendererIface, err := dukkha.GlobalInterfaceTypeHandler.Create(
+					reflect.TypeOf((*dukkha.Renderer)(nil)).Elem(),
+					"foo",
+				)
+				assert.NoError(t, err)
+
+				ret, err := rendererIface.(dukkha.Renderer).RenderYaml(dukkha_test.NewTestContext(context.TODO()), nil)
+				assert.NoError(t, err, err)
+				assert.EqualValues(t, "HELLO foo", string(ret))
 			case *ToolSpec:
-				err = spec.SrcRef.Register(spec, t.TempDir())
+				err := spec.SrcRef.Register(spec, t.TempDir())
+				assert.NoError(t, err)
 			case *TaskSpec:
-				err = spec.SrcRef.Register(spec, t.TempDir())
+				err := spec.SrcRef.Register(spec, t.TempDir())
+				assert.NoError(t, err)
 			default:
 				t.Log("unknown spec type", spec)
 			}
-
-			assert.NoError(t, err)
 		})
 	}
 }

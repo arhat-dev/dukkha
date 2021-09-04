@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"encoding/hex"
 	"fmt"
 	"go/parser"
 	"go/token"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/randhelper"
 	"arhat.dev/rs"
 	"github.com/huandu/xstrings"
 	"github.com/traefik/yaegi/interp"
@@ -117,11 +119,12 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 	}
 }
 
-var (
-	rendererCreateFuncType = reflect.ValueOf((*dukkha.RendererCreateFunc)(nil)).Type().Elem()
-	toolCreateFuncType     = reflect.ValueOf((*dukkha.ToolCreateFunc)(nil)).Type().Elem()
-	taskCreateFuncType     = reflect.ValueOf((*dukkha.TaskCreateFunc)(nil)).Type().Elem()
-)
+// TODO: use real factory func type
+// 		 currently yaegi doesn't support interface type assignment
+// 		 	(see: https://github.com/traefik/yaegi/issues/950)
+//
+// 			error example cannot convert expression of type *plugin.fooRenderer to type
+// 				arhat.dev/dukkha/pkg/dukkha.Renderer
 
 func register(spec Spec, pkg string, pluginPkg *interp.Interpreter) error {
 	pkgPrefix := pkg
@@ -131,76 +134,58 @@ func register(spec Spec, pkg string, pluginPkg *interp.Interpreter) error {
 
 	switch t := spec.(type) {
 	case *RendererSpec:
-		fFunc, err := pluginPkg.Eval(pkgPrefix + getRendererFactoryFuncName(t.DefaultName))
-		if err != nil {
-			return fmt.Errorf("failed to find renderer factory func: %w", err)
-		}
+		funcName := pkgPrefix + getRendererFactoryFuncName(t.DefaultName)
 
-		if !fFunc.Type().ConvertibleTo(rendererCreateFuncType) {
-			return fmt.Errorf(
-				"invalid renderer factory func: expect %q, got %q",
-				rendererCreateFuncType, fFunc.Type().String(),
-			)
-		}
+		dukkha.RegisterRenderer(t.DefaultName, func(name string) dukkha.Renderer {
+			return NewReflectRenderer(pluginPkg, funcName, name)
+		})
 
-		rcf := fFunc.Convert(rendererCreateFuncType).Interface().(dukkha.RendererCreateFunc)
-		dukkha.RegisterRenderer(t.DefaultName, rcf)
 		return nil
 	case *ToolSpec:
-		fFunc, err := pluginPkg.Eval(pkgPrefix + getToolFactoryFuncName(t.ToolKind))
-		if err != nil {
-			return fmt.Errorf("failed to find tool factory func: %w", err)
-		}
-
-		if !fFunc.Type().ConvertibleTo(toolCreateFuncType) {
-			return fmt.Errorf(
-				"invalid tool factory func: expect %q, got %q",
-				toolCreateFuncType, fFunc.Type().String(),
-			)
-		}
+		toolFuncName := pkgPrefix + getToolFactoryFuncName(t.ToolKind)
 
 		tskFuncs := make(map[string]dukkha.TaskCreateFunc)
 		for _, tsk := range t.Tasks {
-			tskFunc, err := pluginPkg.Eval(pkgPrefix + getTaskFactoryFuncName(t.ToolKind, tsk))
-			if err != nil {
-				return fmt.Errorf("failed to find task factory func: %w", err)
+			tskFuncName := pkgPrefix + getTaskFactoryFuncName(t.ToolKind, tsk)
+			tskFuncs[tsk] = func(toolName string) dukkha.Task {
+				return NewReflectTask(pluginPkg, tskFuncName, toolName)
 			}
-
-			if !tskFunc.Type().ConvertibleTo(taskCreateFuncType) {
-				return fmt.Errorf(
-					"invalid task factory func: expect %q, got %q",
-					taskCreateFuncType, tskFunc.Type().String(),
-				)
-			}
-
-			tskFuncs[tsk] = tskFunc.Convert(taskCreateFuncType).Interface().(dukkha.TaskCreateFunc)
 		}
 
-		rcf := fFunc.Convert(toolCreateFuncType).Interface().(dukkha.ToolCreateFunc)
-		dukkha.RegisterTool(dukkha.ToolKind(t.ToolKind), rcf)
+		dukkha.RegisterTool(dukkha.ToolKind(t.ToolKind), func() dukkha.Tool {
+			return NewReflectTool(pluginPkg, toolFuncName)
+		})
+
 		for tsk := range tskFuncs {
-			dukkha.RegisterTask(dukkha.ToolKind(t.ToolKind), dukkha.TaskKind(tsk), tskFuncs[tsk])
+			dukkha.RegisterTask(
+				dukkha.ToolKind(t.ToolKind),
+				dukkha.TaskKind(tsk),
+				tskFuncs[tsk],
+			)
 		}
 		return nil
 	case *TaskSpec:
-		tskFunc, err := pluginPkg.Eval(pkgPrefix + getTaskFactoryFuncName(t.ToolKind, t.TaskKind))
-		if err != nil {
-			return fmt.Errorf("failed to find task factory func: %w", err)
-		}
-
-		if !tskFunc.Type().ConvertibleTo(taskCreateFuncType) {
-			return fmt.Errorf(
-				"invalid renderer factory func: expect %q, got %q",
-				taskCreateFuncType, tskFunc.Type().String(),
-			)
-		}
-
-		rcf := tskFunc.Convert(taskCreateFuncType).Interface().(dukkha.TaskCreateFunc)
-		dukkha.RegisterTask(dukkha.ToolKind(t.ToolKind), dukkha.TaskKind(t.TaskKind), rcf)
+		funcName := pkgPrefix + getTaskFactoryFuncName(t.ToolKind, t.TaskKind)
+		dukkha.RegisterTask(
+			dukkha.ToolKind(t.ToolKind),
+			dukkha.TaskKind(t.TaskKind),
+			func(toolName string) dukkha.Task {
+				return NewReflectTask(pluginPkg, funcName, toolName)
+			},
+		)
 		return nil
 	default:
 		return fmt.Errorf("unknown plugin spec: %T", spec)
 	}
+}
+
+func newRandomHexBytes() string {
+	randBytes, err := randhelper.Bytes(make([]byte, 32))
+	if err != nil {
+		panic(fmt.Errorf("failed to generate random bytes: %w", err))
+	}
+
+	return hex.EncodeToString(randBytes)
 }
 
 func getRendererFactoryFuncName(defaultName string) string {
@@ -262,4 +247,43 @@ func getPackageOfDir(dir string) (string, error) {
 	}
 
 	return ret, nil
+}
+
+func evalObjectMethods(
+	interp *interp.Interpreter,
+	funcCall string,
+	requiredMethods []string,
+) (map[string]reflect.Value, error) {
+	suffix := newRandomHexBytes()
+	tempPkgName := "pkg_" + suffix
+	reflectVarName := "VAR_" + suffix
+	_, err := interp.Eval(
+		fmt.Sprintf(`
+package %s
+
+var %s = %s
+`,
+			tempPkgName,
+			reflectVarName, funcCall,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary variable: %w", err)
+	}
+
+	methods := make(map[string]reflect.Value)
+	for _, methodName := range requiredMethods {
+		methodFunc, err := interp.Eval(
+			fmt.Sprintf(
+				`%s.%s.%s`, tempPkgName, reflectVarName, methodName,
+			),
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		methods[methodName] = methodFunc
+	}
+
+	return methods, nil
 }

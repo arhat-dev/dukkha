@@ -19,6 +19,8 @@ import (
 	sliceutils_symbols "arhat.dev/dukkha/pkg/sliceutils/symbols"
 	templateutils_symbols "arhat.dev/dukkha/pkg/templateutils/symbols"
 	tools_symbols "arhat.dev/dukkha/pkg/tools/symbols"
+	rs_symbols "arhat.dev/dukkha/third_party/rs/symbols"
+	yaml_symbols "arhat.dev/dukkha/third_party/yaml.v3/symbols"
 )
 
 func newInterperter(
@@ -58,12 +60,45 @@ func newInterperter(
 		return nil, fmt.Errorf("unable to use dukkha symbols: %w", err)
 	}
 
-	t.Use(matrix_symbols.Symbols)
-	t.Use(renderer_symbols.Symbols)
-	t.Use(sliceutils_symbols.Symbols)
-	t.Use(templateutils_symbols.Symbols)
-	t.Use(tools_symbols.Symbols)
-	t.Use(constant_symbols.Symbols)
+	err = t.Use(matrix_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use matrix symbols: %w", err)
+	}
+
+	err = t.Use(renderer_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use renderer symbols: %w", err)
+	}
+
+	err = t.Use(sliceutils_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use sliceutils symbols: %w", err)
+	}
+
+	err = t.Use(templateutils_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use templateutils symbols: %w", err)
+	}
+
+	err = t.Use(tools_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use tools symbols: %w", err)
+	}
+
+	err = t.Use(constant_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use constant symbols: %w", err)
+	}
+
+	err = t.Use(yaml_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use yaml symbols: %w", err)
+	}
+
+	err = t.Use(rs_symbols.Symbols)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use rs symbols: %w", err)
+	}
 
 	t.ImportUsed()
 
