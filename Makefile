@@ -21,6 +21,9 @@ vendor:
 	${GOMOD} vendor
 	patch -u -p1 --verbose -i scripts/patches/vendor.patch
 
+symbols:
+	sh scripts/symbols.sh
+
 GOOS ?= $(shell go env GOHOSTOS)
 GOARCH ?= $(shell go env GOHOSTARCH)
 .PHONY: dukkha

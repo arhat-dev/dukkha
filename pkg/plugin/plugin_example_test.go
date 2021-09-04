@@ -16,9 +16,20 @@ func NewTool_foo_tool() dukkha.Tool {
 	return nil
 }
 
-// NewTask_{task-kind}
-// e.g. You have defined a task `foo-task`, its factory func should be NewTask_foo_task
+// NewTask_{tool-kind}_{task-kind}
 // nolint:revive
 func NewTask_foo_tool_foo_task(name string) dukkha.Task {
+	return nil
+}
+
+// NewTask_{tool-kind}_{task-kind}
+// nolint:revive
+func NewTask_foo_tool_bar_task(name string) dukkha.Task {
+	return nil
+}
+
+// NewTask_{tool-kind}_{task-kind}
+// nolint:revive
+func NewTask_bar_tool_bar_task(name string) dukkha.Task {
 	return nil
 }

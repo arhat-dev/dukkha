@@ -79,12 +79,17 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 
 	switch {
 	case s.Source != nil:
-		pkg := getFileSourcePackage(*s.Source)
+		src := *s.Source
+		pkg, err := getPackageOfSource(src)
+		if err != nil {
+			return fmt.Errorf("invalid source: %w", err)
+		}
+
 		if pkg == "main" {
 			return fmt.Errorf("invalid source with main package")
 		}
 
-		_, err := interp.Eval(*s.Source)
+		_, err = interp.Eval(src)
 		if err != nil {
 			return fmt.Errorf("failed to evaluate source code: %w", err)
 		}
@@ -92,7 +97,7 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 		return register(spec, pkg, interp)
 	case s.Package != nil:
 		srcPath := spec.SrcPath(cacheDir)
-		pkg, err := getDirSourcePackage(srcPath)
+		pkg, err := getPackageOfDir(srcPath)
 		if err != nil {
 			return fmt.Errorf("failed to get package source: %w", err)
 		}
@@ -113,9 +118,9 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 }
 
 var (
-	rendererCreateFuncType = reflect.ValueOf((*dukkha.RendererCreateFunc)(nil)).Elem().Type()
-	toolCreateFuncType     = reflect.ValueOf((*dukkha.ToolCreateFunc)(nil)).Elem().Type()
-	taskCreateFuncType     = reflect.ValueOf((*dukkha.TaskCreateFunc)(nil)).Elem().Type()
+	rendererCreateFuncType = reflect.ValueOf((*dukkha.RendererCreateFunc)(nil)).Type().Elem()
+	toolCreateFuncType     = reflect.ValueOf((*dukkha.ToolCreateFunc)(nil)).Type().Elem()
+	taskCreateFuncType     = reflect.ValueOf((*dukkha.TaskCreateFunc)(nil)).Type().Elem()
 )
 
 func register(spec Spec, pkg string, pluginPkg *interp.Interpreter) error {
@@ -214,22 +219,29 @@ func getFactoryFuncName(prefix, name string) string {
 	return prefix + xstrings.ToSnakeCase(name)
 }
 
-func getFileSourcePackage(src string) string {
-	f, err := parser.ParseFile(token.NewFileSet(), "", src, parser.PackageClauseOnly)
+// getPackageOfSource return go package name of the source code
+func getPackageOfSource(src string) (string, error) {
+	f, err := parser.ParseFile(token.NewFileSet(), "", src, parser.AllErrors)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	if f.Name == nil {
-		return ""
+		return "", fmt.Errorf("invalid empty package name")
 	}
 
-	return f.Name.Name
+	return f.Name.Name, nil
 }
 
+// getPackageOfDir return go package name of that dir
+// if no go source code, return empty string
+// if has multiple packages in that dir, their names are compared with `>`,
+// 		and that greatest name will be returned
+// if has main package in that directory, return `main` only
+//
 // nolint:deadcode,unused
-func getDirSourcePackage(dir string) (string, error) {
-	pkgs, err := parser.ParseDir(token.NewFileSet(), dir, nil, parser.PackageClauseOnly)
+func getPackageOfDir(dir string) (string, error) {
+	pkgs, err := parser.ParseDir(token.NewFileSet(), dir, nil, parser.AllErrors)
 	if err != nil {
 		return "", err
 	}
@@ -241,8 +253,10 @@ func getDirSourcePackage(dir string) (string, error) {
 		}
 
 		if pkg == "main" {
-			ret = pkg
-		} else if ret != "main" {
+			return "main", nil
+		}
+
+		if pkg > ret {
 			ret = pkg
 		}
 	}
