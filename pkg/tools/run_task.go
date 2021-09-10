@@ -1,3 +1,6 @@
+//go:build real
+// +build real
+
 package tools
 
 import (
@@ -11,15 +14,6 @@ import (
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
 )
-
-type TaskExecRequest struct {
-	Context dukkha.TaskExecContext
-
-	Tool dukkha.Tool
-	Task dukkha.Task
-
-	IgnoreError bool
-}
 
 // nolint:gocyclo
 func RunTask(req *TaskExecRequest) (err error) {

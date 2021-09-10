@@ -1,13 +1,14 @@
 package output
 
 import (
+	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/muesli/termenv"
 )
 
-func PickColor(i int) (prefixColor, outputColor termenv.Color) {
+func PickColor(i int) (prefixColor, outputColor dukkha.TermColor) {
 	// TODO: generate colors dynamically with consistent result
 
-	var colorList = [][2]termenv.Color{
+	var colorList = [][2]termenv.ANSIColor{
 		{termenv.ANSIBrightWhite, termenv.ANSIWhite},
 		{termenv.ANSIBrightCyan, termenv.ANSICyan},
 		{termenv.ANSIBrightGreen, termenv.ANSIGreen},
@@ -19,5 +20,5 @@ func PickColor(i int) (prefixColor, outputColor termenv.Color) {
 
 	colorSet := colorList[i%len(colorList)]
 
-	return colorSet[0], colorSet[1]
+	return dukkha.TermColor(colorSet[0]), dukkha.TermColor(colorSet[1])
 }

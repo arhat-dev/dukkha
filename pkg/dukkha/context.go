@@ -2,7 +2,6 @@ package dukkha
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"arhat.dev/rs"
@@ -82,15 +81,19 @@ type dukkhaContext struct {
 	workers             int
 }
 
+type ContextOptions struct {
+	InterfaceTypeHandler rs.InterfaceTypeHandler
+	FailFast             bool
+	ColorOutput          bool
+	TranslateANSIStream  bool
+	RetainANSIStyle      bool
+	Workers              int
+	GlobalEnv            map[string]string
+}
+
 func NewConfigResolvingContext(
 	parent context.Context,
-	ifaceTypeHandler rs.InterfaceTypeHandler,
-	failFast bool,
-	colorOutput bool,
-	translateANSIStream bool,
-	retainANSIStyle bool,
-	workers int,
-	globalEnv map[string]string,
+	opts ContextOptions,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
@@ -102,84 +105,15 @@ func NewConfigResolvingContext(
 		contextExec:   newContextExec(),
 
 		contextRendering: newContextRendering(
-			ctxStd.ctx, ifaceTypeHandler, globalEnv,
+			ctxStd.ctx, opts.InterfaceTypeHandler, opts.GlobalEnv,
 		),
 
-		failFast:            failFast,
-		colorOutput:         colorOutput,
-		translateANSIStream: translateANSIStream,
-		retainANSIStyle:     retainANSIStyle,
-		workers:             workers,
+		failFast:            opts.FailFast,
+		colorOutput:         opts.ColorOutput,
+		translateANSIStream: opts.TranslateANSIStream,
+		retainANSIStyle:     opts.RetainANSIStyle,
+		workers:             opts.Workers,
 	}
 
 	return dukkhaCtx
-}
-
-func (c *dukkhaContext) DeriveNew() Context {
-	ctxStd := newContextStd(c.contextStd.ctx)
-	newCtx := &dukkhaContext{
-		contextStd: ctxStd,
-		cache:      c.cache,
-
-		contextShells:    c.contextShells,
-		contextTools:     c.contextTools,
-		contextTasks:     c.contextTasks,
-		contextRendering: c.contextRendering.clone(ctxStd.ctx),
-
-		// initialized later
-		contextExec: nil,
-
-		failFast:            c.failFast,
-		colorOutput:         c.colorOutput,
-		translateANSIStream: c.translateANSIStream,
-		retainANSIStyle:     c.retainANSIStyle,
-		workers:             c.workers,
-	}
-
-	if c.contextExec != nil {
-		newCtx.contextExec = c.contextExec.deriveNew()
-	} else {
-		newCtx.contextExec = newContextExec()
-	}
-
-	return newCtx
-}
-
-func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
-	tool, ok := c.GetTool(k)
-	if !ok {
-		return fmt.Errorf("tool %q not found", k)
-	}
-
-	c.contextExec.SetTask(k, tK)
-	return tool.Run(c)
-}
-
-func (c *dukkhaContext) FailFast() bool {
-	return c.failFast
-}
-
-func (c *dukkhaContext) ColorOutput() bool {
-	return c.colorOutput
-}
-
-func (c *dukkhaContext) TranslateANSIStream() bool {
-	return c.translateANSIStream
-}
-
-func (c *dukkhaContext) RetainANSIStyle() bool {
-	return c.retainANSIStyle
-}
-
-func (c *dukkhaContext) ClaimWorkers(n int) int {
-	if c.workers > n {
-		return n
-	}
-
-	// TODO: limit workers
-	return c.workers
-}
-
-func (c *dukkhaContext) AddCache(key, value string) {
-	// TBD: runtime cache https://github.com/arhat-dev/dukkha/issues/37
 }

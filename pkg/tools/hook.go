@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 
-	"arhat.dev/pkg/log"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -85,11 +84,6 @@ func (h *TaskHooks) GenSpecs(
 	// TODO: this func is only called by BaseTask with lock for now
 	// 		 if we call it from other places, we need to use lock here
 
-	logger := log.Log.WithName("TaskHooks").WithFields(
-		log.String("stage", stage.String()),
-	)
-
-	logger.D("resolving hooks for overview")
 	// just to get a list of hook actions available
 	err := h.ResolveFields(taskCtx, 1, h.GetFieldNameByStage(stage))
 	if err != nil {

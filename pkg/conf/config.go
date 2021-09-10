@@ -28,13 +28,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/plugin"
-	"arhat.dev/dukkha/pkg/renderer/echo"
-	"arhat.dev/dukkha/pkg/renderer/env"
-	"arhat.dev/dukkha/pkg/renderer/file"
-	"arhat.dev/dukkha/pkg/renderer/http"
-	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/template"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -42,99 +35,11 @@ func NewConfig() *Config {
 	return rshelper.InitAll(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
 }
 
-type GlobalConfig struct {
-	rs.BaseField
-
-	// CacheDir to store script file and temporary task execution data
-	CacheDir string `yaml:"cache_dir"`
-
-	DefaultGitBranch string `yaml:"default_git_branch"`
-
-	// Env
-	Env dukkha.Env `yaml:"env"`
-
-	Values dukkha.ArbitraryValues `yaml:"values"`
-}
-
-func (g *GlobalConfig) Merge(a *GlobalConfig) error {
-	if a == nil {
-		return nil
-	}
-
-	err := g.BaseField.Inherit(&a.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to inherit other global config: %w", err)
-	}
-
-	g.Env = append(g.Env, a.Env...)
-	if len(a.CacheDir) != 0 {
-		g.CacheDir = a.CacheDir
-	}
-
-	if len(a.DefaultGitBranch) != 0 {
-		g.DefaultGitBranch = a.DefaultGitBranch
-	}
-
-	err = g.Values.ShallowMerge(&a.Values)
-	if err != nil {
-		return fmt.Errorf("failed to merge global values: %w", err)
-	}
-
-	return nil
-}
-
-func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(g, rc, "Env")
-	if err != nil {
-		return fmt.Errorf("failed to resolve global env: %w", err)
-	}
-
-	err = g.ResolveFields(rc, -1, "CacheDir")
-	if err != nil {
-		return fmt.Errorf("failed to resolve cache dir: %w", err)
-	}
-
-	err = g.ResolveFields(rc, -1, "DefaultGitBranch")
-	if err != nil {
-		return fmt.Errorf("failed to resolve default git branch: %w", err)
-	}
-
-	return nil
-}
-
-type PluginsConfig struct {
-	rs.BaseField
-
-	Renderers []plugin.RendererSpec `yaml:"renderers"`
-	Tools     []plugin.ToolSpec     `yaml:"tools"`
-	Tasks     []plugin.TaskSpec     `yaml:"tasks"`
-}
-
-func (p *PluginsConfig) Merge(a *PluginsConfig) error {
-	if a == nil {
-		return nil
-	}
-
-	err := p.BaseField.Inherit(&a.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to inherit other plugins config: %w", err)
-	}
-
-	p.Renderers = append(p.Renderers, a.Renderers...)
-	p.Tools = append(p.Tools, a.Tools...)
-	p.Tasks = append(p.Tasks, a.Tasks...)
-
-	return nil
-}
-
 type Config struct {
 	rs.BaseField
 
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
-
-	// Plugins
-	Plugins PluginsConfig `yaml:"plugins"`
 
 	// Include other files using path relative to this config
 	// no rendering suffix for this field
@@ -200,11 +105,6 @@ func (c *Config) Merge(a *Config) error {
 		return err
 	}
 
-	err = c.Plugins.Merge(&a.Plugins)
-	if err != nil {
-		return err
-	}
-
 	c.Shells = append(c.Shells, a.Shells...)
 
 	if c.Renderers == nil {
@@ -234,43 +134,17 @@ func (c *Config) Merge(a *Config) error {
 	return nil
 }
 
-// Resolve resolves all top level dukkha config
-// to gain an overview of all tools and tasks
+// Resolve all top level dukkha config to gain an overview of all tools and tasks
 // nolint:gocyclo
-func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
+func (c *Config) Resolve(
+	appCtx dukkha.ConfigResolvingContext,
+	resolveTasks bool,
+) error {
 	logger := log.Log.WithName("config")
-
-	// step 1: create essential renderers
-	{
-		logger.V("creating essential renderers")
-
-		// TODO: let user decide what renderers to use
-		// 		 resolve renderers first?
-		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(""))
-		appCtx.AddRenderer(env.DefaultName, env.NewDefault(""))
-		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
-		appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
-		appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
-		appCtx.AddRenderer(http.DefaultName, http.NewDefault(""))
-
-		essentialRenderers := appCtx.AllRenderers()
-		logger.D("initializing essential renderers",
-			log.Int("count", len(essentialRenderers)),
-		)
-
-		for name, r := range essentialRenderers {
-			// using default config, no need to resolve fields
-
-			err := r.Init(appCtx)
-			if err != nil {
-				return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
-			}
-		}
-	}
 
 	// step 2: resolve global config (except Values), ensure cache dir exists
 	{
-		logger.D("resolving global config")
+		logger.D("resolving global config overview")
 		err := c.ResolveFields(appCtx, 1, "Global")
 		if err != nil {
 			return fmt.Errorf("failed to get global config overview: %w", err)
@@ -394,7 +268,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	}
 
 	// save some time if the command is not interacting with tasks
-	if !needTasks {
+	if !resolveTasks {
 		return nil
 	}
 

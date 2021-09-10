@@ -3,9 +3,8 @@ package dukkha_test
 import (
 	"context"
 
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -42,13 +41,15 @@ func NewTestContextWithGlobalEnv(
 ) dukkha.ConfigResolvingContext {
 	d := dukkha.NewConfigResolvingContext(
 		ctx,
-		dukkha.GlobalInterfaceTypeHandler,
-		true,
-		false, // turn off color output
-		false, // do not translate ansi stream
-		false, // retainANSIStyle is not used when translateANSIStream is disabled
-		1,
-		globalEnv,
+		dukkha.ContextOptions{
+			InterfaceTypeHandler: dukkha.GlobalInterfaceTypeHandler,
+			FailFast:             true,
+			ColorOutput:          false,
+			TranslateANSIStream:  false,
+			RetainANSIStyle:      false,
+			Workers:              1,
+			GlobalEnv:            globalEnv,
+		},
 	)
 
 	d.AddRenderer("echo", &echoRenderer{})

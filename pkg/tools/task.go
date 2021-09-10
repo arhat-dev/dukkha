@@ -11,6 +11,15 @@ import (
 	"arhat.dev/dukkha/pkg/matrix"
 )
 
+type TaskExecRequest struct {
+	Context dukkha.TaskExecContext
+
+	Tool dukkha.Tool
+	Task dukkha.Task
+
+	IgnoreError bool
+}
+
 var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
 
 type _baseTaskWithGetExecSpecs struct{ BaseTask }

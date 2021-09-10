@@ -3,6 +3,7 @@ package utils
 import (
 	"io"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/muesli/termenv"
 )
 
@@ -57,7 +58,7 @@ func (p *prefixWriter) Write(data []byte) (n int, err error) {
 func TermWriter(
 	prefix string,
 	useColor bool,
-	prefixColor, outputColor termenv.Color,
+	prefixColor, outputColor dukkha.TermColor,
 	w io.Writer,
 ) io.Writer {
 	prefixBytes := []byte(prefix)
@@ -71,16 +72,16 @@ func TermWriter(
 	}
 
 	if useColor {
-		if prefixColor != nil {
-			style := termenv.Style{}.Foreground(prefixColor)
+		if prefixColor != 0 {
+			style := termenv.Style{}.Foreground(termenv.ANSIColor(prefixColor))
 			writePrefix = func() error {
 				_, err := w.Write([]byte(style.Styled(prefix)))
 				return err
 			}
 		}
 
-		if outputColor != nil {
-			style := termenv.Style{}.Foreground(outputColor)
+		if outputColor != 0 {
+			style := termenv.Style{}.Foreground(termenv.ANSIColor(outputColor))
 			writeOutput = func(p []byte) (int, error) {
 				return w.Write([]byte(style.Styled(string(p))))
 			}

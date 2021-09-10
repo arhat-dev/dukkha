@@ -12,10 +12,18 @@ import (
 	"arhat.dev/dukkha/pkg/conf"
 )
 
+type configLoaderFunc func(
+	visitedPaths *map[string]struct{},
+	mergedConfig interface{},
+	file string,
+	loader configLoaderFunc,
+) error
+
 func readAndMergeConfigFile(
 	visitedPaths *map[string]struct{},
-	mergedConfig *conf.Config,
+	mergedConfig interface{},
 	file string,
+	loader configLoaderFunc,
 ) error {
 	if _, ok := (*visitedPaths)[file]; ok {
 		return nil
@@ -36,7 +44,7 @@ func readAndMergeConfigFile(
 
 	log.Log.V("config unmarshaled", log.String("file", file), log.Any("config", current))
 
-	err = mergedConfig.Merge(current)
+	err = mergedConfig.(*conf.Config).Merge(current)
 	if err != nil {
 		return fmt.Errorf("failed to merge config file %q: %w", file, err)
 	}
@@ -56,10 +64,43 @@ func readAndMergeConfigFile(
 			matches = []string{toInclude}
 		}
 
-		err2 = readConfigRecursively(matches, false, visitedPaths, mergedConfig)
+		err2 = readConfigRecursively(matches, false, visitedPaths, mergedConfig, loader)
 		if err2 != nil {
 			return fmt.Errorf("failed to load included config files: %w", err2)
 		}
+	}
+
+	return err
+}
+
+func readAndMergePluginConfigFile(
+	visitedPaths *map[string]struct{},
+	mergedConfig interface{},
+	file string,
+	loader configLoaderFunc,
+) error {
+	if _, ok := (*visitedPaths)[file]; ok {
+		return nil
+	}
+
+	(*visitedPaths)[file] = struct{}{}
+
+	configBytes, err := os.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("failed to read plugin config file %q: %w", file, err)
+	}
+
+	current := conf.NewPluginConfig()
+	err = yaml.Unmarshal(configBytes, &current)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal plugin config file %q: %w", file, err)
+	}
+
+	log.Log.V("config unmarshaled", log.String("file", file), log.Any("config", current))
+
+	err = mergedConfig.(*conf.PluginConfig).Merge(current)
+	if err != nil {
+		return fmt.Errorf("failed to merge plugin config %q: %w", file, err)
 	}
 
 	return err
@@ -69,7 +110,8 @@ func readConfigRecursively(
 	configPaths []string,
 	ignoreFileNotExist bool,
 	visitedPaths *map[string]struct{},
-	mergedConfig *conf.Config,
+	mergedConfig interface{},
+	loader configLoaderFunc,
 ) error {
 	for _, path := range configPaths {
 		info, err := os.Stat(path)
@@ -84,7 +126,7 @@ func readConfigRecursively(
 		}
 
 		if !info.IsDir() {
-			err = readAndMergeConfigFile(visitedPaths, mergedConfig, path)
+			err = loader(visitedPaths, mergedConfig, path, loader)
 			if err != nil {
 				return err
 			}
@@ -108,10 +150,11 @@ func readConfigRecursively(
 				return nil
 			}
 
-			return readAndMergeConfigFile(
+			return loader(
 				visitedPaths,
 				mergedConfig,
 				filepath.Join(path, pathInDir),
+				loader,
 			)
 		})
 

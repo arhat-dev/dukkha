@@ -29,7 +29,7 @@ GOARCH ?= $(shell go env GOHOSTARCH)
 .PHONY: dukkha
 dukkha:
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
-		go build -o build/dukkha -mod vendor ./cmd/dukkha
+		go build -o build/dukkha -tags=real -mod vendor ./cmd/dukkha
 
 # testing
 include scripts/test/unit.mk

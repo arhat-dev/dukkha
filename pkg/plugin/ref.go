@@ -23,26 +23,21 @@ type SrcRef struct {
 	rs.BaseField `yaml:"-"`
 
 	// Source of the single file plugin go code
-	Source *string `yaml:"source"`
+	Source string `yaml:"source"`
 
 	// Package name and version of the plugin (go module package)
 	// (e.g. example.com/foo@v0.1.1)
 	// MUST have its dependencies vendored
-	Package *string `yaml:"package"`
+	Package string `yaml:"package"`
 }
 
 func (s *SrcRef) Fetch(spec Spec, cacheDir string) error {
 	switch {
-	case s.Source != nil:
-		srcContent := *s.Source
-		if len(srcContent) == 0 {
-			return fmt.Errorf("invalid empty plugin source")
-		}
-
+	case len(s.Source) != 0:
 		// do nothing
 		return nil
-	case s.Package != nil:
-		mod := *s.Package
+	case len(s.Package) != 0:
+		mod := s.Package
 		if len(mod) == 0 {
 			return fmt.Errorf("invalid empty plugin git url")
 		}
@@ -80,8 +75,8 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 	}
 
 	switch {
-	case s.Source != nil:
-		src := *s.Source
+	case len(s.Source) != 0:
+		src := s.Source
 		pkg, err := getPackageOfSource(src)
 		if err != nil {
 			return fmt.Errorf("invalid source: %w", err)
@@ -97,7 +92,7 @@ func (s *SrcRef) Register(spec Spec, cacheDir string) error {
 		}
 
 		return register(spec, pkg, interp)
-	case s.Package != nil:
+	case len(s.Package) != 0:
 		srcPath := spec.SrcPath(cacheDir)
 		pkg, err := getPackageOfDir(srcPath)
 		if err != nil {
@@ -255,8 +250,9 @@ func evalObjectMethods(
 	requiredMethods []string,
 ) (map[string]reflect.Value, error) {
 	suffix := newRandomHexBytes()
-	tempPkgName := "pkg_" + suffix
-	reflectVarName := "VAR_" + suffix
+	// tempPkgName := "pkg_" + suffix
+	tempPkgName := "plugin"
+	varName := "VAR_" + suffix
 	_, err := interp.Eval(
 		fmt.Sprintf(`
 package %s
@@ -264,18 +260,25 @@ package %s
 var %s = %s
 `,
 			tempPkgName,
-			reflectVarName, funcCall,
+			varName, funcCall,
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary variable: %w", err)
 	}
 
+	v, err := interp.Eval(fmt.Sprintf("%s.%s", tempPkgName, varName))
+	if err != nil {
+		return nil, fmt.Errorf("failed to reference temporary variable: %w", err)
+	}
+
+	rs.InitRecursively(v, dukkha.GlobalInterfaceTypeHandler)
+
 	methods := make(map[string]reflect.Value)
 	for _, methodName := range requiredMethods {
 		methodFunc, err := interp.Eval(
 			fmt.Sprintf(
-				`%s.%s.%s`, tempPkgName, reflectVarName, methodName,
+				`%s.%s.%s`, tempPkgName, varName, methodName,
 			),
 		)
 		if err != nil {

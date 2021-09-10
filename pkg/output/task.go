@@ -11,7 +11,7 @@ import (
 )
 
 func WriteTaskStart(
-	prefixColor termenv.Color,
+	prefixColor dukkha.TermColor,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
 	matrixSpec matrix.Entry,
@@ -23,8 +23,8 @@ func WriteTaskStart(
 		"{", matrixSpec.String(), "}",
 	}
 
-	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+	if prefixColor != 0 {
+		printlnWithColor(output, termenv.ANSIColor(prefixColor))
 	} else {
 		_, _ = fmt.Println(strings.Join(output, " "))
 	}

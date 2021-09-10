@@ -30,6 +30,12 @@ import (
 	"arhat.dev/dukkha/pkg/cmd/render"
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer/echo"
+	"arhat.dev/dukkha/pkg/renderer/env"
+	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/renderer/http"
+	"arhat.dev/dukkha/pkg/renderer/shell"
+	"arhat.dev/dukkha/pkg/renderer/template"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -48,6 +54,9 @@ func NewRootCmd() *cobra.Command {
 		configPaths []string
 		// merged config
 		config = conf.NewConfig()
+
+		pluginConfigPaths []string
+		plugins           = conf.NewPluginConfig()
 
 		appCtx dukkha.Context
 	)
@@ -93,20 +102,6 @@ dukkha buildah in-docker build my-image`,
 
 			logger := log.Log.WithName("pre-run")
 
-			// read all configration files
-			visitedPaths := make(map[string]struct{})
-			err = readConfigRecursively(
-				configPaths,
-				!cmd.PersistentFlags().Changed("config"),
-				&visitedPaths,
-				config,
-			)
-			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
-			}
-
-			logger.V("initializing dukkha", log.Any("raw_config", config))
-
 			stdoutIsPty := term.IsTerminal(int(os.Stdout.Fd()))
 
 			translateANSIFlag := cmd.Flag("translate-ansi-stream")
@@ -119,27 +114,90 @@ dukkha buildah in-docker build my-image`,
 
 			actualRetainANSIStyle := actualTranslateANSIStream && retainANSIStyle
 
+			// prepare context
 			_appCtx := dukkha.NewConfigResolvingContext(
-				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
-				failFast,
-				stdoutIsPty || forceColor,
-				actualTranslateANSIStream,
-				actualRetainANSIStyle,
-				workerCount,
-				createGlobalEnv(appBaseCtx),
+				appBaseCtx, dukkha.ContextOptions{
+					InterfaceTypeHandler: dukkha.GlobalInterfaceTypeHandler,
+					FailFast:             failFast,
+					ColorOutput:          stdoutIsPty || forceColor,
+					TranslateANSIStream:  actualTranslateANSIStream,
+					RetainANSIStyle:      actualRetainANSIStyle,
+					Workers:              workerCount,
+					GlobalEnv:            createGlobalEnv(appBaseCtx),
+				},
 			)
 
-			_appCtx.AddListEnv(os.Environ()...)
+			{
+				_appCtx.AddListEnv(os.Environ()...)
 
-			var needTasks bool
-			switch {
-			case strings.HasPrefix(cmd.Use, "render"):
-				needTasks = false
-			default:
-				needTasks = true
+				logger.V("creating essential renderers")
+
+				// TODO: let user decide what renderers to use
+				// 		 resolve renderers first?
+				_appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(""))
+				_appCtx.AddRenderer(env.DefaultName, env.NewDefault(""))
+				_appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
+				_appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
+				_appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
+				_appCtx.AddRenderer(http.DefaultName, http.NewDefault(""))
+
+				essentialRenderers := _appCtx.AllRenderers()
+				logger.D("initializing essential renderers",
+					log.Int("count", len(essentialRenderers)),
+				)
+
+				for name, r := range essentialRenderers {
+					// using default config, no need to resolve fields
+
+					err := r.Init(_appCtx)
+					if err != nil {
+						return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
+					}
+				}
 			}
 
-			err = config.Resolve(_appCtx, needTasks)
+			// read all plugins config files
+			visitedPaths := make(map[string]struct{})
+			err = readConfigRecursively(
+				pluginConfigPaths,
+				!cmd.PersistentFlags().Changed("plugins-config"),
+				&visitedPaths,
+				plugins,
+				readAndMergePluginConfigFile,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to load plugins config: %w", err)
+			}
+
+			err = plugins.ResolveAndRegisterPlugins(_appCtx)
+			if err != nil {
+				return fmt.Errorf("failed to resolve and register plugins: %w", err)
+			}
+
+			// read all configration files
+			visitedPaths = make(map[string]struct{})
+			err = readConfigRecursively(
+				configPaths,
+				!cmd.PersistentFlags().Changed("config"),
+				&visitedPaths,
+				config,
+				readAndMergeConfigFile,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to load config: %w", err)
+			}
+
+			logger.V("initializing dukkha", log.Any("raw_config", config))
+
+			var resolveTasks bool
+			switch {
+			case strings.HasPrefix(cmd.Use, "render"):
+				resolveTasks = false
+			default:
+				resolveTasks = true
+			}
+
+			err = config.Resolve(_appCtx, resolveTasks)
 			if err != nil {
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
@@ -158,6 +216,11 @@ dukkha buildah in-docker build my-image`,
 	}
 
 	globalFlags := rootCmd.PersistentFlags()
+	globalFlags.StringSliceVarP(
+		&pluginConfigPaths, "plugins-config", "p", []string{".dukkha-plugins.yaml"},
+		"path to your plugin config files and directories, behave like --config, but for plugins",
+	)
+
 	globalFlags.StringSliceVarP(
 		&configPaths, "config", "c", []string{".dukkha.yaml", ".dukkha"},
 		"path to your config files and directories, if a directory is provided"+

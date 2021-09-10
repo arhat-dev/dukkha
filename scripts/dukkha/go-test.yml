@@ -13,7 +13,8 @@
         shell "go list ./pkg/..."
         | removePrefix "$(go list -m)/"
         | addPrefix "- "
-      -}}
+      }}
+      - ./
 
   path@env: ./${MATRIX_PKG}
   json_output_file@template: |-

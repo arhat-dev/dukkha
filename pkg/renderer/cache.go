@@ -15,14 +15,13 @@ import (
 	lru "github.com/die-net/lrucache"
 
 	"arhat.dev/dukkha/pkg/output"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type CacheConfig struct {
 	rs.BaseField
 
 	EnableCache    bool          `yaml:"enable_cache"`
-	CacheSizeLimit utils.Size    `yaml:"cache_size_limit"`
+	CacheSizeLimit Size          `yaml:"cache_size_limit"`
 	CacheMaxAge    time.Duration `yaml:"cache_max_age"`
 }
 

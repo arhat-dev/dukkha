@@ -33,3 +33,15 @@ renderers:
 shells:
 - name: bash
 - name: python
+
+# tools:
+#   tool-foo:
+#   - name: local
+#
+# tool-foo:task-foo:
+# - name: foo
+#   echo@foo: null
+#
+# tool-foo:task-bar:
+# - name: bar
+#   echo@foo: null

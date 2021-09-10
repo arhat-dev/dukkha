@@ -1,0 +1,15 @@
+# renderers:
+# - name: foo
+#   source@file: pkg/plugin/plugin_example_test.go
+#
+# tools:
+# - tool: tool-foo
+#   tasks:
+#   - task-foo
+#   - task-bar
+#   source@file: pkg/plugin/plugin_example_test.go
+#
+# tasks:
+# - tool: tool-bar
+#   task: task-bar
+#   source@file: pkg/plugin/plugin_example_test.go

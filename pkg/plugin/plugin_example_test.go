@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"reflect"
+
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -24,51 +26,64 @@ func (r *fooRenderer) RenderYaml(rc dukkha.RenderingContext, rawData interface{}
 // NewRenderer_{renderer-default-name}
 // nolint:revive
 func NewRenderer_foo(name string) *fooRenderer {
-	return &fooRenderer{name: name}
+	ret := &fooRenderer{}
+	rs.InitRecursively(reflect.ValueOf(ret), dukkha.GlobalInterfaceTypeHandler)
+	return ret
 }
 
-type fooTool struct {
-	rs.BaseField
+type toolFoo struct {
+	// rs.BaseField
 
-	tools.BaseTool
+	tools.BaseTool `yaml:",inline"`
 }
 
-func (f *fooTool) Init(kind dukkha.ToolKind, cachdDir string) error {
+func (f *toolFoo) Init(kind dukkha.ToolKind, cachdDir string) error {
 	return f.BaseTool.InitBaseTool(kind, "foo", cachdDir, f)
 }
 
 // NewTool_{tool-kind}
 // nolint:revive
-func NewTool_foo_tool() *fooTool {
-	return &fooTool{}
+func NewTool_tool_foo() *toolFoo {
+	ret := &toolFoo{}
+	rs.InitRecursively(reflect.ValueOf(ret), dukkha.GlobalInterfaceTypeHandler)
+	return ret
 }
 
-type fooTask struct {
-	rs.BaseField
+type taskFoo struct {
+	// rs.BaseField
 
-	tools.BaseTask
+	tools.BaseTask `yaml:",inline"`
+
+	Echo string `yaml:"echo"`
 }
 
-func (f *fooTask) GetExecSpecs(rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions) ([]dukkha.TaskExecSpec, error) {
+func (f *taskFoo) GetExecSpecs(rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions) ([]dukkha.TaskExecSpec, error) {
+	println("TASK_FOO SPEC: " + f.Echo)
 	return nil, nil
 }
 
 // NewTask_{tool-kind}_{task-kind}
 // nolint:revive
-func NewTask_foo_tool_foo_task(name string) *fooTask {
-	return &fooTask{}
+func NewTask_tool_foo_task_foo(name string) *taskFoo {
+	ret := &taskFoo{}
+	rs.InitRecursively(reflect.ValueOf(ret), dukkha.GlobalInterfaceTypeHandler)
+	return ret
 }
 
-type barTask fooTask
+type barTask = taskFoo
 
 // NewTask_{tool-kind}_{task-kind}
 // nolint:revive
-func NewTask_foo_tool_bar_task(name string) *barTask {
-	return &barTask{}
+func NewTask_tool_foo_task_bar(name string) *barTask {
+	ret := &barTask{}
+	rs.InitRecursively(reflect.ValueOf(ret), dukkha.GlobalInterfaceTypeHandler)
+	return ret
 }
 
 // NewTask_{tool-kind}_{task-kind}
 // nolint:revive
-func NewTask_bar_tool_bar_task(name string) *barTask {
-	return &barTask{}
+func NewTask_bar_tool_task_bar(name string) *barTask {
+	ret := &barTask{}
+	rs.InitRecursively(reflect.ValueOf(ret), dukkha.GlobalInterfaceTypeHandler)
+	return ret
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func WriteExecStart(
-	prefixColor termenv.Color,
+	prefixColor dukkha.TermColor,
 	k dukkha.ToolKey,
 	cmd []string,
 	scriptName string,
@@ -28,15 +28,15 @@ func WriteExecStart(
 		output = append(output, "@", scriptName)
 	}
 
-	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+	if prefixColor != 0 {
+		printlnWithColor(output, termenv.ANSIColor(prefixColor))
 	} else {
 		_, _ = fmt.Println(strings.Join(output, " "))
 	}
 }
 
 func WriteExecResult(
-	prefixColor termenv.Color,
+	prefixColor dukkha.TermColor,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
 	matrixSpec string,
@@ -60,8 +60,8 @@ func WriteExecResult(
 		output = append(output, "}")
 	}
 
-	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+	if prefixColor != 0 {
+		printlnWithColor(output, termenv.ANSIColor(prefixColor))
 	} else {
 		_, _ = fmt.Fprintln(os.Stderr, strings.Join(output, " "))
 	}

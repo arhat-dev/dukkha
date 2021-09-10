@@ -42,6 +42,7 @@
   - nokube
   - nocloud
   - netgo
+  - real
   ldflags@env:
   - -s -w
   - -X "arhat.dev/dukkha/pkg/version.branch=${GIT_BRANCH}"

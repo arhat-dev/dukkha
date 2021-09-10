@@ -5,6 +5,7 @@ import (
 	"io"
 	"path/filepath"
 
+	"arhat.dev/dukkha"
 	"arhat.dev/rs"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
@@ -12,15 +13,7 @@ import (
 	"github.com/traefik/yaegi/stdlib/unrestricted"
 	"github.com/traefik/yaegi/stdlib/unsafe"
 
-	constant_symbols "arhat.dev/dukkha/pkg/constant/symbols"
-	dukkha_symbols "arhat.dev/dukkha/pkg/dukkha/symbols"
-	matrix_symbols "arhat.dev/dukkha/pkg/matrix/symbols"
-	renderer_symbols "arhat.dev/dukkha/pkg/renderer/symbols"
-	sliceutils_symbols "arhat.dev/dukkha/pkg/sliceutils/symbols"
-	templateutils_symbols "arhat.dev/dukkha/pkg/templateutils/symbols"
-	tools_symbols "arhat.dev/dukkha/pkg/tools/symbols"
-	rs_symbols "arhat.dev/dukkha/third_party/rs/symbols"
-	yaml_symbols "arhat.dev/dukkha/third_party/yaml.v3/symbols"
+	yaml_symbols "arhat.dev/dukkha/third_party/gopkg.in/yaml.v3/symbols"
 )
 
 func newInterperter(
@@ -29,10 +22,11 @@ func newInterperter(
 	stdout, stderr io.Writer,
 ) (*interp.Interpreter, error) {
 	t := interp.New(interp.Options{
-		GoPath: goPath,
-		Stdin:  stdin,
-		Stdout: stdout,
-		Stderr: stderr,
+		GoPath:               goPath,
+		Stdin:                stdin,
+		Stdout:               stdout,
+		Stderr:               stderr,
+		SourcecodeFilesystem: dukkha.NewPluginFS(goPath, "plugin"),
 	})
 
 	err := t.Use(stdlib.Symbols)
@@ -55,52 +49,17 @@ func newInterperter(
 		return nil, fmt.Errorf("unable to use unrestricted libraries: %w", err)
 	}
 
-	err = t.Use(dukkha_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use dukkha symbols: %w", err)
-	}
-
-	err = t.Use(matrix_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use matrix symbols: %w", err)
-	}
-
-	err = t.Use(renderer_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use renderer symbols: %w", err)
-	}
-
-	err = t.Use(sliceutils_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use sliceutils symbols: %w", err)
-	}
-
-	err = t.Use(templateutils_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use templateutils symbols: %w", err)
-	}
-
-	err = t.Use(tools_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use tools symbols: %w", err)
-	}
-
-	err = t.Use(constant_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use constant symbols: %w", err)
-	}
+	// err = t.Use(dukkha_symbols.Symbols)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to use dukkha symbols: %w", err)
+	// }
 
 	err = t.Use(yaml_symbols.Symbols)
 	if err != nil {
-		return nil, fmt.Errorf("unable to use yaml symbols: %w", err)
+		return nil, fmt.Errorf("unable to use yaml libraries: %w", err)
 	}
 
-	err = t.Use(rs_symbols.Symbols)
-	if err != nil {
-		return nil, fmt.Errorf("unable to use rs symbols: %w", err)
-	}
-
-	t.ImportUsed()
+	// t.ImportUsed()
 
 	return t, nil
 }

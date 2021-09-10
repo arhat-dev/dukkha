@@ -16,8 +16,8 @@ import (
 
 var (
 	_ dukkha.Renderer = (*fooRenderer)(nil)
-	_ dukkha.Tool     = (*fooTool)(nil)
-	_ dukkha.Task     = (*fooTask)(nil)
+	_ dukkha.Tool     = (*toolFoo)(nil)
+	_ dukkha.Task     = (*taskFoo)(nil)
 )
 
 func init() {
@@ -130,27 +130,27 @@ func TestSrcRef_Register(t *testing.T) {
 			spec: &RendererSpec{
 				DefaultName: "foo",
 				SrcRef: SrcRef{
-					Source: &exampleSourceFile,
+					Source: exampleSourceFile,
 				},
 			},
 		},
 		{
 			name: "Empty Tool",
 			spec: &ToolSpec{
-				ToolKind: "foo-tool",
-				Tasks:    []string{"foo-task", "bar-task"},
+				ToolKind: "tool-foo",
+				Tasks:    []string{"task-foo", "task-bar"},
 				SrcRef: SrcRef{
-					Source: &exampleSourceFile,
+					Source: exampleSourceFile,
 				},
 			},
 		},
 		{
 			name: "Empty Task",
 			spec: &TaskSpec{
-				ToolKind: "bar-tool",
-				TaskKind: "bar-task",
+				ToolKind: "tool-bar",
+				TaskKind: "task-bar",
 				SrcRef: SrcRef{
-					Source: &exampleSourceFile,
+					Source: exampleSourceFile,
 				},
 			},
 		},

@@ -10,7 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/matrix"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type (
@@ -86,7 +85,7 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 		return nil, fmt.Errorf("invalid tool reference %q", taskRef)
 	}
 
-	call, err := utils.ParseBrackets(taskRef[callStart+1:])
+	call, err := parseBrackets(taskRef[callStart+1:])
 	if err != nil {
 		return nil, fmt.Errorf("invalid task call: %w", err)
 	}
@@ -281,4 +280,23 @@ func (c *contextTasks) GetToolSpecificTasks(k ToolKey) ([]Task, bool) {
 
 func (c *contextTasks) AllToolSpecificTasks() map[ToolKey][]Task {
 	return c.toolSpecificTasks
+}
+
+// parseBrackets `()`
+func parseBrackets(s string) (string, error) {
+	leftBrackets := 0
+	for i := range s {
+		switch s[i] {
+		case '(':
+			leftBrackets++
+		case ')':
+			if leftBrackets == 0 {
+				return s[:i], nil
+			}
+			leftBrackets--
+		}
+	}
+
+	// invalid data
+	return "", fmt.Errorf("unexpected non-terminated brackets")
 }

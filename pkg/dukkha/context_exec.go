@@ -1,10 +1,10 @@
 package dukkha
 
 import (
-	"github.com/muesli/termenv"
-
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
+
+type TermColor int
 
 type TaskExecOptions interface {
 	NextMatrixExecOptions(useShell bool, shellName string, toolCmd []string) TaskMatrixExecOptions
@@ -77,9 +77,9 @@ type ExecValues interface {
 	SetOutputPrefix(s string)
 	OutputPrefix() string
 
-	SetTaskColors(prefixColor, outputColor termenv.Color)
-	PrefixColor() termenv.Color
-	OutputColor() termenv.Color
+	SetTaskColors(prefixColor, outputColor TermColor)
+	PrefixColor() TermColor
+	OutputColor() TermColor
 
 	CurrentTool() ToolKey
 	CurrentTask() TaskKey
@@ -102,8 +102,8 @@ type contextExec struct {
 
 	outputPrefix string
 
-	prefixColor termenv.Color
-	outputColor termenv.Color
+	prefixColor TermColor
+	outputColor TermColor
 }
 
 func (c *contextExec) deriveNew() *contextExec {
@@ -135,8 +135,8 @@ func (c *contextExec) SetOutputPrefix(s string) {
 	c.outputPrefix = s
 }
 
-func (c *contextExec) SetTaskColors(prefixColor, outputColor termenv.Color) {
-	if c.prefixColor != nil || c.outputColor != nil {
+func (c *contextExec) SetTaskColors(prefixColor, outputColor TermColor) {
+	if c.prefixColor != 0 || c.outputColor != 0 {
 		return
 	}
 
@@ -144,11 +144,11 @@ func (c *contextExec) SetTaskColors(prefixColor, outputColor termenv.Color) {
 	c.outputColor = outputColor
 }
 
-func (c *contextExec) PrefixColor() termenv.Color {
+func (c *contextExec) PrefixColor() TermColor {
 	return c.prefixColor
 }
 
-func (c *contextExec) OutputColor() termenv.Color {
+func (c *contextExec) OutputColor() TermColor {
 	return c.outputColor
 }
 
