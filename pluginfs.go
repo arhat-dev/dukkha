@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"path"
 
-	"arhat.dev/dukkha/pkg/unionfs"
+	"arhat.dev/unionfs"
 )
 
 var (
@@ -54,7 +54,7 @@ func NewPluginFS(goPath, pkg string) fs.FS {
 
 	pfs := unionfs.New()
 
-	pfs.Remap(path.Join(basePath, "arhat.dev/dukkha/pkg"), "pkg", pkg_fs)
+	pfs.Map(path.Join(basePath, "arhat.dev/dukkha/pkg"), "pkg", pkg_fs)
 
 	for vendorPkg, vendorPkgFS := range map[string]embed.FS{
 		"arhat.dev/rs":                     vendor_rs_fs,
@@ -71,7 +71,7 @@ func NewPluginFS(goPath, pkg string) fs.FS {
 		// "github.com/itchyny/gojq":            vendor_gojq_fs,
 		// "github.com/itchyny/timefmt-go": vendor_timefmt_fs,
 	} {
-		pfs.Remap(
+		pfs.Map(
 			path.Join(basePath, vendorPkg),
 			path.Join("third_party", vendorPkg),
 			vendorPkgFS,
