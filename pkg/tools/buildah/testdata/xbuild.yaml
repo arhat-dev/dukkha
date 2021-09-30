@@ -1,0 +1,69 @@
+env:
+- name: FOO
+  value: bar
+- name: VERSION
+  value@env: $(git rev-parse)
+
+image_names:
+- image: ghcr.io/arhat-dev/image-builder
+  manifest: ghcr.io/arhat-dev/image-builder
+
+context: "."
+
+steps:
+- name: Set Base Image And WorkDir
+  from:
+    image:
+      name: ghcr.io/arhat-dev/alpine:latest
+  # arch: amd64
+  id: base
+  workdir: /
+
+- name: Copy From Another Image
+  commit: false
+  copy:
+  - from:
+      image:
+        name: ghcr.io/arhat-dev/dukkha
+        path: /dukkha
+    to: /usr/local/bin/dukkha
+
+- name: Copy From Local Filesystem
+  commit: false
+  copy:
+  - from:
+      localfs:
+        path: ./config.yaml
+    to: /etc/config.yaml
+    chmod: -R a+r
+    chown: 1000:1000
+
+- name: Copy From HTTP Endpoint
+  commit: false
+  copy:
+  - from:
+      http:
+        url: https://example.com/foo.tar.gz
+    to: /foo.tar.gz
+  - from:
+      http:
+        url: https://example.com/foo.tar.gz.sha256
+    to: /foo.tar.gz.sha256
+
+- name: Verify Checksum and Extract
+  commit: false
+  run: |-
+    sha256sum -c /foo.tar.gz.sha256
+    mkdir -p /usr/local/foo
+    rm -f /foo*
+    tar -xf /foo.tar.gz -C /usr/local/foo
+
+- name: Set Final Image
+  from: scratch
+
+- name: Copy Previously generated Files
+  copy:
+    from:
+      this:
+        id: base
+        path: /etc/config.yaml
