@@ -13,7 +13,7 @@ var (
 // Init the BaseField embedded in your struct, the BaseField must be the first field
 //
 // 		type Foo struct {
-// 			field.BaseField // or *field.BaseField
+// 			rs.BaseField // or *rs.BaseField
 // 		}
 //
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element

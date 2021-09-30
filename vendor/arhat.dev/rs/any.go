@@ -13,7 +13,7 @@ var (
 )
 
 type mapData struct {
-	BaseField `yaml:"-"`
+	BaseField `yaml:"-" json:"-"`
 
 	Data map[string]*AnyObject `rs:"other"`
 }
