@@ -11,7 +11,7 @@ global:
   values@template!:
     value@file: values.yaml
     merge:
-    - data:
+    - value:
         versions:
           kubernetes@env: ${kubernetes_version}
           ingress@template: |-

@@ -24,7 +24,7 @@ tools:
 golang:build@file!:
   value: scripts/dukkha/go-build.yml
   merge:
-  - data@file: scripts/dukkha/testdata/go-build-fake.yml
+  - value@file: scripts/dukkha/testdata/go-build-fake.yml
 
 golang:test@file: scripts/dukkha/go-test.yml
 

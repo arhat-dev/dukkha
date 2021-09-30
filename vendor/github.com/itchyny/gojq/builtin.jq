@@ -4,7 +4,7 @@ def map(f): [.[] | f];
 def to_entries: [keys[] as $k | {key: $k, value: .[$k]}];
 def from_entries:
   map({ (.key // .Key // .name // .Name): (if has("value") then .value else .Value end) })
-    | add | . //= {};
+    | add // {};
 def with_entries(f): to_entries | map(f) | from_entries;
 def select(f): if f then . else empty end;
 def recurse: recurse(.[]?);
@@ -22,10 +22,24 @@ def repeat(f):
   _repeat;
 def range($x): range(0; $x);
 def range($start; $end):
-  $start | while(. < $end; . + 1);
+  if $start | type != "number" then
+    $start | _type_error("range")
+  elif $end | type != "number" then
+    $end | _type_error("range")
+  else
+    $start | while(. < $end; . + 1)
+  end;
 def range($start; $end; $step):
-  if $step > 0 then $start | while(. < $end; . + $step)
-  elif $step < 0 then $start | while(. > $end; . + $step)
+  if $start | type != "number" then
+    $start | _type_error("range")
+  elif $end | type != "number" then
+    $end | _type_error("range")
+  elif $step | type != "number" then
+    $step | _type_error("range")
+  elif $step > 0 then
+    $start | while(. < $end; . + $step)
+  elif $step < 0 then
+    $start | while(. > $end; . + $step)
   else empty end;
 
 def _flatten($x):
@@ -63,13 +77,9 @@ def values: select(. != null);
 def scalars: select(type | . != "array" and . != "object");
 def leaf_paths: paths(scalars);
 
-def indices($x):
-  if type == "array" and ($x|type) == "array" then .[$x]
-  elif type == "array" then .[[$x]]
-  elif type == "string" and ($x|type) == "string" then explode | .[$x|explode]
-  else .[$x] end;
-def index($x): indices($x) | .[0];
-def rindex($x): indices($x) | .[-1:][0];
+def indices($x): _indices($x);
+def index($x): _lindex($x);
+def rindex($x): _rindex($x);
 def inside(xs): . as $x | xs | contains($x);
 def startswith($x):
   if type == "string" then
@@ -117,24 +127,15 @@ def ascii_downcase:
 def ascii_upcase:
   explode | map(if 97 <= . and . <= 122 then . - 32 end) | implode;
 def walk(f):
-  . as $in
-    | if type == "object" then
-        reduce keys[] as $key ({}; . + { ($key): $in[$key] | walk(f) }) | f
-      elif type == "array" then
-        map(walk(f)) | f
-      else
-        f
-      end;
-def transpose:
-  if . == [] then
-    []
-  else
-    . as $in
-      | (map(length) | max) as $max
-      | length as $length
-      | reduce range(0; $max) as $j
-          ([]; . + [reduce range(0; $length) as $i ([]; . + [ $in[$i][$j] ] )] )
-  end;
+  def w:
+    if type == "object" then
+      . as $in | reduce keys[] as $key ({}; . + { ($key): $in[$key] | w }) | f
+    elif type == "array" then
+      map(w) | f
+    else
+      f
+    end;
+  w;
 
 def first: .[0];
 def first(g): label $out | g | ., break $out;
@@ -198,7 +199,7 @@ def paths:
 def paths(f):
   . as $x | paths | select(. as $p | $x | getpath($p) | f);
 
-def fromdateiso8601: strptime("%Y-%m-%dT%H:%M:%SZ") | mktime;
+def fromdateiso8601: strptime("%Y-%m-%dT%H:%M:%S%z") | mktime;
 def todateiso8601: strftime("%Y-%m-%dT%H:%M:%SZ");
 def fromdate: fromdateiso8601;
 def todate: todateiso8601;
@@ -210,24 +211,33 @@ def test($re; $flags): _match($re; $flags; true);
 def capture($re): capture($re; null);
 def capture($re; $flags):
   match($re; $flags)
-    | [.captures | .[] | select(.name != null) | { (.name): .string }]
+    | [.captures[] | select(.name != null) | { (.name): .string }]
     | add // {};
 def scan($re): scan($re; null);
 def scan($re; $flags):
   match($re; "g" + $flags)
-    | if .captures|length > 0 then [ .captures | .[] | .string ] else .string end;
+    | if .captures|length > 0 then [.captures[].string] else .string end;
 def splits($re): splits($re; null);
 def splits($re; $flags): split($re; $flags) | .[];
 def sub($re; str): sub($re; str; null);
 def sub($re; str; $flags):
   . as $in
-    | reduce match($re; $flags) as $r
-      ( ["", 0];
-        . as $x
-          | [$r | .captures | .[] | select(.name != null) | { (.name) : .string }]
-          | add // {}
-          | [$x[0] + $in[$x[1]:$r.offset] + str, $r.offset + $r.length] )
-    | .[0] + $in[.[1]:];
+    | def sub:
+        if .matches|length > 0
+        then
+          . as $x | .matches[0] as $r
+            | [$r.captures[] | select(.name != null) | { (.name): .string }]
+            | add // {}
+            | {
+                string: ($x.string + $in[$x.offset:$r.offset] + str),
+                offset: ($r.offset + $r.length),
+                matches: $x.matches[1:]
+              }
+            | sub
+        else
+          .string + $in[.offset:]
+        end;
+  { string: "", offset: 0, matches: [match($re; $flags)] } | sub;
 def gsub($re; str): sub($re; str; "g");
 def gsub($re; str; $flags): sub($re; str; $flags + "g");
 

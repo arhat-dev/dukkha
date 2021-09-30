@@ -188,13 +188,12 @@ func (f *BaseField) handleUnResolvedField(
 			// a patch is implied when renderer has a `!` suffix
 
 			var (
-				patchSpec              *renderingPatchSpec
-				resolvedPatchMergeData []byte
+				patchSpec *renderingPatchSpec
 			)
 			if strings.HasSuffix(renderer, "!") {
 				renderer = renderer[:len(renderer)-1]
 
-				patchSpec, toResolve, resolvedPatchMergeData, err = f.resolvePatchSpec(rc, toResolve)
+				patchSpec, toResolve, err = f.resolvePatchSpec(rc, toResolve)
 				if err != nil {
 					return fmt.Errorf(
 						"failed to resolve patch spec for renderer %q: %w",
@@ -215,7 +214,7 @@ func (f *BaseField) handleUnResolvedField(
 			}
 
 			if patchSpec != nil {
-				resolvedValue, err = patchSpec.ApplyTo(resolvedValue, resolvedPatchMergeData)
+				resolvedValue, err = patchSpec.ApplyTo(resolvedValue)
 				if err != nil {
 					return fmt.Errorf(
 						"failed to apply patches: %w",
@@ -310,7 +309,6 @@ func (f *BaseField) resolvePatchSpec(
 ) (
 	patchSpec *renderingPatchSpec,
 	resolvedValueData *alterInterface,
-	resolvedMergeData []byte,
 	err error,
 ) {
 	var patchSpecBytes []byte
@@ -320,10 +318,9 @@ func (f *BaseField) resolvePatchSpec(
 	case []byte:
 		patchSpecBytes = t
 	default:
-		// TODO: convert toResolve to patchSpec directly
 		patchSpecBytes, err = yaml.Marshal(toResolve.Value())
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf(
+			return nil, nil, fmt.Errorf(
 				"failed to marshal renderer data to bytes for resolving patch spec: %w",
 				err,
 			)
@@ -333,7 +330,7 @@ func (f *BaseField) resolvePatchSpec(
 	patchSpec = Init(&renderingPatchSpec{}, f.ifaceTypeHandler).(*renderingPatchSpec)
 	err = yaml.Unmarshal(patchSpecBytes, patchSpec)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"failed to unmarshal patch spec %q: %w",
 			string(patchSpecBytes), err,
 		)
@@ -341,7 +338,7 @@ func (f *BaseField) resolvePatchSpec(
 
 	err = patchSpec.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"failed to resolve patch spec %q: %w",
 			string(patchSpecBytes), err,
 		)
@@ -349,7 +346,7 @@ func (f *BaseField) resolvePatchSpec(
 
 	resolvedVal, err := yaml.Marshal(patchSpec.Value)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"failed to marshal resolved value data: %w",
 			err,
 		)
@@ -358,21 +355,13 @@ func (f *BaseField) resolvePatchSpec(
 	resolvedValueData = new(alterInterface)
 	err = yaml.Unmarshal(resolvedVal, resolvedValueData)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"failed to prepare resolvde value data: %w",
 			err,
 		)
 	}
 
-	resolvedMergeData, err = yaml.Marshal(patchSpec.Merge)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf(
-			"failed to marshal resolved merge data: %w",
-			err,
-		)
-	}
-
-	return patchSpec, resolvedValueData, resolvedMergeData, nil
+	return patchSpec, resolvedValueData, nil
 }
 
 func (f *BaseField) addUnresolvedField(

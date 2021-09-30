@@ -82,10 +82,10 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
     value: https://example.com/bar.yaml
     # merge other yaml docs
     merge:
-    - data@file: ./foo.yaml
-    - data: [plain, yaml]
+    - value@file: ./foo.yaml
+    - value: [plain, yaml]
     # json patch (rfc6902) in yaml format
-    patches:
+    patch:
     - { op: add, path: /a/b/c, value: foo }
   ```
 

@@ -210,13 +210,13 @@ func (op Operator) getFunc() string {
 
 func binopTypeSwitch(
 	l, r interface{},
-	callbackInts func(int, int) interface{},
-	callbackFloats func(float64, float64) interface{},
-	callbackBigInts func(*big.Int, *big.Int) interface{},
-	callbackStrings func(string, string) interface{},
-	callbackArrays func(l, r []interface{}) interface{},
-	callbackMaps func(l, r map[string]interface{}) interface{},
-	fallback func(interface{}, interface{}) interface{}) interface{} {
+	callbackInts func(_, _ int) interface{},
+	callbackFloats func(_, _ float64) interface{},
+	callbackBigInts func(_, _ *big.Int) interface{},
+	callbackStrings func(_, _ string) interface{},
+	callbackArrays func(_, _ []interface{}) interface{},
+	callbackMaps func(_, _ map[string]interface{}) interface{},
+	fallback func(_, _ interface{}) interface{}) interface{} {
 	switch l := l.(type) {
 	case int:
 		switch r := r.(type) {
@@ -428,6 +428,9 @@ func funcOpDiv(_, l, r interface{}) interface{} {
 				}
 				return &zeroDivisionError{l, r}
 			}
+			if l%r == 0 {
+				return l / r
+			}
 			return float64(l) / float64(r)
 		},
 		func(l, r float64) interface{} {
@@ -446,9 +449,9 @@ func funcOpDiv(_, l, r interface{}) interface{} {
 				}
 				return &zeroDivisionError{l, r}
 			}
-			x := new(big.Int).Div(l, r)
-			if new(big.Int).Mul(x, r).Cmp(l) == 0 {
-				return x
+			d, m := new(big.Int).DivMod(l, r, new(big.Int))
+			if m.Sign() == 0 {
+				return d
 			}
 			return bigToFloat(l) / bigToFloat(r)
 		},
@@ -488,7 +491,7 @@ func funcOpMod(_, l, r interface{}) interface{} {
 			if r.Sign() == 0 {
 				return &zeroModuloError{l, r}
 			}
-			return new(big.Int).Mod(l, r)
+			return new(big.Int).Rem(l, r)
 		},
 		func(l, r string) interface{} { return &binopTypeError{"modulo", l, r} },
 		func(l, r []interface{}) interface{} { return &binopTypeError{"modulo", l, r} },
