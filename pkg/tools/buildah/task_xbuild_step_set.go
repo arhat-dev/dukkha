@@ -21,8 +21,9 @@ type stepSet struct {
 	Shell []string `yaml:"shell"`
 }
 
-func (s *stepSet) genSpec(globalCtx *xbuildContext) *xbuildContext {
-	ctx := globalCtx.clone()
+func (s *stepSet) genCtx(stepCtx *xbuildContext) *xbuildContext {
+	ctx := stepCtx.clone()
+
 	if s.Commit != nil {
 		ctx.Commit = *s.Commit
 	}

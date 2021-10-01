@@ -11,9 +11,6 @@ type stepRun struct {
 	Script *string  `yaml:"script"`
 	Cmd    []string `yaml:"cmd"`
 
-	// User overrides default user
-	User string `yaml:"user"`
-
 	// Shell overrides default shell
 	Shell []string `yaml:"shell"`
 }
