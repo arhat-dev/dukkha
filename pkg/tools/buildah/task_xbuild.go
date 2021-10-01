@@ -46,9 +46,9 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			Steps: make(map[string]*xbuildContext),
 
-			User:    "root",
-			Shell:   []string{"sh", "-c"},
-			WorkDir: "/",
+			User:    "",
+			Shell:   nil,
+			WorkDir: "",
 			Commit:  false,
 		}
 
@@ -59,19 +59,29 @@ func (w *TaskXBuild) GetExecSpecs(
 				stepCtx.ID = strconv.FormatInt(int64(i), 10)
 			}
 
+			// add this step to global step index
+
+			if _, ok := globalCtx.Steps[stepCtx.ID]; ok {
+				return fmt.Errorf("invalid duplicate step id %q", stepCtx.ID)
+			}
+
 			globalCtx.Steps[stepCtx.ID] = stepCtx
 
 			if step.Set != nil {
 				// set global ctx
-				globalCtx = step.Set.genSpec(stepCtx)
+				globalCtx = step.Set.genCtx(stepCtx)
 				globalCtx.Steps[stepCtx.ID] = stepCtx
 			} else {
-				if len(step.Workdir) != 0 {
-					stepCtx.WorkDir = step.Workdir
+				if step.Workdir != nil {
+					stepCtx.WorkDir = *step.Workdir
 				}
 
 				if step.Commit != nil {
 					stepCtx.Commit = *step.Commit
+				}
+
+				if step.User != nil {
+					stepCtx.User = *step.User
 				}
 
 				steps, err := step.genSpec(rc, options, stepCtx)

@@ -13,11 +13,22 @@ type step struct {
 	// ID of this step, if not set, will be the array index of this step
 	ID string `yaml:"id"`
 
+	//
+	// Config Override
+	//
+
 	// Workdir overrides default workdir settings
-	Workdir string `yaml:"workdir"`
+	Workdir *string `yaml:"workdir"`
 
 	// Commit this step as a new layer after this step finished
 	Commit *bool `yaml:"commit"`
+
+	// User overrides default user
+	User *string `yaml:"user"`
+
+	//
+	// Step spec
+	//
 
 	// Set default options for all following steps
 	Set *stepSet `yaml:"set"`
@@ -47,6 +58,6 @@ func (s *step) genSpec(
 	case s.Copy != nil:
 		return s.Copy.genSpec(rc, options, stepCtx)
 	default:
-		return nil, fmt.Errorf("invalid empty step")
+		return nil, fmt.Errorf("unknown step")
 	}
 }
