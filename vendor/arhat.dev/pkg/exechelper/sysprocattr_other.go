@@ -1,3 +1,4 @@
+//go:build !darwin && !freebsd && !dragonfly && !linux && !openbsd && !solaris
 // +build !darwin,!freebsd,!dragonfly,!linux,!openbsd,!solaris
 
 /*

@@ -184,7 +184,29 @@ func (r *Runner) builtinCode(ctx context.Context, pos syntax.Pos, name string, a
 			return 2
 		}
 	case "pwd":
-		r.outf("%s\n", r.envGet("PWD"))
+		evalSymlinks := false
+		for len(args) > 0 {
+			switch args[0] {
+			case "-L":
+				evalSymlinks = false
+			case "-P":
+				evalSymlinks = true
+			default:
+				r.errf("invalid option: %q\n", args[0])
+				return 2
+			}
+			args = args[1:]
+		}
+		pwd := r.envGet("PWD")
+		if evalSymlinks {
+			var err error
+			pwd, err = filepath.EvalSymlinks(pwd)
+			if err != nil {
+				r.setErr(err)
+				return 1
+			}
+		}
+		r.outf("%s\n", pwd)
 	case "cd":
 		var path string
 		switch len(args) {
@@ -518,12 +540,19 @@ func (r *Runner) builtinCode(ctx context.Context, pos syntax.Pos, name string, a
 		}
 		r.setErr(returnStatus(code))
 	case "read":
+		var prompt string
 		raw := false
 		fp := flagParser{remaining: args}
 		for fp.more() {
 			switch flag := fp.flag(); flag {
 			case "-r":
 				raw = true
+			case "-p":
+				prompt = fp.value()
+				if prompt == "" {
+					r.errf("read: -p: option requires an argument\n")
+					return 2
+				}
 			default:
 				r.errf("read: invalid option %q\n", flag)
 				return 2
@@ -536,6 +565,10 @@ func (r *Runner) builtinCode(ctx context.Context, pos syntax.Pos, name string, a
 				r.errf("read: invalid identifier %q\n", name)
 				return 2
 			}
+		}
+
+		if prompt != "" {
+			r.out(prompt)
 		}
 
 		line, err := r.readLine(raw)

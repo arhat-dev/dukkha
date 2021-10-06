@@ -263,7 +263,12 @@ func (cfg *Config) paramExp(pe *syntax.ParamExp) (string, error) {
 		case syntax.OtherParamOps:
 			switch arg {
 			case "Q":
-				str = strconv.Quote(str)
+				str, err = syntax.Quote(str, syntax.LangBash)
+				if err != nil {
+					// Is this even possible? If a user runs into this panic,
+					// it's most likely a bug we need to fix.
+					panic(err)
+				}
 			case "E":
 				tail := str
 				var rns []rune

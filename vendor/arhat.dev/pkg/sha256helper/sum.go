@@ -1,3 +1,4 @@
+//go:build !nohashhelper_sha256
 // +build !nohashhelper_sha256
 
 /*
