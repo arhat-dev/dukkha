@@ -1,5 +1,3 @@
-// +build !nohashhelper_md5
-
 /*
 Copyright 2020 The arhat.dev Authors.
 

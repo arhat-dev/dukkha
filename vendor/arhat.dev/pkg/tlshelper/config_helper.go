@@ -1,3 +1,4 @@
+//go:build !noconfhelper_tls
 // +build !noconfhelper_tls
 
 /*

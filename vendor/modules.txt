@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.6.2
+# arhat.dev/pkg v0.6.3
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
@@ -26,7 +26,7 @@ github.com/Masterminds/sprig/v3
 # github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 ## explicit
 github.com/aoldershaw/ansi
-# github.com/creack/pty v1.1.15 => github.com/jeffreystoke/pty v1.1.12-0.20210831163441-8fab97d83d6f
+# github.com/creack/pty v1.1.16 => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -135,7 +135,7 @@ go.uber.org/atomic
 # go.uber.org/multierr v1.7.0
 ## explicit
 go.uber.org/multierr
-# go.uber.org/zap v1.19.0
+# go.uber.org/zap v1.19.1
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
@@ -150,7 +150,7 @@ golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
-# golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6
+# golang.org/x/net v0.0.0-20211005215030-d2e5035098b3
 ## explicit
 golang.org/x/net/http/httpguts
 golang.org/x/net/http/httpproxy
@@ -158,7 +158,7 @@ golang.org/x/net/idna
 golang.org/x/net/publicsuffix
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20210930141918-969570ce7c6c
+# golang.org/x/sys v0.0.0-20211004093028-2c5d950f24ef
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
@@ -179,11 +179,11 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# mvdan.cc/sh/v3 v3.3.1
+# mvdan.cc/sh/v3 v3.4.0
 ## explicit
 mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
-# github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20210831163441-8fab97d83d6f
+# github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
 # arhat.dev/rs => arhat.dev/rs v0.2.0
