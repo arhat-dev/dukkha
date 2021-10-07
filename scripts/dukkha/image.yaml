@@ -42,12 +42,16 @@ tools:
     cmd@env: [
       limactl, shell, containerd,
       sudo, nerdctl, run, --rm,
+      # yamllint disable-line rule:quoted-strings
       --workdir, "${DUKKHA_WORKING_DIR}",
+      # yamllint disable-line rule:quoted-strings
       -v, "${DUKKHA_WORKING_DIR}:${DUKKHA_WORKING_DIR}",
       --privileged,
       # --security-opt, label=disable,
       # --security-opt, seccomp=unconfined,
+      # yamllint disable-line rule:quoted-strings
       -v, "buildah-dockerfile:/var/lib/containers",
+      # yamllint disable-line rule:quoted-strings
       --device, "/dev/fuse:rw",
       quay.io/buildah/stable,
       buildah,
@@ -81,6 +85,7 @@ buildah:xbuild:
   - copy:
       from:
         local:
+          # yamllint disable-line rule:quoted-strings
           path: "."
       to:
         path: /app
