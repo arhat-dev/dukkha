@@ -63,8 +63,15 @@ func GetDefaultTag(
 			tag = "latest"
 		default:
 			tag = branch
+
 			if !isManifest {
-				tag += "-" + rc.GitCommit()
+				if len(tag) == 0 {
+					// no branch info (can happen in github actions)
+					// TODO: add test for this case
+					tag = rc.GitCommit()
+				} else {
+					tag += "-" + rc.GitCommit()
+				}
 			}
 		}
 	} else {
