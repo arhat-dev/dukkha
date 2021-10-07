@@ -109,6 +109,15 @@ buildah:xbuild:
           path@env: /app/build/dukkha.linux.${MATRIX_ARCH}
       to:
         path: /dukkha
+  - set:
+      labels:
+      - name: org.opencontainers.image.source
+        value: https://github.com/arhat-dev/dukkha
+      entrypoint:
+      - /dukkha
+      env:
+      - name: PATH
+        value: /
 
 buildah:login:
 - &login
