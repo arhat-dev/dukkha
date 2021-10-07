@@ -14,11 +14,6 @@ import (
 type stepSet struct {
 	rs.BaseField
 
-	// Commit every following step as new layer
-	//
-	// If set to true add flag --add-history for subsequent commands
-	Commit *bool `yaml:"commit"`
-
 	// Workdir
 	Workdir *string `yaml:"workdir"`
 
