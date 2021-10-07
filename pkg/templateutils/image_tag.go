@@ -65,12 +65,20 @@ func GetDefaultTag(
 			tag = branch
 
 			if !isManifest {
+				// image tag, <branch>-<commit> or <commit> when branch missing
 				if len(tag) == 0 {
 					// no branch info (can happen in github actions)
 					// TODO: add test for this case
 					tag = rc.GitCommit()
 				} else {
 					tag += "-" + rc.GitCommit()
+				}
+			} else {
+				// manifest tag, <branch> or <commit> when branch missing
+				if len(tag) == 0 {
+					// no branch info (can happen in github actions)
+					// TODO: add test for this case
+					tag = rc.GitCommit()
 				}
 			}
 		}
