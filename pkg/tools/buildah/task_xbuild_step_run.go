@@ -23,9 +23,6 @@ type stepRun struct {
 
 	Cmd []string `yaml:"cmd"`
 
-	// Shell overrides default shell
-	Shell []string `yaml:"shell"`
-
 	ExtraArgs []string `yaml:"extra_args"`
 }
 
