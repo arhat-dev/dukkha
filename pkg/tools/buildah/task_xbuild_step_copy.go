@@ -1,24 +1,86 @@
 package buildah
 
 import (
+	"bytes"
+	"fmt"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/rs"
 )
 
+// stepCopy is structured `buildah copy`
 type stepCopy struct {
 	rs.BaseField
 
 	From copyFromSpec `yaml:"from"`
 	To   copyToSpec   `yaml:"to"`
+
+	// ExtraArgs for buildah copy
+	ExtraArgs []string `yaml:"extra_args"`
 }
 
 func (s *stepCopy) genSpec(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskMatrixExecOptions,
-	stepCtx *xbuildContext,
+	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
-	return nil, nil
+	var steps []dukkha.TaskExecSpec
+
+	copyCmd := sliceutils.NewStrings(options.ToolCmd(), "copy")
+	if record {
+		copyCmd = append(copyCmd, "--add-history")
+	}
+	copyCmd = append(copyCmd, s.ExtraArgs...)
+
+	switch {
+	case s.From.Local != nil:
+		copyCmd = append(copyCmd, replace_XBUILD_CURRENT_CONTAINER_ID, s.From.Local.Path)
+	case s.From.HTTP != nil:
+		copyCmd = append(copyCmd, replace_XBUILD_CURRENT_CONTAINER_ID, s.From.HTTP.URL)
+	case s.From.Image != nil:
+		from := *s.From.Image
+		const (
+			replace_XBUILD_COPY_FROM_IMAGE_ID = "<XBUILD_COPY_FROM_IMAGE_ID>"
+		)
+
+		pullCmd := sliceutils.NewStrings(options.ToolCmd(), "pull")
+		pullCmd = append(pullCmd, from.ExtraPullArgs...)
+		pullCmd = append(pullCmd, from.Ref)
+
+		steps = append(steps, dukkha.TaskExecSpec{
+			StdoutAsReplace:          replace_XBUILD_COPY_FROM_IMAGE_ID,
+			FixStdoutValueForReplace: bytes.TrimSpace,
+
+			ShowStdout:  true,
+			IgnoreError: true,
+			Command:     pullCmd,
+			UseShell:    options.UseShell(),
+			ShellName:   options.ShellName(),
+		})
+
+		copyCmd = append(copyCmd, "--from", replace_XBUILD_COPY_FROM_IMAGE_ID, replace_XBUILD_CURRENT_CONTAINER_ID, from.Path)
+	case s.From.Step != nil:
+		from := *s.From.Step
+
+		copyCmd = append(copyCmd, "--from", replace_XBUILD_STEP_CONTAINER_ID(from.ID), replace_XBUILD_CURRENT_CONTAINER_ID, from.Path)
+	default:
+		return nil, fmt.Errorf("invalid no copy source specified")
+	}
+
+	// if path not set, will copy to workingdir
+	if len(s.To.Path) != 0 {
+		copyCmd = append(copyCmd, s.To.Path)
+	}
+
+	steps = append(steps, dukkha.TaskExecSpec{
+		IgnoreError: false,
+		Command:     copyCmd,
+		UseShell:    options.UseShell(),
+		ShellName:   options.ShellName(),
+	})
+
+	return steps, nil
 }
 
 type copyFromSpec struct {
@@ -27,20 +89,13 @@ type copyFromSpec struct {
 	Local *copyFromLocalSpec `yaml:"local"`
 	HTTP  *copyFromHTTPSpec  `yaml:"http"`
 	Image *copyFromImageSpec `yaml:"image"`
+	Step  *copyFromStepSpec  `yaml:"step"`
 }
 
 type copyFromLocalSpec struct {
 	rs.BaseField
 
 	Path string `yaml:"path"`
-}
-
-func (s *copyFromLocalSpec) genSpec(
-	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
-) ([]dukkha.TaskExecSpec, error) {
-	sliceutils.NewStrings(options.ToolCmd(), "add")
-	return nil, nil
 }
 
 type copyFromHTTPSpec struct {
@@ -52,8 +107,18 @@ type copyFromHTTPSpec struct {
 type copyFromImageSpec struct {
 	rs.BaseField
 
-	Name   *string `yaml:"name"`
-	Digest *string `yaml:"digest"`
+	Ref string `yaml:"ref"`
+
+	ExtraPullArgs []string `yaml:"extra_pull_args"`
+
+	Path string `yaml:"path"`
+}
+
+type copyFromStepSpec struct {
+	rs.BaseField
+
+	// ID of that step
+	ID string `yaml:"id"`
 
 	Path string `yaml:"path"`
 }
@@ -63,8 +128,9 @@ type copyToSpec struct {
 
 	Path string `yaml:"path"`
 
-	Chmod []chmodSpec `yaml:"chmod"`
-	Chown []chownSpec `yaml:"chown"`
+	// TODO: implement
+	// Chmod []chmodSpec `yaml:"chmod"`
+	// Chown []chownSpec `yaml:"chown"`
 }
 
 type chmodSpec struct {

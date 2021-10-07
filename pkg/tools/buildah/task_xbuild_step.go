@@ -7,24 +7,26 @@ import (
 	"arhat.dev/rs"
 )
 
+// step is structured `buildah <subcmd>` for image building
 type step struct {
 	rs.BaseField
 
 	// ID of this step, if not set, will be the array index of this step
 	ID string `yaml:"id"`
 
-	//
-	// Config Override
-	//
-
-	// Workdir overrides default workdir settings
-	Workdir *string `yaml:"workdir"`
+	// Record to add flag --add-history
+	Record *bool `yaml:"record"`
 
 	// Commit this step as a new layer after this step finished
+	//
+	// this is set to true by default when:
+	// - at last step
+	// - switching to different container at next step (next step is a FROM statement)
 	Commit *bool `yaml:"commit"`
 
-	// User overrides default user
-	User *string `yaml:"user"`
+	// CommitAs set the image name the container commited as
+	CommitAs        string   `yaml:"commit_as"`
+	ExtraCommitArgs []string `yaml:"extra_commit_args"`
 
 	//
 	// Step spec
@@ -46,17 +48,21 @@ type step struct {
 func (s *step) genSpec(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskMatrixExecOptions,
-	stepCtx *xbuildContext,
 ) ([]dukkha.TaskExecSpec, error) {
+	record := true
+	if s.Record != nil {
+		record = *s.Record
+	}
+
 	switch {
 	case s.Set != nil:
-		return nil, nil
+		return s.Set.genSpec(rc, options, record)
 	case s.From != nil:
-		return s.From.genSpec(rc, options, stepCtx)
+		return s.From.genSpec(rc, options)
 	case s.Run != nil:
-		return s.Run.genSpec(rc, options, stepCtx)
+		return s.Run.genSpec(rc, options, record)
 	case s.Copy != nil:
-		return s.Copy.genSpec(rc, options, stepCtx)
+		return s.Copy.genSpec(rc, options, record)
 	default:
 		return nil, fmt.Errorf("unknown step")
 	}
