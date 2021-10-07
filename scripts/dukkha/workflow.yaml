@@ -80,7 +80,7 @@ workflow:run:
       fi
 
       if [[ ${PUSH_DUKKHA_IMAGE_IN_CMD_TEST} == "true" ]]; then
-        echo "- task: ${buildah_prefix}:build(dukkha, {})"
+        echo "- task: ${buildah_prefix}:xbuild(dukkha, {})"
         echo "- task: ${buildah_prefix}:push(dukkha, {})"
       fi
 

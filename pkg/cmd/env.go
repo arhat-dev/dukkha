@@ -183,6 +183,10 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 		}
 
 		ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
+		if len(ghRef) == 0 {
+			ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
+		}
+
 		switch {
 		case strings.HasPrefix(ghRef, "refs/heads/"):
 			if len(result[constant.ENV_GIT_BRANCH]) != 0 {
