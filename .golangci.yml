@@ -112,3 +112,8 @@ issues:
   - text: 'shadow: declaration of "logger" shadows declaration'
     linters:
     - govet
+
+  - text: |-
+      var-naming: don't use underscores in Go names; const replace_
+    linters:
+    - revive

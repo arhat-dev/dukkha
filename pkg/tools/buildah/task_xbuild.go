@@ -28,6 +28,7 @@ const (
 	// replace_XBUILD_CONTEXT_DIR          = "<XBUILD_CONTEXT_DIR>"
 )
 
+// nolint:revive
 func replace_XBUILD_STEP_CONTAINER_ID(stepID string) string {
 	return "<XBUILD_STEP_CONTAINER_ID_" + stepID + ">"
 }
@@ -54,8 +55,10 @@ type TaskXBuild struct {
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 }
 
+// nolint:gocyclo
 func (w *TaskXBuild) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
+	rc dukkha.TaskExecContext,
+	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 
@@ -105,7 +108,7 @@ func (w *TaskXBuild) GetExecSpecs(
 		// generate deterministic image name
 		finalImageName := "buildah-xbuild-" + hex.EncodeToString(nameSum.Sum(nil))
 
-		// set context dir
+		// 		// set context dir
 		// 		contextDir, err := filepath.Abs(w.Context)
 		// 		if err != nil {
 		// 			return fmt.Errorf("failed to get absolute path of context dir: %w", err)
@@ -113,7 +116,11 @@ func (w *TaskXBuild) GetExecSpecs(
 		//
 		// 		ret = append(ret, dukkha.TaskExecSpec{
 		// 			StdoutAsReplace: replace_XBUILD_CONTEXT_DIR,
-		// 			AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
+		// 			AlterExecFunc: func(
+		// 				replace dukkha.ReplaceEntries,
+		// 				stdin io.Reader,
+		// 				stdout, stderr io.Writer,
+		// 			) (dukkha.RunTaskOrRunCmd, error) {
 		// 				_, err := stdout.Write([]byte(contextDir))
 		// 				return nil, err
 		// 			},
@@ -132,7 +139,11 @@ func (w *TaskXBuild) GetExecSpecs(
 				StdoutAsReplace:          replace_XBUILD_STEP_CONTAINER_ID(stepID),
 				FixStdoutValueForReplace: bytes.TrimSpace,
 
-				AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
+				AlterExecFunc: func(
+					replace dukkha.ReplaceEntries,
+					stdin io.Reader,
+					stdout, stderr io.Writer,
+				) (dukkha.RunTaskOrRunCmd, error) {
 					v, ok := replace[replace_XBUILD_CURRENT_CONTAINER_ID]
 					if !ok {
 						return nil, nil
@@ -158,7 +169,11 @@ func (w *TaskXBuild) GetExecSpecs(
 					StdoutAsReplace:          replace_XBUILD_STEP_CONTAINER_ID(stepID),
 					FixStdoutValueForReplace: bytes.TrimSpace,
 
-					AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
+					AlterExecFunc: func(
+						replace dukkha.ReplaceEntries,
+						stdin io.Reader,
+						stdout, stderr io.Writer,
+					) (dukkha.RunTaskOrRunCmd, error) {
 						v, ok := replace[replace_XBUILD_CURRENT_CONTAINER_ID]
 						if !ok {
 							return nil, nil
@@ -213,7 +228,11 @@ func (w *TaskXBuild) GetExecSpecs(
 
 		// delete running containers
 		ret = append(ret, dukkha.TaskExecSpec{
-			AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
+			AlterExecFunc: func(
+				replace dukkha.ReplaceEntries,
+				stdin io.Reader,
+				stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunCmd, error) {
 				var delActions []dukkha.TaskExecSpec
 
 				visitedCtrIDs := make(map[string]struct{})
@@ -242,7 +261,7 @@ func (w *TaskXBuild) GetExecSpecs(
 			},
 		})
 
-		// retrive and write image id
+		// retrieve and write image id
 
 		const (
 			replace_XBUILD_IMAGE_ID = "<XBUILD_IMAGE_ID>"

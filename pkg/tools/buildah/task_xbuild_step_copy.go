@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/rs"
 )
 
 // stepCopy is structured `buildah copy`
@@ -25,6 +26,7 @@ func (s *stepCopy) genSpec(
 	options dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
+	_ = rc
 	var steps []dukkha.TaskExecSpec
 
 	copyCmd := sliceutils.NewStrings(options.ToolCmd(), "copy")
@@ -59,11 +61,21 @@ func (s *stepCopy) genSpec(
 			ShellName:   options.ShellName(),
 		})
 
-		copyCmd = append(copyCmd, "--from", replace_XBUILD_COPY_FROM_IMAGE_ID, replace_XBUILD_CURRENT_CONTAINER_ID, from.Path)
+		copyCmd = append(
+			copyCmd,
+			"--from", replace_XBUILD_COPY_FROM_IMAGE_ID,
+			replace_XBUILD_CURRENT_CONTAINER_ID,
+			from.Path,
+		)
 	case s.From.Step != nil:
 		from := *s.From.Step
 
-		copyCmd = append(copyCmd, "--from", replace_XBUILD_STEP_CONTAINER_ID(from.ID), replace_XBUILD_CURRENT_CONTAINER_ID, from.Path)
+		copyCmd = append(
+			copyCmd,
+			"--from", replace_XBUILD_STEP_CONTAINER_ID(from.ID),
+			replace_XBUILD_CURRENT_CONTAINER_ID,
+			from.Path,
+		)
 	default:
 		return nil, fmt.Errorf("invalid no copy source specified")
 	}
@@ -133,34 +145,34 @@ type copyToSpec struct {
 	// Chown []chownSpec `yaml:"chown"`
 }
 
-type chmodSpec struct {
-	rs.BaseField
+// type chmodSpec struct {
+// 	rs.BaseField
+//
+// 	// Match glob pattern to match files
+// 	Match string `yaml:"match"`
+//
+// 	// Ignore glob pattern to ignore files
+// 	Ignore string `yaml:"ignore"`
+//
+// 	// Value for chmod (e.g. a+x, 0755)
+// 	Value string `yaml:"value"`
+//
+// 	// Recursive run chmod on matched files
+// 	Recursive bool `yaml:"recursive"`
+// }
 
-	// Match glob pattern to match files
-	Match string `yaml:"match"`
-
-	// Ignore glob pattern to ignore files
-	Ignore string `yaml:"ignore"`
-
-	// Value for chmod (e.g. a+x, 0755)
-	Value string `yaml:"value"`
-
-	// Recursive run chmod on matched files
-	Recursive bool `yaml:"recursive"`
-}
-
-type chownSpec struct {
-	rs.BaseField
-
-	// Match glob pattern to match files
-	Match string `yaml:"match"`
-
-	// Ignore glob pattern to ignore files
-	Ignore string `yaml:"ignore"`
-
-	// Value for chown (e.g. user:group, user, uid, uid:gid)
-	Value string `yaml:"value"`
-
-	// Recursive run chown on matched files
-	Recursive bool `yaml:"recursive"`
-}
+// type chownSpec struct {
+// 	rs.BaseField
+//
+// 	// Match glob pattern to match files
+// 	Match string `yaml:"match"`
+//
+// 	// Ignore glob pattern to ignore files
+// 	Ignore string `yaml:"ignore"`
+//
+// 	// Value for chown (e.g. user:group, user, uid, uid:gid)
+// 	Value string `yaml:"value"`
+//
+// 	// Recursive run chown on matched files
+// 	Recursive bool `yaml:"recursive"`
+// }
