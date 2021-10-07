@@ -3,8 +3,9 @@ package buildah
 import (
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 // step is structured `buildah <subcmd>` for image building
@@ -24,7 +25,7 @@ type step struct {
 	// - switching to different container at next step (next step is a FROM statement)
 	Commit *bool `yaml:"commit"`
 
-	// CommitAs set the image name the container commited as
+	// CommitAs set the image name the container committed as
 	CommitAs        string   `yaml:"commit_as"`
 	ExtraCommitArgs []string `yaml:"extra_commit_args"`
 

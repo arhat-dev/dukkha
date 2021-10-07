@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/rs"
 )
 
 type mountSpec struct {
@@ -48,6 +49,8 @@ func (s *stepFrom) genSpec(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
+	_ = rc
+
 	var (
 		platformArgs []string
 	)

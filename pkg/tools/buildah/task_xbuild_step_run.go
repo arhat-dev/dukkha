@@ -8,10 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type stepRun struct {
@@ -65,8 +66,16 @@ func (s *stepRun) genSpec(
 				FixStdoutValueForReplace: bytes.TrimSpace,
 
 				ShowStdout: true,
-				AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
-					srcFile := filepath.Join(rc.CacheDir(), "buildah", "xbuild", "run-script-"+hex.EncodeToString(md5helper.Sum([]byte(script))))
+				AlterExecFunc: func(
+					replace dukkha.ReplaceEntries,
+					stdin io.Reader,
+					stdout, stderr io.Writer,
+				) (dukkha.RunTaskOrRunCmd, error) {
+					srcFile := filepath.Join(
+						rc.CacheDir(),
+						"buildah", "xbuild",
+						"run-script-"+hex.EncodeToString(md5helper.Sum([]byte(script))),
+					)
 					err := os.MkdirAll(filepath.Dir(srcFile), 0755)
 					if err != nil {
 						return nil, fmt.Errorf("failed to ensure script cache dir: %w", err)
@@ -85,7 +94,11 @@ func (s *stepRun) genSpec(
 				StdoutAsReplace:          replace_XBUILD_RUN_SCRIPT_SRC_REDACTED_PATH,
 				FixStdoutValueForReplace: bytes.TrimSpace,
 
-				AlterExecFunc: func(replace dukkha.ReplaceEntries, stdin io.Reader, stdout, stderr io.Writer) (dukkha.RunTaskOrRunCmd, error) {
+				AlterExecFunc: func(
+					replace dukkha.ReplaceEntries,
+					stdin io.Reader,
+					stdout, stderr io.Writer,
+				) (dukkha.RunTaskOrRunCmd, error) {
 					v, ok := replace[replace_XBUILD_RUN_SCRIPT_SRC_PATH]
 					if !ok {
 						return nil, fmt.Errorf("unexpected script path not found")

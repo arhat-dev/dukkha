@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/rs"
 )
 
 type stepSet struct {
@@ -43,6 +44,8 @@ func (s *stepSet) genSpec(
 	options dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
+	_ = rc
+
 	configCmd := sliceutils.NewStrings(options.ToolCmd(), "config")
 
 	if record {
