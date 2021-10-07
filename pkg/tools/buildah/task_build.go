@@ -153,9 +153,9 @@ func (c *TaskBuild) createExecSpecs(
 	})
 
 	// read image id file to get image id
-	const replaceTargetImageID = "<IMAGE_ID>"
+	const replace_TARGET_IMAGE_ID = "<IMAGE_ID>"
 	steps = append(steps, dukkha.TaskExecSpec{
-		StdoutAsReplace:          replaceTargetImageID,
+		StdoutAsReplace:          replace_TARGET_IMAGE_ID,
 		FixStdoutValueForReplace: bytes.TrimSpace,
 		AlterExecFunc: func(
 			replace dukkha.ReplaceEntries,
@@ -180,16 +180,16 @@ func (c *TaskBuild) createExecSpecs(
 	})
 
 	// buildah inspect --type image to get image digest from image id
-	const replaceTargetImageDigest = "<IMAGE_DIGEST>"
+	const replace_TARGET_IMAGE_DIGEST = "<IMAGE_DIGEST>"
 	steps = append(steps, dukkha.TaskExecSpec{
-		StdoutAsReplace: replaceTargetImageDigest,
+		StdoutAsReplace: replace_TARGET_IMAGE_DIGEST,
 		ShowStdout:      true,
 
 		FixStdoutValueForReplace: bytes.TrimSpace,
 		Command: sliceutils.NewStrings(
 			options.ToolCmd(), "inspect", "--type", "image",
 			"--format", `"{{ .FromImageDigest }}"`,
-			replaceTargetImageID,
+			replace_TARGET_IMAGE_ID,
 		),
 		IgnoreError: false,
 		UseShell:    options.UseShell(),
@@ -243,7 +243,7 @@ func (c *TaskBuild) createExecSpecs(
 
 		manifestAddCmd := sliceutils.NewStrings(options.ToolCmd(), "manifest", "add")
 		manifestAddCmd = append(manifestAddCmd, osArchVariantArgs...)
-		manifestAddCmd = append(manifestAddCmd, localManifestName, replaceTargetImageID)
+		manifestAddCmd = append(manifestAddCmd, localManifestName, replace_TARGET_IMAGE_ID)
 
 		// find existing manifest entries with same os/arch/variant
 		steps = append(steps, dukkha.TaskExecSpec{
