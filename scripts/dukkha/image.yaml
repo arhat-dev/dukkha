@@ -33,6 +33,26 @@ tools:
     - quay.io/buildah/stable
     - buildah
 
+  - name: in-lima-containerd
+    cmd@env: [
+      limactl, shell, containerd, sudo, buildah
+    ]
+
+  - name: in-lima-containerd-ctr
+    cmd@env: [
+      limactl, shell, containerd,
+      sudo, nerdctl, run, --rm,
+      --workdir, "${DUKKHA_WORKING_DIR}",
+      -v, "${DUKKHA_WORKING_DIR}:${DUKKHA_WORKING_DIR}",
+      --privileged,
+      # --security-opt, label=disable,
+      # --security-opt, seccomp=unconfined,
+      -v, "buildah-dockerfile:/var/lib/containers",
+      --device, "/dev/fuse:rw",
+      quay.io/buildah/stable,
+      buildah,
+    ]
+
 buildah:build:
 - &dukkha_image_build
   name: dukkha
@@ -48,6 +68,42 @@ buildah:build:
   - --no-cache
   - --build-arg
   - MATRIX_ARCH={{ .Env.MATRIX_ARCH }}
+
+buildah:xbuild:
+- name: dukkha
+  matrix@file|template: *dukkha_image_matrix
+  image_names: *dukkha_image_names
+  # context: "."
+  steps:
+  - id: builder
+    from:
+      ref: ghcr.io/arhat-dev/builder-golang:1.16-alpine
+  - copy:
+      from:
+        local:
+          path: "."
+      to:
+        path: /app
+  - run:
+      script@env: |-
+        #!/bin/sh
+
+        set -ex
+        make dukkha
+        ./build/dukkha golang local build dukkha -m kernel=linux -m arch=${MATRIX_ARCH}
+      extra_args:
+      - --tty
+
+  - from:
+      ref: scratch
+
+  - copy:
+      from:
+        step:
+          id: builder
+          path@env: /app/build/dukkha.linux.${MATRIX_ARCH}
+      to:
+        path: /dukkha
 
 buildah:login:
 - &login
