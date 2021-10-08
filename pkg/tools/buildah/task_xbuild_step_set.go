@@ -104,7 +104,7 @@ func kvArgs(flag string, entries []*dukkha.EnvEntry) []string {
 	var ret []string
 	for _, a := range entries {
 		parts := []string{a.Name}
-		if len(a.Value) == 0 {
+		if len(a.Value) != 0 {
 			parts = append(parts, a.Value)
 		}
 
