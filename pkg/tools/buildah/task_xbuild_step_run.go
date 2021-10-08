@@ -18,8 +18,11 @@ import (
 type stepRun struct {
 	rs.BaseField
 
-	// Script for shell execution
+	// Script
 	Script string `yaml:"script"`
+
+	// ScriptArgs for the script
+	ScriptArgs []string `yaml:"script_args"`
 
 	Cmd []string `yaml:"cmd"`
 
@@ -122,7 +125,7 @@ func (s *stepRun) genSpec(
 			// run the script
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
-				Command:     append(runCmd, "/tmp/xbuild-script"),
+				Command:     append(append(runCmd, "/tmp/xbuild-script"), s.ScriptArgs...),
 				UseShell:    options.UseShell(),
 				ShellName:   options.ShellName(),
 			},
