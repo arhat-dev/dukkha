@@ -55,9 +55,9 @@ jobs:
           exit 1
         fi
 
-    # - name: Lint
-    #   run: |
-    #     make lint.all
+    - name: Lint
+      run: |
+        make lint.all
 
   unit-tests:
     if: contains(github.head_ref, 'deps/') == false
