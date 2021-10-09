@@ -99,7 +99,8 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("failed to ensure redacted executable file cache dir: %w", err)
 					}
 
-					_, err = stdout.Write([]byte(srcFile))
+					// TODO: remove additional \n for ansi translation flush
+					_, err = stdout.Write([]byte(srcFile + "\n"))
 					if err != nil {
 						return nil, fmt.Errorf("failed to create redacted executable file cache: %q", srcFile)
 					}
@@ -161,7 +162,8 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("failed to ensure script cache dir: %w", err)
 					}
 
-					_, err = stdout.Write([]byte(srcFile))
+					// TODO: remove additional \n for ansi translation flush
+					_, err = stdout.Write([]byte(srcFile + "\n"))
 					if err != nil {
 						return nil, fmt.Errorf("failed to create script cache: %q", srcFile)
 					}
@@ -186,7 +188,9 @@ func (s *stepRun) genSpec(
 
 					srcFile := string(v.Data)
 					redactedSrcFile := srcFile + "-redacted"
-					_, err := stdout.Write([]byte(redactedSrcFile))
+
+					// TODO: remove additional \n for ansi translation flush
+					_, err := stdout.Write([]byte(redactedSrcFile + "\n"))
 					if err != nil {
 						return nil, fmt.Errorf("failed to write redacted file path: %w", err)
 					}
