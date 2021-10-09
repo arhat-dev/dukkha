@@ -67,7 +67,8 @@ func (s *stepCopy) genSpec(
 					return nil, fmt.Errorf("failed to ensure text data cache dir: %w", err)
 				}
 
-				_, err = stdout.Write([]byte(srcFile))
+				// TODO: remove additional \n for ansi translation flush
+				_, err = stdout.Write([]byte(srcFile + "\n"))
 				if err != nil {
 					return nil, fmt.Errorf("failed to create text data cache: %q", srcFile)
 				}

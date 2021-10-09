@@ -149,7 +149,8 @@ func (w *TaskXBuild) GetExecSpecs(
 						return nil, nil
 					}
 
-					_, err := stdout.Write(v.Data)
+					// TODO: remove additional \n for ansi translation flush
+					_, err := stdout.Write(append(v.Data, '\n'))
 					return nil, err
 				},
 			})
@@ -179,7 +180,8 @@ func (w *TaskXBuild) GetExecSpecs(
 							return nil, nil
 						}
 
-						_, err := stdout.Write(v.Data)
+						// TODO: remove additional \n for ansi translation flush
+						_, err := stdout.Write(append(v.Data, '\n'))
 						return nil, err
 					},
 				})

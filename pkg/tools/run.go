@@ -35,7 +35,25 @@ func doRun(
 		replace = make(dukkha.ReplaceEntries)
 	}
 
+	var ansiTranslationExitSig chan struct{}
+
+	notifyLastANSITranslationExit := func() {
+		if ansiTranslationExitSig != nil {
+			select {
+			case <-ansiTranslationExitSig:
+				// signaled
+			default:
+				// not signaled
+				close(ansiTranslationExitSig)
+			}
+		}
+	}
+
+	defer notifyLastANSITranslationExit()
+
 	for _, es := range execSpecs {
+		notifyLastANSITranslationExit()
+
 		if es.Delay > 0 {
 			_ = timer.Reset(es.Delay)
 
@@ -72,23 +90,22 @@ func doRun(
 			stdout = stdoutW
 			stderr = stdoutW
 
-			exit := make(chan struct{})
-			defer func() {
-				close(exit)
-				_, err := stdoutW.Flush()
-				if err != nil {
-					log.Log.I(
-						"failed to flush translated plain text data to stdout",
-						log.Error(err),
-					)
-					return
-				}
-			}()
+			ansiTranslationExitSig = make(chan struct{})
 
 			go func() {
 				// TODO: make flush interval customizable
 				ticker := time.NewTicker(2 * time.Second)
-				defer ticker.Stop()
+
+				defer func() {
+					ticker.Stop()
+					_, err := stdoutW.Flush()
+					if err != nil {
+						log.Log.I(
+							"failed to flush translated plain text data to stdout when closing",
+							log.Error(err),
+						)
+					}
+				}()
 
 				for {
 					select {
@@ -101,7 +118,7 @@ func doRun(
 							)
 							return
 						}
-					case <-exit:
+					case <-ansiTranslationExitSig:
 						return
 					}
 				}
