@@ -41,38 +41,34 @@ func (s *stepSet) genSpec(
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc
 
-	configCmd := sliceutils.NewStrings(options.ToolCmd(), "config")
-
-	if record {
-		configCmd = append(configCmd, "--add-history")
-	}
+	var configArgs []string
 
 	if s.Workdir != nil {
-		configCmd = append(configCmd, "--workingdir", *s.Workdir)
+		configArgs = append(configArgs, "--workingdir", *s.Workdir)
 	}
 
 	if s.User != nil {
-		configCmd = append(configCmd, "--user", *s.User)
+		configArgs = append(configArgs, "--user", *s.User)
 	}
 
 	if len(s.Shell) != 0 {
-		configCmd = append(configCmd, "--shell", strings.Join(s.Shell, " "))
+		configArgs = append(configArgs, "--shell", strings.Join(s.Shell, " "))
 	}
 
-	configCmd = append(configCmd, kvArgs("--env", s.Env)...)
-	configCmd = append(configCmd, kvArgs("--annotation", s.Annotations)...)
-	configCmd = append(configCmd, kvArgs("--label", s.Labels)...)
+	configArgs = append(configArgs, kvArgs("--env", s.Env)...)
+	configArgs = append(configArgs, kvArgs("--annotation", s.Annotations)...)
+	configArgs = append(configArgs, kvArgs("--label", s.Labels)...)
 
 	for _, p := range s.Ports {
-		configCmd = append(configCmd, "--port", p)
+		configArgs = append(configArgs, "--port", p)
 	}
 
 	for _, v := range s.Volumes {
-		configCmd = append(configCmd, "--volume", v)
+		configArgs = append(configArgs, "--volume", v)
 	}
 
 	if s.StopSignal != nil {
-		configCmd = append(configCmd, "--stop-signal", *s.StopSignal)
+		configArgs = append(configArgs, "--stop-signal", *s.StopSignal)
 	}
 
 	if len(s.Entrypoint) != 0 {
@@ -81,12 +77,24 @@ func (s *stepSet) genSpec(
 			return nil, fmt.Errorf("failed to marshal entrypoint value: %w", err)
 		}
 
-		configCmd = append(configCmd, "--entrypoint", string(ent))
+		configArgs = append(configArgs, "--entrypoint", string(ent))
 	}
 
 	if len(s.Cmd) != 0 {
-		configCmd = append(configCmd, "--cmd", strings.Join(s.Cmd, " "))
+		configArgs = append(configArgs, "--cmd", strings.Join(s.Cmd, " "))
 	}
+
+	if len(configArgs) == 0 {
+		// no config updated
+		return nil, nil
+	}
+
+	configCmd := sliceutils.NewStrings(options.ToolCmd(), "config")
+	if record {
+		configCmd = append(configCmd, "--add-history")
+	}
+
+	configCmd = append(configCmd, configArgs...)
 
 	var steps []dukkha.TaskExecSpec
 
