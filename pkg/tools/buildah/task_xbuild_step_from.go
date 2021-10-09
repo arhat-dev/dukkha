@@ -146,10 +146,11 @@ func generatePlatformArgs(kernel, arch string) []string {
 		if !ok {
 			ociArch = arch
 		}
+
 		platformArgs = append(platformArgs, "--arch", ociArch)
 
-		ociVariant, ok := constant.GetOciArchVariant(ociArch)
-		if ok {
+		ociVariant, ok := constant.GetOciArchVariant(arch)
+		if ok && len(ociVariant) != 0 {
 			platformArgs = append(platformArgs, "--variant", ociVariant)
 		}
 	}
