@@ -2,8 +2,13 @@ package buildah
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 
+	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -36,6 +41,45 @@ func (s *stepCopy) genSpec(
 	copyCmd = append(copyCmd, s.ExtraArgs...)
 
 	switch {
+	case s.From.Text != nil:
+		data := s.From.Text.Data
+
+		const (
+			replace_XBUILD_COPY_FROM_TEXT_DATA_SRC_PATH = "<XBUILD_COPY_FROM_TEXT_DATA_FILE>"
+		)
+
+		steps = append(steps, dukkha.TaskExecSpec{
+			StdoutAsReplace:          replace_XBUILD_COPY_FROM_TEXT_DATA_SRC_PATH,
+			FixStdoutValueForReplace: bytes.TrimSpace,
+
+			AlterExecFunc: func(
+				replace dukkha.ReplaceEntries,
+				stdin io.Reader,
+				stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunCmd, error) {
+				srcFile := filepath.Join(
+					rc.CacheDir(),
+					"buildah", "xbuild",
+					"copy-text-"+hex.EncodeToString(md5helper.Sum([]byte(data))),
+				)
+				err := os.MkdirAll(filepath.Dir(srcFile), 0755)
+				if err != nil && !os.IsExist(err) {
+					return nil, fmt.Errorf("failed to ensure text data cache dir: %w", err)
+				}
+
+				_, err = stdout.Write([]byte(srcFile))
+				if err != nil {
+					return nil, fmt.Errorf("failed to create text data cache: %q", srcFile)
+				}
+
+				return nil, os.WriteFile(srcFile, []byte(data), 0644)
+			},
+		})
+
+		copyCmd = append(copyCmd,
+			replace_XBUILD_CURRENT_CONTAINER_ID,
+			replace_XBUILD_COPY_FROM_TEXT_DATA_SRC_PATH,
+		)
 	case s.From.Local != nil:
 		copyCmd = append(copyCmd, replace_XBUILD_CURRENT_CONTAINER_ID, s.From.Local.Path)
 	case s.From.HTTP != nil:
@@ -98,10 +142,17 @@ func (s *stepCopy) genSpec(
 type copyFromSpec struct {
 	rs.BaseField
 
+	Text  *copyFromTextSpec  `yaml:"text"`
 	Local *copyFromLocalSpec `yaml:"local"`
 	HTTP  *copyFromHTTPSpec  `yaml:"http"`
 	Image *copyFromImageSpec `yaml:"image"`
 	Step  *copyFromStepSpec  `yaml:"step"`
+}
+
+type copyFromTextSpec struct {
+	rs.BaseField
+
+	Data string `yaml:"data"`
 }
 
 type copyFromLocalSpec struct {
