@@ -51,31 +51,7 @@ func (s *stepFrom) genSpec(
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc
 
-	var (
-		platformArgs []string
-	)
-
-	if len(s.Kernel) != 0 {
-		os, ok := constant.GetOciOS(s.Kernel)
-		if !ok {
-			os = s.Kernel
-		}
-
-		platformArgs = append(platformArgs, "--os", os)
-	}
-
-	if len(s.Arch) != 0 {
-		arch, ok := constant.GetOciArch(s.Arch)
-		if !ok {
-			arch = s.Arch
-		}
-		platformArgs = append(platformArgs, "--arch", arch)
-
-		variant, ok := constant.GetOciArchVariant(s.Arch)
-		if ok {
-			platformArgs = append(platformArgs, "--variant", variant)
-		}
-	}
+	platformArgs := generatePlatformArgs(s.Kernel, s.Arch)
 
 	var steps []dukkha.TaskExecSpec
 
@@ -151,4 +127,32 @@ func (s *stepFrom) genSpec(
 	})
 
 	return steps, nil
+}
+
+func generatePlatformArgs(kernel, arch string) []string {
+	var platformArgs []string
+
+	if len(kernel) != 0 {
+		ociOS, ok := constant.GetOciOS(kernel)
+		if !ok {
+			ociOS = kernel
+		}
+
+		platformArgs = append(platformArgs, "--os", ociOS)
+	}
+
+	if len(arch) != 0 {
+		ociArch, ok := constant.GetOciArch(arch)
+		if !ok {
+			ociArch = arch
+		}
+		platformArgs = append(platformArgs, "--arch", ociArch)
+
+		ociVariant, ok := constant.GetOciArchVariant(ociArch)
+		if ok {
+			platformArgs = append(platformArgs, "--variant", ociVariant)
+		}
+	}
+
+	return platformArgs
 }

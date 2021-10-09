@@ -91,6 +91,7 @@ func (s *stepCopy) genSpec(
 		)
 
 		pullCmd := sliceutils.NewStrings(options.ToolCmd(), "pull")
+		pullCmd = append(pullCmd, generatePlatformArgs(from.Kernel, from.Arch)...)
 		pullCmd = append(pullCmd, from.ExtraPullArgs...)
 		pullCmd = append(pullCmd, from.Ref)
 
@@ -171,6 +172,9 @@ type copyFromImageSpec struct {
 	rs.BaseField
 
 	Ref string `yaml:"ref"`
+
+	Kernel string `yaml:"kernel"`
+	Arch   string `yaml:"arch"`
 
 	ExtraPullArgs []string `yaml:"extra_pull_args"`
 
