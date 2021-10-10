@@ -29,6 +29,9 @@ type step struct {
 	CommitAs        string   `yaml:"commit_as"`
 	ExtraCommitArgs []string `yaml:"extra_commit_args"`
 
+	// Skip this step when set to true
+	Skip bool `yaml:"skip"`
+
 	//
 	// Step spec
 	//
