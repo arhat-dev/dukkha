@@ -514,13 +514,30 @@ func (f *BaseField) unmarshal(
 			return f.unmarshalRaw(in, outVal)
 		default:
 			val := reflect.ValueOf(in.Value())
-			if err := checkAssignable(yamlKey, val, outVal); err != nil {
-				return err
-			}
+			switch inKind, outKind := val.Kind(), outVal.Kind(); {
+			case outKind == reflect.Invalid:
+				// no way to know what value we can set
+				return fmt.Errorf("unexpected nil out value for yaml key %q", yamlKey)
+			case inKind == reflect.Invalid:
+				// val is zero value, ignore
 
-			outVal.Set(val)
+				// TODO: shall we set zero value in this case?
+				// 		 outVal.Set(reflect.Zero(outVal.Type()))
+				return nil
+			case inKind == outKind:
+				// same kind means same scalar type
+				outVal.Set(val)
+				return nil
+			default:
+				// no same kind, check assignable
+				if err := checkAssignable(yamlKey, val, outVal); err != nil {
+					return err
+				}
+
+				outVal.Set(val)
+				return nil
+			}
 		}
-		return nil
 	}
 }
 

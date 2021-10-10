@@ -202,6 +202,12 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	type resolvedJSONPatchSpec struct {
+		Operation string      `yaml:"op" json:"op"`
+		Path      string      `yaml:"path" json:"path"`
+		Value     interface{} `yaml:"value,omitempty" json:"value,omitempty"`
+	}
+
 	// apply select action to patches
 	var patchSrc []*resolvedJSONPatchSpec
 	for i, p := range s.Patch {
@@ -382,10 +388,4 @@ type JSONPatchSpec struct {
 	//
 	// this action happens before patching
 	Select string `yaml:"select" json:"-"`
-}
-
-type resolvedJSONPatchSpec struct {
-	Operation string      `yaml:"op" json:"op"`
-	Path      string      `yaml:"path" json:"path"`
-	Value     interface{} `yaml:"value,omitempty" json:"value,omitempty"`
 }
