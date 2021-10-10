@@ -127,6 +127,10 @@ func (w *TaskXBuild) GetExecSpecs(
 		// 		})
 
 		for i, step := range w.Steps {
+			if step.Skip {
+				continue
+			}
+
 			stepID := step.ID
 			if len(stepID) == 0 {
 				stepID = strconv.FormatInt(int64(i), 10)
@@ -187,12 +191,24 @@ func (w *TaskXBuild) GetExecSpecs(
 				})
 			}
 
+			isLastStep := i == len(w.Steps)-1
+			if !isLastStep {
+				// is last step when all following steps are skipped
+				isLastStep = true
+				for _, s := range w.Steps[i+1:] {
+					if !s.Skip {
+						isLastStep = false
+						break
+					}
+				}
+			}
+
 			// commit this container as image
 			var imageName string
 			commitCmd := sliceutils.NewStrings(options.ToolCmd(), "commit")
 			switch {
-			case i == len(w.Steps)-1:
-				// at last step
+			case isLastStep:
+				// at last step, commit with image names
 				imageName = finalImageName
 				if len(step.CommitAs) != 0 {
 					realImageNames = append(realImageNames, step.CommitAs)
