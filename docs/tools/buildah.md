@@ -160,10 +160,14 @@ buildah:xbuild:
       # extra buildah run flags
       extra_args: [] # strings
 
+    # skip this step when set to true (usually used with renderer suffix)
+    skip: false
+
   - run:
       # or just run some bare commands not using shell
       cmd:
       - ps
+    # skip: true
 
   - from:
       ref: scratch
@@ -179,6 +183,8 @@ buildah:xbuild:
 
       # extra args for copy
       extra_args: [] # strings
+    # skip: true
+
   - copy:
       # copy from some image
       from:
@@ -190,6 +196,8 @@ buildah:xbuild:
           extra_pull_args: [] # strings
       to:
         path: /bin/apk
+    # skip: true
+
   - copy:
       # copy from local path
       from:
@@ -197,6 +205,18 @@ buildah:xbuild:
           path: ./docs/tools/buildah.md
       to:
         path: /docs/buildah.md
+    # skip: true
+
+  - copy:
+      # copy from literal text
+      from:
+        text:
+          data: |-
+            # Hi
+      to:
+        path: /docs/hi.md
+    # skip: true
+
   - copy:
       # copy from http endpoint
       from:
@@ -204,6 +224,7 @@ buildah:xbuild:
           url: https://example.com/some-file
       to:
         path: /some-http-data
+    # skip: true
 
     # set image config (runs buildah config)
   - set:
