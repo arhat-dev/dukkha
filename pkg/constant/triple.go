@@ -8,7 +8,7 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 		ARCH_AMD64: "x86_64-linux-musl",
 
 		ARCH_ARM_V5: "armv5l-linux-musleabi",
-		ARCH_ARM_V6: "armv6-linux-musleabi",
+		ARCH_ARM_V6: "armv6-linux-musleabihf",
 		ARCH_ARM_V7: "armv7l-linux-musleabihf",
 		ARCH_ARM64:  "aarch64-linux-musl",
 
