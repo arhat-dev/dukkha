@@ -185,7 +185,9 @@ dukkha buildah in-docker build my-image`,
 	flags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
 	flags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
 	flags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
-	flags.StringSliceVarP(&matrixFilter, "matrix", "m", nil, "set matrix filter, format: -m <name>=<value>")
+	flags.StringSliceVarP(&matrixFilter, "matrix", "m", nil,
+		"set matrix filter, format: `-m <name>=<value>` for matching, `-m <name>!=<value>` for ignoring",
+	)
 	flags.BoolVar(&translateANSIStream, "translate-ansi-stream", false,
 		"when set to true, will translate ansi stream to plain text before write to stdout/stderr, "+
 			"when set to false, do nothing to the ansi stream, "+

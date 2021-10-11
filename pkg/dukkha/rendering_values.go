@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 type GlobalValues interface {
@@ -73,8 +73,8 @@ func (val *ArbitraryValues) ShallowMerge(a *ArbitraryValues) error {
 type EnvValues interface {
 	GlobalValues
 
-	SetMatrixFilter(mf map[string][]string)
-	MatrixFilter() map[string][]string
+	SetMatrixFilter(*matrix.Filter)
+	MatrixFilter() *matrix.Filter
 
 	MatrixArch() string
 	MatrixKernel() string
@@ -100,7 +100,7 @@ func newEnvValues(globalEnv map[string]string) *envValues {
 var _ EnvValues = (*envValues)(nil)
 
 type envValues struct {
-	matrixFilter map[string][]string
+	matrixFilter *matrix.Filter
 
 	globalEnv map[string]string
 
@@ -119,11 +119,8 @@ func (c *envValues) clone() *envValues {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if len(c.matrixFilter) != 0 {
-		newValues.matrixFilter = make(map[string][]string)
-		for k, v := range c.matrixFilter {
-			newValues.matrixFilter[k] = sliceutils.NewStrings(v)
-		}
+	if c.matrixFilter != nil {
+		newValues.matrixFilter = c.matrixFilter.Clone()
 	}
 
 	for k, v := range c.env {
@@ -133,11 +130,11 @@ func (c *envValues) clone() *envValues {
 	return newValues
 }
 
-func (c *envValues) SetMatrixFilter(mf map[string][]string) {
-	c.matrixFilter = mf
+func (c *envValues) SetMatrixFilter(f *matrix.Filter) {
+	c.matrixFilter = f
 }
 
-func (c *envValues) MatrixFilter() map[string][]string {
+func (c *envValues) MatrixFilter() *matrix.Filter {
 	return c.matrixFilter
 }
 

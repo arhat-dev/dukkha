@@ -31,6 +31,10 @@ func (m Entry) Match(a map[string]string) bool {
 	return true
 }
 
+func (m Entry) MatchKV(key, value string) bool {
+	return m[key] == value
+}
+
 func (m Entry) Equals(a map[string]string) bool {
 	if a == nil {
 		return m == nil

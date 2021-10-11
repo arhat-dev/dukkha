@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func TestParseTaskReference(t *testing.T) {
@@ -76,10 +78,10 @@ func TestParseTaskReference(t *testing.T) {
 				ToolName: "",
 				TaskKind: "bar",
 				TaskName: "something",
-				MatrixFilter: map[string][]string{
+				MatrixFilter: matrix.NewFilter(map[string][]string{
 					"foo": {"bar"},
 					"bar": {"foo", "bar"},
-				},
+				}),
 			},
 		},
 		{
@@ -91,10 +93,10 @@ func TestParseTaskReference(t *testing.T) {
 				ToolName: "tool",
 				TaskKind: "bar",
 				TaskName: "something",
-				MatrixFilter: map[string][]string{
+				MatrixFilter: matrix.NewFilter(map[string][]string{
 					"foo": {"bar"},
 					"bar": {"foo", "bar"},
-				},
+				}),
 			},
 		},
 	}

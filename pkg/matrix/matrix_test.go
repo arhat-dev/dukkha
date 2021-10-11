@@ -17,10 +17,11 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		// specs are sorted by name, put them in order
 		expected []Entry
 
-		filter map[string][]string
+		matchFilter  map[string][]string
+		ignoreFilter [][2]string
 	}{
 		{
-			name: "normal",
+			name: "basic",
 			in: Spec{
 				Kernel: []string{"linux", "darwin"},
 				Arch:   []string{"amd64", "arm64"},
@@ -30,50 +31,54 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			},
 			expected: []Entry{
 				// sort order: arch=amd64 foo=a,b, os=linux,darwin
-				{
-					"kernel": "linux",
-					"arch":   "amd64",
-					"foo":    "a",
-				},
-				{
-					"kernel": "darwin",
-					"arch":   "amd64",
-					"foo":    "a",
-				},
-				{
-					"kernel": "linux",
-					"arch":   "amd64",
-					"foo":    "b",
-				},
-				{
-					"kernel": "darwin",
-					"arch":   "amd64",
-					"foo":    "b",
-				},
+				{"kernel": "linux", "arch": "amd64", "foo": "a"},
+				{"kernel": "darwin", "arch": "amd64", "foo": "a"},
+				{"kernel": "linux", "arch": "amd64", "foo": "b"},
+				{"kernel": "darwin", "arch": "amd64", "foo": "b"},
 
 				// sort order: arch=arm64 foo=a,b, os=linux,darwin
-
-				{
-					"kernel": "linux",
-					"arch":   "arm64",
-					"foo":    "a",
+				{"kernel": "linux", "arch": "arm64", "foo": "a"},
+				{"kernel": "darwin", "arch": "arm64", "foo": "a"},
+				{"kernel": "linux", "arch": "arm64", "foo": "b"},
+				{"kernel": "darwin", "arch": "arm64", "foo": "b"},
+			},
+		},
+		{
+			name: "basic + matchFilter",
+			in: Spec{
+				Kernel: []string{"linux", "darwin"},
+				Arch:   []string{"amd64", "arm64"},
+				Custom: map[string][]string{
+					"foo": {"a", "b"},
 				},
-				{
-					"kernel": "darwin",
-					"arch":   "arm64",
-					"foo":    "a",
+			},
+			matchFilter: map[string][]string{
+				"kernel": {"linux"},
+				"arch":   {"arm64"},
+			},
+			expected: []Entry{
+				// sort order: foo=a,b
+				{"kernel": "linux", "arch": "arm64", "foo": "a"},
+				{"kernel": "linux", "arch": "arm64", "foo": "b"},
+			},
+		},
+		{
+			name: "basic + ignoreFilter",
+			in: Spec{
+				Kernel: []string{"linux", "darwin"},
+				Arch:   []string{"amd64", "arm64"},
+				Custom: map[string][]string{
+					"foo": {"a", "b"},
 				},
-
-				{
-					"kernel": "linux",
-					"arch":   "arm64",
-					"foo":    "b",
-				},
-				{
-					"kernel": "darwin",
-					"arch":   "arm64",
-					"foo":    "b",
-				},
+			},
+			ignoreFilter: [][2]string{
+				{"kernel", "linux"},
+				{"arch", "arm64"},
+			},
+			expected: []Entry{
+				// sort order: arch=amd64 foo=a,b, os=linux,darwin
+				{"kernel": "darwin", "arch": "amd64", "foo": "a"},
+				{"kernel": "darwin", "arch": "amd64", "foo": "b"},
 			},
 		},
 		{
@@ -97,26 +102,14 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Arch:   []string{"amd64"},
 			},
 			expected: []Entry{
-				{
-					"kernel": "linux",
-					"arch":   "amd64",
-				},
-				{
-					"kernel": "windows",
-					"arch":   "arm64",
-				},
-				{
-					"kernel": "windows",
-					"arch":   "amd64",
-				},
-				{
-					"kernel": "darwin",
-					"arch":   "arm64",
-				},
+				{"kernel": "linux", "arch": "amd64"},
+				{"kernel": "windows", "arch": "arm64"},
+				{"kernel": "windows", "arch": "amd64"},
+				{"kernel": "darwin", "arch": "arm64"},
 			},
 		},
 		{
-			name: "include+filter",
+			name: "include + MatchFilter",
 			in: Spec{
 				Include: []*specItem{
 					{
@@ -135,14 +128,11 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Kernel: []string{"linux"},
 				Arch:   []string{"amd64", "arm64"},
 			},
-			filter: map[string][]string{
+			matchFilter: map[string][]string{
 				"arch": {"amd64"},
 			},
 			expected: []Entry{
-				{
-					"kernel": "linux",
-					"arch":   "amd64",
-				},
+				{"kernel": "linux", "arch": "amd64"},
 			},
 		},
 		{
@@ -183,7 +173,10 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			assert.EqualValues(
 				t,
 				test.expected,
-				test.in.GenerateEntries(test.filter, "", ""),
+				test.in.GenerateEntries(&Filter{
+					match:  test.matchFilter,
+					ignore: test.ignoreFilter,
+				}, "", ""),
 			)
 		})
 	}
@@ -198,13 +191,15 @@ func TestMatrixConfig_GenerateEntries_Fixture(t *testing.T) {
 	tests := []struct {
 		name           string
 		yamlMatrixSpec []byte
-		filter         map[string][]string
-		expected       []Entry
+		matchFilter    map[string][]string
+		ignoreFilter   [][2]string
+
+		expected []Entry
 	}{
 		{
 			name:           "001-filter-amd64-got-unwanted-aix",
 			yamlMatrixSpec: fitlerAMD64GotUnwantedAIX,
-			filter:         map[string][]string{"arch": {"amd64"}},
+			matchFilter:    map[string][]string{"arch": {"amd64"}},
 			expected: []Entry{
 				{"arch": "amd64", "kernel": "linux"},
 				{"arch": "amd64", "kernel": "darwin"},
@@ -220,7 +215,10 @@ func TestMatrixConfig_GenerateEntries_Fixture(t *testing.T) {
 				return
 			}
 
-			entries := spec.GenerateEntries(test.filter, "", "")
+			entries := spec.GenerateEntries(&Filter{
+				match:  test.matchFilter,
+				ignore: test.ignoreFilter,
+			}, "", "")
 			assert.EqualValues(t, test.expected, entries)
 		})
 	}

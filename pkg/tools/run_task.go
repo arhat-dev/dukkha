@@ -294,7 +294,7 @@ func createTaskMatrixContext(
 		mFilter[k] = []string{v}
 	}
 
-	mCtx.SetMatrixFilter(mFilter)
+	mCtx.SetMatrixFilter(matrix.NewFilter(mFilter))
 
 	for k, v := range ms {
 		mCtx.AddEnv(true, &dukkha.EnvEntry{
