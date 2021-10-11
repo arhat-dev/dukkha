@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func handleMatrixFlagCompletion(
@@ -86,16 +87,20 @@ func handleMatrixFlagCompletion(
 	return values, cobra.ShellCompDirectiveNoFileComp
 }
 
-func parseMatrixFilter(arr []string) map[string][]string {
-	mf := make(map[string][]string)
+func parseMatrixFilter(arr []string) *matrix.Filter {
+	ret := matrix.NewFilter(make(map[string][]string))
+
 	for _, v := range arr {
-		parts := strings.SplitN(v, "=", 2)
-		if len(parts) == 1 {
+		if idx := strings.Index(v, "!="); idx > 0 {
+			ret.AddIgnore(v[:idx], v[idx+2:])
 			continue
 		}
 
-		mf[parts[0]] = append(mf[parts[0]], parts[1])
+		if idx := strings.IndexByte(v, '='); idx > 0 {
+			ret.AddMatch(v[:idx], v[idx+1:])
+			continue
+		}
 	}
 
-	return mf
+	return ret
 }

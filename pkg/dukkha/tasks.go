@@ -33,7 +33,7 @@ type TaskReference struct {
 	TaskKind TaskKind
 	TaskName TaskName
 
-	MatrixFilter map[string][]string
+	MatrixFilter *matrix.Filter
 }
 
 func (t *TaskReference) ToolKey() ToolKey {
@@ -98,12 +98,14 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 		// using default matrix spec, do nothing
 	case 2:
 		// second arg is matrix spec
-		matrixFilterStr := strings.TrimRight(strings.TrimSpace(callArgs[1]), ",")
-		ref.MatrixFilter = make(map[string][]string)
-		err = yaml.Unmarshal([]byte(matrixFilterStr), &ref.MatrixFilter)
+		matchFilterStr := strings.TrimRight(strings.TrimSpace(callArgs[1]), ",")
+		mf := make(map[string][]string)
+		err = yaml.Unmarshal([]byte(matchFilterStr), &mf)
 		if err != nil {
 			return nil, fmt.Errorf("invalid matrix arg\n\n%s\nerror: %w", callArgs[1], err)
 		}
+
+		ref.MatrixFilter = matrix.NewFilter(mf)
 	}
 
 	return ref, nil
