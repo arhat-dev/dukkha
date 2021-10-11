@@ -4,6 +4,7 @@ yaml-files:
 
 ignore: |
   build/
+  testdata/
 
 rules:
   braces:

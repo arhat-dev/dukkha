@@ -113,6 +113,16 @@ func (s *renderingPatchSpec) merge(resolvedValueData []byte) (interface{}, error
 		if err != nil {
 			return nil, err
 		}
+
+		// revert yaml unmarshal result for string and bytes
+		switch valueData.(type) {
+		case string:
+			valueData = string(resolvedValueData)
+		case []byte:
+			valueData = resolvedValueData
+		default:
+			// do nothing
+		}
 	}
 
 	var mergeSrc []*resolvedMergeSource
@@ -190,8 +200,14 @@ doMerge:
 			goto doMerge
 		}
 	default:
-		// scalar types, not supported
-		return nil, fmt.Errorf("mergering scalar type value is not supported")
+		if len(mergeSrc) != 0 {
+			// scalar types want merge?
+			// currently not supported
+			return nil, fmt.Errorf("mergering scalar type value is not supported")
+		}
+
+		// no merge source
+		return valueData, nil
 	}
 }
 
@@ -247,7 +263,14 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 			}
 		}
 
-		return yaml.Marshal(data)
+		switch dt := data.(type) {
+		case string:
+			return []byte(dt), nil
+		case []byte:
+			return dt, nil
+		default:
+			return yaml.Marshal(data)
+		}
 	}
 
 	jsonData, err := json.Marshal(data)
@@ -290,7 +313,14 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return yaml.Marshal(data)
+	switch dt := data.(type) {
+	case string:
+		return []byte(dt), nil
+	case []byte:
+		return dt, nil
+	default:
+		return yaml.Marshal(data)
+	}
 }
 
 func MergeMap(
