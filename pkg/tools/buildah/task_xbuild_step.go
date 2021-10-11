@@ -29,6 +29,9 @@ type step struct {
 	CommitAs        string   `yaml:"commit_as"`
 	ExtraCommitArgs []string `yaml:"extra_commit_args"`
 
+	// Compress when commit, defaults to true
+	Compress *bool `yaml:"compress"`
+
 	// Skip this step when set to true
 	Skip bool `yaml:"skip"`
 

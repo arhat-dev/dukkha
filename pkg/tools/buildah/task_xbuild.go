@@ -206,6 +206,12 @@ func (w *TaskXBuild) GetExecSpecs(
 			// commit this container as image
 			var imageName string
 			commitCmd := sliceutils.NewStrings(options.ToolCmd(), "commit")
+			if step.Compress != nil && !*step.Compress {
+				commitCmd = append(commitCmd, "--disable-compression")
+			} else {
+				commitCmd = append(commitCmd, "--disable-compression=false")
+			}
+
 			switch {
 			case isLastStep:
 				// at last step, commit with image names
