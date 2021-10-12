@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 )
@@ -22,10 +23,30 @@ func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
 
 	err = out.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve yaml data\n\n%s\n\nerr: %w", v, err)
+		return nil, fmt.Errorf(
+			"failed to resolve yaml data\n\n%s\n\nerr: %w",
+			v, err,
+		)
 	}
 
-	return out, nil
+	rawBytes, err := yamlhelper.ToYamlBytes(out)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to marshal back resolved value of \n\n%s\n\nerr: %w",
+			v, err,
+		)
+	}
+
+	var ret interface{}
+	err = yaml.Unmarshal(rawBytes, &ret)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to unmarshal resolved value of \n\n%s\n\n as plain object: %w",
+			v, err,
+		)
+	}
+
+	return ret, nil
 }
 
 func genNewVal(key string, value interface{}, ret *map[string]interface{}) error {
