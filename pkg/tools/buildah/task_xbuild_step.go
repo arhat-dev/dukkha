@@ -13,24 +13,24 @@ type step struct {
 	rs.BaseField `yaml:"-"`
 
 	// ID of this step, if not set, will be the array index of this step
-	ID string `yaml:"id"`
+	ID string `yaml:"id,omitempty"`
 
 	// Record to add flag --add-history
-	Record *bool `yaml:"record"`
+	Record *bool `yaml:"record,omitempty"`
 
 	// Commit this step as a new layer after this step finished
 	//
 	// this is set to true by default when:
 	// - at last step
 	// - switching to different container at next step (next step is a FROM statement)
-	Commit *bool `yaml:"commit"`
+	Commit *bool `yaml:"commit,omitempty"`
 
 	// CommitAs set the image name the container committed as
-	CommitAs        string   `yaml:"commit_as"`
-	ExtraCommitArgs []string `yaml:"extra_commit_args"`
+	CommitAs        string   `yaml:"commit_as,omitempty"`
+	ExtraCommitArgs []string `yaml:"extra_commit_args,omitempty"`
 
 	// Compress when commit, defaults to true
-	Compress *bool `yaml:"compress"`
+	Compress *bool `yaml:"compress,omitempty"`
 
 	// Skip this step when set to true
 	Skip bool `yaml:"skip"`
@@ -40,16 +40,16 @@ type step struct {
 	//
 
 	// Set default options for all following steps
-	Set *stepSet `yaml:"set"`
+	Set *stepSet `yaml:"set,omitempty"`
 
 	// From some rootfs
-	From *stepFrom `yaml:"from"`
+	From *stepFrom `yaml:"from,omitempty"`
 
 	// Run some command
-	Run *stepRun `yaml:"run"`
+	Run *stepRun `yaml:"run,omitempty"`
 
 	// Copy files to somewhere
-	Copy *stepCopy `yaml:"copy"`
+	Copy *stepCopy `yaml:"copy,omitempty"`
 }
 
 func (s *step) genSpec(
