@@ -37,6 +37,8 @@ type Tool interface {
 
 	GetTask(TaskKey) (Task, bool)
 
+	AllTasks() map[TaskKey]Task
+
 	Init(kind ToolKind, cachdDir string) error
 
 	ResolveTasks(tasks []Task) error
