@@ -32,7 +32,8 @@ type GlobalValues interface {
 	HostOSVersion() string
 }
 
-// ArbitraryValues with rendering suffix support
+// ArbitraryValues is the drop in replacement of map[string]interface{}
+// with rendering suffix support
 type ArbitraryValues struct {
 	rs.BaseField `yaml:"-"`
 

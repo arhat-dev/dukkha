@@ -2,6 +2,8 @@ foo@env: GLOBAL_ENV_FOO=${GLOBAL_ENV_FOO}
 bar@shell: template:archconv.DebianArch \"amd64\"
 woo@template:
 - hello {{ archconv.AlpineArch "arm64" }}
+str_not_number@transform:
+  value@template: "{{- .Values.testdata.str_not_number -}}"
 ---
 a@echo|env: ${Values.testdata.render.a}
 b@template: "{{ .Values.testdata.render.b | toYaml }}"

@@ -33,6 +33,7 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/transform"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -204,6 +205,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
 		appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
 		appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
+		appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(""))
 
 		essentialRenderers := appCtx.AllRenderers()
 		logger.D("initializing essential renderers",
