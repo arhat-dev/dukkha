@@ -98,7 +98,7 @@ func NewDebugCmd(ctx *dukkha.Context) *cobra.Command {
 		return utils.HandleCompletionTask(*ctx, args, toComplete)
 	}
 
-	debugCmd.RegisterFlagCompletionFunc(matrixFlagName,
+	err := debugCmd.RegisterFlagCompletionFunc(matrixFlagName,
 		func(
 			cmd *cobra.Command, args []string, toComplete string,
 		) ([]string, cobra.ShellCompDirective) {
@@ -106,6 +106,9 @@ func NewDebugCmd(ctx *dukkha.Context) *cobra.Command {
 			return utils.HandleCompletionMatrix(*ctx, filter, args, toComplete)
 		},
 	)
+	if err != nil {
+		panic(fmt.Errorf("failed to register matrix filter autocompletion: %w", err))
+	}
 
 	return debugCmd
 }
@@ -200,12 +203,12 @@ func printTasks(
 		report, err := ropts.generateTaskReport(appCtx, tool, tsk)
 		if err != nil {
 			errTasks = append(errTasks, allTasks[fk])
+			// TODO: print tasks failed to report
+			_ = errTasks
 		} else {
 			taskReports[pk] = append(taskReports[pk], report)
 		}
 	}
-
-	// TODO: print tasks failed to report
 
 	return nil
 }
