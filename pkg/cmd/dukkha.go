@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"arhat.dev/dukkha/pkg/cmd/debug"
 	"arhat.dev/dukkha/pkg/cmd/render"
 	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/conf"
@@ -211,6 +212,7 @@ dukkha buildah in-docker build my-image`,
 	}
 
 	rootCmd.AddCommand(render.NewRenderCmd(&appCtx))
+	rootCmd.AddCommand(debug.NewDebugCmd(&appCtx))
 
 	return rootCmd
 }
