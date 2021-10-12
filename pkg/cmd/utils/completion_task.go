@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"sort"
@@ -9,7 +9,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func handleTaskCompletion(
+func HandleCompletionTask(
 	appCtx dukkha.Context,
 	args []string,
 	toComplete string,
