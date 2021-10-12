@@ -53,7 +53,7 @@ func (orig Env) Clone() Env {
 }
 
 type EnvEntry struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`

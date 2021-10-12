@@ -8,7 +8,7 @@ import (
 )
 
 type testBenchmarkSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Run benchmarks during test execution
 	Enabled bool `yaml:"enabled"`
@@ -58,7 +58,7 @@ func (s testBenchmarkSpec) generateArgs(compileTime bool) []string {
 }
 
 type benchmarkMemorySpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Enbaled by default if benchmark is enabled
 	Enabled *bool `yaml:"enabled"`

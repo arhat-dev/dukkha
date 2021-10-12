@@ -29,7 +29,7 @@ type mountSpec struct {
 }
 
 type stepFrom struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Ref image
 	Ref string `yaml:"ref"`

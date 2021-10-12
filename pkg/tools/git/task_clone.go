@@ -26,7 +26,7 @@ func init() {
 }
 
 type TaskClone struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 

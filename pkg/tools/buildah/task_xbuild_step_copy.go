@@ -17,7 +17,7 @@ import (
 
 // stepCopy is structured `buildah copy`
 type stepCopy struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	From copyFromSpec `yaml:"from"`
 	To   copyToSpec   `yaml:"to"`
@@ -142,7 +142,7 @@ func (s *stepCopy) genSpec(
 }
 
 type copyFromSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Text  *copyFromTextSpec  `yaml:"text"`
 	Local *copyFromLocalSpec `yaml:"local"`
@@ -152,25 +152,25 @@ type copyFromSpec struct {
 }
 
 type copyFromTextSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Data string `yaml:"data"`
 }
 
 type copyFromLocalSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Path string `yaml:"path"`
 }
 
 type copyFromHTTPSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	URL string `yaml:"url"`
 }
 
 type copyFromImageSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Ref string `yaml:"ref"`
 
@@ -183,7 +183,7 @@ type copyFromImageSpec struct {
 }
 
 type copyFromStepSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// ID of that step
 	ID string `yaml:"id"`
@@ -192,7 +192,7 @@ type copyFromStepSpec struct {
 }
 
 type copyToSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Path string `yaml:"path"`
 
@@ -202,7 +202,7 @@ type copyToSpec struct {
 }
 
 // type chmodSpec struct {
-// 	rs.BaseField
+// 	rs.BaseField `yaml:"-"`
 //
 // 	// Match glob pattern to match files
 // 	Match string `yaml:"match"`
@@ -218,7 +218,7 @@ type copyToSpec struct {
 // }
 
 // type chownSpec struct {
-// 	rs.BaseField
+// 	rs.BaseField `yaml:"-"`
 //
 // 	// Match glob pattern to match files
 // 	Match string `yaml:"match"`

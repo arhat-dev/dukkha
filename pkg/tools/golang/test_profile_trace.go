@@ -3,7 +3,7 @@ package golang
 import "arhat.dev/rs"
 
 type testTraceProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Write test execution trace
 	Enabled bool `yaml:"enabled"`

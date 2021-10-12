@@ -45,7 +45,7 @@ func init() {
 }
 
 type TaskXBuild struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 

@@ -12,7 +12,7 @@ import (
 )
 
 type stepSet struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Workdir
 	Workdir *string `yaml:"workdir"`

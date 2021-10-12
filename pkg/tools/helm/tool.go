@@ -16,7 +16,7 @@ func init() {
 }
 
 type Tool struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTool `yaml:",inline"`
 }

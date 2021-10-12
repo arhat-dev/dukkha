@@ -10,7 +10,7 @@ import (
 
 // step is structured `buildah <subcmd>` for image building
 type step struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// ID of this step, if not set, will be the array index of this step
 	ID string `yaml:"id"`

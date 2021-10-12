@@ -29,8 +29,8 @@ func NewDefault(name string) dukkha.Renderer {
 var _ dukkha.Renderer = (*driver)(nil)
 
 type driver struct {
-	rs.BaseField
-	name string
+	rs.BaseField `yaml:"-"`
+	name         string
 
 	renderer.CacheConfig `yaml:",inline"`
 

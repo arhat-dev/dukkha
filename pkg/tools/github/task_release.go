@@ -27,7 +27,7 @@ func init() {
 }
 
 type TaskRelease struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 

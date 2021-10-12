@@ -7,7 +7,7 @@ import (
 )
 
 type testMutexProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Profile mutex during test execution
 	Enabled bool `yaml:"enabled"`

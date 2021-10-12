@@ -10,7 +10,7 @@ import (
 )
 
 type CGOSepc struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Enable cgo
 	Enabled bool `yaml:"enabled"`

@@ -19,7 +19,7 @@ import (
 )
 
 type CacheConfig struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	EnableCache    bool          `yaml:"enable_cache"`
 	CacheSizeLimit utils.Size    `yaml:"cache_size_limit"`

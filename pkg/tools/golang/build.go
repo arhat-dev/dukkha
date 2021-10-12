@@ -86,7 +86,7 @@ func getGOMIPS(mArch string) string {
 }
 
 type buildOptions struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Race    bool     `yaml:"race"`
 	LDFlags []string `yaml:"ldflags"`

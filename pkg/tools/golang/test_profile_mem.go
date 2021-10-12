@@ -7,7 +7,7 @@ import (
 )
 
 type testMemoryProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Profile memory during test execution
 	Enabled bool `yaml:"enabled"`

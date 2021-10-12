@@ -33,7 +33,7 @@ func init() {
 }
 
 type TaskTest struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -417,7 +417,7 @@ func generateRunSpecs(
 }
 
 type testSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	LogFile string `yaml:"log_file"`
 
