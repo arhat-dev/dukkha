@@ -28,8 +28,11 @@ import (
 	"golang.org/x/term"
 
 	"arhat.dev/dukkha/pkg/cmd/render"
+	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
+
+	_ "embed"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -135,6 +138,8 @@ dukkha buildah in-docker build my-image`,
 			switch {
 			case strings.HasPrefix(cmd.Use, "render"):
 				needTasks = false
+			case strings.HasPrefix(cmd.Use, "debug"):
+				needTasks = len(args) != 0
 			default:
 				needTasks = true
 			}
@@ -144,7 +149,7 @@ dukkha buildah in-docker build my-image`,
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
-			_appCtx.SetMatrixFilter(parseMatrixFilter(matrixFilter))
+			_appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
 
 			appCtx = _appCtx
 
@@ -224,6 +229,68 @@ func run(appCtx dukkha.Context, args []string) error {
 		dukkha.TaskKey{
 			Kind: dukkha.TaskKind(args[2]),
 			Name: dukkha.TaskName(args[3]),
+		},
+	)
+}
+
+var (
+	//go:embed completion_guide.txt
+	completionGuide string
+)
+
+func setupTaskCompletion(appCtx *dukkha.Context, rootCmd *cobra.Command) {
+	cmd := &cobra.Command{
+		Use:   "completion [bash|zsh|fish|powershell]",
+		Short: "Generate completion script",
+		Long:  completionGuide,
+
+		SilenceUsage: true,
+		Hidden:       true,
+
+		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
+		Args:      cobra.ExactValidArgs(1),
+
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "bash":
+				_ = cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				_ = cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				_ = cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				_ = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+		},
+	}
+
+	rootCmd.AddCommand(cmd)
+	rootCmd.ValidArgsFunction = func(
+		cmd *cobra.Command, args []string, toComplete string,
+	) ([]string, cobra.ShellCompDirective) {
+		return utils.HandleCompletionTask(*appCtx, args, toComplete)
+	}
+
+	rootCmd.SetHelpCommand(&cobra.Command{
+		SilenceUsage: true,
+		Hidden:       true,
+	})
+}
+
+func setupMatrixCompletion(
+	appCtx *dukkha.Context,
+	rootCmd *cobra.Command,
+	matrixFlagName string,
+) error {
+	return rootCmd.RegisterFlagCompletionFunc(
+		matrixFlagName,
+		func(
+			cmd *cobra.Command, args []string, toComplete string,
+		) ([]string, cobra.ShellCompDirective) {
+			filter, _ := rootCmd.Flags().GetStringSlice(matrixFlagName)
+			return utils.HandleCompletionMatrix(
+				*appCtx, filter, args, toComplete,
+			)
 		},
 	)
 }

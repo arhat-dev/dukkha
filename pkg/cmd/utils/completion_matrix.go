@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"sort"
@@ -7,10 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/matrix"
 )
 
-func handleMatrixFlagCompletion(
+func HandleCompletionMatrix(
 	appCtx dukkha.Context,
 	existingFilters []string,
 	args []string, toComplete string,
@@ -85,22 +84,4 @@ func handleMatrixFlagCompletion(
 	sort.Strings(values)
 
 	return values, cobra.ShellCompDirectiveNoFileComp
-}
-
-func parseMatrixFilter(arr []string) *matrix.Filter {
-	ret := matrix.NewFilter(make(map[string][]string))
-
-	for _, v := range arr {
-		if idx := strings.Index(v, "!="); idx > 0 {
-			ret.AddIgnore(v[:idx], v[idx+2:])
-			continue
-		}
-
-		if idx := strings.IndexByte(v, '='); idx > 0 {
-			ret.AddMatch(v[:idx], v[idx+1:])
-			continue
-		}
-	}
-
-	return ret
 }
