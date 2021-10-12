@@ -14,6 +14,13 @@ global:
     testdata:
       __just_call_template@template: |-
         {{- dukkha.SetValue "testdata.render.a" "I'm a" -}}
+
+      str_not_number@transform:
+        value: "10.10000"
+        ops:
+        - template: |-
+            {{- printf "str-%s" .Value -}}
+
       render:
         # a: I'm a
         b:

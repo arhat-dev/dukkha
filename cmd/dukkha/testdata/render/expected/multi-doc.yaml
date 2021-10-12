@@ -1,5 +1,6 @@
 bar: amd64
 foo: GLOBAL_ENV_FOO=foo
+str_not_number: str-10.10000
 woo:
   - hello aarch64
 ---
