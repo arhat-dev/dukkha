@@ -41,7 +41,7 @@ func NewConfig() *Config {
 }
 
 type GlobalConfig struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// CacheDir to store script file and temporary task execution data
 	CacheDir string `yaml:"cache_dir"`
@@ -97,7 +97,7 @@ func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) err
 }
 
 type Config struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
@@ -123,7 +123,7 @@ type Config struct {
 var _ yaml.Unmarshaler = (*Tools)(nil)
 
 type Tools struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Data map[string][]dukkha.Tool `rs:"other"`
 }

@@ -16,7 +16,7 @@ import (
 )
 
 type Action struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Name of this action, optional
 	Name string `yaml:"name"`

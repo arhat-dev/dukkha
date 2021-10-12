@@ -7,7 +7,7 @@ import (
 )
 
 type testCoverageProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Enabled bool `yaml:"enabled"`
 

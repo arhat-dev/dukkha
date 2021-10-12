@@ -15,7 +15,7 @@ import (
 var _ dukkha.Tool = (*BaseToolWithInit)(nil)
 
 type BaseToolWithInit struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	BaseTool `yaml:",inline"`
 }
@@ -51,7 +51,7 @@ func (t *BaseToolWithInit) GetExecSpec(
 }
 
 type BaseTool struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	ToolName string     `yaml:"name"`
 	Env      dukkha.Env `yaml:"env"`
@@ -96,6 +96,8 @@ func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
 	tsk, ok := t.tasks[k]
 	return tsk, ok
 }
+
+func (t *BaseTool) AllTasks() map[dukkha.TaskKey]dukkha.Task { return t.tasks }
 
 func (t *BaseTool) GetEnv() dukkha.Env { return t.Env }
 

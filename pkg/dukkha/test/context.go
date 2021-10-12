@@ -13,7 +13,7 @@ import (
 var _ dukkha.Renderer = (*echoRenderer)(nil)
 
 type echoRenderer struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 }
 
 func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error {

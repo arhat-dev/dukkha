@@ -46,7 +46,7 @@ func init() {
 }
 
 type TaskBuild struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -61,7 +61,7 @@ type TaskBuild struct {
 }
 
 type ImageNameSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Image    string `yaml:"image"`
 	Manifest string `yaml:"manifest"`

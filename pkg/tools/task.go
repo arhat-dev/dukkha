@@ -22,7 +22,7 @@ func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 }
 
 type BaseTask struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	TaskName string      `yaml:"name"`
 	Env      dukkha.Env  `yaml:"env"`

@@ -34,7 +34,7 @@ type GlobalValues interface {
 
 // ArbitraryValues with rendering suffix support
 type ArbitraryValues struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Data map[string]*rs.AnyObject `rs:"other"`
 }

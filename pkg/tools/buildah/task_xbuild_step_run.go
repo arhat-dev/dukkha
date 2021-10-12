@@ -16,7 +16,7 @@ import (
 )
 
 type stepRun struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Script
 	//

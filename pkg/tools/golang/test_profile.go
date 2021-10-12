@@ -7,7 +7,7 @@ import (
 )
 
 type testProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Directory to save all profile output files
 	OutputDir string `yaml:"output_dir"`

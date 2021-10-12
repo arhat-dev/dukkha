@@ -7,7 +7,7 @@ import (
 )
 
 type testBlockProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Profile goroutine blocking during test execution
 	Enabled bool `yaml:"enabled"`

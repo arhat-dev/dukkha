@@ -3,7 +3,7 @@ package golang
 import "arhat.dev/rs"
 
 type testCPUProfileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Profile cpu during test execution
 	Enabled bool `yaml:"enabled"`

@@ -10,7 +10,7 @@ import (
 )
 
 type TaskHooks struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Before runs before the task execution start
 	// if this hook failed, the whole task execution is canceled

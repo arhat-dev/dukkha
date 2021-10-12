@@ -106,7 +106,7 @@ type manifestCacheValue struct {
 }
 
 type TaskPush struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 

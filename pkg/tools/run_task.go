@@ -120,7 +120,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 	opts := dukkha.CreateTaskExecOptions(0, len(matrixSpecs))
 matrixRun:
 	for _, ms := range matrixSpecs {
-		mCtx, options, err2 := createTaskMatrixContext(req, ms, opts)
+		mCtx, options, err2 := CreateTaskMatrixContext(req, ms, opts)
 
 		if err2 != nil {
 			appendErrorResult(ms, err2)
@@ -279,9 +279,9 @@ matrixRun:
 	return
 }
 
-// createTaskMatrixContext creates a per matrix entry task exec options
+// CreateTaskMatrixContext creates a per matrix entry task exec options
 // with context resolved
-func createTaskMatrixContext(
+func CreateTaskMatrixContext(
 	req *TaskExecRequest,
 	ms matrix.Entry,
 	opts dukkha.TaskExecOptions,

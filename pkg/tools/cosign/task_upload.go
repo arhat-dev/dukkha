@@ -33,7 +33,7 @@ func init() {
 }
 
 type TaskUpload struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -45,14 +45,14 @@ type TaskUpload struct {
 }
 
 type FileSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Path        string `yaml:"path"`
 	ContentType string `yaml:"content_type"`
 }
 
 type signingSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Enabled bool `yaml:"enabled"`
 

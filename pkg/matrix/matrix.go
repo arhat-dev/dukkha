@@ -7,13 +7,13 @@ import (
 // specItem is a helper type to support rendering suffix
 // for list of maps, used in Include/Exclude
 type specItem struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Data map[string][]string `rs:"other"`
 }
 
 type Spec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Include []*specItem `yaml:"include"`
 	Exclude []*specItem `yaml:"exclude"`
