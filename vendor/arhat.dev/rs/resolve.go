@@ -164,6 +164,10 @@ func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error
 	return nil
 }
 
+var (
+	anyObjectMapType = reflect.TypeOf((*anyObjectMap)(nil)).Elem()
+)
+
 func (f *BaseField) handleUnResolvedField(
 	rc RenderingHandler,
 	depth int,
@@ -240,15 +244,17 @@ func (f *BaseField) handleUnResolvedField(
 		}
 
 		if err != nil {
-			switch {
-			case target.Type() == rawInterfaceType:
+			switch typ := target.Type(); typ {
+			case rawInterfaceType, anyObjectMapType:
 				// no idea what type is expected, keep it raw
+				tmp.mapData = nil
+				tmp.sliceData = nil
 				tmp.scalarData = string(resolvedValue)
 			default:
 				// rare case
 				return fmt.Errorf(
-					"unexpected value, not string, bytes or valid yaml %q: %w",
-					resolvedValue, err,
+					"unexpected value type %q, not string, bytes or valid yaml %q: %w",
+					typ.String(), resolvedValue, err,
 				)
 			}
 		} else {

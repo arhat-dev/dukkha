@@ -472,7 +472,10 @@ func (f *BaseField) unmarshal(
 	keepOld bool,
 ) error {
 	if in == nil {
-		outVal.Set(reflect.Zero(outVal.Type()))
+		// reset to zero value if already set
+		if outVal.IsValid() {
+			outVal.Set(reflect.Zero(outVal.Type()))
+		}
 		return nil
 	}
 
@@ -485,7 +488,11 @@ func (f *BaseField) unmarshal(
 		outVal = outVal.Elem()
 	}
 
-	switch kind := outVal.Kind(); kind {
+	switch outKind := outVal.Kind(); outKind {
+	case reflect.Invalid:
+		// no way to know what value we can set
+		// NOTE: this should not happen when unmarshaling, shall we panic instead?
+		return fmt.Errorf("unexpected nil out value for yaml key %q", yamlKey)
 	case reflect.Array:
 		return f.unmarshalArray(yamlKey, in, outVal)
 	case reflect.Slice:
@@ -504,39 +511,34 @@ func (f *BaseField) unmarshal(
 		return err
 	default:
 		// scalar types
-		switch t := in.Value().(type) {
-		case string:
-			if kind == reflect.String {
-				outVal.SetString(t)
+		val := reflect.ValueOf(in.Value())
+		inKind := val.Kind()
+
+		switch inKind {
+		case reflect.Invalid:
+			if outVal.IsValid() {
+				outVal.Set(reflect.Zero(outVal.Type()))
+			}
+			return nil
+		case reflect.String:
+			if outKind == reflect.String {
+				outVal.Set(val)
 				return nil
 			}
 
 			return f.unmarshalRaw(in, outVal)
+		case outKind:
+			// same kind means same scalar type
+			outVal.Set(val)
+			return nil
 		default:
-			val := reflect.ValueOf(in.Value())
-			switch inKind, outKind := val.Kind(), outVal.Kind(); {
-			case outKind == reflect.Invalid:
-				// no way to know what value we can set
-				return fmt.Errorf("unexpected nil out value for yaml key %q", yamlKey)
-			case inKind == reflect.Invalid:
-				// val is zero value, ignore
-
-				// TODO: shall we set zero value in this case?
-				// 		 outVal.Set(reflect.Zero(outVal.Type()))
-				return nil
-			case inKind == outKind:
-				// same kind means same scalar type
-				outVal.Set(val)
-				return nil
-			default:
-				// no same kind, check assignable
-				if err := checkAssignable(yamlKey, val, outVal); err != nil {
-					return err
-				}
-
-				outVal.Set(val)
-				return nil
+			// not same kind, check if assignable
+			if err := checkAssignable(yamlKey, val, outVal); err != nil {
+				return err
 			}
+
+			outVal.Set(val)
+			return nil
 		}
 	}
 }

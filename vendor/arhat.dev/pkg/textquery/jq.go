@@ -17,9 +17,9 @@ limitations under the License.
 package textquery
 
 import (
+	"bytes"
 	"encoding/json"
-
-	"arhat.dev/pkg/jsonhelper"
+	"io"
 )
 
 // JQ runs query over json data
@@ -29,5 +29,33 @@ func JQ(query, data string) (string, error) {
 
 // JQ runs query over json data bytes
 func JQBytes(query string, dataBytes []byte) (string, error) {
-	return Query(query, dataBytes, jsonhelper.UnmarshalJSON, json.Marshal)
+	return Query(query, NewJSONIterator(bytes.NewReader(dataBytes)), json.Marshal)
+}
+
+func NewJSONIterator(r io.Reader) func() (interface{}, bool) {
+	dec := json.NewDecoder(r)
+	dec.UseNumber()
+
+	exit := false
+	return func() (interface{}, bool) {
+		if exit {
+			return nil, false
+		}
+
+		var data interface{}
+		err := dec.Decode(&data)
+		if err != nil {
+			if err == io.EOF {
+				return nil, false
+			}
+
+			buffered, _ := io.ReadAll(dec.Buffered())
+			remainder, _ := io.ReadAll(r)
+			exit = true
+
+			return append(buffered, remainder...), true
+		}
+
+		return data, true
+	}
 }
