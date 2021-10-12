@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -16,7 +15,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"mvdan.cc/sh/v3/syntax"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/gomplate/funcs"
 )
@@ -62,55 +60,20 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
 		Funcs(map[string]interface{}{
-			"setValue": func(key string, v interface{}) (interface{}, error) {
-				var err error
-				// parse yaml/json doc when v is string or bytes
-				switch t := v.(type) {
-				case string:
-					v, err = fromYaml(rc, t)
-				case []byte:
-					v, err = fromYaml(rc, string(t))
-				default:
-					// do nothing
-				}
-
-				if err != nil {
-					return v, err
-				}
-
-				// TODO: support jq path reference so we can operate on array
-				//       entries
-
-				// const newValueJQVarName = "$dukkha_new_value_for_jq"
-				// query, err := gojq.Parse(fmt.Sprintf(".%s = %s", key, newValueJQVarName))
-				// if err != nil {
-				// 	return v, err
-				// }
-				// _, _, err = textquery.RunQuery(query, newValues, map[string]interface{}{
-				// 	newValueJQVarName: v,
-				// })
-				// if err != nil {
-				// 	return v, err
-				// }
-
-				newValues := make(map[string]interface{})
-
-				err = genNewVal(key, v, &newValues)
-				if err != nil {
-					return v, fmt.Errorf(
-						"failed to generate new values for key %q: %w",
-						key, err,
-					)
-				}
-
-				err = rc.AddValues(newValues)
-				if err != nil {
-					return v, fmt.Errorf("failed to add new value: %w", err)
-				}
-
-				return v, nil
+			"strconv": func() *_strconvNS {
+				return strconvNS
+			},
+			"dukkha": func() *dukkhaNS {
+				return createDukkhaNS(rc)
+			},
+			"os": func() *_osNS {
+				return osNS
+			},
+			"archconv": func() *_archconvNS {
+				return archconvNS
 			},
 		}).
+		// run shell commands in template
 		Funcs(map[string]interface{}{
 			"shell": func(script string, inputs ...string) (string, error) {
 				var stdin io.Reader
@@ -137,7 +100,13 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return stdout.String(), err
 			},
 		}).
+		// text processing
 		Funcs(map[string]interface{}{
+			"jq":      textquery.JQ,
+			"jqBytes": textquery.JQBytes,
+			"yq":      textquery.YQ,
+			"yqBytes": textquery.YQBytes,
+
 			"fromYaml": func(v string) interface{} {
 				ret, err := fromYaml(rc, v)
 				if err != nil {
@@ -149,9 +118,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				data, _ := yaml.Marshal(v)
 				return string(data)
 			},
-		}).
-		// text functions
-		Funcs(map[string]interface{}{
+
 			"addPrefix": func(args ...string) string {
 				sep := "\n"
 				if len(args) == 3 {
@@ -191,17 +158,6 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return hex.EncodeToString(md5helper.Sum([]byte(s)))
 			},
 
-			"os_ReadFile": func(filename string) (string, error) {
-				data, err := os.ReadFile(filename)
-				if err != nil {
-					return "", err
-				}
-
-				return string(data), nil
-			},
-			"os_WriteFile": func(filename string, data []byte) error {
-				return os.WriteFile(filename, data, 0640)
-			},
 			"appendFile": func(filename string, data []byte) error {
 				f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 				if err != nil {
@@ -211,121 +167,19 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				_, err = f.Write(data)
 				return err
 			},
-			"toBytes": func(s string) []byte {
-				return []byte(s)
-			},
-
-			"filepath_Join": filepath.Join,
-
-			"jq":      textquery.JQ,
-			"jqBytes": textquery.JQBytes,
-			"yq":      textquery.YQ,
-			"yqBytes": textquery.YQBytes,
-
-			"getAlpineArch": func(mArch string) string {
-				v, _ := constant.GetAlpineArch(mArch)
-				return v
-			},
-			"getAlpineTripleName": func(mArch string) string {
-				v, _ := constant.GetAlpineTripleName(mArch)
-				return v
-			},
-
-			"getDebianArch": func(mArch string) string {
-				v, _ := constant.GetDebianArch(mArch)
-				return v
-			},
-			"getDebianTripleName": func(mArch string, other ...string) string {
-				targetKernel, targetLibc := "", ""
-				if len(other) > 0 {
-					targetKernel = other[0]
+			"toBytes": func(s interface{}) ([]byte, error) {
+				switch dt := s.(type) {
+				case string:
+					return []byte(dt), nil
+				case []byte:
+					return dt, nil
+				case []rune:
+					return []byte(string(dt)), nil
+				default:
+					return nil, fmt.Errorf(
+						"invalid non string, bytes, nor runes: %T", s,
+					)
 				}
-				if len(other) > 1 {
-					targetLibc = other[1]
-				}
-
-				v, _ := constant.GetDebianTripleName(mArch, targetKernel, targetLibc)
-				return v
-			},
-
-			"getGNUArch": func(mArch string) string {
-				v, _ := constant.GetGNUArch(mArch)
-				return v
-			},
-			"getGNUTripleName": func(mArch string, other ...string) string {
-				targetKernel, targetLibc := "", ""
-				if len(other) > 0 {
-					targetKernel = other[0]
-				}
-				if len(other) > 1 {
-					targetLibc = other[1]
-				}
-
-				v, _ := constant.GetGNUTripleName(mArch, targetKernel, targetLibc)
-				return v
-			},
-
-			"getQemuArch": func(mArch string) string {
-				v, _ := constant.GetQemuArch(mArch)
-				return v
-			},
-
-			"getOciOS": func(mKernel string) string {
-				v, _ := constant.GetOciOS(mKernel)
-				return v
-			},
-			"getOciArch": func(mArch string) string {
-				v, _ := constant.GetOciArch(mArch)
-				return v
-			},
-			"getOciArchVariant": func(mArch string) string {
-				v, _ := constant.GetOciArchVariant(mArch)
-				return v
-			},
-
-			"getDockerOS": func(mKernel string) string {
-				v, _ := constant.GetDockerOS(mKernel)
-				return v
-			},
-			"getDockerArch": func(mArch string) string {
-				v, _ := constant.GetDockerArch(mArch)
-				return v
-			},
-			"getDockerArchVariant": func(mArch string) string {
-				v, _ := constant.GetDockerArchVariant(mArch)
-				return v
-			},
-
-			"getDockerHubArch": func(mArch string, other ...string) string {
-				mKernel := ""
-				if len(other) > 0 {
-					mKernel = other[0]
-				}
-
-				v, _ := constant.GetDockerHubArch(mArch, mKernel)
-				return v
-			},
-			"getDockerPlatformArch": func(mArch string) string {
-				arch, ok := constant.GetDockerArch(mArch)
-				if !ok {
-					return ""
-				}
-
-				variant, _ := constant.GetDockerArchVariant(mArch)
-				if len(variant) != 0 {
-					return arch + "/" + variant
-				}
-
-				return arch
-			},
-
-			"getGolangOS": func(mKernel string) string {
-				v, _ := constant.GetGolangOS(mKernel)
-				return v
-			},
-			"getGolangArch": func(mArch string) string {
-				v, _ := constant.GetGolangArch(mArch)
-				return v
 			},
 
 			"setDefaultImageTag": func(imageName string, flags ...string) string {
