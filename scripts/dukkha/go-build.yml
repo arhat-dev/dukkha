@@ -13,17 +13,17 @@
 
     # cc@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
-    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #     {{- archconv.DebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
-    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #     {{- archconv.AlpineTripleName .Env.MATRIX_ARCH -}}
     #   {{- get -}}
     #   -gcc
 
     # cc@template: |-
     #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
-    #     {{- getDebianTripleName .Env.MATRIX_ARCH -}}
+    #     {{- archconv.DebianTripleName .Env.MATRIX_ARCH -}}
     #   {{- else if eq .Env.HOST_OS "alpine" -}}
-    #     {{- getAlpineTripleName .Env.MATRIX_ARCH -}}
+    #     {{- archconv.AlpineTripleName .Env.MATRIX_ARCH -}}
     #   {{- get -}}
     #   -g++
 

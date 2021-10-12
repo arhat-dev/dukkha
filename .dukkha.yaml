@@ -13,7 +13,7 @@ global:
   values:
     testdata:
       __just_call_template@template: |-
-        {{- setValue "testdata.render.a" "I'm a" -}}
+        {{- dukkha.SetValue "testdata.render.a" "I'm a" -}}
       render:
         # a: I'm a
         b:
