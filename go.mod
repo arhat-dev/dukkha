@@ -3,8 +3,8 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.6.3
-	arhat.dev/rs v0.2.2
+	arhat.dev/pkg v0.6.4
+	arhat.dev/rs v0.2.4
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -31,4 +31,4 @@ require (
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
 
-replace arhat.dev/rs => arhat.dev/rs v0.2.2
+replace arhat.dev/rs => arhat.dev/rs v0.2.4

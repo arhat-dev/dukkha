@@ -3,6 +3,7 @@ package textquery
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/itchyny/gojq"
 )
@@ -11,8 +12,7 @@ import (
 // marshaling/unmarshaling func for data serialization/deserialization
 func Query(
 	query string,
-	input []byte,
-	unmarshalFunc func([]byte, interface{}) error,
+	generatNext func() (interface{}, bool),
 	marshalFunc func(in interface{}) ([]byte, error),
 ) (string, error) {
 	q, err := gojq.Parse(query)
@@ -20,20 +20,33 @@ func Query(
 		return "", fmt.Errorf("failed to parse query: %w", err)
 	}
 
-	strData, err := strconv.Unquote(string(input))
-	if err == nil {
-		input = []byte(strData)
+	sb := &strings.Builder{}
+	wroteOnce := false
+	for {
+		data, ok := generatNext()
+		if !ok {
+			break
+		}
+
+		result, hasResult, err2 := RunQuery(q, data, nil)
+		if hasResult {
+			if wroteOnce {
+				sb.WriteByte('\n')
+			}
+
+			sb.WriteString(HandleQueryResult(result, marshalFunc))
+
+			if !wroteOnce {
+				wroteOnce = true
+			}
+		}
+
+		if err2 != nil {
+			return sb.String(), err2
+		}
 	}
 
-	var data interface{}
-	err = unmarshalFunc(input, &data)
-	if err != nil {
-		// plain text data
-		data = input
-	}
-
-	result, _, err := RunQuery(q, data, nil)
-	return HandleQueryResult(result, marshalFunc), err
+	return sb.String(), nil
 }
 
 // RunQuery runs jq query over arbitrary data with optional

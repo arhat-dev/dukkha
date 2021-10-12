@@ -12,10 +12,12 @@ var (
 	_ json.Marshaler = (*AnyObject)(nil)
 )
 
+type anyObjectMap map[string]*AnyObject
+
 type mapData struct {
 	BaseField `yaml:"-" json:"-"`
 
-	Data map[string]*AnyObject `rs:"other"`
+	Data anyObjectMap `rs:"other"`
 }
 
 func (md *mapData) MarshalYAML() (interface{}, error) { return md.Data, nil }
