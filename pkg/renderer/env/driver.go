@@ -21,15 +21,9 @@ const (
 	DefaultName = "env"
 )
 
-func init() {
-	dukkha.RegisterRenderer(DefaultName, NewDefault)
-}
+func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
-func NewDefault(name string) dukkha.Renderer {
-	return &driver{
-		name: name,
-	}
-}
+func NewDefault(name string) dukkha.Renderer { return &driver{name: name} }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
@@ -43,7 +37,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	bytesToExpand, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -138,5 +134,5 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		)
 	}
 
-	return []byte(result), nil
+	return result, nil
 }

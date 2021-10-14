@@ -3,8 +3,8 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.6.4
-	arhat.dev/rs v0.2.4
+	arhat.dev/pkg v0.6.5-0.20211014114057-58c482fabcbe
+	arhat.dev/rs v0.3.0
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -23,12 +23,10 @@ require (
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/net v0.0.0-20211007125505-59d4e928ea9d
-	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac
+	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	mvdan.cc/sh/v3 v3.4.0
 )
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
-
-replace arhat.dev/rs => arhat.dev/rs v0.2.4

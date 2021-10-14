@@ -20,9 +20,7 @@ const (
 	DefaultName = "http"
 )
 
-func init() {
-	dukkha.RegisterRenderer(DefaultName, NewDefault)
-}
+func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer {
 	return &driver{
@@ -58,9 +56,8 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *driver) RenderYaml(
-	rc dukkha.RenderingContext,
-	rawData interface{},
-) ([]byte, error) {
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	var (
 		reqURL string
 		client *http.Client

@@ -123,7 +123,7 @@ func TestDriver_Render(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, test.expected, string(ret))
+			assert.Equal(t, test.expected, ret)
 		})
 
 	}

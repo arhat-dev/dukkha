@@ -20,3 +20,11 @@ include:
   - aix
   - linux
   arch: [ppc64]
+---
+# filter
+match_filter:
+  arch: [amd64]
+---
+# expected
+- {"arch": "amd64", "kernel": "linux"}
+- {"arch": "amd64", "kernel": "darwin"}

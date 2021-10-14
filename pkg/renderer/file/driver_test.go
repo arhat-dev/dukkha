@@ -43,7 +43,7 @@ func TestDriver_Render(t *testing.T) {
 	t.Run("Valid File Exists", func(t *testing.T) {
 		ret, err := d.RenderYaml(nil, tempFilePath)
 		assert.NoError(t, err)
-		assert.Equal(t, expectedData, string(ret))
+		assert.EqualValues(t, []byte(expectedData), ret)
 	})
 
 	t.Run("Invalid Input Type", func(t *testing.T) {

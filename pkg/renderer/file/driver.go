@@ -45,7 +45,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	_ dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	var path string
 	switch t := rawData.(type) {
 	case string:
