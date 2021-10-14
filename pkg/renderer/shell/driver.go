@@ -19,11 +19,7 @@ func init() {
 	dukkha.RegisterRenderer(DefaultName, NewDefault)
 }
 
-func NewDefault(name string) dukkha.Renderer {
-	return &driver{
-		name: name,
-	}
-}
+func NewDefault(name string) dukkha.Renderer { return &driver{name: name} }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
@@ -37,7 +33,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	var scripts []string
 	switch t := rawData.(type) {
 	case string:
@@ -89,5 +87,5 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		}
 	}
 
-	return buf.Bytes(), nil
+	return buf.Next(buf.Len()), nil
 }

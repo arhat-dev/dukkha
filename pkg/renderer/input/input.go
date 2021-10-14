@@ -16,15 +16,9 @@ const (
 	DefaultName = "input"
 )
 
-func init() {
-	dukkha.RegisterRenderer(DefaultName, NewDefault)
-}
+func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
-func NewDefault(name string) dukkha.Renderer {
-	return &driver{
-		name: name,
-	}
-}
+func NewDefault(name string) dukkha.Renderer { return &driver{name: name} }
 
 var _ dukkha.Renderer = (*driver)(nil)
 
@@ -40,7 +34,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(_ dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	_ dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	promptBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, err

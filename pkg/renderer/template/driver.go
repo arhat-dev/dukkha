@@ -38,7 +38,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	tplBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -65,5 +67,5 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		)
 	}
 
-	return buf.Bytes(), nil
+	return buf.Next(buf.Len()), nil
 }

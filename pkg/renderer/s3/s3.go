@@ -53,7 +53,9 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return err
 }
 
-func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	var (
 		path   string
 		client *s3Client

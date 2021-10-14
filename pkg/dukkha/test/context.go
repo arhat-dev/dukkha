@@ -3,8 +3,6 @@ package dukkha_test
 import (
 	"context"
 
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -16,20 +14,12 @@ type echoRenderer struct {
 	rs.BaseField `yaml:"-"`
 }
 
-func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error {
-	return nil
-}
+func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
-func (*echoRenderer) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
-	switch t := rawData.(type) {
-	case string:
-		return []byte(t), nil
-	case []byte:
-		return t, nil
-	default:
-		data, err := yaml.Marshal(rawData)
-		return data, err
-	}
+func (*echoRenderer) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
+	return rawData, nil
 }
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {

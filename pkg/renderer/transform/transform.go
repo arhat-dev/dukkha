@@ -28,7 +28,9 @@ type driver struct {
 
 func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
-func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]byte, error) {
+func (d *driver) RenderYaml(
+	rc dukkha.RenderingContext, rawData interface{},
+) (interface{}, error) {
 	rawBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -59,21 +61,13 @@ func (d *driver) RenderYaml(rc dukkha.RenderingContext, rawData interface{}) ([]
 		data, err = op.Do(rc, data)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to do #%d transform operation: %w",
+				"renderer.%s: failed to do #%d transformation: %w",
 				d.name, i, err,
 			)
 		}
 	}
 
-	ret, err := yamlhelper.ToYamlBytes(data)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"renderer.%s: failed to marshal result as yaml: %w",
-			d.name, err,
-		)
-	}
-
-	return ret, nil
+	return data, nil
 }
 
 // Spec for yaml data transformation
