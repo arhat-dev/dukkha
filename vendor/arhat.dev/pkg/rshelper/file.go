@@ -12,7 +12,9 @@ var _ rs.RenderingHandler = (*FileHandler)(nil)
 // FileHandler treats rawData as file path
 type FileHandler struct{}
 
-func (h *FileHandler) RenderYaml(_ string, rawData interface{}) ([]byte, error) {
+func (h *FileHandler) RenderYaml(
+	_ string, rawData interface{},
+) (interface{}, error) {
 	path := ""
 	switch t := rawData.(type) {
 	case string:

@@ -44,7 +44,9 @@ func (r *RenderingManager) Add(h rs.RenderingHandler, names ...string) {
 	}
 }
 
-func (r *RenderingManager) RenderYaml(name string, rawData interface{}) ([]byte, error) {
+func (r *RenderingManager) RenderYaml(
+	name string, rawData interface{},
+) (interface{}, error) {
 	h, ok := r.m[name]
 	if !ok {
 		return nil, fmt.Errorf("rendering handler %q not found", name)

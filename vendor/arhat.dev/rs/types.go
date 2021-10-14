@@ -1,7 +1,6 @@
 package rs
 
 import (
-	"errors"
 	"reflect"
 
 	"gopkg.in/yaml.v3"
@@ -26,13 +25,9 @@ type Field interface {
 }
 
 type RenderingHandler interface {
-	// RenderYaml using specified renderer
-	RenderYaml(renderer string, rawData interface{}) (result []byte, err error)
+	// RenderYaml with specified renderer
+	RenderYaml(renderer string, rawData interface{}) (result interface{}, err error)
 }
-
-var (
-	ErrInterfaceTypeNotHandled = errors.New("interface type not handled")
-)
 
 type InterfaceTypeHandler interface {
 	// Create request interface type using yaml information
