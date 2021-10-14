@@ -11,6 +11,7 @@ ignore: |
   scripts/dukkha/*.yml
   **/testdata/**
   build/
+  **fixture**
 
 rules:
   braces:
