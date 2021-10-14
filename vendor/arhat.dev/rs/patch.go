@@ -7,14 +7,13 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/itchyny/gojq"
-	"gopkg.in/yaml.v3"
 )
 
 type MergeSource struct {
 	BaseField `yaml:"-" json:"-"`
 
 	// Value for the source
-	Value *AnyObject `yaml:"value,omitempty"`
+	Value AnyObject `yaml:"value,omitempty"`
 
 	// Select some data from the source
 	Select string `yaml:"select,omitempty"`
@@ -32,7 +31,7 @@ type renderingPatchSpec struct {
 	// 		  merge: { value: [foo] }
 	//
 	// then the resolve value of foo will be `[bar, foo]`
-	Value *AnyObject `yaml:"value"`
+	Value AnyObject `yaml:"value"`
 
 	// Merge additional data into Value
 	//
@@ -48,6 +47,8 @@ type renderingPatchSpec struct {
 	//
 	// this action happens after merge and patch
 	Select string `yaml:"select"`
+
+	// TODO: give following options proper name
 
 	// Unique to make sure elements in the sequence is unique
 	//
@@ -99,62 +100,30 @@ func runJQ(query string, data interface{}) (interface{}, error) {
 	return ret, nil
 }
 
-func (s *renderingPatchSpec) merge(resolvedValueData []byte) (interface{}, error) {
-	type resolvedMergeSource struct {
-		Value interface{} `yaml:"value,omitempty"`
-	}
-
-	var (
-		valueData interface{}
-		err       error
-	)
-	if len(resolvedValueData) != 0 {
-		err = yaml.Unmarshal(resolvedValueData, &valueData)
-		if err != nil {
-			return nil, err
-		}
-
-		// revert yaml unmarshal result for string and bytes
-		switch valueData.(type) {
-		case string:
-			valueData = string(resolvedValueData)
-		case []byte:
-			valueData = resolvedValueData
-		default:
-			// do nothing
-		}
-	}
-
-	var mergeSrc []*resolvedMergeSource
-	for _, m := range s.Merge {
-		mBytes, err := yaml.Marshal(m.Value)
-		if err != nil {
-			return nil, fmt.Errorf("invalid non yaml merge value: %w", err)
-		}
-
-		var v interface{}
-		err = yaml.Unmarshal(mBytes, &v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal merge value as plain text: %w", err)
-		}
+func (s *renderingPatchSpec) merge(valueData interface{}) (interface{}, error) {
+	mergeSrc := make([]interface{}, len(s.Merge))
+	for i, m := range s.Merge {
+		v := m.Value.NormalizedValue()
 
 		if len(m.Select) != 0 {
+			var err error
 			v, err = runJQ(m.Select, v)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf(
+					"failed to run select over merge#%d: %w",
+					i, err,
+				)
 			}
 		}
 
-		mergeSrc = append(mergeSrc, &resolvedMergeSource{
-			Value: v,
-		})
+		mergeSrc[i] = v
 	}
 
 doMerge:
 	switch dt := valueData.(type) {
 	case []interface{}:
 		for _, merge := range mergeSrc {
-			switch mt := merge.Value.(type) {
+			switch mt := merge.(type) {
 			case []interface{}:
 				dt = append(dt, mt...)
 
@@ -173,7 +142,7 @@ doMerge:
 	case map[string]interface{}:
 		var err error
 		for _, merge := range mergeSrc {
-			switch mt := merge.Value.(type) {
+			switch mt := merge.(type) {
 			case map[string]interface{}:
 				dt, err = MergeMap(dt, mt, s.MapListAppend, s.MapListItemUnique)
 				if err != nil {
@@ -193,9 +162,9 @@ doMerge:
 		case 0:
 			return nil, nil
 		case 1:
-			return mergeSrc[0].Value, nil
+			return mergeSrc[0], nil
 		default:
-			valueData = mergeSrc[0].Value
+			valueData = mergeSrc[0]
 			mergeSrc = mergeSrc[1:]
 			goto doMerge
 		}
@@ -203,7 +172,10 @@ doMerge:
 		if len(mergeSrc) != 0 {
 			// scalar types want merge?
 			// currently not supported
-			return nil, fmt.Errorf("mergering scalar type value is not supported")
+			return nil, fmt.Errorf(
+				"mergering scalar type value (%T) is not supported",
+				valueData,
+			)
 		}
 
 		// no merge source
@@ -212,8 +184,8 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
-	data, err := s.merge(resolvedValueData)
+func (s *renderingPatchSpec) ApplyTo(valueData interface{}) (interface{}, error) {
+	data, err := s.merge(valueData)
 	if err != nil {
 		return nil, err
 	}
@@ -225,34 +197,25 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 	}
 
 	// apply select action to patches
-	var patchSrc []*resolvedJSONPatchSpec
+	patchSrc := make([]*resolvedJSONPatchSpec, len(s.Patch))
 	for i, p := range s.Patch {
-		var vBytes []byte
-		vBytes, err = json.Marshal(p.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		var v interface{}
-		err = json.Unmarshal(vBytes, &v)
-		if err != nil {
-			return nil, err
-		}
-
-		patchSrc = append(patchSrc, &resolvedJSONPatchSpec{
+		spec := &resolvedJSONPatchSpec{
 			Path:      p.Path,
 			Operation: p.Operation,
-			Value:     v,
-		})
-
-		if len(p.Select) == 0 {
-			continue
+			Value:     p.Value.NormalizedValue(),
 		}
 
-		patchSrc[i].Value, err = runJQ(p.Select, v)
-		if err != nil {
-			return nil, err
+		if len(p.Select) != 0 {
+			spec.Value, err = runJQ(p.Select, spec.Value)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed to run select over patch#%d: %w",
+					i, err,
+				)
+			}
 		}
+
+		patchSrc[i] = spec
 	}
 
 	if len(patchSrc) == 0 {
@@ -263,14 +226,7 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 			}
 		}
 
-		switch dt := data.(type) {
-		case string:
-			return []byte(dt), nil
-		case []byte:
-			return dt, nil
-		default:
-			return yaml.Marshal(data)
-		}
+		return data, nil
 	}
 
 	jsonData, err := json.Marshal(data)
@@ -298,29 +254,22 @@ func (s *renderingPatchSpec) ApplyTo(resolvedValueData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if len(s.Select) == 0 {
-		return patchedDoc, nil
-	}
-
 	var ret interface{}
 	err = json.Unmarshal(patchedDoc, &ret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal patched value: %w", err)
 	}
 
-	data, err = runJQ(s.Select, ret)
+	if len(s.Select) == 0 {
+		return ret, nil
+	}
+
+	ret, err = runJQ(s.Select, ret)
 	if err != nil {
 		return nil, err
 	}
 
-	switch dt := data.(type) {
-	case string:
-		return []byte(dt), nil
-	case []byte:
-		return dt, nil
-	default:
-		return yaml.Marshal(data)
-	}
+	return ret, nil
 }
 
 func MergeMap(
@@ -412,7 +361,7 @@ type JSONPatchSpec struct {
 
 	Path string `yaml:"path" json:"path"`
 
-	Value *AnyObject `yaml:"value,omitempty" json:"value,omitempty"`
+	Value AnyObject `yaml:"value,omitempty" json:"value,omitempty"`
 
 	// Select part of the value for patching
 	//

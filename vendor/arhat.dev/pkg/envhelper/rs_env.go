@@ -21,7 +21,9 @@ type EnvRenderingHandler struct {
 	AllowNotFound bool
 }
 
-func (h *EnvRenderingHandler) RenderYaml(_ string, rawData interface{}) ([]byte, error) {
+func (h *EnvRenderingHandler) RenderYaml(
+	_ string, rawData interface{},
+) (interface{}, error) {
 	bytesToExpand, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data bytes of input: %w", err)
@@ -51,5 +53,5 @@ func (h *EnvRenderingHandler) RenderYaml(_ string, rawData interface{}) ([]byte,
 		return v
 	})
 
-	return []byte(s), notFoundErr
+	return s, notFoundErr
 }

@@ -17,7 +17,9 @@ type TemplateHandler struct {
 	CreateFuncMap func() template.FuncMap
 }
 
-func (h *TemplateHandler) RenderYaml(_ string, rawData interface{}) ([]byte, error) {
+func (h *TemplateHandler) RenderYaml(
+	_ string, rawData interface{},
+) (interface{}, error) {
 	tplBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data bytes of input: %w", err)
@@ -36,5 +38,5 @@ func (h *TemplateHandler) RenderYaml(_ string, rawData interface{}) ([]byte, err
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, nil)
 
-	return buf.Bytes(), err
+	return buf.Next(buf.Len()), err
 }
