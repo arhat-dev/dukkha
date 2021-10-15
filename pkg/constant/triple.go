@@ -290,3 +290,82 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		return arch + "-" + v, ok
 	}
 }
+
+// ref: https://llvm.org/doxygen/Triple_8h_source.html
+func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
+	arch, ok := GetArch("llvm", mArch)
+	if !ok {
+		return "", false
+	}
+
+	sys := targetKernel
+	switch targetKernel {
+	case KERNEL_WINDOWS:
+		sys = "windows"
+	case KERNEL_LINUX:
+		sys = "linux"
+	case KERNEL_DARWIN:
+		sys = "darwin"
+	case KERNEL_FREEBSD:
+		sys = "freebsd"
+	case KERNEL_NETBSD:
+		sys = "darwin"
+	case KERNEL_OPENBSD:
+		sys = "openbsd"
+	case KERNEL_SOLARIS:
+		sys = "solaris"
+	case KERNEL_ILLUMOS:
+		sys = "illumos"
+	case KERNEL_JAVASCRIPT:
+		sys = "js"
+	case KERNEL_AIX:
+		sys = "aix"
+	case KERNEL_ANDROID:
+		sys = "android"
+	case KERNEL_IOS:
+		sys = "ios"
+	case KERNEL_PLAN9:
+		sys = "plan9"
+	default:
+		sys = targetKernel
+	}
+
+	var abi string
+	switch targetLibc {
+	case LIBC_MUSL:
+		switch mArch {
+		case ARCH_ARM_V5, ARCH_ARM_V6:
+			abi = "musleabi"
+		case ARCH_ARM_V7:
+			abi = "musleabihf"
+		default:
+			abi = "musl"
+		}
+	case LIBC_MSVC:
+		switch mArch {
+		case "":
+			// TODO: add special cases
+			_ = abi
+		default:
+			abi = "msvc"
+		}
+	case LIBC_GLIBC:
+		fallthrough
+	default:
+		switch mArch {
+		case ARCH_ARM_V5, ARCH_ARM_V6:
+			abi = "gnueabi"
+		case ARCH_ARM_V7:
+			abi = "gnueabihf"
+		case ARCH_MIPS64, ARCH_MIPS64_SF,
+			ARCH_MIPS64_LE, ARCH_MIPS64_LE_SF:
+			// TODO: is it gnu or gnuabi64?
+			abi = "gnuabi64"
+		default:
+			abi = "gnu"
+		}
+	}
+
+	// <arch>-<vendor>-<sys>-<abi>
+	return arch + "-unknown-" + sys + "-" + abi, ok
+}
