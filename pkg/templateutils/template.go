@@ -158,6 +158,8 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return hex.EncodeToString(md5helper.Sum([]byte(s)))
 			},
 
+			"totp": totpTemplateFunc,
+
 			"appendFile": func(filename string, data []byte) error {
 				f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 				if err != nil {
