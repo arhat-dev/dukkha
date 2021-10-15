@@ -1,7 +1,6 @@
 package render
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"arhat.dev/rs"
+	"github.com/itchyny/gojq"
 	"github.com/spf13/cobra"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
@@ -23,9 +23,11 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 		indentSize   int
 		indentStyle  string
 		recursive    bool
+		resultQuery  string
 
 		outputDests []string
 	)
+
 	renderCmd := &cobra.Command{
 		Use:           "render",
 		Short:         "Render your yaml docs",
@@ -49,6 +51,15 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 				indentStr = "\t"
 			default:
 				indentStr = indentStyle
+			}
+
+			var query *gojq.Query
+			if len(resultQuery) != 0 {
+				var err error
+				query, err = gojq.Parse(resultQuery)
+				if err != nil {
+					return fmt.Errorf("invalid result query: %w", err)
+				}
 			}
 
 			var om map[string]*string
@@ -75,20 +86,26 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 
 			var stdoutEnc encoder
 
+			createEncoder := func(w io.Writer) (encoder, error) {
+				if w == os.Stdout {
+					var err error
+					if stdoutEnc == nil {
+						stdoutEnc, err = newEncoder(
+							query, os.Stdout,
+							outputFormat, indentStr, indentSize,
+						)
+					}
+
+					return stdoutEnc, err
+				}
+
+				return newEncoder(query, w, outputFormat, indentStr, indentSize)
+			}
+
 			for _, src := range args {
 				err := renderYamlFileOrDir(
 					*ctx, src, om[src], outputFormat,
-					func(w io.Writer) (encoder, error) {
-						if w == os.Stdout {
-							var err error
-							if stdoutEnc == nil {
-								stdoutEnc, err = newEncoder(os.Stdout, outputFormat, indentStr, indentSize)
-							}
-
-							return stdoutEnc, err
-						}
-						return newEncoder(w, outputFormat, indentStr, indentSize)
-					},
+					createEncoder,
 					recursive,
 					make(map[string]os.FileMode),
 				)
@@ -117,32 +134,12 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 	flags.BoolVarP(&recursive, "recursive", "r", false,
 		"render directories recursively",
 	)
+	flags.StringVarP(&resultQuery, "query", "q", "",
+		"run jq style query over generated yaml/json docs before writing",
+	)
 
 	return renderCmd
 }
-
-func newEncoder(w io.Writer, outputFormat, indentStr string, indentSize int) (encoder, error) {
-	switch outputFormat {
-	case "json":
-		enc := json.NewEncoder(w)
-		enc.SetIndent("", strings.Repeat(indentStr, indentSize))
-		return enc, nil
-	case "yaml":
-		fallthrough
-	case "":
-		enc := yaml.NewEncoder(w)
-		enc.SetIndent(indentSize)
-		return enc, nil
-	default:
-		return nil, fmt.Errorf("unknown output format %q", outputFormat)
-	}
-}
-
-type encoder interface {
-	Encode(v interface{}) error
-}
-
-type encoderCreateFunc func(w io.Writer) (encoder, error)
 
 func renderYamlFileOrDir(
 	rc dukkha.Context,
@@ -186,7 +183,8 @@ func renderYamlFileOrDir(
 			switch filepath.Ext(name) {
 			case ".yml", ".yaml":
 				err3 = renderYamlFileOrDir(
-					rc, newSrc, newDest, outputFormat, createEnc, recursive, srcPerm,
+					rc, newSrc, newDest, outputFormat,
+					createEnc, recursive, srcPerm,
 				)
 				if err3 != nil {
 					return fmt.Errorf("failed to render file %q: %w", newSrc, err3)
@@ -194,7 +192,8 @@ func renderYamlFileOrDir(
 			default:
 				if ent.IsDir() && recursive {
 					err3 = renderYamlFileOrDir(
-						rc, newSrc, newDest, outputFormat, createEnc, recursive, srcPerm,
+						rc, newSrc, newDest, outputFormat,
+						createEnc, recursive, srcPerm,
 					)
 					if err3 != nil {
 						return fmt.Errorf("failed to render dir %q: %w", newSrc, err3)

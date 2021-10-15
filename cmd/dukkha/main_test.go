@@ -45,7 +45,7 @@ func TestRender(t *testing.T) {
 		expectedDir = "cmd/dukkha/testdata/render/expected"
 	)
 	baseArgs := sliceutils.NewStrings(
-		os.Args, "render", "-o", outputDir, srcDir,
+		os.Args, "render", "-q", ".", "-o", outputDir, srcDir,
 	)
 
 	if !assert.NoError(t, os.RemoveAll(outputDir), "output dir not cleandup") {
