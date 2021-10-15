@@ -4,7 +4,7 @@ package constant
 // reference: https://more.musl.cc/10/x86_64-linux-musl/
 func GetAlpineTripleName(mArch string) (string, bool) {
 	// NOTE: some arch value in triple name is different from alpine arch
-	// 		 so we cannot do the same convertion as GNU/LLVM triple does
+	// 		 so we cannot do the same conversion as GNU/LLVM triple does
 	v, ok := map[string]string{
 		ARCH_X86:   "i686-linux-musl",
 		ARCH_AMD64: "x86_64-linux-musl",
@@ -45,7 +45,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 	_ = targetKernel
 
 	// NOTE: some arch value in triple name is different from debian arch
-	// 		 so we cannot do the same convertion as GNU/LLVM triple does
+	// 		 so we cannot do the same conversion as GNU/LLVM triple does
 	switch targetLibc {
 	case LIBC_MUSL:
 		// https://packages.debian.org/buster/musl-dev
@@ -247,7 +247,7 @@ func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 	case KERNEL_PLAN9:
 		sys = "plan9"
 	default:
-		sys = targetKernel
+		// sys = targetKernel
 	}
 
 	abi := targetLibc
