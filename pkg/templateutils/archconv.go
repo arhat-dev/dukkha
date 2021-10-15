@@ -38,6 +38,7 @@ func (ns *_archconvNS) GNUArch(mArch string) string {
 	v, _ := constant.GetGNUArch(mArch)
 	return v
 }
+
 func (ns *_archconvNS) GNUTripleName(mArch string, other ...string) string {
 	targetKernel, targetLibc := "", ""
 	if len(other) > 0 {
@@ -116,5 +117,23 @@ func (ns *_archconvNS) GolangOS(mKernel string) string {
 
 func (ns *_archconvNS) GolangArch(mArch string) string {
 	v, _ := constant.GetGolangArch(mArch)
+	return v
+}
+
+func (ns *_archconvNS) LLVMArch(mArch string) string {
+	v, _ := constant.GetLLVMArch(mArch)
+	return v
+}
+
+func (ns *_archconvNS) LLVMTripleName(mArch string, other ...string) string {
+	targetKernel, targetLibc := "", ""
+	if len(other) > 0 {
+		targetKernel = other[0]
+	}
+	if len(other) > 1 {
+		targetLibc = other[1]
+	}
+
+	v, _ := constant.GetLLVMTripleName(mArch, targetKernel, targetLibc)
 	return v
 }

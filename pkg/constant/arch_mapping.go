@@ -65,6 +65,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "i386",
 
 		DockerHub: "i386",
+
+		LLVM: "x86",
 	},
 	ARCH_AMD64: {
 		Alpine: "x86_64",
@@ -78,6 +80,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "x86_64",
 
 		DockerHub: "amd64",
+
+		LLVM: "x86_64",
 	},
 
 	ARCH_ARM_V5: {
@@ -92,6 +96,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "arm",
 
 		DockerHub: "arm32v5",
+
+		LLVM: "armv5",
 	},
 	ARCH_ARM_V6: {
 		Alpine: "armhf",
@@ -105,6 +111,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "arm",
 
 		DockerHub: "arm32v6",
+
+		LLVM: "armv6",
 	},
 	ARCH_ARM_V7: {
 		Alpine: "armv7",
@@ -118,6 +126,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "arm",
 
 		DockerHub: "arm32v7",
+
+		LLVM: "armv7",
 	},
 	ARCH_ARM64: {
 		Alpine: "aarch64",
@@ -131,6 +141,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "aarch64",
 
 		DockerHub: "arm64v8",
+
+		LLVM: "aarch64",
 	},
 
 	ARCH_PPC: {
@@ -145,6 +157,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "ppc",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_PPC_SF: {
 		Alpine: "",
@@ -158,6 +172,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "ppc",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_PPC_LE: {
 		Alpine: "",
@@ -171,6 +187,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_PPC_LE_SF: {
 		Alpine: "",
@@ -184,6 +202,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 
 	ARCH_PPC64: {
@@ -198,6 +218,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "ppc64",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_PPC64_LE: {
 		Alpine: "ppc64le",
@@ -211,6 +233,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "ppc64le",
 
 		DockerHub: "ppc64le",
+
+		LLVM: "ppc64le",
 	},
 
 	ARCH_MIPS: {
@@ -225,6 +249,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS_SF: {
 		Alpine: "mips",
@@ -238,6 +264,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS_LE: {
 		Alpine: "mipsel",
@@ -251,6 +279,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mipsel",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS_LE_SF: {
 		Alpine: "mipsel",
@@ -264,6 +294,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mipsel",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS64: {
 		Alpine: "mips64",
@@ -277,6 +309,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips64",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS64_SF: {
 		Alpine: "mips64",
@@ -290,6 +324,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips64",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 	ARCH_MIPS64_LE: {
 		Alpine: "mips64el",
@@ -303,6 +339,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips64el",
 
 		DockerHub: "mips64le",
+
+		LLVM: "mips64el",
 	},
 	ARCH_MIPS64_LE_SF: {
 		Alpine: "mips64el",
@@ -316,6 +354,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "mips64el",
 
 		DockerHub: "mips64le",
+
+		LLVM: "mips64el",
 	},
 
 	ARCH_RISCV_64: {
@@ -329,6 +369,8 @@ var archMapping = map[string]ArchMappingValues{
 
 		Qemu:      "riscv64",
 		DockerHub: "riscv64",
+
+		LLVM: "",
 	},
 	ARCH_S390X: {
 		Alpine: "s390x",
@@ -342,6 +384,8 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "s390x",
 
 		DockerHub: "s390x",
+
+		LLVM: "systemz",
 	},
 
 	ARCH_IA64: {
@@ -356,5 +400,7 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "",
 
 		DockerHub: "",
+
+		LLVM: "",
 	},
 }
