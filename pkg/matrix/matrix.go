@@ -15,13 +15,13 @@ type specItem struct {
 type Spec struct {
 	rs.BaseField `yaml:"-"`
 
-	Include []*specItem `yaml:"include"`
-	Exclude []*specItem `yaml:"exclude"`
+	Include []*specItem `yaml:"include,omitempty"`
+	Exclude []*specItem `yaml:"exclude,omitempty"`
 
 	// TODO: validate kernel and arch values to ensure
 	// 		 tools get expected value set
-	Kernel []string `yaml:"kernel"`
-	Arch   []string `yaml:"arch"`
+	Kernel []string `yaml:"kernel,omitempty"`
+	Arch   []string `yaml:"arch,omitempty"`
 
 	// catch other matrix fields
 	Custom map[string][]string `rs:"other"`

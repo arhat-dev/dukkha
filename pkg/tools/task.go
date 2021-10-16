@@ -27,7 +27,7 @@ type BaseTask struct {
 	TaskName string      `yaml:"name"`
 	Env      dukkha.Env  `yaml:"env"`
 	Matrix   matrix.Spec `yaml:"matrix"`
-	Hooks    TaskHooks   `yaml:"hooks"`
+	Hooks    TaskHooks   `yaml:"hooks,omitempty"`
 
 	ContinueOnErrorFlag bool `yaml:"continue_on_error"`
 

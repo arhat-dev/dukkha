@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"arhat.dev/pkg/tlshelper"
+	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
@@ -58,7 +59,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 		assert.EqualValues(t, "/with-password", string(result.([]byte)))
 
 		expectPassword = false
-		result, err = d.RenderYaml(rc, &inputHTTPSpec{
+		result, err = d.RenderYaml(rc, rs.Init(&inputHTTPSpec{
 			URL: srv.URL + "/no-password",
 			Config: rendererHTTPConfig{
 				User: "foo",
@@ -68,7 +69,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 					InsecureSkipVerify: true,
 				},
 			},
-		})
+		}, nil))
 
 		assert.NoError(t, err)
 		assert.EqualValues(t, "/no-password", string(result.([]byte)))

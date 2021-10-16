@@ -3,8 +3,6 @@ package debug
 import (
 	"fmt"
 	"os"
-	"reflect"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -54,45 +52,7 @@ func (ropts *reportOptions) generateTaskReport(
 		}
 
 		err2 = tsk.DoAfterFieldsResolved(mCtx, -1, func() error {
-			err3 := enc.Encode(tsk)
-			if err3 != nil {
-				return err3
-			}
-
-			// handle go-yaml inline field issue with custom marshaler implementation
-			// get the inline fields value first
-			tskVal := reflect.ValueOf(tsk)
-			tskTyp := tskVal.Type()
-			for tskTyp.Kind() != reflect.Struct {
-				tskTyp = tskTyp.Elem()
-			}
-
-			for tskVal.Kind() != reflect.Struct {
-				tskVal = tskVal.Elem()
-			}
-
-			// var inlineValues []interface{}
-			for i := 0; i < tskTyp.NumField(); i++ {
-				f := tskTyp.Field(i)
-				yTags := strings.Split(f.Tag.Get("yaml"), ",")
-				for _, tg := range yTags {
-					if tg == "inline" {
-						data, err4 := yaml.Marshal(tskVal.Field(i).Interface())
-						if err4 != nil {
-							return fmt.Errorf("failed to marshal inline value of field %q: %w", f.Name, err4)
-						}
-
-						_, err4 = os.Stdout.Write(data)
-						if err4 != nil {
-							return fmt.Errorf("failed to write inline value of field %q: %w", f.Name, err4)
-						}
-
-						break
-					}
-				}
-			}
-
-			return nil
+			return enc.Encode(tsk)
 		})
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to generate resolved yaml: %w", err2)

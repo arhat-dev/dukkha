@@ -27,22 +27,22 @@ type Action struct {
 	// Task reference of this action
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	Task string `yaml:"task"`
+	Task string `yaml:"task,omitempty"`
 
 	// EmbeddedShell using embedded shell
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	EmbeddedShell string `yaml:"shell"`
+	EmbeddedShell string `yaml:"shell,omitempty"`
 
 	// EmbeddedShell script for this action
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	ExternalShell map[string]string `rs:"other"`
+	ExternalShell map[string]string `yaml:",omitempty" rs:"other"`
 
 	// Cmd execution, not in any shell
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	Cmd []string `yaml:"cmd"`
+	Cmd []string `yaml:"cmd,omitempty"`
 
 	// Chdir change working directory before executing command
 	// this option only applies to Cmd, EmbeddedShell, ExternalShell action

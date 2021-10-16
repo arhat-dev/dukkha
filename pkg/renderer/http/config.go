@@ -36,8 +36,8 @@ type rendererHTTPConfig struct {
 
 	Headers headers `yaml:"headers"`
 
-	Method string           `yaml:"method"`
-	Proxy  *httpProxyConfig `yaml:"proxy"`
+	Method string          `yaml:"method"`
+	Proxy  httpProxyConfig `yaml:"proxy"`
 
 	TLS tlshelper.TLSConfig `yaml:"tls"`
 
@@ -51,12 +51,7 @@ type inputHTTPSpec struct {
 	URL string `yaml:"url"`
 
 	// Config of the renderer input
-	//
-	// TODO: we cannot use `yaml:",inline"` due to https://github.com/go-yaml/yaml/issues/362
-	// 		 if use a custom type with UnmarshalYAML implmeneted as inline field
-	// 		 and the parent field has UnmarshalYAML implementation as well, go-yaml cannot
-	// 		 marshal it correctly, which is the case with rs.BaseField
-	Config rendererHTTPConfig `yaml:"config"`
+	Config rendererHTTPConfig `yaml:",inline"`
 }
 
 func (c rendererHTTPConfig) createClient() (*http.Client, error) {
@@ -66,20 +61,18 @@ func (c rendererHTTPConfig) createClient() (*http.Client, error) {
 	}
 
 	var proxy func(req *http.Request) (*url.URL, error)
-	if p := c.Proxy; p != nil {
-		if p.Enabled {
-			cfg := httpproxy.Config{
-				HTTPProxy:  p.HTTP,
-				HTTPSProxy: p.HTTPS,
-				NoProxy:    p.NoProxy,
-				CGI:        p.CGI,
-			}
+	if p := c.Proxy; p.Enabled {
+		cfg := httpproxy.Config{
+			HTTPProxy:  p.HTTP,
+			HTTPSProxy: p.HTTPS,
+			NoProxy:    p.NoProxy,
+			CGI:        p.CGI,
+		}
 
-			pf := cfg.ProxyFunc()
+		pf := cfg.ProxyFunc()
 
-			proxy = func(req *http.Request) (*url.URL, error) {
-				return pf(req.URL)
-			}
+		proxy = func(req *http.Request) (*url.URL, error) {
+			return pf(req.URL)
 		}
 	} else {
 		proxy = http.ProxyFromEnvironment

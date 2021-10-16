@@ -30,3 +30,5 @@ require (
 )
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
+
+replace arhat.dev/rs => arhat.dev/rs v0.3.1-0.20211016034950-5f2d8349efda
