@@ -12,43 +12,16 @@ var (
 	_ json.Marshaler = (*AnyObject)(nil)
 )
 
-type AnyObjectMap struct {
-	BaseField `yaml:"-" json:"-"`
-
-	Data map[string]*AnyObject `rs:"other"`
-}
-
-// NormalizedValue returns value of the AnyObjectMap with type map[string]interface{}
-func (aom *AnyObjectMap) NormalizedValue() interface{} {
-	if aom.Data == nil {
-		return map[string]interface{}(nil)
-	}
-
-	ret := make(map[string]interface{}, len(aom.Data))
-	for k, v := range aom.Data {
-		ret[k] = v.NormalizedValue()
-	}
-
-	return ret
-}
-
-func (aom *AnyObjectMap) MarshalYAML() (interface{}, error) { return aom.Data, nil }
-func (aom *AnyObjectMap) MarshalJSON() ([]byte, error)      { return json.Marshal(aom.Data) }
-
 // AnyObject is a `interface{}` equivalent with rendering suffix support
 type AnyObject struct {
-	mapData *AnyObjectMap
-
-	// TODO: currently there is no way to support rendering suffix
-	// 	     for array object
-	sliceData []*AnyObject
-
+	mapData    *AnyObjectMap
+	sliceData  []*AnyObject
 	scalarData interface{}
 
 	originalNode *yaml.Node
 }
 
-// NormalizedValue returns value with primitive types of the AnyObject
+// NormalizedValue returns underlying value of the AnyObject with primitive types
 // that is:
 // 	for maps: map[string]interface{}
 // 	for slices: []interface{}
@@ -72,17 +45,34 @@ func (o *AnyObject) NormalizedValue() interface{} {
 	}
 }
 
-func (o *AnyObject) MarshalYAML() (interface{}, error) { return o.NormalizedValue(), nil }
-func (o *AnyObject) MarshalJSON() ([]byte, error)      { return json.Marshal(o.NormalizedValue()) }
+func (o *AnyObject) value() interface{} {
+	switch {
+	case o == nil:
+		return nil
+	case o.mapData != nil:
+		return o.mapData
+	case o.sliceData != nil:
+		return o.sliceData
+	case o.originalNode != nil:
+		return o.originalNode
+	default:
+		return o.scalarData
+	}
+}
+
+func (o *AnyObject) MarshalYAML() (interface{}, error) { return o.value(), nil }
+func (o *AnyObject) MarshalJSON() ([]byte, error)      { return json.Marshal(o.value()) }
 
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 	switch n.Kind {
 	case yaml.SequenceNode:
 		return n.Decode(&o.sliceData)
 	case yaml.MappingNode:
-		o.mapData = Init(&AnyObjectMap{}, nil).(*AnyObjectMap)
+		if o.mapData == nil {
+			o.mapData = Init(&AnyObjectMap{}, nil).(*AnyObjectMap)
+		}
 		return n.Decode(o.mapData)
-	default:
+	case yaml.ScalarNode:
 		switch n.ShortTag() {
 		case "!!str":
 			o.scalarData = n.Value
@@ -92,8 +82,10 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 			o.originalNode = n
 			return n.Decode(&o.scalarData)
 		}
-
 		return nil
+	default:
+		// unreachable
+		return n.Decode(&o.scalarData)
 	}
 }
 
@@ -116,3 +108,33 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 	// scalar type data doesn't need resolving
 	return nil
 }
+
+var (
+	_ Field          = (*AnyObjectMap)(nil)
+	_ yaml.Marshaler = (*AnyObjectMap)(nil)
+	_ json.Marshaler = (*AnyObjectMap)(nil)
+)
+
+// AnyObjectMap is a `map[string]interface{}` equivalent with rendering suffix support
+type AnyObjectMap struct {
+	BaseField `yaml:"-" json:"-"`
+
+	Data map[string]*AnyObject `rs:"other"`
+}
+
+// NormalizedValue returns value of the AnyObjectMap with type map[string]interface{}
+func (aom *AnyObjectMap) NormalizedValue() interface{} {
+	if aom.Data == nil {
+		return map[string]interface{}(nil)
+	}
+
+	ret := make(map[string]interface{}, len(aom.Data))
+	for k, v := range aom.Data {
+		ret[k] = v.NormalizedValue()
+	}
+
+	return ret
+}
+
+func (aom *AnyObjectMap) MarshalYAML() (interface{}, error) { return aom.Data, nil }
+func (aom *AnyObjectMap) MarshalJSON() ([]byte, error)      { return json.Marshal(aom.Data) }

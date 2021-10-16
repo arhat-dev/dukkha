@@ -8,10 +8,12 @@ import (
 type BaseField struct {
 	_initialized uint32
 
-	// _parentValue represents the parent struct value after being initialized
+	// _parentType and _parentValue represents the parent struct type and value
+	// they are set in Init function call
+	_parentType  reflect.Type
 	_parentValue reflect.Value
 
-	unresolvedFields map[unresolvedFieldKey]*unresolvedFieldValue
+	unresolvedFields map[string]*unresolvedFieldSpec
 
 	ifaceTypeHandler InterfaceTypeHandler
 
@@ -20,27 +22,56 @@ type BaseField struct {
 	catchOtherCache map[string]reflect.Value
 
 	catchOtherFields map[string]struct{}
+
+	// key: yaml tag name or lower case exported field name
+	fields map[string]*fieldRef
+
+	catchOtherField *fieldRef
 }
 
-type (
-	// TODO: make field name as key
-	unresolvedFieldKey struct {
-		// NOTE: put `suffix` and `yamlKey` in key is to support fields with
-		// 		 `rs:"other"` field tag, each item should be able
-		// 		 to have its own renderer
-		yamlKey string
-		suffix  string
+type fieldRef struct {
+	fieldName  string
+	fieldValue reflect.Value
+	base       *BaseField
+
+	omitempty bool
+
+	isCatchOther bool
+}
+
+func (f *BaseField) addField(
+	yamlKey, fieldName string,
+	fieldValue reflect.Value,
+	base *BaseField,
+	omitempty bool,
+) bool {
+	if _, exists := f.fields[yamlKey]; exists {
+		return false
 	}
 
-	unresolvedFieldValue struct {
-		fieldName   string
-		fieldValue  reflect.Value
-		rawDataList []*alterInterface
-		renderers   []*suffixSpec
+	f.fields[yamlKey] = &fieldRef{
+		fieldName: fieldName,
 
-		isCatchOtherField bool
+		fieldValue: fieldValue,
+		base:       base,
+
+		omitempty: omitempty,
 	}
-)
+	return true
+}
+
+func (f *BaseField) getField(yamlKey string) *fieldRef {
+	return f.fields[yamlKey]
+}
+
+type unresolvedFieldSpec struct {
+	fieldName   string
+	fieldValue  reflect.Value
+	rawDataList []*alterInterface
+	renderers   []*suffixSpec
+
+	isCatchOtherField bool
+}
 
 func (f *BaseField) addUnresolvedField(
 	// key part
@@ -54,13 +85,7 @@ func (f *BaseField) addUnresolvedField(
 	rawData *alterInterface,
 ) {
 	if f.unresolvedFields == nil {
-		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
-	}
-
-	key := unresolvedFieldKey{
-		// yamlKey@suffix: ...
-		yamlKey: yamlKey,
-		suffix:  suffix,
+		f.unresolvedFields = make(map[string]*unresolvedFieldSpec)
 	}
 
 	if isCatchOtherField {
@@ -71,12 +96,18 @@ func (f *BaseField) addUnresolvedField(
 		f.catchOtherFields[yamlKey] = struct{}{}
 	}
 
-	if old, exists := f.unresolvedFields[key]; exists {
+	if old, exists := f.unresolvedFields[yamlKey]; exists {
+		// TODO: no idea how can this happen, the key suggests this can only
+		// 	     happen when there are duplicate yaml keys, which is invalid yaml
+		//       go-yaml should errored before we add this
+		// 		 so this is considered as unreachable code
+
+		// unreachable
 		old.rawDataList = append(old.rawDataList, rawData)
 		return
 	}
 
-	f.unresolvedFields[key] = &unresolvedFieldValue{
+	f.unresolvedFields[yamlKey] = &unresolvedFieldSpec{
 		fieldName:   fieldName,
 		fieldValue:  fieldValue,
 		rawDataList: []*alterInterface{rawData},
@@ -128,3 +159,30 @@ func parseRenderingSuffix(rs string) []*suffixSpec {
 
 	return ret
 }
+
+// TODO: shall we generate type hint for those without one?
+// func generateTypeHintForType(typ reflect.Type) TypeHint {
+// 	switch typ.Kind() {
+// 	case reflect.Int, reflect.Int8, reflect.Int16,
+// 		reflect.Int32, reflect.Int64:
+// 		return TypeHintInt
+// 	case reflect.Uint, reflect.Uint8, reflect.Uint16,
+// 		reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+// 		return TypeHintInt
+// 	case reflect.Float32, reflect.Float64:
+// 		return TypeHintFloat
+// 	case reflect.String:
+// 		return TypeHintStr
+// 	case reflect.Array, reflect.Slice:
+// 		switch typ.Elem().Kind() {
+// 		case reflect.Uint8:
+// 			return TypeHintBytes
+// 		default:
+// 			return TypeHintObjects
+// 		}
+// 	case reflect.Map, reflect.Struct:
+// 		return TypeHintObject
+// 	default:
+// 		return TypeHintNone
+// 	}
+// }

@@ -18,220 +18,26 @@ var (
 
 // UnmarshalYAML handles parsing of rendering suffix and normal yaml
 // unmarshaling
-// nolint:gocyclo
 func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	if atomic.LoadUint32(&f._initialized) == 0 {
 		return fmt.Errorf("rs: struct not intialized before unmarshaling")
 	}
 
-	parentStructType := f._parentValue.Type()
-
 	if n.Kind != yaml.MappingNode {
 		return fmt.Errorf(
 			"rs: unexpected non map data %q for struct %q unmarshaling",
-			n.Tag, parentStructType.String(),
+			n.Tag, f._parentType.String(),
 		)
 	}
 
-	type fieldKey struct {
-		yamlKey string
-	}
-
-	type fieldSpec struct {
-		fieldName  string
-		fieldValue reflect.Value
-		base       *BaseField
-
-		isCatchOther bool
-	}
-
-	fields := make(map[fieldKey]*fieldSpec)
-
-	addField := func(
-		yamlKey, fieldName string,
-		fieldValue reflect.Value,
-		base *BaseField,
-	) bool {
-		key := fieldKey{yamlKey: yamlKey}
-		if _, exists := fields[key]; exists {
-			return false
-		}
-
-		fields[key] = &fieldSpec{
-			fieldName: fieldName,
-
-			fieldValue: fieldValue,
-			base:       base,
-		}
-		return true
-	}
-
-	getField := func(yamlKey string) *fieldSpec {
-		return fields[fieldKey{
-			yamlKey: yamlKey,
-		}]
-	}
-
-	var catchOtherField *fieldSpec
-
 	// get known fields first, skip the first field (the BaseField itself)
-	for i := 1; i < parentStructType.NumField(); i++ {
-		sf := parentStructType.Field(i)
-		if len(sf.PkgPath) != 0 {
-			// unexported
-			continue
-		}
-
-		yTags := strings.Split(sf.Tag.Get("yaml"), ",")
-		yamlKey := yTags[0]
-
-		if yamlKey == "-" {
-			// ignored explicitly
-			continue
-		}
-
-		var isInlineField bool
-		for _, t := range yTags[1:] {
-			switch t {
-			case "inline":
-				isInlineField = true
-			default:
-				//
-			}
-		}
-
-		fieldValue := f._parentValue.Field(i)
-
-		// initialize struct fields accepted by Init(), in case being used later
-		// DO NOT USE tryInit, that will only init current field, which will cause
-		// error when user try to resolve data not unmarshaled from yaml
-		InitRecursively(fieldValue, f.ifaceTypeHandler)
-
-		if !isInlineField {
-			if len(yamlKey) == 0 {
-				yamlKey = strings.ToLower(sf.Name)
-			}
-
-			if !addField(yamlKey, sf.Name, fieldValue, f) {
-				return fmt.Errorf(
-					"rs: duplicate yaml key %q for %s.%s",
-					yamlKey, parentStructType.String(), sf.Name,
-				)
-			}
-		} else {
-			// handle inline fields
-
-			// find BaseField in inline field, if exists, let it manage dynamnic fields
-			base := f
-
-			var innerBaseF reflect.Value
-			switch kind := sf.Type.Kind(); {
-			case kind == reflect.Struct:
-				// embedded struct
-				if sf.Type.Implements(fieldInterfaceType) || reflect.PtrTo(sf.Type).Implements(fieldInterfaceType) {
-					innerBaseF = fieldValue.Field(0)
-				}
-			case kind == reflect.Ptr && sf.Type.Elem().Kind() == reflect.Struct:
-				// embedded ptr to struct
-				if sf.Type.Implements(fieldInterfaceType) || sf.Type.Elem().Implements(fieldInterfaceType) {
-					innerBaseF = fieldValue.Elem().Field(0)
-				}
-			default:
-				return fmt.Errorf(
-					"rs: invalid inline tag applied to non struct nor struct pointer field %s.%s",
-					parentStructType.String(), sf.Name,
-				)
-			}
-
-			start := 0
-			switch innerBaseF.Kind() {
-			case reflect.Struct:
-				if innerBaseF.Addr().Type() == baseFieldPtrType {
-					base = innerBaseF.Addr().Interface().(*BaseField)
-					start = 1
-				}
-			case reflect.Ptr:
-				if innerBaseF.Type() == baseFieldPtrType {
-					base = innerBaseF.Interface().(*BaseField)
-					start = 1
-				}
-			}
-
-		inlineFieldLoop:
-			for j := start; j < fieldValue.NumField(); j++ {
-				innerFt := parentStructType.Field(i).Type.Field(j)
-
-				if len(innerFt.PkgPath) != 0 {
-					// unexported
-					continue
-				}
-
-				innerYamlTags := strings.Split(innerFt.Tag.Get("yaml"), ",")
-				innerYamlKey := innerYamlTags[0]
-
-				if innerYamlKey == "-" {
-					// ignored explicitly
-					continue
-				}
-
-				for _, tag := range innerYamlTags[1:] {
-					switch tag {
-					case "inline":
-						// already in a inline struct, do not check inline anymore
-						continue inlineFieldLoop
-					default:
-						// TODO: handle other yaml tags
-					}
-				}
-
-				if len(innerYamlKey) == 0 {
-					innerYamlKey = strings.ToLower(innerFt.Name)
-				}
-
-				if !addField(innerYamlKey, innerFt.Name, fieldValue.Field(j), base) {
-					return fmt.Errorf(
-						"rs: duplicate yaml key %q in inline field %s of %s",
-						innerYamlKey, innerFt.Name, parentStructType.String(),
-					)
-				}
-			}
-		}
-
-		// rs tag is used to extend yaml tag
-		dTags := strings.Split(sf.Tag.Get(TagNameRS), ",")
-		for _, t := range dTags {
-			switch t {
-			case "other":
-				// other is used to match unhandled values
-				// only supports map[string]Any or []Any
-
-				if catchOtherField != nil {
-					return fmt.Errorf(
-						"rs: bad field tags in %s: only one map in a struct can have `rs:\"other\"` tag",
-						parentStructType.String(),
-					)
-				}
-
-				catchOtherField = &fieldSpec{
-					fieldName:  sf.Name,
-					fieldValue: fieldValue,
-					base:       f,
-
-					isCatchOther: true,
-				}
-			case "":
-			default:
-				return fmt.Errorf("rs: unknown rs tag value %q", t)
-			}
-		}
-	}
 
 	m := make(map[string]*alterInterface)
 	err := n.Decode(&m)
 	if err != nil {
 		return fmt.Errorf(
 			"rs: data unmarshal failed for %s: %w",
-			parentStructType.String(), err,
+			f._parentType.String(), err,
 		)
 	}
 
@@ -253,16 +59,16 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 			handledYamlValues[yamlKey] = struct{}{}
 
-			fSpec := getField(yamlKey)
+			fSpec := f.getField(yamlKey)
 			if fSpec == nil {
-				if catchOtherField == nil {
+				if f.catchOtherField == nil {
 					return fmt.Errorf(
 						"rs: unknown yaml field %q in %s",
-						yamlKey, parentStructType.String(),
+						yamlKey, f._parentType.String(),
 					)
 				}
 
-				fSpec = catchOtherField
+				fSpec = f.catchOtherField
 				v = &alterInterface{
 					mapData: map[string]*alterInterface{
 						yamlKey: v,
@@ -279,7 +85,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			if err != nil {
 				return fmt.Errorf(
 					"rs: failed to unmarshal yaml field %q to struct field %s.%s: %w",
-					yamlKey, parentStructType.String(), fSpec.fieldName, err,
+					yamlKey, f._parentType.String(), fSpec.fieldName, err,
 				)
 			}
 
@@ -294,20 +100,20 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			return fmt.Errorf(
 				"rs: duplicate yaml field name %q for %s, please note"+
 					" rendering suffix won't change the field name",
-				yamlKey, parentStructType.String(),
+				yamlKey, f._parentType.String(),
 			)
 		}
 
-		fSpec := getField(yamlKey)
+		fSpec := f.getField(yamlKey)
 		if fSpec == nil {
-			if catchOtherField == nil {
+			if f.catchOtherField == nil {
 				return fmt.Errorf(
 					"rs: unknown yaml field %q for %s",
-					yamlKey, parentStructType.String(),
+					yamlKey, f._parentType.String(),
 				)
 			}
 
-			fSpec = catchOtherField
+			fSpec = f.catchOtherField
 			v = &alterInterface{
 				mapData: map[string]*alterInterface{
 					yamlKey: v,
@@ -346,7 +152,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 	return fmt.Errorf(
 		"rs: unknown yaml fields to %s: %s",
-		parentStructType.String(), strings.Join(unknownFields, ", "),
+		f._parentType.String(), strings.Join(unknownFields, ", "),
 	)
 }
 
@@ -359,6 +165,9 @@ func (f *BaseField) unmarshal(
 	outKind := outVal.Kind()
 
 	if !outVal.IsValid() {
+		// no way to know what value we can set
+		// NOTE: this should not happen unless user called yaml.Unmarshal with
+		// 	     something nil as out
 		return fmt.Errorf("invalid nil unmarshal target")
 	}
 
@@ -380,8 +189,9 @@ func (f *BaseField) unmarshal(
 
 	switch outKind {
 	case reflect.Invalid:
-		// no way to know what value we can set
-		// NOTE: this should not happen when unmarshaling, shall we panic instead?
+		// TODO: this should not happen since we have already checked outVal.IsValid before
+
+		// unreachable code
 		return fmt.Errorf("unexpected nil out value for yaml key %q", yamlKey)
 	case reflect.Array:
 		return f.unmarshalArray(yamlKey, in, outVal)
@@ -411,6 +221,8 @@ func (f *BaseField) unmarshal(
 			return nil
 		}
 
+		// not same kind, try to convert form input value
+		// currently we only
 		switch vt := in.Interface().(type) {
 		case string:
 			// input is string, while output is not, maybe it's []byte ([]uint8)
