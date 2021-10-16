@@ -39,7 +39,9 @@ func (d *driver) RenderYaml(
 		)
 	}
 
-	spec := rs.Init(&Spec{}, rc).(*Spec)
+	spec := rs.Init(&Spec{}, &rs.Options{
+		InterfaceTypeHandler: rc,
+	}).(*Spec)
 	err = yaml.Unmarshal(rawBytes, spec)
 	if err != nil {
 		return nil, fmt.Errorf(

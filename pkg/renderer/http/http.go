@@ -82,7 +82,9 @@ func (d *driver) RenderYaml(
 			)
 		}
 
-		spec := rshelper.InitAll(&inputHTTPSpec{}, rc).(*inputHTTPSpec)
+		spec := rshelper.InitAll(&inputHTTPSpec{}, &rs.Options{
+			InterfaceTypeHandler: rc,
+		}).(*inputHTTPSpec)
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(
