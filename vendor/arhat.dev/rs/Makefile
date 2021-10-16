@@ -15,6 +15,7 @@
 .PHONY: tidy
 tidy:
 	GOPROXY=direct GOSUMDB=off go mod tidy
+	cd benchmark && GOPROXY=direct GOSUMDB=off go mod tidy
 
 include scripts/lint.mk
 
@@ -26,3 +27,6 @@ test.fuzz:
 
 test.unit:
 	dukkha golang local test rs
+
+test.benchmark:
+	dukkha golang local test benchmark

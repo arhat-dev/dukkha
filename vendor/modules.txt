@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.6.5-0.20211014114057-58c482fabcbe
+# arhat.dev/pkg v0.7.0
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
@@ -11,7 +11,7 @@ arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/rs v0.3.0 => arhat.dev/rs v0.3.1-0.20211016034950-5f2d8349efda
+# arhat.dev/rs v0.4.0
 ## explicit
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1
@@ -39,7 +39,7 @@ github.com/evanphx/json-patch/v5
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
-# github.com/gosimple/slug v1.10.0
+# github.com/gosimple/slug v1.11.0
 ## explicit
 github.com/gosimple/slug
 # github.com/gosimple/unidecode v1.0.0
@@ -149,7 +149,7 @@ golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
-# golang.org/x/net v0.0.0-20211007125505-59d4e928ea9d
+# golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 ## explicit
 golang.org/x/net/http/httpguts
 golang.org/x/net/http/httpproxy
@@ -157,7 +157,7 @@ golang.org/x/net/idna
 golang.org/x/net/publicsuffix
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20211013075003-97ac67df715c
+# golang.org/x/sys v0.0.0-20211015200801-69063c4bb744
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
@@ -185,4 +185,3 @@ mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
-# arhat.dev/rs => arhat.dev/rs v0.3.1-0.20211016034950-5f2d8349efda

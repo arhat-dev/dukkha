@@ -15,7 +15,7 @@ type BaseField struct {
 
 	unresolvedFields map[string]*unresolvedFieldSpec
 
-	ifaceTypeHandler InterfaceTypeHandler
+	opts *Options
 
 	// yamlKey -> map value
 	// TODO: separate static data and runtime generated data

@@ -30,8 +30,6 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		)
 	}
 
-	// get known fields first, skip the first field (the BaseField itself)
-
 	m := make(map[string]*alterInterface)
 	err := n.Decode(&m)
 	if err != nil {
@@ -42,6 +40,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	handledYamlValues := make(map[string]struct{})
+	allowUnknown := f.opts != nil && f.opts.AllowUnknownFields
 
 	// set values
 	for rawYamlKey, v := range m {
@@ -62,6 +61,10 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			fSpec := f.getField(yamlKey)
 			if fSpec == nil {
 				if f.catchOtherField == nil {
+					if allowUnknown {
+						continue
+					}
+
 					return fmt.Errorf(
 						"rs: unknown yaml field %q in %s",
 						yamlKey, f._parentType.String(),
@@ -107,6 +110,10 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		fSpec := f.getField(yamlKey)
 		if fSpec == nil {
 			if f.catchOtherField == nil {
+				if allowUnknown {
+					continue
+				}
+
 				return fmt.Errorf(
 					"rs: unknown yaml field %q for %s",
 					yamlKey, f._parentType.String(),
@@ -173,7 +180,9 @@ func (f *BaseField) unmarshal(
 
 	// reset to zero value if already set
 	if !in.IsValid() {
-		outVal.Set(reflect.Zero(outVal.Type()))
+		if outVal.CanSet() {
+			outVal.Set(reflect.Zero(outVal.Type()))
+		}
 		return nil
 	}
 
@@ -256,7 +265,7 @@ func (f *BaseField) unmarshal(
 
 // unmarshalRaw unmarshals interface{} type value to outVal
 func (f *BaseField) unmarshalRaw(in, outVal reflect.Value) error {
-	tryInit(outVal, f.ifaceTypeHandler)
+	tryInit(outVal, f.opts)
 
 	dataBytes, err := yaml.Marshal(in.Interface())
 	if err != nil {
@@ -287,12 +296,13 @@ func (f *BaseField) unmarshalInterface(
 	in, outVal reflect.Value,
 	keepOld bool,
 ) (bool, error) {
-	if f.ifaceTypeHandler == nil {
+	if f.opts == nil || f.opts.InterfaceTypeHandler == nil {
+		// there is no interface type handler
 		// use default behavior for interface{} types
 		return false, nil
 	}
 
-	fVal, err := f.ifaceTypeHandler.Create(outVal.Type(), yamlKey)
+	fVal, err := f.opts.InterfaceTypeHandler.Create(outVal.Type(), yamlKey)
 	if err != nil {
 		if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
 			// no type information provided, decode using go-yaml directly

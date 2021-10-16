@@ -187,7 +187,7 @@ func (f *BaseField) handleUnResolvedField(
 		for _, renderer := range v.renderers {
 
 			// a patch is implied when the renderer has a `!` suffix
-			var patchSpec *renderingPatchSpec
+			var patchSpec *PatchSpec
 			if renderer.patchSpec {
 				patchSpec, toResolve, err = f.resolvePatchSpec(rc, toResolve)
 				if err != nil {
@@ -287,7 +287,7 @@ func (f *BaseField) resolvePatchSpec(
 	rc RenderingHandler,
 	toResolve interface{},
 ) (
-	patchSpec *renderingPatchSpec,
+	patchSpec *PatchSpec,
 	value *alterInterface,
 	err error,
 ) {
@@ -307,7 +307,7 @@ func (f *BaseField) resolvePatchSpec(
 		}
 	}
 
-	patchSpec = Init(&renderingPatchSpec{}, f.ifaceTypeHandler).(*renderingPatchSpec)
+	patchSpec = Init(&PatchSpec{}, f.opts).(*PatchSpec)
 	err = yaml.Unmarshal(patchSpecBytes, patchSpec)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
