@@ -54,8 +54,43 @@ golang:test:
     output_dir: build/test-profile
     coverage:
       enabled: true
+  benchmark:
+    enabled: true
   json_output_file@template: |-
     {{ .Env.TEST_PROFILE_DIR }}/result-
     {{- .Env.MATRIX_PKG | strings.KebabCase -}}.json
   verbose: true
   path@env: ${MATRIX_PKG}
+
+- name: benchmark
+  env:
+  - name: TEST_PROFILE_DIR
+    value: build/test-profile
+  matrix:
+    kernel@env:
+    - ${HOST_KERNEL}
+    arch@env:
+    - ${HOST_ARCH}
+    pkg:
+    - ./
+  chdir: ./benchmark
+  hooks:
+    before:
+    - shell: mkdir -p ${TEST_PROFILE_DIR}
+  cgo:
+    enabled: true
+  race: true
+  profile:
+    output_dir: build/test-profile
+    coverage:
+      enabled: true
+    memory:
+      enabled: true
+    cpu:
+      enabled: true
+  benchmark:
+    enabled: true
+  json_output_file@template: |-
+    {{ .Env.TEST_PROFILE_DIR }}/result-benchmark.json
+  verbose: true
+  path: ./

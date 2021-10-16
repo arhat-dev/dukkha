@@ -19,7 +19,8 @@ type MergeSource struct {
 	Select string `yaml:"select,omitempty"`
 }
 
-type renderingPatchSpec struct {
+// PatchSpec is the input definition for renderers with a patching suffix
+type PatchSpec struct {
 	BaseField `yaml:"-" json:"-"`
 
 	// Value for the renderer
@@ -100,7 +101,7 @@ func runJQ(query string, data interface{}) (interface{}, error) {
 	return ret, nil
 }
 
-func (s *renderingPatchSpec) merge(valueData interface{}) (interface{}, error) {
+func (s *PatchSpec) merge(valueData interface{}) (interface{}, error) {
 	mergeSrc := make([]interface{}, len(s.Merge))
 	for i, m := range s.Merge {
 		v := m.Value.NormalizedValue()
@@ -184,7 +185,7 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *renderingPatchSpec) ApplyTo(valueData interface{}) (interface{}, error) {
+func (s *PatchSpec) ApplyTo(valueData interface{}) (interface{}, error) {
 	data, err := s.merge(valueData)
 	if err != nil {
 		return nil, err

@@ -12,6 +12,36 @@ var (
 	baseFieldStructType = baseFieldPtrType.Elem()
 )
 
+type Options struct {
+	// InterfaceTypeHandler handles interface value creation for any inner field
+	// with a interface{...} type (including []interface{...} and map[string]interface{...})
+	//
+	// defaults to `nil`
+	InterfaceTypeHandler InterfaceTypeHandler
+
+	// TagNamespace used for struct field tag parsing
+	// you can set it to json to use json tag as name source
+	//
+	// supported tag values are:
+	// - <first tag value as data field name>
+	// - inline
+	// - omitempty
+	//
+	// unsupported tag values are ignored
+	//
+	// defaults to `yaml`
+	TagNamespace string
+
+	// AllowUnknownFields whether restrict unmarshaling to known fields
+	//
+	// NOTE: if there is a map field in struct with field type `rs:"other"`
+	// even when AllowUnknownFields is set to false, it still gets these unknown
+	// fields marshaled to that map field
+	//
+	// defaults to `false`
+	AllowUnknownFields bool
+}
+
 // Init the BaseField embedded in your struct, the BaseField must be the first field
 //
 // 		type Foo struct {
@@ -21,7 +51,7 @@ var (
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
 // nolint:gocyclo
-func Init(in Field, h InterfaceTypeHandler) Field {
+func Init(in Field, opts *Options) Field {
 	parentVal := reflect.ValueOf(in)
 	parentType := reflect.TypeOf(in)
 
@@ -79,9 +109,16 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 
 	baseField._parentValue = parentVal
 	baseField._parentType = parentType
-	baseField.ifaceTypeHandler = h
+	baseField.opts = opts
 
-	// initialize fields
+	var tagNamespace string
+	if opts != nil && len(opts.TagNamespace) != 0 {
+		tagNamespace = opts.TagNamespace
+	} else {
+		tagNamespace = "yaml"
+	}
+
+	// get known fields for unmarshaling, skip the first field (the BaseField itself)
 	baseField.fields = make(map[string]*fieldRef)
 	for i := 1; i < parentType.NumField(); i++ {
 		sf := parentType.Field(i)
@@ -90,7 +127,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 			continue
 		}
 
-		yTags := strings.Split(sf.Tag.Get("yaml"), ",")
+		yTags := strings.Split(sf.Tag.Get(tagNamespace), ",")
 		yamlKey := yTags[0]
 
 		if yamlKey == "-" {
@@ -118,7 +155,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 		// initialize struct fields accepted by Init(), in case being used later
 		// DO NOT USE tryInit, that will only init current field, which will cause
 		// error when user try to resolve data not unmarshaled from yaml
-		InitRecursively(fieldValue, h)
+		InitRecursively(fieldValue, opts)
 
 		if !isInlineField {
 			if len(yamlKey) == 0 {
@@ -181,7 +218,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 					continue
 				}
 
-				innerYamlTags := strings.Split(innerFt.Tag.Get("yaml"), ",")
+				innerYamlTags := strings.Split(innerFt.Tag.Get(tagNamespace), ",")
 				innerYamlKey := innerYamlTags[0]
 
 				if innerYamlKey == "-" {
@@ -247,7 +284,7 @@ func Init(in Field, h InterfaceTypeHandler) Field {
 }
 
 // InitRecursively trys to call Init on all fields implementing Field interface
-func InitRecursively(fv reflect.Value, h InterfaceTypeHandler) {
+func InitRecursively(fv reflect.Value, opts *Options) {
 	switch fv.Type() {
 	case baseFieldPtrType, baseFieldStructType:
 		return
@@ -257,7 +294,7 @@ func InitRecursively(fv reflect.Value, h InterfaceTypeHandler) {
 findStruct:
 	switch target.Kind() {
 	case reflect.Struct:
-		_ = tryInit(fv, h)
+		_ = tryInit(fv, opts)
 	case reflect.Ptr:
 		if !target.IsValid() || target.IsZero() || target.IsNil() {
 			return
@@ -270,16 +307,16 @@ findStruct:
 	}
 
 	for i := 0; i < target.NumField(); i++ {
-		InitRecursively(target.Field(i), h)
+		InitRecursively(target.Field(i), opts)
 	}
 }
 
 // nolint:unparam
-func tryInit(fieldValue reflect.Value, h InterfaceTypeHandler) bool {
+func tryInit(fieldValue reflect.Value, opts *Options) bool {
 	if fieldValue.CanInterface() {
 		fVal, canCallInit := fieldValue.Interface().(Field)
 		if canCallInit {
-			_ = Init(fVal, h)
+			_ = Init(fVal, opts)
 			return true
 		}
 	}
@@ -287,7 +324,7 @@ func tryInit(fieldValue reflect.Value, h InterfaceTypeHandler) bool {
 	if fieldValue.CanAddr() && fieldValue.Addr().CanInterface() {
 		fVal, canCallInit := fieldValue.Addr().Interface().(Field)
 		if canCallInit {
-			_ = Init(fVal, h)
+			_ = Init(fVal, opts)
 			return true
 		}
 	}
