@@ -5,19 +5,25 @@ import (
 	"reflect"
 )
 
+// Inherit unresolved fields from another BaseField
+// useful when you are merging two structs and want to resolve only once
+// to get all unresolved fields set
+//
+// after a successful function call, f wiil be able to resolve its struct fields
+// with unresolved values from b and its own
 func (f *BaseField) Inherit(b *BaseField) error {
 	if len(b.unresolvedFields) == 0 {
 		return nil
 	}
 
 	if f.unresolvedFields == nil {
-		f.unresolvedFields = make(map[unresolvedFieldKey]*unresolvedFieldValue)
+		f.unresolvedFields = make(map[string]*unresolvedFieldSpec)
 	}
 
 	for k, v := range b.unresolvedFields {
 		existingV, ok := f.unresolvedFields[k]
 		if !ok {
-			f.unresolvedFields[k] = &unresolvedFieldValue{
+			f.unresolvedFields[k] = &unresolvedFieldSpec{
 				fieldName:         v.fieldName,
 				fieldValue:        f._parentValue.FieldByName(v.fieldName),
 				isCatchOtherField: v.isCatchOtherField,
