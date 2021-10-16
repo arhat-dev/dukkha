@@ -17,30 +17,30 @@ type TaskHooks struct {
 	// and will run `After` hooks
 	//
 	// This hook MUST NOT have any reference to matrix information
-	Before []Action `yaml:"before"`
+	Before []Action `yaml:"before,omitempty"`
 
 	// Matrix scope hooks
 
 	// Before a specific matrix execution start
 	//
 	// This hook May have reference to matrix information
-	BeforeMatrix []Action `yaml:"before:matrix"`
+	BeforeMatrix []Action `yaml:"before:matrix,omitempty"`
 
 	// AfterMatrixSuccess runs after a successful matrix execution
 	//
 	// This hook May have reference to matrix information
-	AfterMatrixSuccess []Action `yaml:"after:matrix:success"`
+	AfterMatrixSuccess []Action `yaml:"after:matrix:success,omitempty"`
 
 	// AfterMatrixFailure runs after a failed matrix execution
 	//
 	// This hook May have reference to matrix information
-	AfterMatrixFailure []Action `yaml:"after:matrix:failure"`
+	AfterMatrixFailure []Action `yaml:"after:matrix:failure,omitempty"`
 
 	// AfterMatrix runs after at any condition of the matrix execution
 	// including success, failure
 	//
 	// This hook May have reference to matrix information
-	AfterMatrix []Action `yaml:"after:matrix"`
+	AfterMatrix []Action `yaml:"after:matrix,omitempty"`
 
 	// Task scope hooks again
 
@@ -48,19 +48,19 @@ type TaskHooks struct {
 	// requires all matrix executions are successful
 	//
 	// This hook MUST NOT have any reference to matrix information
-	AfterSuccess []Action `yaml:"after:success"`
+	AfterSuccess []Action `yaml:"after:success,omitempty"`
 
 	// AfterFailure runs after a failed task execution
 	// any failed matrix execution will cause this hook to run
 	//
 	// This hook MUST NOT have any reference to matrix information
-	AfterFailure []Action `yaml:"after:failure"`
+	AfterFailure []Action `yaml:"after:failure,omitempty"`
 
 	// After any condition of the task execution
 	// including success, failure, canceled (hook `before` failure)
 	//
 	// This hook MUST NOT have any reference to matrix information
-	After []Action `yaml:"after"`
+	After []Action `yaml:"after,omitempty"`
 }
 
 func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
