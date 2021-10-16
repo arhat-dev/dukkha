@@ -77,7 +77,9 @@ func (d *driver) RenderYaml(
 			)
 		}
 
-		spec := rshelper.InitAll(&inputS3Sepc{}, rc).(*inputS3Sepc)
+		spec := rshelper.InitAll(&inputS3Sepc{}, &rs.Options{
+			InterfaceTypeHandler: rc,
+		}).(*inputS3Sepc)
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(

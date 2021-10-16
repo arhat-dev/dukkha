@@ -38,7 +38,9 @@ import (
 )
 
 func NewConfig() *Config {
-	return rshelper.InitAll(&Config{}, dukkha.GlobalInterfaceTypeHandler).(*Config)
+	return rshelper.InitAll(&Config{}, &rs.Options{
+		InterfaceTypeHandler: dukkha.GlobalInterfaceTypeHandler,
+	}).(*Config)
 }
 
 type GlobalConfig struct {
