@@ -2,6 +2,7 @@
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
+arhat.dev/pkg/iohelper
 arhat.dev/pkg/log
 arhat.dev/pkg/md5helper
 arhat.dev/pkg/rshelper
@@ -147,8 +148,17 @@ golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
+golang.org/x/crypto/chacha20
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/curve25519/internal/field
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/poly1305
+golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
+golang.org/x/crypto/ssh
+golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 # golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 ## explicit
 golang.org/x/net/http/httpguts
