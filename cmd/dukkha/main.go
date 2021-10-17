@@ -26,6 +26,7 @@ import (
 	"arhat.dev/dukkha/pkg/version"
 
 	// Add extra renderers (enabled when config is set)
+	_ "arhat.dev/dukkha/pkg/renderer/git"
 	_ "arhat.dev/dukkha/pkg/renderer/http"
 	_ "arhat.dev/dukkha/pkg/renderer/input"
 
