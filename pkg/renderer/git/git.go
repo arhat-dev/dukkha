@@ -2,15 +2,18 @@ package git
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/renderer/ssh"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
+	"arhat.dev/dukkha/pkg/renderer/ssh"
 )
 
 // nolint:revive
@@ -116,6 +119,22 @@ func (d *driver) RenderYaml(
 
 		fetchConfig.Repo, fetchConfig.Path = parts[0], parts[1]
 		fetchConfig.Path = strings.TrimPrefix(fetchConfig.Path, "/")
+
+		if idx := strings.LastIndexByte(fetchConfig.Repo, ':'); idx > 0 {
+			sshConfig = sshConfig.Clone()
+			sshConfig.Host = fetchConfig.Repo[:idx]
+			sshConfig.Port = 0 // reset to default
+			fetchConfig.Repo = fetchConfig.Repo[idx+1:]
+
+			host, port, err := net.SplitHostPort(sshConfig.Host)
+			if err == nil {
+				sshConfig.Host = host
+				sshConfig.Port, err = strconv.Atoi(port)
+				if err != nil {
+					return nil, fmt.Errorf("invalid port value: %q", port)
+				}
+			}
+		}
 	}
 
 	var (
