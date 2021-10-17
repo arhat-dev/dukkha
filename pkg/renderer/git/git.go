@@ -24,7 +24,6 @@ func NewDefault(name string) dukkha.Renderer {
 	return &driver{
 		name:        name,
 		CacheConfig: renderer.CacheConfig{EnableCache: false},
-		FetchConfig: FetchSpec{},
 	}
 }
 
@@ -37,8 +36,6 @@ type driver struct {
 	renderer.CacheConfig `yaml:",inline"`
 
 	SSHConfig ssh.Spec `yaml:",inline"`
-
-	FetchConfig FetchSpec `yaml:",inline"`
 
 	cache *renderer.Cache
 }
@@ -65,11 +62,9 @@ func (d *driver) RenderYaml(
 	case string:
 		reqURL = t
 		sshConfig = &d.SSHConfig
-		fetchConfig = &d.FetchConfig
 	case []byte:
 		reqURL = string(t)
 		sshConfig = &d.SSHConfig
-		fetchConfig = &d.FetchConfig
 	default:
 		rawBytes, err := yamlhelper.ToYamlBytes(rawData)
 		if err != nil {
@@ -99,8 +94,8 @@ func (d *driver) RenderYaml(
 			)
 		}
 
-		sshConfig = &spec.Spec
-		fetchConfig = &spec.FetchSpec
+		sshConfig = spec.SSH
+		fetchConfig = &spec.Fetch
 	}
 
 	if len(reqURL) != 0 {
