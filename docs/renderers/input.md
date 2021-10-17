@@ -4,9 +4,11 @@
 foo@input: "Please Enter Something: "
 ```
 
-Read user console input as value
+Read user console input as field value.
 
 ## Config Options
+
+__NOTE:__ Configuration is required to activate this renderer.
 
 ```yaml
 renderers:
@@ -17,8 +19,8 @@ renderers:
 
 ## Supported value types
 
-- `string`
+- `string` as prompt
 
 ## Suggested Use Cases
 
-User interaction for action confirm
+Force user interaction before task execution.

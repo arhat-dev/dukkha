@@ -8,6 +8,8 @@ Render value using http
 
 ## Config Options
 
+__NOTE:__ Configuration is required to activate this renderer.
+
 ```yaml
 renderers:
   http:

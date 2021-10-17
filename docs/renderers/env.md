@@ -14,7 +14,13 @@ renderers:
   env: {}
 ```
 
+## Supported value types
+
+Any valid yaml value
+
 ## Suggested Use Cases
+
+Gain fine grained control over environment variables' resolution, so you don't need external shell to execute command.
 
 ### Expand environment variables before task execution start
 
