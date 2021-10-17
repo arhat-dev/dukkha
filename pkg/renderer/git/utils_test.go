@@ -10,7 +10,7 @@ import (
 )
 
 func TestFormatPktSize(t *testing.T) {
-	for i := 1; i < math.MaxUint16; i += 1 {
+	for i := 1; i < math.MaxUint16; i++ {
 		prefix := ""
 		switch {
 		case i < 0x0010:
@@ -26,7 +26,7 @@ func TestFormatPktSize(t *testing.T) {
 }
 
 func TestParsePktSize(t *testing.T) {
-	for i := 1; i < math.MaxUint16; i += 1 {
+	for i := 1; i < math.MaxUint16; i++ {
 		src := formatPktSize(uint64(i))
 		assert.Equal(t, i, parsePktSize([]byte(strings.ToLower(src))))
 		assert.Equal(t, i, parsePktSize([]byte(strings.ToUpper(src))))

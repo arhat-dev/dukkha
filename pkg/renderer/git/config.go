@@ -8,11 +8,11 @@ import (
 	"io"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/renderer/ssh"
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/rs"
-
 	gossh "golang.org/x/crypto/ssh"
+
+	"arhat.dev/dukkha/pkg/renderer/ssh"
 )
 
 type FetchSpec struct {
@@ -64,7 +64,11 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) ([]byte, error) {
 	stdout.reader, session.Stdout = iohelper.Pipe()
 	session.Stderr = stderr
 
-	session.Setenv("GIT_PROTOCOL", "version=2")
+	err = session.Setenv("GIT_PROTOCOL", "version=2")
+	if err != nil {
+		return nil, fmt.Errorf("failed to GIT_PROTOCOL env: %w", err)
+	}
+
 	err = session.Start(fmt.Sprintf("git-upload-archive '%s'", f.Repo))
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -141,17 +145,17 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) ([]byte, error) {
 	tr := tar.NewReader(sbr)
 	var dataBuf []byte
 	for {
-		hdr, err := tr.Next()
+		_, err = tr.Next()
 		if err == io.EOF {
-			break // End of archive
+			break // end of archive
 		}
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to read tar header: %w", err)
 		}
 
-		_ = hdr.Name
-		data, err := io.ReadAll(tr)
+		var data []byte
+		data, err = io.ReadAll(tr)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"failed to read content in tar: %w", err,
