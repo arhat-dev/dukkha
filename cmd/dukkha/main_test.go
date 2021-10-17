@@ -26,7 +26,7 @@ func TestMain(t *testing.T) {
 	_ = t
 
 	clearOSArgs()
-	os.Args = append(os.Args, "workflow", "local", "run", "test")
+	os.Args = append(os.Args, "run", "workflow", "local", "run", "test")
 	main()
 }
 
