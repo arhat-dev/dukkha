@@ -25,7 +25,7 @@ func (sbr *SideBandReader) readSizeAndBand() (int, pktStatus, error) {
 	// (in git srouce code) when send_sideband called with band < 0
 	// there is no band type after the size, so here we read as pkt-size
 	// to avoid over reading
-	return readPktSize(sbr.reader, sbr.sizeBuf[:])
+	return readPktSize(sbr.reader, sbr.sizeBuf)
 }
 
 func (sbr *SideBandReader) Read(p []byte) (int, error) {

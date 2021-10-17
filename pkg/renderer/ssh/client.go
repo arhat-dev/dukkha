@@ -30,6 +30,17 @@ type Spec struct {
 	Password   string `yaml:"password"`
 }
 
+func (s *Spec) Clone() *Spec {
+	return &Spec{
+		User:       s.User,
+		Host:       s.Host,
+		Port:       s.Port,
+		HostKey:    s.Host,
+		PrivateKey: s.PrivateKey,
+		Password:   s.Password,
+	}
+}
+
 func NewClient(f *Spec) (*ssh.Client, error) {
 	var authMethod ssh.AuthMethod
 
@@ -54,6 +65,7 @@ func NewClient(f *Spec) (*ssh.Client, error) {
 				return
 			},
 		)
+		_ = authMethod
 
 		return nil, fmt.Errorf("no password or private key provided")
 	}

@@ -3,8 +3,9 @@ package git
 import (
 	"testing"
 
-	"arhat.dev/dukkha/pkg/renderer/ssh"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/renderer/ssh"
 )
 
 func TestFetchSpec(t *testing.T) {
