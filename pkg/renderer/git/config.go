@@ -31,8 +31,8 @@ type FetchSpec struct {
 type inputFetchSpec struct {
 	rs.BaseField
 
-	ssh.Spec  `yaml:",inline"`
-	FetchSpec `yaml:",inline"`
+	Fetch FetchSpec `yaml:",inline"`
+	SSH   *ssh.Spec `yaml:"ssh,omitempty"`
 }
 
 func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) ([]byte, error) {

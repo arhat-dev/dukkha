@@ -17,9 +17,9 @@ func TestFetchSpec(t *testing.T) {
 	}
 
 	data, err := spec.fetchRemote(&ssh.Spec{
-		User:   "git",
-		SSHKey: ``,
-		Host:   "gitlab.com",
+		User:       "git",
+		PrivateKey: ``,
+		Host:       "gitlab.com",
 	})
 	assert.NoError(t, err)
 

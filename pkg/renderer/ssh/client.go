@@ -26,16 +26,16 @@ type Spec struct {
 	HostKey string `yaml:"host_key"`
 
 	// authentication
-	SSHKey   string `yaml:"ssh_key"`
-	Password string `yaml:"password"`
+	PrivateKey string `yaml:"private_key"`
+	Password   string `yaml:"password"`
 }
 
 func NewClient(f *Spec) (*ssh.Client, error) {
 	var authMethod ssh.AuthMethod
 
 	switch {
-	case len(f.SSHKey) != 0:
-		signer, err := ssh.ParsePrivateKey([]byte(f.SSHKey))
+	case len(f.PrivateKey) != 0:
+		signer, err := ssh.ParsePrivateKey([]byte(f.PrivateKey))
 		if err != nil {
 			return nil, fmt.Errorf("invalid private key: %w", err)
 		}
