@@ -33,14 +33,16 @@ func NewTestContextWithGlobalEnv(
 	d := dukkha.NewConfigResolvingContext(
 		ctx,
 		dukkha.GlobalInterfaceTypeHandler,
-		true,
-		false, // turn off color output
-		false, // do not translate ansi stream
-		false, // retainANSIStyle is not used when translateANSIStream is disabled
-		1,
 		globalEnv,
 	)
 
+	d.SetRuntimeOptions(dukkha.RuntimeOptions{
+		FailFast:            true,
+		ColorOutput:         false,
+		TranslateANSIStream: false,
+		RetainANSIStyle:     false,
+		Workers:             1,
+	})
 	d.AddRenderer("echo", &echoRenderer{})
 
 	return d

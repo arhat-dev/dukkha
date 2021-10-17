@@ -44,6 +44,7 @@ type TaskExecContext interface {
 type Context interface {
 	TaskExecContext
 
+	SetRuntimeOptions(opts RuntimeOptions)
 	RunTask(ToolKey, TaskKey) error
 }
 
@@ -75,21 +76,12 @@ type dukkhaContext struct {
 	*contextExec
 
 	// application settings
-	failFast            bool
-	colorOutput         bool
-	translateANSIStream bool
-	retainANSIStyle     bool
-	workers             int
+	runtimeOpts RuntimeOptions
 }
 
 func NewConfigResolvingContext(
 	parent context.Context,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	failFast bool,
-	colorOutput bool,
-	translateANSIStream bool,
-	retainANSIStyle bool,
-	workers int,
 	globalEnv map[string]string,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
@@ -104,12 +96,6 @@ func NewConfigResolvingContext(
 		contextRendering: newContextRendering(
 			ctxStd.ctx, ifaceTypeHandler, globalEnv,
 		),
-
-		failFast:            failFast,
-		colorOutput:         colorOutput,
-		translateANSIStream: translateANSIStream,
-		retainANSIStyle:     retainANSIStyle,
-		workers:             workers,
 	}
 
 	return dukkhaCtx
@@ -129,11 +115,7 @@ func (c *dukkhaContext) DeriveNew() Context {
 		// initialized later
 		contextExec: nil,
 
-		failFast:            c.failFast,
-		colorOutput:         c.colorOutput,
-		translateANSIStream: c.translateANSIStream,
-		retainANSIStyle:     c.retainANSIStyle,
-		workers:             c.workers,
+		runtimeOpts: c.runtimeOpts,
 	}
 
 	if c.contextExec != nil {
@@ -156,28 +138,28 @@ func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
 }
 
 func (c *dukkhaContext) FailFast() bool {
-	return c.failFast
+	return c.runtimeOpts.FailFast
 }
 
 func (c *dukkhaContext) ColorOutput() bool {
-	return c.colorOutput
+	return c.runtimeOpts.ColorOutput
 }
 
 func (c *dukkhaContext) TranslateANSIStream() bool {
-	return c.translateANSIStream
+	return c.runtimeOpts.TranslateANSIStream
 }
 
 func (c *dukkhaContext) RetainANSIStyle() bool {
-	return c.retainANSIStyle
+	return c.runtimeOpts.RetainANSIStyle
 }
 
 func (c *dukkhaContext) ClaimWorkers(n int) int {
-	if c.workers > n {
+	if c.runtimeOpts.Workers > n {
 		return n
 	}
 
 	// TODO: limit workers
-	return c.workers
+	return c.runtimeOpts.Workers
 }
 
 func (c *dukkhaContext) AddCache(key, value string) {

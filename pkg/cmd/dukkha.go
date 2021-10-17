@@ -25,29 +25,21 @@ import (
 
 	"arhat.dev/pkg/log"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
+	"arhat.dev/dukkha/pkg/cmd/completion"
 	"arhat.dev/dukkha/pkg/cmd/debug"
 	"arhat.dev/dukkha/pkg/cmd/render"
-	"arhat.dev/dukkha/pkg/cmd/utils"
+	"arhat.dev/dukkha/pkg/cmd/run"
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
-
-	_ "embed"
 )
 
+// NewRootCmd creates the dukkha command with all sub commands added
+// it will load and resolve your dukkha configs
 func NewRootCmd() *cobra.Command {
 	// cli options
 	var (
 		logConfig = new(log.Config)
-
-		workerCount  = int(1)
-		failFast     = false
-		forceColor   = false
-		matrixFilter []string
-
-		translateANSIStream = false
-		retainANSIStyle     = false
 
 		configPaths []string
 		// merged config
@@ -67,14 +59,12 @@ func NewRootCmd() *cobra.Command {
 	}()
 
 	rootCmd := &cobra.Command{
-		Use: "dukkha <tool-kind> <tool-name> <task-kind> <task-name>",
-		Example: `dukkha buildah local build my-image
-dukkha buildah in-docker build my-image`,
+		Use: "dukkha",
 
 		SilenceErrors: true,
 		SilenceUsage:  true,
 
-		Args: cobra.ExactArgs(4),
+		Args: cobra.ArbitraryArgs,
 
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd:   true,
@@ -100,6 +90,7 @@ dukkha buildah in-docker build my-image`,
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
 			err = readConfigRecursively(
+				os.DirFS("."),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
 				&visitedPaths,
@@ -111,25 +102,8 @@ dukkha buildah in-docker build my-image`,
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
 
-			stdoutIsPty := term.IsTerminal(int(os.Stdout.Fd()))
-
-			translateANSIFlag := cmd.Flag("translate-ansi-stream")
-			var actualTranslateANSIStream bool
-			// only translate ansi stream when
-			// 	- (automatic) flag --translate-ansi-stream not set and stdout is not a pty
-			actualTranslateANSIStream = (translateANSIFlag == nil || !translateANSIFlag.Changed) && !stdoutIsPty
-			// 	- (manual) flag --translate-ansi-stream set to true
-			actualTranslateANSIStream = actualTranslateANSIStream || translateANSIStream
-
-			actualRetainANSIStyle := actualTranslateANSIStream && retainANSIStyle
-
 			_appCtx := dukkha.NewConfigResolvingContext(
 				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
-				failFast,
-				stdoutIsPty || forceColor,
-				actualTranslateANSIStream,
-				actualRetainANSIStyle,
-				workerCount,
 				createGlobalEnv(appBaseCtx),
 			)
 
@@ -142,6 +116,7 @@ dukkha buildah in-docker build my-image`,
 			case strings.HasPrefix(cmd.Use, "debug"):
 				needTasks = len(args) != 0
 			default:
+				// for sub commands: run
 				needTasks = true
 			}
 
@@ -150,16 +125,11 @@ dukkha buildah in-docker build my-image`,
 				return fmt.Errorf("failed to resolve config: %w", err)
 			}
 
-			_appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
-
 			appCtx = _appCtx
 
 			logger.D("dukkha initialized", log.Any("init_config", config))
 
 			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(appCtx, args)
 		},
 	}
 
@@ -186,113 +156,16 @@ dukkha buildah in-docker build my-image`,
 		"stderr", "file path to write log output, including `stdout` and `stderr`",
 	)
 
-	flags := rootCmd.Flags()
-
-	flags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
-	flags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
-	flags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
-	flags.StringSliceVarP(&matrixFilter, "matrix", "m", nil,
-		"set matrix filter, format: `-m <name>=<value>` for matching, `-m <name>!=<value>` for ignoring",
+	rootCmd.AddCommand(
+		// completion
+		completion.NewCompletionCmd(),
+		// dukkha render
+		render.NewRenderCmd(&appCtx),
+		// dukkha debug
+		debug.NewDebugCmd(&appCtx),
+		// dukkha run
+		run.NewRunCmd(&appCtx),
 	)
-	flags.BoolVar(&translateANSIStream, "translate-ansi-stream", false,
-		"when set to true, will translate ansi stream to plain text before write to stdout/stderr, "+
-			"when set to false, do nothing to the ansi stream, "+
-			"when not set, will behavior as set to true if stdout/stderr is not a pty environment",
-	)
-	flags.BoolVar(&retainANSIStyle, "retain-ansi-style", retainANSIStyle,
-		"when set to true, will retain ansi style when write to stdout/stderr, only effective "+
-			"when ansi stream is going to be translated",
-	)
-
-	setupTaskCompletion(&appCtx, rootCmd)
-
-	err := setupMatrixCompletion(&appCtx, rootCmd, "matrix")
-	if err != nil {
-		panic(fmt.Errorf("failed to setup matrix flag completion: %w", err))
-	}
-
-	rootCmd.AddCommand(render.NewRenderCmd(&appCtx))
-	rootCmd.AddCommand(debug.NewDebugCmd(&appCtx))
 
 	return rootCmd
-}
-
-func run(appCtx dukkha.Context, args []string) error {
-	// defensive check, arg count should be guarded by cobra
-	if len(args) != 4 {
-		return fmt.Errorf("expecting 4 args, got %d", len(args))
-	}
-
-	return appCtx.RunTask(
-		dukkha.ToolKey{
-			Kind: dukkha.ToolKind(args[0]),
-			Name: dukkha.ToolName(args[1]),
-		},
-		dukkha.TaskKey{
-			Kind: dukkha.TaskKind(args[2]),
-			Name: dukkha.TaskName(args[3]),
-		},
-	)
-}
-
-var (
-	//go:embed completion_guide.txt
-	completionGuide string
-)
-
-func setupTaskCompletion(appCtx *dukkha.Context, rootCmd *cobra.Command) {
-	cmd := &cobra.Command{
-		Use:   "completion [bash|zsh|fish|powershell]",
-		Short: "Generate completion script",
-		Long:  completionGuide,
-
-		SilenceUsage: true,
-		Hidden:       true,
-
-		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
-		Args:      cobra.ExactValidArgs(1),
-
-		Run: func(cmd *cobra.Command, args []string) {
-			switch args[0] {
-			case "bash":
-				_ = cmd.Root().GenBashCompletion(os.Stdout)
-			case "zsh":
-				_ = cmd.Root().GenZshCompletion(os.Stdout)
-			case "fish":
-				_ = cmd.Root().GenFishCompletion(os.Stdout, true)
-			case "powershell":
-				_ = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-			}
-		},
-	}
-
-	rootCmd.AddCommand(cmd)
-	rootCmd.ValidArgsFunction = func(
-		cmd *cobra.Command, args []string, toComplete string,
-	) ([]string, cobra.ShellCompDirective) {
-		return utils.HandleCompletionTask(*appCtx, args, toComplete)
-	}
-
-	rootCmd.SetHelpCommand(&cobra.Command{
-		SilenceUsage: true,
-		Hidden:       true,
-	})
-}
-
-func setupMatrixCompletion(
-	appCtx *dukkha.Context,
-	rootCmd *cobra.Command,
-	matrixFlagName string,
-) error {
-	return rootCmd.RegisterFlagCompletionFunc(
-		matrixFlagName,
-		func(
-			cmd *cobra.Command, args []string, toComplete string,
-		) ([]string, cobra.ShellCompDirective) {
-			filter, _ := rootCmd.Flags().GetStringSlice(matrixFlagName)
-			return utils.HandleCompletionMatrix(
-				*appCtx, filter, args, toComplete,
-			)
-		},
-	)
 }

@@ -58,7 +58,7 @@ jobs:
       run: |
         make dukkha
 
-        ./build/dukkha golang local build dukkha -j $(nproc --all)
+        ./build/dukkha run golang local build dukkha -j $(nproc --all)
 
     # - name: Package
     #   run: |
@@ -88,4 +88,4 @@ jobs:
       run: |
         make dukkha
 
-        ./build/dukkha github local release dukkha
+        ./build/dukkha run github local release dukkha
