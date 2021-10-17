@@ -37,10 +37,15 @@ renderers:
 
 ## Supported value types
 
-- String (if you have configured ssh in renderer config)
+- String in scp style URL with optional `@<ref>` suffix (if you have configured ssh in renderer config)
 
 ```yaml
 foo@git: my-org/foo.git/foo.yaml@master
+# you can optionally override host and port as well
+bar@git: my-domain.com:1022:my-org/foo.git/foo.yaml@master
+# if you only override host, the port will defaults to 22 rather than using
+# port configured in renderer config
+woo@git: my-domain.com:my-org/foo.git/foo.yaml@master
 ```
 
 - Full spec (you can omit ssh part if you have configured ssh in renderer config and you don't want to override it)
