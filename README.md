@@ -9,37 +9,14 @@
 
 Make YAML files Makefiles
 
-## Quick Example
-
-```yaml
-workflow:run:
-- name: quick-example
-  matrix:
-    kernel: [linux]
-    arch: [amd64]
-  # render inner go templates
-  jobs@template:
-  # render environment variables before shell evaluation
-  - shell@env: |-
-      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
-  # run shell script from http server
-  - shell@template|http: |-
-      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
-      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
-      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
-      echo.sh
-```
-
-__NOTE:__ You can find more [examples here](./docs/examples)
-
 ## Goals
 
 - Type checked configuration (like workflow definitions for github actions)
-- Language and tool specific support (like `goreleaser` support for go/docker/rpm builds)
-- Flexible scripting in yaml files (e.g. `Makefile`, shell scripts)
-- Content generation and certral management of config recipes
+- Language and tool specific support (like `goreleaser`'s support for go/docker/rpm)
+- Flexible scripting (e.g. `Makefile`, shell scripts)
+- Content generation and certral management of config recipes. (e.g. `jsonnet`, `cuelang`)
 
-A typical build automation tool only take one or two from the above, but we'd take all in `dukkha`!
+A typical build automation tool only takes one or two from the above at the same time, but we have them all in `dukkha` thanks to the [rendering suffix][rs] support.
 
 ## Non-Goals
 
@@ -51,50 +28,19 @@ A typical build automation tool only take one or two from the above, but we'd ta
 
 ### Content Rendering Features
 
-Please refer to [docs/rendering](./docs/rendering.md) for more details
+- Rendering suffix, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix
+  - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers
 
-- Rendering suffix: get configuration rendered dynamically at runtime
-  - Just `@some-renderer` in your yaml field key
-
-  ```yaml
-  # environment variable FOO will be expanded and its value is used to set
-  # `foo` field
-  foo@env: ${FOO}
-  ```
-
-- Renderer chaning: Combine multiple renderers to achieve even more flexibility.
-  - Chain your renderers with pipe symbol `|`
-
-  ```yaml
-  # in the following yaml example, dukkha will render the content three times
-  #   1. (http) Fetch content from remote http server as specified by the url
-  #   2. (template) Execute the fetched content as a go template
-  #   3. (env) Expand environment variables in the resulted data
-  foo@http|template|env: https://example.com/foo.yaml
-  ```
-
-- Patching and merging: Combine multiple yaml documents into one
-  - Append suffix `!` to existing rendering suffix
-
-  ```yaml
-  foo@http!: # notice the suffix `!`
-    # value for this renderer (http)
-    value: https://example.com/bar.yaml
-    # merge other yaml docs
-    merge:
-    - value@file: ./foo.yaml
-    - value: [plain, yaml]
-    # json patch (rfc6902) in yaml format
-    patch:
-    - { op: add, path: /a/b/c, value: foo }
-  ```
-
-- Available as a cli for custom content rendering
-  - Run `dukkha render` over your own yaml docs using rendering suffix
+- Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix
 
 ### Task Execution Features
 
+- Embedded shell environment, you can completely forget external shells with dukkha
+  - Predictable command execution made esay, never worry about when will the environment varibles getting resolved with explicit rendering control.
+
 - Customizable task matrix execution everywhere
+  - While matrix values are still limited to strings in order to make them available as environment variables
+  - cli option `--matrix` (`-m`) for `dukkha run` controls which matrix set is chosen.
 
   ```yaml
   workflow:run:
@@ -103,6 +49,7 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
       # add your matrix spec
       kernel: [linux, windows]
       arch: [amd64, arm64]
+      my-mat-entry: [foo, bar]
 
       # and exclude some
       exclude: # `exclude` is reserved
@@ -127,6 +74,30 @@ Please refer to [docs/rendering](./docs/rendering.md) for more details
   - Automatically enabled when stdout/stderr is not a tty
   - Can be manually enabled by setting flag `--translate-ansi-stream` and `--retain-ansi-style` when running task
   - This functionality is largely based on [`github.com/aoldershaw/ansi`](https://github.com/aoldershaw/ansi)
+
+## How tasks looks?
+
+Here is just a `workflow` task
+
+```yaml
+workflow:run:
+- name: quick-example
+  matrix:
+    kernel: [linux]
+    arch: [amd64]
+  jobs@template:
+  # render environment variables before shell evaluation
+  - shell@env: |-
+      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
+  # run shell script from http server
+  - shell@template|http: |-
+      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
+      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
+      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
+      echo.sh
+```
+
+__NOTE:__ You can find more [examples here](./docs/examples)
 
 ## Installation
 
@@ -201,3 +172,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+[rs]: https://github.com/arhat-dev/rs#readme
