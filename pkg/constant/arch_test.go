@@ -69,9 +69,9 @@ func TestArchMapping(t *testing.T) {
 			mappingFunc: GetDebianArch,
 		},
 		{
-			name: "DebianTripleName GLIBC",
+			name: "DebianTripleName GNU",
 			mappingFunc: func(mArch string) (string, bool) {
-				return GetDebianTripleName(mArch, "", LIBC_GLIBC)
+				return GetDebianTripleName(mArch, "", LIBC_GNU)
 			},
 		},
 		{
@@ -92,9 +92,9 @@ func TestArchMapping(t *testing.T) {
 			mappingFunc: GetGNUArch,
 		},
 		{
-			name: "GNUTripleName GLIBC",
+			name: "GNUTripleName GNU",
 			mappingFunc: func(mArch string) (string, bool) {
-				return GetGNUTripleName(mArch, "", LIBC_GLIBC)
+				return GetGNUTripleName(mArch, "", LIBC_GNU)
 			},
 		},
 		{

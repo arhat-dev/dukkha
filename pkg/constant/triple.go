@@ -128,7 +128,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		}[mArch]
 
 		return v, ok
-	case LIBC_GLIBC:
+	case LIBC_GNU:
 		fallthrough
 	default:
 		v, ok := map[string]string{
@@ -192,7 +192,7 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 	case LIBC_MSVC:
 		// TODO
 		_ = abi
-	case LIBC_GLIBC:
+	case LIBC_GNU:
 		fallthrough
 	default:
 		switch mArch {
@@ -269,7 +269,7 @@ func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		default:
 			abi = "msvc"
 		}
-	case LIBC_GLIBC:
+	case LIBC_GNU:
 		fallthrough
 	default:
 		switch mArch {

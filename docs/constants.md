@@ -35,6 +35,6 @@ __NOTE:__ These values are the same as golang `GOOS` values
 
 ## Libc
 
-- `glibc`
+- `gnu`
 - `musl`
 - `msvc`
