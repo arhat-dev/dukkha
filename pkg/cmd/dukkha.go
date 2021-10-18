@@ -156,13 +156,24 @@ func NewRootCmd() *cobra.Command {
 		"stderr", "file path to write log output, including `stdout` and `stderr`",
 	)
 
+	debugTaskCmd := debug.NewDebugTaskCmd(&appCtx)
+	debugTaskCmd.AddCommand(
+		debug.NewDebugTaskMatrixCmd(&appCtx),
+		debug.NewDebugTaskSpecCmd(&appCtx),
+	)
+
+	debugCmd := debug.NewDebugCmd(&appCtx)
+	debugCmd.AddCommand(
+		debugTaskCmd,
+	)
+
 	rootCmd.AddCommand(
 		// completion
 		completion.NewCompletionCmd(),
 		// dukkha render
 		render.NewRenderCmd(&appCtx),
 		// dukkha debug
-		debug.NewDebugCmd(&appCtx),
+		debugCmd,
 		// dukkha run
 		run.NewRunCmd(&appCtx),
 	)

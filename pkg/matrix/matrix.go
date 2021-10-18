@@ -24,7 +24,7 @@ type Spec struct {
 	Arch   []string `yaml:"arch,omitempty"`
 
 	// catch other matrix fields
-	Custom map[string][]string `rs:"other"`
+	Custom map[string][]string `yaml:",omitempty" rs:"other"`
 }
 
 func defaultSpecs(hostKernel, hostArch string) []Entry {

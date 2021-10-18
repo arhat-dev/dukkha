@@ -9,7 +9,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func HandleCompletionMatrix(
+func handleTaskMatrixCompletion(
 	appCtx dukkha.Context,
 	existingFilters []string,
 	args []string, toComplete string,
