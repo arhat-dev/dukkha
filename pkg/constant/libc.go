@@ -2,7 +2,7 @@ package constant
 
 // nolint:revive
 const (
-	LIBC_GLIBC = "glibc"
-	LIBC_MSVC  = "msvc"
-	LIBC_MUSL  = "musl"
+	LIBC_GNU  = "gnu"
+	LIBC_MSVC = "msvc"
+	LIBC_MUSL = "musl"
 )
