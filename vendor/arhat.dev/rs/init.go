@@ -19,8 +19,8 @@ type Options struct {
 	// defaults to `nil`
 	InterfaceTypeHandler InterfaceTypeHandler
 
-	// TagNamespace used for struct field tag parsing
-	// you can set it to json to use json tag as name source
+	// DataTagNamespace used for struct field tag parsing
+	// you can set it to json to use json tag
 	//
 	// supported tag values are:
 	// - <first tag value as data field name>
@@ -30,7 +30,7 @@ type Options struct {
 	// unsupported tag values are ignored
 	//
 	// defaults to `yaml`
-	TagNamespace string
+	DataTagNamespace string
 
 	// AllowUnknownFields whether restrict unmarshaling to known fields
 	//
@@ -111,15 +111,15 @@ func Init(in Field, opts *Options) Field {
 	baseField._parentType = parentType
 	baseField.opts = opts
 
-	var tagNamespace string
-	if opts != nil && len(opts.TagNamespace) != 0 {
-		tagNamespace = opts.TagNamespace
+	var dataTagNS string
+	if opts != nil && len(opts.DataTagNamespace) != 0 {
+		dataTagNS = opts.DataTagNamespace
 	} else {
-		tagNamespace = "yaml"
+		dataTagNS = "yaml"
 	}
 
 	// get known fields for unmarshaling, skip the first field (the BaseField itself)
-	baseField.fields = make(map[string]*fieldRef)
+	baseField.normalFields = make(map[string]*fieldRef)
 	for i := 1; i < parentType.NumField(); i++ {
 		sf := parentType.Field(i)
 		if len(sf.PkgPath) != 0 {
@@ -127,7 +127,7 @@ func Init(in Field, opts *Options) Field {
 			continue
 		}
 
-		yTags := strings.Split(sf.Tag.Get(tagNamespace), ",")
+		yTags := strings.Split(sf.Tag.Get(dataTagNS), ",")
 		yamlKey := yTags[0]
 
 		if yamlKey == "-" {
@@ -138,6 +138,7 @@ func Init(in Field, opts *Options) Field {
 		var (
 			isInlineField bool
 			omitempty     bool
+			catchOther    bool
 		)
 		for _, t := range yTags[1:] {
 			switch t {
@@ -146,7 +147,20 @@ func Init(in Field, opts *Options) Field {
 			case "omitempty":
 				omitempty = true
 			default:
-				//
+				// TBD: currently we just ignore unknown tag, shall we panic?
+			}
+		}
+
+		// rs tag is used to extend yaml tag
+		for _, t := range strings.Split(sf.Tag.Get(TagNameRS), ",") {
+			switch t {
+			case "other":
+				// other is used to match unhandled values
+				// only supports map[string]Any
+				catchOther = true
+			case "":
+			default:
+				panic(fmt.Errorf("rs: unknown rs tag value %q", t))
 			}
 		}
 
@@ -163,119 +177,95 @@ func Init(in Field, opts *Options) Field {
 			}
 
 			if !baseField.addField(
-				yamlKey, sf.Name, fieldValue, baseField, omitempty,
+				yamlKey, sf.Name, fieldValue, baseField,
+				omitempty, catchOther,
 			) {
 				panic(fmt.Errorf(
-					"duplicate yaml key %q for %s.%s",
+					"duplicate yaml key %q in struct %s.%s",
 					yamlKey, parentType.String(), sf.Name,
 				))
 			}
-		} else {
-			// handle inline fields
 
-			// find BaseField in inline field, if exists, let it manage dynamnic fields
-			base := baseField
+			continue
+		}
 
-			var innerBaseF reflect.Value
-			switch kind := sf.Type.Kind(); {
-			case kind == reflect.Struct:
-				// embedded struct
-				if sf.Type.Implements(fieldInterfaceType) || reflect.PtrTo(sf.Type).Implements(fieldInterfaceType) {
-					innerBaseF = fieldValue.Field(0)
-				}
-			case kind == reflect.Ptr && sf.Type.Elem().Kind() == reflect.Struct:
-				// embedded ptr to struct
-				if sf.Type.Implements(fieldInterfaceType) || sf.Type.Elem().Implements(fieldInterfaceType) {
-					innerBaseF = fieldValue.Elem().Field(0)
-				}
-			default:
-				panic(fmt.Errorf(
-					"invalid inline tag applied to non struct nor struct pointer field %s.%s",
-					parentType.String(), sf.Name,
-				))
+		// handle inline fields
+
+		// find BaseField in inline field, if exists, let it manage dynamnic fields
+		base := baseField
+
+		var innerBaseF reflect.Value
+		switch kind := sf.Type.Kind(); {
+		case kind == reflect.Struct:
+			// embedded struct
+			if sf.Type.Implements(fieldInterfaceType) || reflect.PtrTo(sf.Type).Implements(fieldInterfaceType) {
+				innerBaseF = fieldValue.Field(0)
 			}
-
-			start := 0
-			switch innerBaseF.Kind() {
-			case reflect.Struct:
-				if innerBaseF.Addr().Type() == baseFieldPtrType {
-					base = innerBaseF.Addr().Interface().(*BaseField)
-					start = 1
-				}
-			case reflect.Ptr:
-				if innerBaseF.Type() == baseFieldPtrType {
-					base = innerBaseF.Interface().(*BaseField)
-					start = 1
-				}
+		case kind == reflect.Ptr && sf.Type.Elem().Kind() == reflect.Struct:
+			// embedded ptr to struct
+			if sf.Type.Implements(fieldInterfaceType) || sf.Type.Elem().Implements(fieldInterfaceType) {
+				innerBaseF = fieldValue.Elem().Field(0)
 			}
+		default:
+			panic(fmt.Errorf(
+				"invalid inline tag applied to non struct nor struct pointer field %s.%s",
+				parentType.String(), sf.Name,
+			))
+		}
 
-		inlineFieldLoop:
-			for j := start; j < fieldValue.NumField(); j++ {
-				innerFt := sf.Type.Field(j)
-
-				if len(innerFt.PkgPath) != 0 {
-					// unexported
-					continue
-				}
-
-				innerYamlTags := strings.Split(innerFt.Tag.Get(tagNamespace), ",")
-				innerYamlKey := innerYamlTags[0]
-
-				if innerYamlKey == "-" {
-					// ignored explicitly
-					continue
-				}
-
-				for _, tag := range innerYamlTags[1:] {
-					switch tag {
-					case "inline":
-						// already in a inline struct, do not check inline anymore
-						continue inlineFieldLoop
-					default:
-						// TODO: handle other yaml tags
-					}
-				}
-
-				if len(innerYamlKey) == 0 {
-					innerYamlKey = strings.ToLower(innerFt.Name)
-				}
-
-				if !baseField.addField(
-					innerYamlKey, innerFt.Name, fieldValue.Field(j),
-					base, omitempty,
-				) {
-					panic(fmt.Errorf(
-						"duplicate yaml key %q in inline field %s of %s",
-						innerYamlKey, innerFt.Name, parentType.String(),
-					))
-				}
+		start := 0
+		switch innerBaseF.Kind() {
+		case reflect.Struct:
+			if innerBaseF.Addr().Type() == baseFieldPtrType {
+				base = innerBaseF.Addr().Interface().(*BaseField)
+				start = 1
+			}
+		case reflect.Ptr:
+			if innerBaseF.Type() == baseFieldPtrType {
+				base = innerBaseF.Interface().(*BaseField)
+				start = 1
 			}
 		}
 
-		// rs tag is used to extend yaml tag
-		for _, t := range strings.Split(sf.Tag.Get(TagNameRS), ",") {
-			switch t {
-			case "other":
-				// other is used to match unhandled values
-				// only supports map[string]Any or []Any
+	inlineFieldLoop:
+		for j := start; j < fieldValue.NumField(); j++ {
+			innerFt := sf.Type.Field(j)
 
-				if baseField.catchOtherField != nil {
-					panic(fmt.Errorf(
-						"bad field tags in %s: only one map in a struct can have `rs:\"other\"` tag",
-						parentType.String(),
-					))
+			if len(innerFt.PkgPath) != 0 {
+				// unexported
+				continue
+			}
+
+			innerYamlTags := strings.Split(innerFt.Tag.Get(dataTagNS), ",")
+			innerYamlKey := innerYamlTags[0]
+
+			if innerYamlKey == "-" {
+				// ignored explicitly
+				continue
+			}
+
+			for _, tag := range innerYamlTags[1:] {
+				switch tag {
+				case "inline":
+					// already in a inline struct, do not check inline anymore
+					continue inlineFieldLoop
+				default:
+					// TODO: handle other yaml tags
 				}
+			}
 
-				baseField.catchOtherField = &fieldRef{
-					fieldName:  sf.Name,
-					fieldValue: fieldValue,
-					base:       baseField,
+			if len(innerYamlKey) == 0 {
+				innerYamlKey = strings.ToLower(innerFt.Name)
+			}
 
-					isCatchOther: true,
-				}
-			case "":
-			default:
-				panic(fmt.Errorf("rs: unknown rs tag value %q", t))
+			if !baseField.addField(
+				innerYamlKey, innerFt.Name, fieldValue.Field(j),
+				base, omitempty, catchOther,
+			) {
+				panic(fmt.Errorf(
+					"duplicate yaml key %q in inline field %s of struct %s",
+					innerYamlKey, innerFt.Name, parentType.String(),
+				))
 			}
 		}
 	}

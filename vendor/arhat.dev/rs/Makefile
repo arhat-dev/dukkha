@@ -26,7 +26,7 @@ test.fuzz:
 	sh scripts/fuzz.sh run
 
 test.unit:
-	dukkha golang local test rs
+	dukkha run golang local test rs
 
 test.benchmark:
-	dukkha golang local test benchmark
+	dukkha run golang local test benchmark

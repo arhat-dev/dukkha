@@ -3,7 +3,6 @@ package rs
 import (
 	"fmt"
 	"reflect"
-	"sync/atomic"
 
 	"gopkg.in/yaml.v3"
 )
@@ -13,7 +12,7 @@ func (f *BaseField) HasUnresolvedField() bool {
 }
 
 func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...string) error {
-	if atomic.LoadUint32(&f._initialized) == 0 {
+	if !f.initialized() {
 		return fmt.Errorf("rs: struct not intialized before resolving")
 	}
 
@@ -149,15 +148,31 @@ func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error
 	if targetField.CanInterface() {
 		fVal, canCallResolve := targetField.Interface().(Field)
 		if canCallResolve {
+			// fVal can have underlying data nil, but with Field type
+			if targetField.IsNil() {
+				return nil
+			}
+
 			return fVal.ResolveFields(rc, depth)
 		}
 	}
 
-	if targetField.CanAddr() && targetField.Addr().CanInterface() {
-		fVal, canCallResolve := targetField.Addr().Interface().(Field)
-		if canCallResolve {
-			return fVal.ResolveFields(rc, depth)
+	if !targetField.CanAddr() {
+		return nil
+	}
+
+	targetField = targetField.Addr()
+	if !targetField.CanInterface() {
+		return nil
+	}
+
+	fVal, canCallResolve := targetField.Interface().(Field)
+	if canCallResolve {
+		if targetField.IsNil() {
+			return nil
 		}
+
+		return fVal.ResolveFields(rc, depth)
 	}
 
 	// no more field to resolve
