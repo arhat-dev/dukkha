@@ -34,7 +34,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context) *cobra.Command {
 			appCtx = appCtx.DeriveNew()
 			appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
 
-			return debugTasks(*ctx, args,
+			return debugTasks(appCtx, args,
 				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task) error {
 					matrixSpecs, err := task.GetMatrixSpecs(appCtx)
 					if err != nil {
