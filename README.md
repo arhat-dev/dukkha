@@ -36,11 +36,11 @@ A typical build automation tool only takes one or two from the above at the same
 ### Task Execution Features
 
 - Embedded shell environment, you can completely forget external shells with dukkha
-  - Predictable command execution made esay, never worry about when will the environment varibles getting resolved with explicit rendering control.
+  - Predictable command execution made esay, no more worries about when will the environment variables get set, you gain total control.
 
 - Customizable task matrix execution everywhere
-  - While matrix values are still limited to strings in order to make them available as environment variables
-  - cli option `--matrix` (`-m`) for `dukkha run` controls which matrix set is chosen.
+  - While matrix values are still limited to strings in order to make them available as environment variables.
+  - Command line option `--matrix` (`-m`) for `dukkha run` controls which matrix set is chosen.
 
   ```yaml
   workflow:run:
@@ -53,18 +53,15 @@ A typical build automation tool only takes one or two from the above at the same
 
       # and exclude some
       exclude: # `exclude` is reserved
-      # match certain matrix
-      - kernel: [windows]
-        arch: [amd64]
+      # match certain matrix entry
+      - { kernel: [windows], arch: [amd64] }
       # partial matching is supported as well
       - arch: arm64
 
-      # and include extra matrix
+      # and include extra matrix, regardless of what `exclude` says
       include: # `include` is reserved field
-      - kernel: [linux]
-        arch: [x86, riscv64]
-      - kernel: [darwin]
-        arch: [arm64]
+      - { kernel: [linux], arch: [x86, riscv64] }
+      - { kernel: [darwin], arch: [arm64] }
   ```
 
 - Shell completion for tools, tasks and task matrix
