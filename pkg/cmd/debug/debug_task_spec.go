@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
+
 	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 func NewDebugTaskSpecCmd(ctx *dukkha.Context) *cobra.Command {

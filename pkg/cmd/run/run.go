@@ -83,7 +83,10 @@ dukkha run golang in-docker build my-executable`,
 			"when ansi stream is going to be translated",
 	)
 
-	utils.SetupTaskAndTaskMatrixCompletion(ctx, runCmd)
+	err := utils.SetupTaskAndTaskMatrixCompletion(ctx, runCmd)
+	if err != nil {
+		panic(err)
+	}
 
 	runCmd.SetHelpCommand(&cobra.Command{
 		SilenceUsage: true,

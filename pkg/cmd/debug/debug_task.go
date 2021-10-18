@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"sort"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/sorthelper"
 	"github.com/spf13/cobra"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func NewDebugTaskCmd(ctx *dukkha.Context) *cobra.Command {
@@ -125,12 +126,12 @@ func debugTasks(
 		}
 	}
 
-	// gather tasks with same task kind
-	type taskPartialKey struct {
-		toolKind dukkha.ToolKind
-		toolName dukkha.ToolName
-		taskKind dukkha.TaskKind
-	}
+	// // gather tasks with same task kind
+	// type taskPartialKey struct {
+	// 	toolKind dukkha.ToolKind
+	// 	toolName dukkha.ToolName
+	// 	taskKind dukkha.TaskKind
+	// }
 
 	var (
 		taskKeys = make([]taskFullKey, len(allTasks))
@@ -206,7 +207,11 @@ func debugTasks(
 			return fmt.Errorf("unexpected tool %q not found", toolKey.String())
 		}
 
-		debugSingleTask(appCtx, tool, tsk)
+		err := debugSingleTask(appCtx, tool, tsk)
+		if err != nil {
+			// TODO: report task debug error
+			_ = err
+		}
 	}
 
 	return nil
