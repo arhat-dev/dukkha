@@ -123,9 +123,9 @@ type AnyObjectMap struct {
 }
 
 // NormalizedValue returns value of the AnyObjectMap with type map[string]interface{}
-func (aom *AnyObjectMap) NormalizedValue() interface{} {
+func (aom *AnyObjectMap) NormalizedValue() map[string]interface{} {
 	if aom.Data == nil {
-		return map[string]interface{}(nil)
+		return nil
 	}
 
 	ret := make(map[string]interface{}, len(aom.Data))
