@@ -14,6 +14,8 @@ import (
 func TestCreateGlobalEnv(t *testing.T) {
 	globalEnv := createGlobalEnv(context.TODO())
 
+	now := time.Now().Local()
+	zone, offset := now.Zone()
 	requiredEnv := map[string]string{
 		"GIT_BRANCH":         "",
 		"GIT_COMMIT":         "",
@@ -21,12 +23,14 @@ func TestCreateGlobalEnv(t *testing.T) {
 		"GIT_WORKTREE_CLEAN": "",
 		"GIT_DEFAULT_BRANCH": "master",
 
-		"TIME_YEAR":   strconv.FormatInt(int64(time.Now().Year()), 10),
-		"TIME_MONTH":  strconv.FormatInt(int64(time.Now().Month()), 10),
-		"TIME_DAY":    strconv.FormatInt(int64(time.Now().Day()), 10),
-		"TIME_HOUR":   strconv.FormatInt(int64(time.Now().Hour()), 10),
-		"TIME_MINUTE": strconv.FormatInt(int64(time.Now().Minute()), 10),
-		"TIME_SECOND": "",
+		"TIME_ZONE":        zone,
+		"TIME_ZONE_OFFSET": strconv.FormatInt(int64(offset), 10),
+		"TIME_YEAR":        strconv.FormatInt(int64(now.Year()), 10),
+		"TIME_MONTH":       strconv.FormatInt(int64(now.Month()), 10),
+		"TIME_DAY":         strconv.FormatInt(int64(now.Day()), 10),
+		"TIME_HOUR":        strconv.FormatInt(int64(now.Hour()), 10),
+		"TIME_MINUTE":      strconv.FormatInt(int64(now.Minute()), 10),
+		"TIME_SECOND":      "",
 
 		"HOST_OS":             "",
 		"HOST_OS_VERSION":     "",

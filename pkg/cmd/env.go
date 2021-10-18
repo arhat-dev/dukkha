@@ -22,7 +22,8 @@ import (
 // TODO(all): Update docs/environment-variables.md when updating this file
 
 func createGlobalEnv(ctx context.Context) map[string]string {
-	now := time.Now()
+	now := time.Now().Local()
+	zone, offset := now.Zone()
 	result := map[string]string{
 		constant.ENV_DUKKHA_WORKING_DIR: func() string {
 			pwd, err2 := os.Getwd()
@@ -38,12 +39,14 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 			return pwd
 		}(),
 
-		constant.ENV_TIME_YEAR:   strconv.FormatInt(int64(now.Year()), 10),
-		constant.ENV_TIME_MONTH:  strconv.FormatInt(int64(now.Month()), 10),
-		constant.ENV_TIME_DAY:    strconv.FormatInt(int64(now.Day()), 10),
-		constant.ENV_TIME_HOUR:   strconv.FormatInt(int64(now.Hour()), 10),
-		constant.ENV_TIME_MINUTE: strconv.FormatInt(int64(now.Minute()), 10),
-		constant.ENV_TIME_SECOND: strconv.FormatInt(int64(now.Second()), 10),
+		constant.ENV_TIME_ZONE:        zone,
+		constant.ENV_TIME_ZONE_OFFSET: strconv.FormatInt(int64(offset), 10),
+		constant.ENV_TIME_YEAR:        strconv.FormatInt(int64(now.Year()), 10),
+		constant.ENV_TIME_MONTH:       strconv.FormatInt(int64(now.Month()), 10),
+		constant.ENV_TIME_DAY:         strconv.FormatInt(int64(now.Day()), 10),
+		constant.ENV_TIME_HOUR:        strconv.FormatInt(int64(now.Hour()), 10),
+		constant.ENV_TIME_MINUTE:      strconv.FormatInt(int64(now.Minute()), 10),
+		constant.ENV_TIME_SECOND:      strconv.FormatInt(int64(now.Second()), 10),
 
 		constant.ENV_HOST_KERNEL:         runtime.GOOS,
 		constant.ENV_HOST_KERNEL_VERSION: sysinfo.KernelVersion(),
