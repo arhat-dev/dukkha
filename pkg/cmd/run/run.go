@@ -69,16 +69,10 @@ dukkha run golang in-docker build my-executable`,
 
 	flags := runCmd.Flags()
 
-	const (
-		matrixFlagName = "matrix"
-	)
-
+	utils.RegisterMatrixFilterFlag(flags, &matrixFilter)
 	flags.IntVarP(&workerCount, "workers", "j", 1, "set parallel worker count")
 	flags.BoolVar(&failFast, "fail-fast", true, "cancel all task execution after one errored")
 	flags.BoolVar(&forceColor, "force-color", false, "force color output even when not given a tty")
-	flags.StringSliceVarP(&matrixFilter, matrixFlagName, "m", nil,
-		"set matrix filter, format: `-m <name>=<value>` for matching, `-m <name>!=<value>` for ignoring",
-	)
 	flags.BoolVar(&translateANSIStream, "translate-ansi-stream", false,
 		"when set to true, will translate ansi stream to plain text before write to stdout/stderr, "+
 			"when set to false, do nothing to the ansi stream, "+
@@ -89,31 +83,12 @@ dukkha run golang in-docker build my-executable`,
 			"when ansi stream is going to be translated",
 	)
 
-	runCmd.ValidArgsFunction = func(
-		cmd *cobra.Command, args []string, toComplete string,
-	) ([]string, cobra.ShellCompDirective) {
-		return utils.HandleCompletionTask(*ctx, args, toComplete)
-	}
+	utils.SetupTaskAndTaskMatrixCompletion(ctx, runCmd)
 
 	runCmd.SetHelpCommand(&cobra.Command{
 		SilenceUsage: true,
 		Hidden:       true,
 	})
-
-	err := runCmd.RegisterFlagCompletionFunc(
-		matrixFlagName,
-		func(
-			cmd *cobra.Command, args []string, toComplete string,
-		) ([]string, cobra.ShellCompDirective) {
-			filter, _ := runCmd.Flags().GetStringSlice(matrixFlagName)
-			return utils.HandleCompletionMatrix(
-				*ctx, filter, args, toComplete,
-			)
-		},
-	)
-	if err != nil {
-		panic(fmt.Errorf("failed to setup matrix flag completion: %w", err))
-	}
 
 	return runCmd
 }

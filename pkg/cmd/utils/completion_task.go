@@ -9,7 +9,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func HandleCompletionTask(
+func handleTaskCompletion(
 	appCtx dukkha.Context,
 	args []string,
 	toComplete string,
