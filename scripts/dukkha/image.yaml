@@ -81,7 +81,7 @@ buildah:xbuild:
   steps:
   - id: builder
     from:
-      ref: ghcr.io/arhat-dev/builder-golang:1.16-alpine
+      ref: ghcr.io/arhat-dev/builder-golang:1.17-alpine
   - copy:
       from:
         local:

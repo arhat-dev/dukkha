@@ -11,16 +11,12 @@ arch:
 - armv7
 - armv6
 - armv5
-exclude:
-- kernel:
-  - windows
-  arch: [arm64]
 include:
-# - kernel:
-#   - openbsd
-#   arch:
-#   - mips64
-#   - mips64sf
+- kernel:
+  - openbsd
+  arch:
+  - mips64
+  - mips64sf
 - kernel:
   - darwin
   arch:
@@ -37,14 +33,14 @@ include:
 - kernel:
   - linux
   arch:
-  - mips
-  - mipssf
-  - mipsle
-  - mipslesf
-  - mips64
-  - mips64sf
+  - riscv64
+  - s390x
   - mips64le
   - mips64lesf
+  - mips64
+  - mips64sf
   - ppc64le
-  - s390x
-  - riscv64
+  - mipsle
+  - mipslesf
+  - mips
+  - mipssf
