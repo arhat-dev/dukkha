@@ -19,6 +19,15 @@ renderers:
 
 Any valid yaml value
 
+## Interoperation with `shell` renderer
+
+There is a template func `shell` for running shell commands in template
+
+```yaml
+foo@template: |-
+  {{- shell "echo 'Called From Template'" -}}
+```
+
 ## Variants
 
 None

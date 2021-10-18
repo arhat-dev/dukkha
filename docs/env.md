@@ -1,21 +1,26 @@
 # Environment Variables
 
-Available environment variables when running `dukkha run`
+Available environment variables when running `dukkha`
 
-__NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and [pkg/constant/env.go](../pkg/constant/env.go)
+__NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go), [pkg/constant/env.go](../pkg/constant/env.go) and [pkg/dukkha/rendering.go](../pkg/dukkha/rendering.go)
+
+## Usage
+
+For `env` renderer: Use like unix shell env (e.g. `${SOME_ENV}`)
+For `template` renderer: Available under `.Env` object (e.g. `{{ .Env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
 
 - `DUKKHA_WORKING_DIR`
   - Description: The absolute directory path in which you invoked `dukkha`
-  - Default Value: `$(pwd)`
+  - Default Value: `$(pwd)` value in the directory you run dukkha
   - Customization: Not Supported
   - Potential Use Cases:
-    - To mount proper working dir for containerized tools when `chdir` is used in your task
+    - Mount proper working dir for containerized tools when `chdir` used in your task
 
 - `DUKKHA_CACHE_DIR`
-  - Description: The absolute path of the cache directory used for shell script caching and temporary data storage for task execution
-  - Default Value: `$(pwd)/.dukkha/cache`
+  - Description: The absolute path of the cache directory used for task intermediate output caching
+  - Default Value: `${DUKKHA_WORKING_DIR}/.dukkha/cache`
   - Customization: Set `bootstrap.cache_dir` in your config file
 
 ## `git` Repo Information
@@ -28,8 +33,8 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and
 
 - `GIT_COMMIT`
   - Description: Current commit sha when invoking `dukkha`
-    - Example Values: `46a0cbe436971d66e79f4d03745ce9f61acb282f`
   - Default Value: `$(git rev-parse HEAD)`
+    - Example Values: `46a0cbe436971d66e79f4d03745ce9f61acb282f`
   - Customization: Not Supported
 
 - `GIT_TAG`
@@ -48,7 +53,7 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and
   - Description: Default remote branch of this repo
   - Default Value: `$(git symbolic-ref refs/remotes/origin/HEAD)` with prefix `refs/remotes/origin/` trimed
     - Example Values: `master`, `main`
-  - Customization: Not Supported
+  - Customization: Set `GIT_DEFAULT_BRANCH` to override, or set `global.default_git_branch` to force override
 
 ## Time Information
 
@@ -103,3 +108,11 @@ All time related values are based on local time
   - Default Value: `dukkha` defined mapped value of `$(uname -m)`
     - Example Values: see [`System Arch` section in docs/constants.md](./constants.md#system-arch)
   - Customization: Not Supported
+
+## Task Execution Information
+
+__NOTE:__ Environment variables in this section are only available for your tasks and tools.
+
+- `MATRIX_<upper-case-matrix-spec-key>`
+  - Description: Matrix value
+  - Example Names: `MATRIX_KERNEL` for `matrix.kernel`, `MATRIX_FOO_DATA` for `matrix.foo_data`

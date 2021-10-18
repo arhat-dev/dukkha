@@ -28,7 +28,8 @@ A typical build automation tool only takes one or two from the above at the same
 
 ### Content Rendering Features
 
-- Rendering suffix, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix
+- Rendering suffix
+  - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix if you're not.
   - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers
 
 - Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix
