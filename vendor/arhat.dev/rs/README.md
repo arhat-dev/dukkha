@@ -21,7 +21,7 @@ A plain yaml doc looks like this:
 foo: bar
 ```
 
-everything's static, once unmarshaled, `foo` gets value `bar`.
+Everything's static, once unmarshaled, `foo` gets value `bar`.
 
 Now what if we would like to take an environment variable as `foo`'s value?
 
@@ -33,7 +33,7 @@ you will only get `${FOO}` after unmarshaling, you have to code you own logic to
 
 What you code, is actually a `renderer` with its usage specific to `foo`.
 
-Rendering suffix is there to help, it offers a way to make your yaml doc dynamic on its own, you control what you get in yaml rather than your compiled code.
+Rendering suffix is here to help, it offers a way to make your yaml doc dynamic on its own, you control what you get in yaml rather than your compiled code.
 
 ### How it looks?
 
@@ -47,50 +47,9 @@ Before I would start, probably you have already figured out what's going on:
 
 `@` is like a notifier, and notifies the renderer `env` with value `${FOO}`, then `env` does its own job and generates some output with `os.ExpandEnv` function call, and at last, the output is set as `foo`'s value.
 
-Simple and straightforward, right?
+But also wondering how can `foo@env` be resolved as `foo` since they are completely different field name! That's what we are taking care of, see [How it works?](#how-it-works) section for brief introduction.
 
-### Why?
-
-Both writing and resolving software configuration are tedious and error prone, especially when you want to achieve felixibility to some extent.
-
-Here is an example, given target config like this
-
-```go
-type Config struct {
-    A string
-    B int
-    C float64
-
-    // RemoteHostScript for remote host execution
-    RemoteHostScript string `yaml:"remote_host_script"`
-}
-```
-
-when you want to support environment variables for its fields `A`, `B`, `C`, while not including `remote_host_script` (obviously the `remote_host_script` should be executed in some remote system), what whould you do?
-
-```yaml
-a: ${ENV_FOR_A}
-b: ${ENV_FOR_B}
-c: ${ENV_FOR_C}
-
-remote_host_script: |-
-  #!/bin/sh
-
-  echo ${ENV_WITH_DIFFERENT_CONTEXT}
-```
-
-- Make `remote_host_script` a file path reference (or add a new field like `remote_host_script_file`)?
-  - Simple and effective, but now you have two source of remote host script, more fixed code logic added, more document to come for preferred options when both is set. End user MUST read your documentation in detail for such subtle issues (if you are good at documenting).
-- Expand environment variables before unmarshaling?
-  - What would you do with `${ENV_WITH_DIFFERENT_CONTEXT}`? Well, you can unmarshal the config into two config, one with environment variables expanded, another not, and merge them into one.
-- Unmarshal yaml as `map[string]interface{}` first, then do custom handling for every field?
-  - Now you have to work with types manually, tedious yet error prone job starts now.
-- Create a new DSL, add some keywords...
-  - We have already seen so many DSLs created just for configuration purpose, almost none of them really simplified the configuration management, and usually only useful for development not deployment.
-
-As developers, what we actually need is let end user decide which field is resolved by what method, and we just control when to resolve which field.
-
-Rendering suffix is applicable to every single yaml field, doing exactly what end user need, and it can resolve fields partialy with some strategy in code, also exactly what developers want.
+It's simple and straightforward, right?
 
 ## Prerequisites
 
@@ -102,23 +61,23 @@ Rendering suffix is applicable to every single yaml field, doing exactly what en
   - Add a suffix starts with `@`, followed by some renderer name, to your yaml field name as rendering suffix (e.g. `foo@<renderer-name>: bar`)
 - Type hinting: keep you data as what it supposed to be
   - Add a type hint suffix `?<some-type>` to your renderer (e.g. `foo@<renderer-name>?[]obj: bar` suggests `foo` should be an array of objects using result from `<renderer-name>` generated with input `bar`)
-  - [list of supported type hints](https://github.com/arhat-dev/rs/blob/v0.4.0/typehint.go#L24))
+  - See [list of supported type hints](https://github.com/arhat-dev/rs/blob/v0.4.0/typehint.go#L24)
 - Data merging and patching made esay: create patching spec in yaml doc
   - Add a patching suffix `!` to your renderer (after the type hint if any), feed it a [patch spec](https://pkg.go.dev/arhat.dev/rs#PatchSpec) object
 - Renderer chaining: render you data with a rendering pipeline
   - join you renderers with pipes (`|`), get your data rendered through the pipeline (e.g. join three renderers `a`, `b`, `c` -> `a|b|c`)
-- Supports arbitraty yaml doc without type definition in code
-  - Use [`AnyObject`](https://pkg.go.dev/arhat.dev/rs#AnyObject) as `interface{}`
-  - Use [`AnyObjectMap`](https://pkg.go.dev/arhat.dev/rs#AnyObjectMap) as `map[string]interface{}`
-- Vanilla yaml, valid for all standard yaml parser
-- Everything `gopkg.in/yaml.v3` supports are supported
-  - Anchors, Alias, YAML Merges
+- Supports arbitraty yaml doc without type definition in your own code.
+  - Use [`AnyObject`](https://pkg.go.dev/arhat.dev/rs#AnyObject) as `interface{}`.
+  - Use [`AnyObjectMap`](https://pkg.go.dev/arhat.dev/rs#AnyObjectMap) as `map[string]interface{}`.
+- Everything `gopkg.in/yaml.v3` supports are supported.
+  - Anchors, Alias, YAML Merges ...
+- Extended but still vanilla yaml, your yaml doc stays valid for all standard yaml parser.
 
 Sample YAML Doc with all features above
 
 ```yaml
-foo@a|b|c!: &foo
-  value@http?[]obj: https://example.com
+foo@a!: &foo
+  value@env|http?[]obj: https://example.com/${FOO_FILE_PATH}
   merge:
   - value@file: ./value-a.yml
     select: |-
@@ -132,8 +91,10 @@ foo@a|b|c!: &foo
   select: |-
     { foo: .[0].foo, bar: .[1].bar }
 
-bar@a|b|c: *foo
+bar@a!: *foo
 ```
+
+__NOTE:__ This module provides no renderer implementation, and the only built-in renderer is a pseudo renderer with empty name that skips rendering (output is what input is) for data patching and type hinting purpose (e.g. `foo@?int!: { ... patch spec ... }`). You have to roll out your own renderers.
 
 ## Usage
 
@@ -145,8 +106,29 @@ __NOTE:__ You can find more examples in [`arhat-dev/dukkha`](https://github.com/
 
 See [known_limitation_test.go](./known_limitation_test.go) for sample code and workaround.
 
-- Built-in map data structure with rendering suffix applied to map key are treated as is, rendering suffix won't be recognized.
-  - which means for `map[string]interface{}`, `foo@foo: bar` is just a map item with key `foo@foo`, value `bar`, no data to be resolved
+- Golang built-in map with rendering suffix applied to map key are treated as is, rendering suffix won't be recognized.
+  - For `map[string]interface{}`, `foo@foo: bar` is just a map item with key `foo@foo`, value `bar`, no data to be resolved.
+  - The reason for this limitation is obvious since built-in map types doesn't have `BaseField` embedded, but it will be counterintuitive when you have a map field in a struct having `BaseField` embedded.
+
+## How it works?
+
+IoC (Inversion of Control) is famous for its application in DI (Dependency Injection), but what it literally says is to control the outside world at somewhere inside the world, that's the start point.
+
+Custom yaml unmarshaling requires custom implementation of `yaml.Unmarshaler`, so usually you just get your structs unmarshaled by `yaml.Unmarshal` directly.
+
+We implemented something called `BaseField`, it lives in your struct as a embedded field, all its methods are exposed to the outside world by default, and guess what, it implements `yaml.Unmarshaler`, so your struct implements `yaml.Unmarshaler` as well.
+
+But can you control sibling fields in a struct? Not possible in golang unless with the help of outside world, that's why we need `Init()` function, calling `Init()` with your struct actually activates the `BaseField` in it, `Init()` function tells the inner `BaseField` what fields the parent struct have (its sibling fields), with the help of reflection.
+
+You only have to call `Init()` once for the top level struct, since then the `BaseField` in it knows what to do with its sibling fields, it will also search for all structs with `BaseField` embedded when unmarshaling, call `Init()` for them, until the whole yaml doc is unmarshaled.
+
+During the unmarshaling process, `BaseField.UnmarshalYAML` get called by `yaml.Unmarhsal`, it checks the input yaml field names, if a yaml field name has a suffix starting with `@`, then that yaml field will be treated as using rendering suffix, `BaseField` parses the yaml field name to know the real field name is (e.g. `foo@bar`'s real field name is `foo`) and sets the rendering pipeline with the suffix, it also saves the yaml field value on its own but not setting the actual strcut field, when you call `my_struct_with_BaseField.ResolveFields()`, it feeds the rendering pipeline with saved field value to generate actual field value and set that as struct field value.
+
+All in all, `BaseField` handles everything related to yaml unmarshaling to support rendering suffix after initial activation, so all you need to do is to embed a `BaseField` as the very first field in your struct where you want to support rendering suffix and activate the top level struct (with `BaseField` embedded, which can be some inner field) with a `Init()` function call.
+
+## FAQ
+
+Have a look at [FAQ.md](./FAQ.md) or start/join a [discussion on github](https://github.com/arhat-dev/rs/discussions).
 
 ## LICENSE
 

@@ -1,9 +1,17 @@
 package rs
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
+	"sync/atomic"
 )
+
+type catchOtherFieldRef struct {
+	fieldRef
+
+	cache map[string]reflect.Value
+}
 
 type BaseField struct {
 	_initialized uint32
@@ -13,6 +21,7 @@ type BaseField struct {
 	_parentType  reflect.Type
 	_parentValue reflect.Value
 
+	// key: yamlKey
 	unresolvedFields map[string]*unresolvedFieldSpec
 
 	opts *Options
@@ -23,10 +32,15 @@ type BaseField struct {
 
 	catchOtherFields map[string]struct{}
 
+	// normalFields are those without `rs:"other"` field tag
 	// key: yaml tag name or lower case exported field name
-	fields map[string]*fieldRef
+	normalFields map[string]*fieldRef
 
 	catchOtherField *fieldRef
+}
+
+func (f *BaseField) initialized() bool {
+	return atomic.LoadUint32(&f._initialized) == 1
 }
 
 type fieldRef struct {
@@ -36,32 +50,60 @@ type fieldRef struct {
 
 	omitempty bool
 
+	// this field is only set to true for fields with
+	// `rs:"other"` struct field tag
 	isCatchOther bool
 }
 
+// addField adds one field identified by its yamlKey
+// it may be a catch-other field
 func (f *BaseField) addField(
 	yamlKey, fieldName string,
 	fieldValue reflect.Value,
 	base *BaseField,
 	omitempty bool,
+	catchOther bool,
 ) bool {
-	if _, exists := f.fields[yamlKey]; exists {
+	if catchOther {
+		if f.catchOtherField != nil {
+			panic(fmt.Errorf(
+				"bad field tags in %s: only one map in the struct can have `rs:\"other\"` tag",
+				f._parentType.String(),
+			))
+		}
+
+		f.catchOtherField = &fieldRef{
+			fieldName:  fieldName,
+			fieldValue: fieldValue,
+			base:       base,
+
+			isCatchOther: true,
+		}
+
+		return true
+	}
+
+	// handle normal field
+
+	if _, exists := f.normalFields[yamlKey]; exists {
 		return false
 	}
 
-	f.fields[yamlKey] = &fieldRef{
+	f.normalFields[yamlKey] = &fieldRef{
 		fieldName: fieldName,
 
 		fieldValue: fieldValue,
 		base:       base,
 
-		omitempty: omitempty,
+		omitempty:    omitempty,
+		isCatchOther: catchOther,
 	}
+
 	return true
 }
 
 func (f *BaseField) getField(yamlKey string) *fieldRef {
-	return f.fields[yamlKey]
+	return f.normalFields[yamlKey]
 }
 
 type unresolvedFieldSpec struct {
