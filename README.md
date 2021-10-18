@@ -18,12 +18,6 @@ Make YAML files Makefiles
 
 A typical build automation tool only takes one or two from the above at the same time, but we have them all in `dukkha` thanks to the [rendering suffix][rs] support.
 
-## Non-Goals
-
-- To replace any existing tool
-  - `dukkha` only wraps other tools for common use cases to ease your life with devops pipelines
-- To build a custom cli tool to support all kinds of tasks
-
 ## Features
 
 ### Content Rendering Features
@@ -32,7 +26,7 @@ A typical build automation tool only takes one or two from the above at the same
   - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix if you're not.
   - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
 
-- Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix
+- Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix.
 
 ### Task Execution Features
 
