@@ -30,11 +30,14 @@ A typical build automation tool only takes one or two from the above at the same
 
 - Rendering suffix
   - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix if you're not.
-  - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers
+  - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
 
 - Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix
 
 ### Task Execution Features
+
+- Declarative task definition, context aware and customizable tool invocation.
+  - Tools know context values of its task execution, and can adapt itself for special case handling like cross compiling.
 
 - Embedded shell environment, you can completely forget external shells with dukkha
   - Predictable command execution made esay, no more worries about when will the environment variables get set, you gain total control.
