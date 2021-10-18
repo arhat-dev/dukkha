@@ -54,7 +54,7 @@ type GlobalConfig struct {
 	// Env
 	Env dukkha.Env `yaml:"env"`
 
-	Values dukkha.ArbitraryValues `yaml:"values"`
+	Values rs.AnyObjectMap `yaml:"values"`
 }
 
 func (g *GlobalConfig) Merge(a *GlobalConfig) error {
@@ -72,9 +72,19 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 		g.DefaultGitBranch = a.DefaultGitBranch
 	}
 
-	err = g.Values.ShallowMerge(&a.Values)
+	err = g.Values.Inherit(&a.Values.BaseField)
 	if err != nil {
 		return fmt.Errorf("failed to merge global values: %w", err)
+	}
+
+	if len(a.Values.Data) != 0 {
+		if g.Values.Data == nil {
+			g.Values.Data = a.Values.Data
+		} else {
+			for k, v := range a.Values.Data {
+				g.Values.Data[k] = v
+			}
+		}
 	}
 
 	return nil
@@ -303,7 +313,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		logger.V("resolved global values", log.Any("values", c.Global.Values))
 
 		logger.D("adding global values")
-		values, err := c.Global.Values.Normalize()
+		values := c.Global.Values.NormalizedValue()
 		if err != nil {
 			return fmt.Errorf("failed to normalize global values: %w", err)
 		}

@@ -1,12 +1,8 @@
 package dukkha
 
 import (
-	"fmt"
 	"strings"
 	"sync"
-
-	"arhat.dev/rs"
-	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/matrix"
@@ -30,45 +26,6 @@ type GlobalValues interface {
 	HostArch() string
 	HostOS() string
 	HostOSVersion() string
-}
-
-// ArbitraryValues is the drop in replacement of map[string]interface{}
-// with rendering suffix support
-type ArbitraryValues struct {
-	rs.BaseField `yaml:"-"`
-
-	Data map[string]*rs.AnyObject `rs:"other"`
-}
-
-func (val *ArbitraryValues) Normalize() (map[string]interface{}, error) {
-	dataBytes, err := yaml.Marshal(val.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	out := make(map[string]interface{})
-	err = yaml.Unmarshal(dataBytes, out)
-
-	return out, err
-}
-
-func (val *ArbitraryValues) ShallowMerge(a *ArbitraryValues) error {
-	err := val.BaseField.Inherit(&a.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to inherit other values: %w", err)
-	}
-
-	if len(a.Data) != 0 {
-		if val.Data == nil {
-			val.Data = a.Data
-		} else {
-			for k, v := range a.Data {
-				val.Data[k] = v
-			}
-		}
-	}
-
-	return nil
 }
 
 type EnvValues interface {

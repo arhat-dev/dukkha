@@ -7,12 +7,6 @@ import (
 	"sync/atomic"
 )
 
-type catchOtherFieldRef struct {
-	fieldRef
-
-	cache map[string]reflect.Value
-}
-
 type BaseField struct {
 	_initialized uint32
 
