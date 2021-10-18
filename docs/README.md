@@ -1,7 +1,7 @@
 # Index
 
 - [Constants](./constants.md)
-- [Environment Variables](./environment-variables.md)
+- [Environment Variables](./env.md)
 - [Shells](./shells.md)
 - [Tools](./tools/)
 - [Tasks](./tasks.md)
