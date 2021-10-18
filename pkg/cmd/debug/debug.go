@@ -28,7 +28,7 @@ func NewDebugCmd(ctx *dukkha.Context) *cobra.Command {
 
 	debugCmd := &cobra.Command{
 		Use:           "debug",
-		Short:         "Debug tasks",
+		Short:         "Debug config and task definitions",
 		Args:          cobra.RangeArgs(0, 4),
 		SilenceErrors: true,
 		SilenceUsage:  true,

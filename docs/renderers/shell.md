@@ -4,7 +4,7 @@
 foo@shell: echo "Woo"
 ```
 
-Run embedded shell script and use the output to stdout as the real value
+Run embedded shell script and use the output to stdout as the field value
 
 ## Config Options
 
@@ -16,7 +16,16 @@ renderers:
 
 ## Supported value types
 
-- `string`
+- String
+- List of Strings
+
+## Interoperation with `template` renderer
+
+You can call template funcs by prefixing their names with `template:`
+
+```yaml
+foo@shell: template:archconv.DebianTripleName "armv6"
+```
 
 ## Suggested Use Cases
 

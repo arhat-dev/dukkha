@@ -20,7 +20,7 @@ renderers:
 
 ## Supported value types
 
-- `string`
+String only
 
 ## Suggested Use Cases
 
