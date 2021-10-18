@@ -16,7 +16,7 @@ tools:
     shell_name: bootstrap
     cmd@template|env:
     - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
-    - ghcr.io/arhat-dev/builder-golang:1.16-alpine-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
+    - ghcr.io/arhat-dev/builder-golang:1.17-alpine-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
     - go
   cosign:
   - name: local
