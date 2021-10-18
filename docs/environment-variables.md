@@ -1,6 +1,6 @@
 # Environment Variables
 
-Available Environment Variables When Running `dukkha`
+Available environment variables when running `dukkha run`
 
 __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and [pkg/constant/env.go](../pkg/constant/env.go)
 
@@ -54,9 +54,19 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go) and
 
 All time related values are based on local time
 
+- `TIME_ZONE`
+  - Description: Name of local timezone
+  - Default Value: golang `time.Now().Local().Zone()` value
+  - Customization: Not Supported
+
+- `TIME_ZONE_OFFSET`
+  - Description: Local timezone offset to UTC
+  - Default Value: golang `time.Now().Local().Zone()` value
+  - Customization: Not Supported
+
 - `TIME_YEAR`, `TIME_MONTH`, `TIME_DAY`, `TIME_HOUR`, `TIME_MINUTE`, `TIME_SECOND`
   - Description: Current year, month, day, hour, minute, second number when invoking `dukkha`
-  - Default Value: golang `time.Now()` values
+  - Default Value: golang `time.Now().Local()` values
   - Customization: Not Supported
 
 ## Host System Information
