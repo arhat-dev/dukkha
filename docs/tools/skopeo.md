@@ -1,5 +1,7 @@
 # `skopeo`
 
+__NOTE:__ This tool is currently not implemented in `dukkha`.
+
 Manage OCI images using [`skopeo`](https://github.com/containers/skopeo)
 
 ## Supported Tasks
