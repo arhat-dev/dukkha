@@ -9,8 +9,8 @@ All tasks have a `arhat.dev/dukkha/pkg/tools.BaseTask` embedded
 - `tool_kind`: The tool implementation name (e.g. `docker`, `buildah`)
   - aka: Sub-directory names in `${project_root}/pkg/tools`
 - `tool_name`: Custom name configured in `tools.<tool_kind>[*].name`
-  - This is optional if you mean the default tool (the first tool configured in `tools.<tool_kind>`)
-- `task_kind`: Task kind handled by this tool
+  - This is optional if the task is available for all tools with `<tool_kind>`
+- `task_kind`: Task kind handled by the tool
 
 ```yaml
 <tool_kind>{:<tool_name>}:<task_kind>:
@@ -39,5 +39,4 @@ All tasks have a `arhat.dev/dukkha/pkg/tools.BaseTask` embedded
     before:matrix: []
     after:matrix:success: []
     after:matrix:failure: []
-
 ```
