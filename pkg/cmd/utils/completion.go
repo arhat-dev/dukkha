@@ -3,9 +3,10 @@ package utils
 import (
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 const MatrixFilterFlagName = "matrix"
