@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"os"
 	"sort"
 
 	"arhat.dev/pkg/sorthelper"
@@ -126,13 +127,8 @@ func debugTasks(
 		}
 	}
 
-	// // gather tasks with same task kind
-	// type taskPartialKey struct {
-	// 	toolKind dukkha.ToolKind
-	// 	toolName dukkha.ToolName
-	// 	taskKind dukkha.TaskKind
-	// }
-
+	// get tasks sorted by
+	// tool kind -> tool name -> task kind -> task name
 	var (
 		taskKeys = make([]taskFullKey, len(allTasks))
 		tasks    = make([]dukkha.Task, len(allTasks))
@@ -145,7 +141,7 @@ func debugTasks(
 		i++
 	}
 
-	sortTarget := sorthelper.NewCustomSortable(
+	sortStub := sorthelper.NewCustomSortable(
 		func(i, j int) {
 			taskKeys[i], taskKeys[j] = taskKeys[j], taskKeys[i]
 			tasks[i], tasks[j] = tasks[j], tasks[i]
@@ -195,7 +191,7 @@ func debugTasks(
 		func() int { return len(taskKeys) },
 	)
 
-	sort.Sort(sortTarget)
+	sort.Sort(sortStub)
 
 	for i, tsk := range tasks {
 		toolKey := dukkha.ToolKey{
@@ -209,8 +205,7 @@ func debugTasks(
 
 		err := debugSingleTask(appCtx, tool, tsk)
 		if err != nil {
-			// TODO: report task debug error
-			_ = err
+			fmt.Fprintln(os.Stderr, err.Error())
 		}
 	}
 
