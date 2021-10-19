@@ -6,12 +6,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	_ Field          = (*AnyObject)(nil)
-	_ yaml.Marshaler = (*AnyObject)(nil)
-	_ json.Marshaler = (*AnyObject)(nil)
-)
-
 // AnyObject is a `interface{}` equivalent with rendering suffix support
 type AnyObject struct {
 	mapData    *AnyObjectMap
@@ -108,12 +102,6 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 	// scalar type data doesn't need resolving
 	return nil
 }
-
-var (
-	_ Field          = (*AnyObjectMap)(nil)
-	_ yaml.Marshaler = (*AnyObjectMap)(nil)
-	_ json.Marshaler = (*AnyObjectMap)(nil)
-)
 
 // AnyObjectMap is a `map[string]interface{}` equivalent with rendering suffix support
 type AnyObjectMap struct {

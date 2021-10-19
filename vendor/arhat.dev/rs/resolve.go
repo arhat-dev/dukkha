@@ -89,7 +89,6 @@ func (f *BaseField) resolveSingleField(
 	return f.handleResolvedField(rc, depth, targetField)
 }
 
-// nolint:gocyclo
 func (f *BaseField) handleResolvedField(
 	rc RenderingHandler,
 	depth int,
@@ -322,7 +321,7 @@ func (f *BaseField) resolvePatchSpec(
 		}
 	}
 
-	patchSpec = Init(&PatchSpec{}, f.opts).(*PatchSpec)
+	patchSpec = Init(&PatchSpec{}, f._opts).(*PatchSpec)
 	err = yaml.Unmarshal(patchSpecBytes, patchSpec)
 	if err != nil {
 		return nil, nil, fmt.Errorf(

@@ -10,11 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	fieldInterfaceType = reflect.TypeOf((*Field)(nil)).Elem()
-	rawInterfaceType   = reflect.TypeOf((*interface{})(nil)).Elem()
-)
-
 // UnmarshalYAML handles parsing of rendering suffix and normal yaml
 // unmarshaling
 func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
@@ -39,7 +34,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	handledYamlValues := make(map[string]struct{})
-	allowUnknown := f.opts != nil && f.opts.AllowUnknownFields
+	allowUnknown := f._opts != nil && f._opts.AllowUnknownFields
 
 	// set values
 	for rawYamlKey, v := range m {
@@ -250,6 +245,38 @@ func (f *BaseField) unmarshal(
 			default:
 				return f.unmarshalRaw(in, outVal)
 			}
+		case int, int8, int16, int32, int64:
+			switch outKind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				outVal.SetInt(in.Int())
+				return nil
+			default:
+				return f.unmarshalRaw(in, outVal)
+			}
+		case uint, uint8, uint16, uint32, uint64, uintptr:
+			switch outKind {
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				outVal.SetUint(in.Uint())
+				return nil
+			default:
+				return f.unmarshalRaw(in, outVal)
+			}
+		case float32, float64:
+			switch outKind {
+			case reflect.Float32, reflect.Float64:
+				outVal.SetFloat(in.Float())
+				return nil
+			default:
+				return f.unmarshalRaw(in, outVal)
+			}
+		case complex64, complex128:
+			switch outKind {
+			case reflect.Complex64, reflect.Complex128:
+				outVal.SetComplex(in.Complex())
+				return nil
+			default:
+				return f.unmarshalRaw(in, outVal)
+			}
 		default:
 			// not compatible, check if assignable
 			if err := checkAssignable(yamlKey, in, outVal); err != nil {
@@ -264,7 +291,7 @@ func (f *BaseField) unmarshal(
 
 // unmarshalRaw unmarshals interface{} type value to outVal
 func (f *BaseField) unmarshalRaw(in, outVal reflect.Value) error {
-	tryInit(outVal, f.opts)
+	tryInit(outVal, f._opts)
 
 	dataBytes, err := yaml.Marshal(in.Interface())
 	if err != nil {
@@ -295,13 +322,13 @@ func (f *BaseField) unmarshalInterface(
 	in, outVal reflect.Value,
 	keepOld bool,
 ) (bool, error) {
-	if f.opts == nil || f.opts.InterfaceTypeHandler == nil {
+	if f._opts == nil || f._opts.InterfaceTypeHandler == nil {
 		// there is no interface type handler
 		// use default behavior for interface{} types
 		return false, nil
 	}
 
-	fVal, err := f.opts.InterfaceTypeHandler.Create(outVal.Type(), yamlKey)
+	fVal, err := f._opts.InterfaceTypeHandler.Create(outVal.Type(), yamlKey)
 	if err != nil {
 		if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
 			// no type information provided, decode using go-yaml directly
