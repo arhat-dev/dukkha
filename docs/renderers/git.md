@@ -4,7 +4,7 @@
 foo@git: my-org/foo.git/foo.yaml@master
 ```
 
-Fetch file content from your git ssh repo as the field value
+Fetch file content from your git ssh repo as the field value.
 
 ## Config Options
 
@@ -37,18 +37,21 @@ renderers:
 
 ## Supported value types
 
-- String in scp style URL with optional `@<ref>` suffix (if you have configured ssh in renderer config)
+- String: SCP style URL with optional `host:port` part and `@<ref>` suffix (when you have configured ssh options of your git renderer in renderer config)
 
 ```yaml
+# example 1: without host:port part (using that configured in renderer config) and with @<ref>
 foo@git: my-org/foo.git/foo.yaml@master
-# you can optionally override host and port as well
+
+# example 2: with host:port but without @<ref> (using HEAD)
 bar@git: my-domain.com:1022:my-org/foo.git/foo.yaml
-# if you only override host, the port will defaults to 22 rather than using
-# port configured in renderer config
+
+# example 3: with host but not port
+# the port will defaults to 22 rather than using the port configured in renderer config
 woo@git: my-domain.com:my-org/foo.git/foo.yaml@dev
 ```
 
-- Full spec (you can omit ssh part if you have configured ssh in renderer config and you don't want to override it)
+- Valid git fetch spec in yaml (you can omit ssh options if you have configured them in renderer config and you don't want to override it)
 
 ```yaml
 # git ssh settings
@@ -76,10 +79,6 @@ path: foo.yaml
 # defaults to HEAD (default branch in remote)
 ref: master
 ```
-
-## Variants
-
-None
 
 ## Suggested Use Cases
 

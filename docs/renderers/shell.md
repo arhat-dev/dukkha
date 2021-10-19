@@ -16,8 +16,8 @@ renderers:
 
 ## Supported value types
 
-- String
-- List of Strings
+- String: To run a single script
+- List of Strings: To run a series of scripts in order
 
 ## Interoperation with `template` renderer
 
@@ -29,4 +29,4 @@ foo@shell: template:archconv.DebianTripleName "armv6"
 
 ## Suggested Use Cases
 
-No suggestion for now
+No suggestion for now.

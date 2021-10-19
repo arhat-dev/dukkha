@@ -20,7 +20,11 @@ renderers:
 
 ## Supported value types
 
-String only
+- String: Local file path
+
+```yaml
+foo@file: /tmp/data.json
+```
 
 ## Suggested Use Cases
 
