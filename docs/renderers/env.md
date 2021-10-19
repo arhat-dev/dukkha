@@ -4,7 +4,7 @@
 foo@env: some $ENV_NAME or ${REF} or $(shell command)
 ```
 
-Expand environment variable references (`$env_name` or `${env_name}`) and evaluate shell command (`$(some command)`) to generate real value
+Generate field value by expanding environment variable references (`$env_name` or `${env_name}`) and evaluating shell command (`$(some command)`).
 
 ## Config Options
 

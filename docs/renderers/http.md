@@ -48,17 +48,23 @@ renderers:
 
 ## Supported value types
 
-- `string` of target url
-- yaml config
+- String: URL
 
-  ```yaml
-  url: http://url.example
+```yaml
+foo@http: https://example.com/data
+```
+
+- Valid http fetch spec in yaml
+
+```yaml
+foo@http:
+  url: https://example.com/data
   config:
     # options are the same as Config Options .renderers.http
     # but without cache related options
     method: POST
-  ```
+```
 
 ## Suggested Use Cases
 
-Organization to share build recipes using certral http service
+Organization to share build recipes using certral http service.

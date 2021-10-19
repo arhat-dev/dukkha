@@ -28,10 +28,6 @@ foo@template: |-
   {{- shell "echo 'Called From Template'" -}}
 ```
 
-## Variants
-
-None
-
 ## Suggested Use Cases
 
-No suggestion for now
+No suggestion for now.

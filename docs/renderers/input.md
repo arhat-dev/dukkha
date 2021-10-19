@@ -19,7 +19,11 @@ renderers:
 
 ## Supported value types
 
-- `string` as prompt
+- String: The input prompt
+
+```yaml
+foo@input: Enter your mood
+```
 
 ## Suggested Use Cases
 
