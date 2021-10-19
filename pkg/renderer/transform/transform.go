@@ -3,10 +3,12 @@ package transform
 import (
 	"bytes"
 	"fmt"
+	"os"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/templateutils"
@@ -87,6 +89,7 @@ type Operation struct {
 	rs.BaseField `yaml:"-"`
 
 	Template *string `yaml:"template,omitempty"`
+	Shell    *string `yaml:"shell,omitempty"`
 }
 
 type tplDataType struct {
@@ -111,6 +114,40 @@ func (op *Operation) Do(rc dukkha.RenderingContext, data interface{}) (interface
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute template %q: %w", tplStr, err)
+		}
+
+		return string(buf.Next(buf.Len())), nil
+	case op.Shell != nil:
+		script := *op.Shell
+
+		valueBytes, err := yamlhelper.ToYamlBytes(data)
+		if err != nil {
+			return nil, err
+		}
+
+		rc.AddEnv(true, &dukkha.EnvEntry{
+			Name:  "VALUE",
+			Value: string(valueBytes),
+		})
+
+		buf := &bytes.Buffer{}
+		runner, err := templateutils.CreateEmbeddedShellRunner(
+			rc.WorkingDir(), rc, nil, buf, os.Stderr,
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to create embedded shell: %w",
+				err,
+			)
+		}
+
+		parser := syntax.NewParser(
+			syntax.Variant(syntax.LangBash),
+		)
+
+		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
+		if err != nil {
+			return nil, fmt.Errorf("failed to run shell script: %w", err)
 		}
 
 		return string(buf.Next(buf.Len())), nil

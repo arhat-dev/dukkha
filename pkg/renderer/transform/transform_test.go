@@ -33,6 +33,24 @@ ops:
 `,
 			expected: "10.10000",
 		},
+		{
+			name: "Op Shell YAML number",
+			specStr: `
+value: "10.10000"
+ops:
+- shell: 'template:fromYaml "\"${VALUE}\""'
+`,
+			expected: "10.1",
+		},
+		{
+			name: "Op Shell YAML str",
+			specStr: `
+value: "10.10000"
+ops:
+- shell: 'template:strings.Quote "\"${VALUE}\"" | template:fromYaml'
+`,
+			expected: "10.10000",
+		},
 	}
 
 	for _, test := range tests {

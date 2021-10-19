@@ -6,6 +6,8 @@ foo@transform:
   ops:
   - template: |-
       {{ .Value }}-do-something
+  - shell: |-
+      echo ${VALUE}
 ```
 
 Use operations like [template](https://golang.org/pkg/text/template/) to transform string value into arbitrary valid yaml or string, and use the result as the field value
@@ -20,22 +22,22 @@ renderers:
 
 ## Supported value types
 
-Only supports valid transform spec yaml object
+- Valid transform spec in yaml
 
 ```yaml
-# value is a string value
-value: String Only, seriously
-# operations you want to take on the value
-ops:
-# currently template is the only operation we support
-- template: |-
-    add some {{- /* go */ -}} template
-    your value above is available as {{ .Value }}
+foo@transform:
+  # value is a string value
+  value: String Only, seriously
+  # operations you want to take on the value
+  ops:
+  # Execute golang template over .Value
+  - template: |-
+      add some {{- /* go */ -}} template
+      your value above is available as {{ .Value }}
+  # Execute shell script with env ${VALUE}
+  - shell: |-
+      echo "${VALUE}"
 ```
-
-## Variants
-
-None
 
 ## Suggested Use Cases
 
