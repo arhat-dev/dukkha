@@ -108,7 +108,7 @@ See [known_limitation_test.go](./known_limitation_test.go) for sample code and w
 
 - Golang built-in map with rendering suffix applied to map key are treated as is, rendering suffix won't be recognized.
   - For `map[string]interface{}`, `foo@foo: bar` is just a map item with key `foo@foo`, value `bar`, no data to be resolved.
-  - The reason for this limitation is obvious since built-in map types doesn't have `BaseField` embedded, but it will be counterintuitive when you have a map field in a struct having `BaseField` embedded.
+  - The reason for this limitation is obvious since built-in map types doesn't have `BaseField` embedded, but it can be counterintuitive when you have a map field in a struct having `BaseField` embedded.
 
 ## How it works?
 

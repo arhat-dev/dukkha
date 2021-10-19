@@ -53,8 +53,6 @@ type (
 	RenderingHandleFunc func(renderer string, rawData interface{}) (result interface{}, err error)
 )
 
-var _ RenderingHandler = RenderingHandleFunc(nil)
-
 func (f RenderingHandleFunc) RenderYaml(renderer string, rawData interface{}) (result interface{}, err error) {
 	return f(renderer, rawData)
 }
@@ -69,8 +67,6 @@ type (
 	// InterfaceTypeHandleFunc is a helper type to wrap your function as InterfaceTypeHandler
 	InterfaceTypeHandleFunc func(typ reflect.Type, yamlKey string) (interface{}, error)
 )
-
-var _ InterfaceTypeHandler = InterfaceTypeHandleFunc(nil)
 
 func (f InterfaceTypeHandleFunc) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
 	return f(typ, yamlKey)

@@ -12,7 +12,7 @@ arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/rs v0.4.0 => arhat.dev/rs v0.4.1-0.20211018213216-a4daf43d410e
+# arhat.dev/rs v0.5.0 => arhat.dev/rs v0.5.0
 ## explicit
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1
@@ -196,4 +196,4 @@ mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
-# arhat.dev/rs => arhat.dev/rs v0.4.1-0.20211018213216-a4daf43d410e
+# arhat.dev/rs => arhat.dev/rs v0.5.0

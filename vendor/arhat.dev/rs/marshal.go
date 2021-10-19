@@ -6,11 +6,7 @@ package rs
 import (
 	"fmt"
 	"reflect"
-
-	"gopkg.in/yaml.v3"
 )
-
-var _ yaml.Marshaler = (*BaseField)(nil)
 
 func (f *BaseField) MarshalYAML() (interface{}, error) {
 	if !f.initialized() {
@@ -37,19 +33,21 @@ func (f *BaseField) MarshalYAML() (interface{}, error) {
 				continue
 			}
 
-			ret[iter.Key().String()] = v.Interface()
+			ret[k] = v.Interface()
 		}
 	}
 
 	for k, v := range f.normalFields {
+		vk := v.fieldValue.Kind()
+
 		if v.omitempty {
-			if !v.fieldValue.IsValid() || v.fieldValue.IsZero() {
+			if !v.fieldValue.IsValid() || (vk != reflect.Array && v.fieldValue.IsZero()) {
 				// value not set or zero value, just ignore it
 				continue
 			}
 
 			// value already set and not zero value
-			switch v.fieldValue.Kind() {
+			switch vk {
 			case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
 				if v.fieldValue.Len() == 0 {
 					continue
@@ -57,7 +55,7 @@ func (f *BaseField) MarshalYAML() (interface{}, error) {
 			}
 		}
 
-		if v.fieldValue.Kind() == reflect.Ptr && v.fieldValue.IsNil() {
+		if vk == reflect.Ptr && v.fieldValue.IsNil() {
 			ret[k] = nil
 			continue
 		}
