@@ -35,8 +35,10 @@ type versionOptions struct {
 func NewVersionCmd() *cobra.Command {
 	opt := new(versionOptions)
 	versionCmd := &cobra.Command{
-		Use:          "version",
-		SilenceUsage: true,
+		Use:           "version",
+		Short:         "Print version info",
+		SilenceErrors: true,
+		SilenceUsage:  true,
 		Run: func(cmd *cobra.Command, args []string) {
 			show := func(s string) {
 				_, _ = fmt.Fprint(os.Stdout, s)
