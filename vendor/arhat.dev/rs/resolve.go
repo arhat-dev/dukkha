@@ -232,33 +232,52 @@ func (f *BaseField) handleUnResolvedField(
 					)
 				}
 
-				toResolve = new(yaml.Node)
-				err = yaml.Unmarshal(renderedData, toResolve)
-				if err != nil {
-					toResolve = &yaml.Node{
-						Kind:  yaml.ScalarNode,
-						Tag:   strTag,
-						Value: string(renderedData),
-					}
-				} else {
-					// unmarshal ok
-					if prepared := prepareYamlNode(toResolve); prepared != nil {
-						toResolve = prepared
-					}
+				// assume rendered data as yaml for further processing
+				func() {
+					defer func() {
+						// TODO: yaml.Unmarshal can panic on invalid but seemingly
+						// 		 correct input (e.g. markdown)
+						//
+						// related upstream issue: https://github.com/go-yaml/yaml/issues/665
+						errX := recover()
 
-					switch {
-					case isStrScalar(toResolve), isBinaryScalar(toResolve):
-						// use original string instead of yaml unmarshaled string
-						// yaml.Unmarshal may modify string content when it's not
-						// valid yaml
+						if errX != nil {
+							toResolve = &yaml.Node{
+								Kind:  yaml.ScalarNode,
+								Tag:   strTag,
+								Value: string(renderedData),
+							}
+						}
+					}()
 
+					toResolve = new(yaml.Node)
+					err = yaml.Unmarshal(renderedData, toResolve)
+					if err != nil {
 						toResolve = &yaml.Node{
 							Kind:  yaml.ScalarNode,
 							Tag:   strTag,
 							Value: string(renderedData),
 						}
+					} else {
+						// unmarshal ok
+						if prepared := prepareYamlNode(toResolve); prepared != nil {
+							toResolve = prepared
+						}
+
+						switch {
+						case isStrScalar(toResolve), isBinaryScalar(toResolve):
+							// use original string instead of yaml unmarshaled string
+							// yaml.Unmarshal may modify string content when it's not
+							// valid yaml
+
+							toResolve = &yaml.Node{
+								Kind:  yaml.ScalarNode,
+								Tag:   strTag,
+								Value: string(renderedData),
+							}
+						}
 					}
-				}
+				}()
 			}
 
 			// apply patch if set
@@ -319,6 +338,9 @@ func (f *BaseField) handleUnResolvedField(
 					return fmt.Errorf("failed to marshal patched data: %w", err)
 				}
 
+				// json data is deemed to be valid yaml, if not, that means we
+				// have a big problem then. so we don't need to save yaml.Unmarshal
+				// from panic here
 				toResolve = new(yaml.Node)
 				err = yaml.Unmarshal(dataBytes, toResolve)
 				if err != nil {
