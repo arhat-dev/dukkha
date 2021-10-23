@@ -53,7 +53,7 @@ func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
 	}, nil
 }
 
-func (tho TypeHintObject) apply(n *yaml.Node) (*yaml.Node, error) {
+func (tho TypeHintObject) apply(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
 	if n == nil || isNull(n) {
 		return nil, nil
@@ -69,7 +69,6 @@ func (tho TypeHintObject) apply(n *yaml.Node) (*yaml.Node, error) {
 		case isStrScalar(n):
 			dataBytes = []byte(n.Value)
 		case isBinaryScalar(n):
-			var err error
 			dataBytes, err = base64.StdEncoding.DecodeString(n.Value)
 			if err != nil {
 				return nil, err
@@ -80,18 +79,24 @@ func (tho TypeHintObject) apply(n *yaml.Node) (*yaml.Node, error) {
 			)
 		}
 
-		ret := new(yaml.Node)
-		err := yaml.Unmarshal(dataBytes, ret)
+		ret = new(yaml.Node)
+		defer func() {
+			errX := recover()
+
+			if errX != nil {
+				err = fmt.Errorf("%v", errX)
+			}
+		}()
+		err = yaml.Unmarshal(dataBytes, ret)
 		if err != nil {
 			return nil, err
 		}
 
 		ret = prepareYamlNode(ret)
 		switch {
-		case ret == nil:
-			return nil, nil
-		case ret.Kind == yaml.MappingNode:
-			return ret, nil
+		case ret == nil,
+			ret.Kind == yaml.MappingNode:
+			return
 		default:
 		}
 
@@ -101,7 +106,7 @@ func (tho TypeHintObject) apply(n *yaml.Node) (*yaml.Node, error) {
 	}
 }
 
-func (tho TypeHintObjects) apply(n *yaml.Node) (*yaml.Node, error) {
+func (tho TypeHintObjects) apply(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
 	if n == nil || isNull(n) {
 		return nil, nil
@@ -117,7 +122,6 @@ func (tho TypeHintObjects) apply(n *yaml.Node) (*yaml.Node, error) {
 		case isStrScalar(n):
 			dataBytes = []byte(n.Value)
 		case isBinaryScalar(n):
-			var err error
 			dataBytes, err = base64.StdEncoding.DecodeString(n.Value)
 			if err != nil {
 				return nil, err
@@ -128,18 +132,25 @@ func (tho TypeHintObjects) apply(n *yaml.Node) (*yaml.Node, error) {
 			)
 		}
 
-		ret := new(yaml.Node)
-		err := yaml.Unmarshal(dataBytes, ret)
+		ret = new(yaml.Node)
+		defer func() {
+			errX := recover()
+
+			if errX != nil {
+				err = fmt.Errorf("%v", errX)
+			}
+		}()
+
+		err = yaml.Unmarshal(dataBytes, ret)
 		if err != nil {
 			return nil, err
 		}
 
 		ret = prepareYamlNode(ret)
 		switch {
-		case ret == nil:
-			return nil, nil
-		case ret.Kind == yaml.SequenceNode:
-			return ret, nil
+		case ret == nil,
+			ret.Kind == yaml.SequenceNode:
+			return
 		default:
 		}
 
