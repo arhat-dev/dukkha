@@ -1,6 +1,8 @@
 package yamlhelper
 
-import "gopkg.in/yaml.v3"
+import (
+	"gopkg.in/yaml.v3"
+)
 
 func ToYamlBytes(in interface{}) ([]byte, error) {
 	switch t := in.(type) {

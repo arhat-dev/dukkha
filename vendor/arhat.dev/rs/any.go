@@ -11,8 +11,6 @@ type AnyObject struct {
 	mapData    *AnyObjectMap
 	sliceData  []*AnyObject
 	scalarData interface{}
-
-	originalNode *yaml.Node
 }
 
 // NormalizedValue returns underlying value of the AnyObject with primitive types
@@ -47,8 +45,6 @@ func (o *AnyObject) value() interface{} {
 		return o.mapData
 	case o.sliceData != nil:
 		return o.sliceData
-	case o.originalNode != nil:
-		return o.originalNode
 	default:
 		return o.scalarData
 	}
@@ -68,12 +64,11 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 		return n.Decode(o.mapData)
 	case yaml.ScalarNode:
 		switch n.ShortTag() {
-		case "!!str":
+		case strTag:
 			o.scalarData = n.Value
-		case "!!binary":
+		case binaryTag:
 			o.scalarData = n.Value
 		default:
-			o.originalNode = n
 			return n.Decode(&o.scalarData)
 		}
 		return nil

@@ -1,6 +1,7 @@
 package rs
 
 import (
+	"encoding/base64"
 	"reflect"
 
 	"gopkg.in/yaml.v3"
@@ -41,19 +42,23 @@ type (
 		//
 		// renderer is the name of your renderer without type hint (`?<hint>`) and patch suffix (`!`)
 		//
-		// rawData is the input to your renderer, which can be any type, your renderer is responsible
-		// for casting it to its desired data type
+		// rawData is the input to your renderer, which can have one of following types
+		// - golang primitive types (e.g. int, float32)
+		// - map[string]interface{}
+		// - []interface{}
+		// - *yaml.Node
+		// when it's not *yaml.Node type, it was patched by built-in data patching support
+		// (as indicated by the `!` suffix to your renderer)
 		//
-		// result can be any type as well, but if you returns an custom struct
-		// you must make sure all desired value in it can be marshaled using yaml.Marshal
-		RenderYaml(renderer string, rawData interface{}) (result interface{}, err error)
+		// Your renderer is responsible for casting it to its desired data type
+		RenderYaml(renderer string, rawData interface{}) (result []byte, err error)
 	}
 
 	// RenderingHandleFunc is a helper type to wrap your function as RenderingHandler
-	RenderingHandleFunc func(renderer string, rawData interface{}) (result interface{}, err error)
+	RenderingHandleFunc func(renderer string, rawData interface{}) (result []byte, err error)
 )
 
-func (f RenderingHandleFunc) RenderYaml(renderer string, rawData interface{}) (result interface{}, err error) {
+func (f RenderingHandleFunc) RenderYaml(renderer string, rawData interface{}) (result []byte, err error) {
 	return f(renderer, rawData)
 }
 
@@ -70,4 +75,29 @@ type (
 
 func (f InterfaceTypeHandleFunc) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
 	return f(typ, yamlKey)
+}
+
+func NormalizeRawData(rawData interface{}) (interface{}, error) {
+	if n, ok := rawData.(*yaml.Node); ok && n != nil {
+		if isStrScalar(n) {
+			return n.Value, nil
+		}
+
+		switch n.ShortTag() {
+		case nullTag:
+			return nil, nil
+		case binaryTag:
+			return base64.StdEncoding.DecodeString(n.Value)
+		}
+
+		var data interface{}
+		err := n.Decode(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		return data, nil
+	}
+
+	return rawData, nil
 }

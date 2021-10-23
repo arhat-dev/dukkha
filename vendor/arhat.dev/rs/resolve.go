@@ -1,6 +1,7 @@
 package rs
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -191,36 +192,39 @@ func (f *BaseField) handleUnResolvedField(
 		toResolve := rawData
 		if v.isCatchOtherField {
 			// unwrap map data for resolving
-			toResolve = rawData.mapData[yamlKey]
+			toResolve = rawData.Content[1]
 		}
 
-		var (
-			err error
-		)
-
 		for _, renderer := range v.renderers {
+			var (
+				patchSpec *PatchSpec
+				patchSrc  interface{}
+				err       error
+			)
 
-			// a patch is implied when the renderer has a `!` suffix
-			var patchSpec *PatchSpec
 			if renderer.patchSpec {
-				patchSpec, toResolve, err = f.resolvePatchSpec(rc, toResolve)
+				patchSpec, patchSrc, err = f.resolvePatchSpec(rc, toResolve)
 				if err != nil {
 					return fmt.Errorf(
 						"failed to resolve patch spec for renderer %q: %w",
 						renderer.name, err,
 					)
 				}
+
+				// should use patchSrc instead of toResolve since we need to patch
+				toResolve = nil
 			}
 
 			if len(renderer.name) != 0 {
-				var tmp interface{}
+				var renderedData []byte
 
-				// toResolve can be nil when no patch value is set
-				if toResolve != nil {
-					tmp = toResolve.NormalizedValue()
+				var input interface{} = toResolve
+				if patchSpec != nil {
+					// resolve patch value if was a patch
+					input = patchSrc
 				}
 
-				tmp, err = rc.RenderYaml(renderer.name, tmp)
+				renderedData, err = rc.RenderYaml(renderer.name, input)
 				if err != nil {
 					return fmt.Errorf(
 						"renderer %q failed to render value: %w",
@@ -228,8 +232,32 @@ func (f *BaseField) handleUnResolvedField(
 					)
 				}
 
-				toResolve = &alterInterface{
-					scalarData: tmp,
+				toResolve = new(yaml.Node)
+				err = yaml.Unmarshal(renderedData, toResolve)
+				if err != nil {
+					toResolve = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   strTag,
+						Value: string(renderedData),
+					}
+				} else {
+					// unmarshal ok
+					if prepared := prepareYamlNode(toResolve); prepared != nil {
+						toResolve = prepared
+					}
+
+					switch {
+					case isStrScalar(toResolve), isBinaryScalar(toResolve):
+						// use original string instead of yaml unmarshaled string
+						// yaml.Unmarshal may modify string content when it's not
+						// valid yaml
+
+						toResolve = &yaml.Node{
+							Kind:  yaml.ScalarNode,
+							Tag:   strTag,
+							Value: string(renderedData),
+						}
+					}
 				}
 			}
 
@@ -237,17 +265,43 @@ func (f *BaseField) handleUnResolvedField(
 			if patchSpec != nil {
 				// apply type hint before patching to make sure value
 				// being patched is correctly typed
-				hint := renderer.typeHint
-				toResolve, err = applyTypeHint(hint, toResolve)
-				if err != nil {
-					return fmt.Errorf(
-						"failed to ensure type hint %q on yaml key %q: %w",
-						hint, yamlKey, err,
-					)
-				}
 
 				var tmp interface{}
-				tmp, err = patchSpec.ApplyTo(toResolve.NormalizedValue())
+				if toResolve == nil {
+					// toResolve can be nill if this is a patch without
+					// renderer (e.g. `foo@!: { ... }`)
+					tmp = patchSrc
+				} else {
+					hint := renderer.typeHint
+					if hint == nil {
+						hint = TypeHintNone{}
+					}
+
+					var hintedToResolve *yaml.Node
+
+					// hintedToResolve can be nil
+					hintedToResolve, err = hint.apply(toResolve)
+					if err != nil {
+						return fmt.Errorf(
+							"failed to ensure type hint %q on patch target of %q: %w",
+							hint, yamlKey, err,
+						)
+					}
+
+					if hintedToResolve != nil {
+						toResolve = hintedToResolve
+					}
+
+					err = toResolve.Decode(&tmp)
+					if err != nil {
+						return fmt.Errorf(
+							"failed to decode data as patch source: %w",
+							err,
+						)
+					}
+				}
+
+				tmp, err = patchSpec.ApplyTo(tmp)
 				if err != nil {
 					return fmt.Errorf(
 						"failed to apply patches: %w",
@@ -255,39 +309,56 @@ func (f *BaseField) handleUnResolvedField(
 					)
 				}
 
-				toResolve = &alterInterface{
-					scalarData: tmp,
+				// patch doc is generated from arbitrary yaml data
+				// with built-in interface{}, so we are able to marshal it into
+				// json, and parse as *yaml.Node for further processing
+
+				var dataBytes []byte
+				dataBytes, err = json.Marshal(tmp)
+				if err != nil {
+					return fmt.Errorf("failed to marshal patched data: %w", err)
+				}
+
+				toResolve = new(yaml.Node)
+				err = yaml.Unmarshal(dataBytes, toResolve)
+				if err != nil {
+					return fmt.Errorf("failed to prepare patched data: %w", err)
 				}
 			}
 
 			// apply hint after resolving (rendering)
 			hint := renderer.typeHint
-			toResolve, err = applyTypeHint(hint, toResolve)
+			if hint == nil {
+				hint = TypeHintNone{}
+			}
+
+			var hintedToResolve *yaml.Node
+
+			// hintedToResolve can be nil
+			hintedToResolve, err = hint.apply(toResolve)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to ensure type hint %q on yaml key %q: %w",
 					hint, yamlKey, err,
 				)
 			}
-		}
 
-		resolved := toResolve.NormalizedValue()
-		if v.isCatchOtherField {
-			// wrap back for catch other filed
-			resolved = map[string]interface{}{
-				yamlKey: resolved,
+			if hintedToResolve != nil {
+				toResolve = hintedToResolve
 			}
 		}
 
-		// TODO: currently we always keepOld when the field has tag
-		// 		 `rs:"other"`, need to ensure this behavior won't
-		// 	     leave inconsistent data
+		resolved := toResolve
+		if v.isCatchOtherField {
+			// wrap back for catch other filed
+			resolved = fakeMap(rawData.Content[0], resolved)
+		}
 
 		actualKeepOld := keepOld || v.isCatchOtherField || i != 0
-		err = f.unmarshal(yamlKey, reflect.ValueOf(resolved), target, actualKeepOld)
+		err := f.unmarshal(yamlKey, resolved, target, actualKeepOld)
 		if err != nil {
 			return fmt.Errorf(
-				"failed to unmarshal resolved value of yaml key %q to field %q: %w",
+				"failed to unmarshal resolved value of %q to field %q: %w",
 				yamlKey, v.fieldName, err,
 			)
 		}
@@ -299,46 +370,31 @@ func (f *BaseField) handleUnResolvedField(
 // resolve user provided data as patch spec
 func (f *BaseField) resolvePatchSpec(
 	rc RenderingHandler,
-	toResolve interface{},
+	toResolve *yaml.Node,
 ) (
 	patchSpec *PatchSpec,
-	value *alterInterface,
+	value interface{},
 	err error,
 ) {
-	var patchSpecBytes []byte
-	switch t := toResolve.(type) {
-	case string:
-		patchSpecBytes = []byte(t)
-	case []byte:
-		patchSpecBytes = t
-	default:
-		patchSpecBytes, err = yaml.Marshal(toResolve)
-		if err != nil {
-			return nil, nil, fmt.Errorf(
-				"failed to marshal renderer data for patch spec: %w",
-				err,
-			)
-		}
-	}
 
 	patchSpec = Init(&PatchSpec{}, f._opts).(*PatchSpec)
-	err = yaml.Unmarshal(patchSpecBytes, patchSpec)
+	err = toResolve.Decode(patchSpec)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
-			"failed to unmarshal patch spec %q: %w",
-			string(patchSpecBytes), err,
+			"failed to decode patch spec: %w",
+			err,
 		)
 	}
 
 	err = patchSpec.ResolveFields(rc, -1)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
-			"failed to resolve patch spec %q: %w",
-			string(patchSpecBytes), err,
+			"failed to resolve patch spec: %w",
+			err,
 		)
 	}
 
-	value = convertAnyObjectToAlterInterface(&patchSpec.Value)
+	value = patchSpec.Value.NormalizedValue()
 	return patchSpec, value, nil
 }
 

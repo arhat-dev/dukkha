@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"text/template"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/pkg/yamlhelper"
+	"arhat.dev/rs"
 )
-
-var _ rs.RenderingHandler = (*TemplateHandler)(nil)
 
 // TemplateHandler execute raw data as text/template
 type TemplateHandler struct {
@@ -19,7 +16,12 @@ type TemplateHandler struct {
 
 func (h *TemplateHandler) RenderYaml(
 	_ string, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
+
 	tplBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data bytes of input: %w", err)
