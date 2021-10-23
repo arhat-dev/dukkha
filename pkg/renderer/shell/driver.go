@@ -49,7 +49,8 @@ func (d *driver) RenderYaml(
 		scripts = append(scripts, string(t))
 	case []interface{}:
 		for _, v := range t {
-			scriptBytes, err := yamlhelper.ToYamlBytes(v)
+			var scriptBytes []byte
+			scriptBytes, err = yamlhelper.ToYamlBytes(v)
 			if err != nil {
 				return nil, fmt.Errorf(
 					"renderer.%s: unexpected list item type %T: %w",
