@@ -2,6 +2,7 @@ package transform
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,7 +59,7 @@ ops:
 			d := &driver{}
 			ret, err := d.RenderYaml(dukkha_test.NewTestContext(context.TODO()), test.specStr)
 			assert.NoError(t, err)
-			assert.EqualValues(t, test.expected, ret)
+			assert.EqualValues(t, test.expected, strings.TrimSuffix(string(ret), "\n"))
 		})
 	}
 }

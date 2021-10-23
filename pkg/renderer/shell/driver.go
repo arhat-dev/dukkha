@@ -35,7 +35,12 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 
 func (d *driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
+
 	var scripts []string
 	switch t := rawData.(type) {
 	case string:

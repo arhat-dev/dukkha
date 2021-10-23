@@ -3,8 +3,8 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.7.0
-	arhat.dev/rs v0.5.0
+	arhat.dev/pkg v0.7.1
+	arhat.dev/rs v0.5.1
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.5
-	github.com/minio/minio-go/v7 v7.0.14
+	github.com/minio/minio-go/v7 v7.0.15
 	github.com/muesli/termenv v0.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
@@ -31,5 +31,3 @@ require (
 )
 
 replace github.com/creack/pty => github.com/jeffreystoke/pty v1.1.12-0.20211004111936-294eccab62ed
-
-replace arhat.dev/rs => arhat.dev/rs v0.5.0

@@ -56,7 +56,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 
 		result, err := d.RenderYaml(rc, srv.URL+"/with-password")
 		assert.NoError(t, err)
-		assert.EqualValues(t, "/with-password", string(result.([]byte)))
+		assert.EqualValues(t, "/with-password", string(result))
 
 		expectPassword = false
 		result, err = d.RenderYaml(rc, rs.Init(&inputHTTPSpec{
@@ -72,6 +72,6 @@ func TestDriver_RenderYaml(t *testing.T) {
 		}, nil))
 
 		assert.NoError(t, err)
-		assert.EqualValues(t, "/no-password", string(result.([]byte)))
+		assert.EqualValues(t, "/no-password", string(result))
 	})
 }
