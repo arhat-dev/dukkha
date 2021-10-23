@@ -53,13 +53,18 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 
 func (d *driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
 	var (
 		// reqURL format: <repo-name>.git/<path-in-repo>[@ref]
 		reqURL      string
 		sshConfig   *ssh.Spec
 		fetchConfig *FetchSpec
 	)
+
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
 
 	switch t := rawData.(type) {
 	case string:
@@ -137,10 +142,7 @@ func (d *driver) RenderYaml(
 		}
 	}
 
-	var (
-		data []byte
-		err  error
-	)
+	var data []byte
 	if d.cache != nil {
 		data, err = d.cache.Get(reqURL,
 			renderer.CreateRefreshFuncForRemote(

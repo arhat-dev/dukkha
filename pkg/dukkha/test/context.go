@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"arhat.dev/rs"
+	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -18,8 +19,8 @@ func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error { return ni
 
 func (*echoRenderer) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
-) (interface{}, error) {
-	return rawData, nil
+) ([]byte, error) {
+	return yaml.Marshal(rawData)
 }
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {

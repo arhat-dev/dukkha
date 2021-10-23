@@ -41,7 +41,7 @@ type Renderer interface {
 	// Init the renderer and add itself to the context
 	Init(ctx ConfigResolvingContext) error
 
-	RenderYaml(rc RenderingContext, rawData interface{}) (result interface{}, err error)
+	RenderYaml(rc RenderingContext, rawData interface{}) (result []byte, err error)
 }
 
 // RendererManager to manage renderers
@@ -114,7 +114,7 @@ func (c *contextRendering) Values() map[string]interface{} {
 	return c.values
 }
 
-func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) (interface{}, error) {
+func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
 	v, ok := c.renderers[renderer]
 	if !ok {
 		return nil, fmt.Errorf("renderer %q not found", renderer)

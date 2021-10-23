@@ -55,11 +55,16 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 
 func (d *driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
 	var (
 		path   string
 		client *s3Client
 	)
+
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
 
 	switch t := rawData.(type) {
 	case string:
@@ -108,11 +113,7 @@ func (d *driver) RenderYaml(
 		}
 	}
 
-	var (
-		data []byte
-		err  error
-	)
-
+	var data []byte
 	if d.cache != nil {
 		data, err = d.cache.Get(path,
 			renderer.CreateRefreshFuncForRemote(

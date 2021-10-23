@@ -32,7 +32,12 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
 func (d *driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
+
 	rawBytes, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -71,7 +76,14 @@ func (d *driver) RenderYaml(
 		}
 	}
 
-	return data, nil
+	switch dt := data.(type) {
+	case string:
+		return []byte(dt), nil
+	case []byte:
+		return dt, nil
+	default:
+		return yaml.Marshal(data)
+	}
 }
 
 // Spec for yaml data transformation
