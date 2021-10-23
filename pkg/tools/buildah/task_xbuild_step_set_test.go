@@ -18,7 +18,6 @@ func Test_kvArgs(t *testing.T) {
 		args args
 		want []string
 	}{
-		// TODO: Add test cases.
 		{
 			name: "Empty",
 			args: args{
@@ -26,6 +25,32 @@ func Test_kvArgs(t *testing.T) {
 				entries: []*dukkha.EnvEntry{},
 			},
 			want: nil,
+		},
+		{
+			name: "Remove",
+			args: args{
+				flag: "--remove",
+				entries: []*dukkha.EnvEntry{
+					{
+						Name:  "key-",
+						Value: "",
+					},
+				},
+			},
+			want: []string{"--remove", "key-"},
+		},
+		{
+			name: "Remove (value ignored)",
+			args: args{
+				flag: "--remove",
+				entries: []*dukkha.EnvEntry{
+					{
+						Name:  "key-",
+						Value: "value",
+					},
+				},
+			},
+			want: []string{"--remove", "key-"},
 		},
 		{
 			name: "Key Only",
@@ -38,7 +63,7 @@ func Test_kvArgs(t *testing.T) {
 					},
 				},
 			},
-			want: []string{"--key-only", "key"},
+			want: []string{"--key-only", "key="},
 		},
 		{
 			name: "Value Only",

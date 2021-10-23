@@ -112,7 +112,12 @@ func kvArgs(flag string, entries []*dukkha.EnvEntry) []string {
 	var ret []string
 	for _, a := range entries {
 		parts := []string{a.Name}
-		if len(a.Value) != 0 {
+
+		// if annotation/label/env has a trailing dash (`-`),
+		// then it is removed from the config
+		//
+		// we should not set value in that case
+		if !strings.HasSuffix(a.Name, "-") {
 			parts = append(parts, a.Value)
 		}
 
