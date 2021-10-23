@@ -1,15 +1,14 @@
-package envhelper
+package rshelper
 
 import (
 	"fmt"
 
-	"arhat.dev/rs"
 	"go.uber.org/multierr"
 
+	"arhat.dev/pkg/envhelper"
 	"arhat.dev/pkg/yamlhelper"
+	"arhat.dev/rs"
 )
-
-var _ rs.RenderingHandler = (*EnvRenderingHandler)(nil)
 
 // EnvRenderingHandler expands rawData with environment variables with bash string replacement functions support
 // Please refer to https://github.com/drone/envsubst
@@ -23,14 +22,19 @@ type EnvRenderingHandler struct {
 
 func (h *EnvRenderingHandler) RenderYaml(
 	_ string, rawData interface{},
-) (interface{}, error) {
+) ([]byte, error) {
+	rawData, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
+
 	bytesToExpand, err := yamlhelper.ToYamlBytes(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data bytes of input: %w", err)
 	}
 
 	var notFoundErr error
-	s := Expand(string(bytesToExpand), func(varName string, origin string) string {
+	s := envhelper.Expand(string(bytesToExpand), func(varName string, origin string) string {
 		if h.Env == nil {
 			if h.AllowNotFound {
 				return ""
@@ -53,5 +57,5 @@ func (h *EnvRenderingHandler) RenderYaml(
 		return v
 	})
 
-	return s, notFoundErr
+	return []byte(s), notFoundErr
 }

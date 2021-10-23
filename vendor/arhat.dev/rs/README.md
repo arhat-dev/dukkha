@@ -9,7 +9,7 @@
 
 ## What?
 
-Before we start, let's agree on the concept `renderer` is just a simple function that takes a input and generates a output.
+Before we start, let's agree on the concept `renderer` is just a simple function that takes some input to generate some output.
 
 ```text
 input -> [ renderer ] -> output
@@ -23,33 +23,33 @@ foo: bar
 
 Everything's static, once unmarshaled, `foo` gets value `bar`.
 
-Now what if we would like to take an environment variable as `foo`'s value?
+Now what if we would like to use some environment variable value as `foo`'s value in unix shell style?
 
 ```yaml
 foo: ${FOO}
 ```
 
-you will only get `${FOO}` after unmarshaling, you have to code you own logic to map `${FOO}` to some system environment variable.
+Now, you get `${FOO}` for your `foo` after unmarshaling, you have to code you own logic to map `${FOO}` to some system environment variable (e.g. make a `os.ExpandEnv` function call).
 
-What you code, is actually a `renderer` with its usage specific to `foo`.
+What you code, is actually a `renderer` with its usage limited to `foo`.
 
-Rendering suffix is here to help, it offers a way to make your yaml doc dynamic on its own, you control what you get in yaml rather than your compiled code.
+Rendering suffix is here to help, it offers a way to make your yaml doc dynamic on its own, you control what configuration you get in yaml, not in your compiled code.
 
 ### How it looks?
 
-Let's continue with the environment variable support, say we have developed a renderer `env` (which calls `os.ExpandEnv` to map env reference to its value)
+Let's continue with the environment variable support, say we have developed a renderer `env` (which calls `os.ExpandEnv` to map env reference to its value):
 
 ```yaml
 foo@env: ${FOO}
 ```
 
-Before I would start, probably you have already figured out what's going on:
+Probably you have already figured out what's going on there before I would explain:
 
-`@` is like a notifier, and notifies the renderer `env` with value `${FOO}`, then `env` does its own job and generates some output with `os.ExpandEnv` function call, and at last, the output is set as `foo`'s value.
-
-But also wondering how can `foo@env` be resolved as `foo` since they are completely different field name! That's what we are taking care of, see [How it works?](#how-it-works) section for brief introduction.
+`@` is like a notifier, and notifies the renderer `env` with value `${FOO}`, then `env` does its own job and generates some output using `os.ExpandEnv`, and at last, the output is set as `foo`'s value.
 
 It's simple and straightforward, right?
+
+As you may also be wondering how can `foo@env` be resolved as `foo` since they are completely different field name! That's what we are taking care of, see [How it works?](#how-it-works) section for brief introduction.
 
 ## Prerequisites
 
@@ -61,16 +61,16 @@ It's simple and straightforward, right?
   - Add a suffix starts with `@`, followed by some renderer name, to your yaml field name as rendering suffix (e.g. `foo@<renderer-name>: bar`)
 - Type hinting: keep you data as what it supposed to be
   - Add a type hint suffix `?<some-type>` to your renderer (e.g. `foo@<renderer-name>?[]obj: bar` suggests `foo` should be an array of objects using result from `<renderer-name>` generated with input `bar`)
-  - See [list of supported type hints](https://github.com/arhat-dev/rs/blob/v0.4.0/typehint.go#L24)
+  - See [list of supported type hints](https://github.com/arhat-dev/rs/blob/v0.5.1/typehint.go#L209)
 - Data merging and patching made esay: create patching spec in yaml doc
   - Add a patching suffix `!` to your renderer (after the type hint if any), feed it a [patch spec](https://pkg.go.dev/arhat.dev/rs#PatchSpec) object
+  - Built-in `jq` (as `select` field) and rfc6902 json-patch (as `patch[*]`) support to select partial data from the incoming data.
 - Renderer chaining: render you data with a rendering pipeline
-  - join you renderers with pipes (`|`), get your data rendered through the pipeline (e.g. join three renderers `a`, `b`, `c` -> `a|b|c`)
+  - Concatenate you renderers with pipes (`|`), get your data rendered through the pipeline (e.g. join three renderers `a`, `b`, `c` -> `a|b|c`)
 - Supports arbitraty yaml doc without type definition in your own code.
   - Use [`AnyObject`](https://pkg.go.dev/arhat.dev/rs#AnyObject) as `interface{}`.
   - Use [`AnyObjectMap`](https://pkg.go.dev/arhat.dev/rs#AnyObjectMap) as `map[string]interface{}`.
 - Everything `gopkg.in/yaml.v3` supports are supported.
-  - Anchors, Alias, YAML Merges ...
 - Extended but still vanilla yaml, your yaml doc stays valid for all standard yaml parser.
 
 Sample YAML Doc with all features above
@@ -94,13 +94,13 @@ foo@a!: &foo
 bar@a!: *foo
 ```
 
-__NOTE:__ This module provides no renderer implementation, and the only built-in renderer is a pseudo renderer with empty name that skips rendering (output is what input is) for data patching and type hinting purpose (e.g. `foo@?int!: { ... patch spec ... }`). You have to roll out your own renderers.
+__NOTE:__ This module provides no renderer implementation, and the only built-in renderer is a pseudo renderer with empty name that skips rendering (output is what input is) for data patching and type hinting purpose (e.g. `foo@?int!: { ... patch spec ... }`). You have to roll out your own renderers. If you are in a hurry and want some handy renderers, try our [arhat.dev/pkg/rshelper.DefaultRenderingManager](https://pkg.go.dev/arhat.dev/pkg/rshelper#DefaultRenderingManager), it will give you `env`, `template` and `file` renderers.
 
 ## Usage
 
 See [example_test.go](./example_test.go)
 
-__NOTE:__ You can find more examples in [`arhat-dev/dukkha`](https://github.com/arhat-dev/dukkha)
+__NOTE:__ You can find more examples in [`arhat-dev/dukkha`][dukkha]
 
 ## Known Limitations
 
@@ -130,6 +130,16 @@ All in all, `BaseField` handles everything related to yaml unmarshaling to suppo
 
 Have a look at [FAQ.md](./FAQ.md) or start/join a [discussion on github](https://github.com/arhat-dev/rs/discussions).
 
+## A bit of history
+
+This project originates from [`dukkha`][dukkha] in July 2021.
+
+At that time, I was looking for some task runner with matrix support to ease my life with my [multi-arch oci image build pipelines](https://github.com/arhat-dev/dockerfile) and all repositories in this organization, hoping I can finally forget all these repeated work on repo maintenance.
+
+After some time, [`dukkha`][dukkha] fulfilled nearly all my expectations with buildah, golang and cosign support, and I made the original package `arhat.dev/dukkha/pkg/field` standalone as this project to promote the idea.
+
+Please feel free to share your thoughts about it at github discussion, feedbacks are always welcome, and also email me if you would like to join my tiny idea sharing group.
+
 ## LICENSE
 
 ```txt
@@ -147,3 +157,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+[dukkha]: https://github.com/arhat-dev/dukkha
