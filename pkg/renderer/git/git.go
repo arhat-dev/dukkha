@@ -74,7 +74,8 @@ func (d *driver) RenderYaml(
 		reqURL = string(t)
 		sshConfig = &d.SSHConfig
 	default:
-		rawBytes, err := yamlhelper.ToYamlBytes(rawData)
+		var rawBytes []byte
+		rawBytes, err = yamlhelper.ToYamlBytes(rawData)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unexpected non yaml input: %w",
@@ -131,12 +132,14 @@ func (d *driver) RenderYaml(
 			sshConfig.Port = 0 // reset to default
 			fetchConfig.Repo = fetchConfig.Repo[idx+1:]
 
-			host, port, err := net.SplitHostPort(sshConfig.Host)
-			if err == nil {
+			host, port, err2 := net.SplitHostPort(sshConfig.Host)
+			if err2 == nil {
 				sshConfig.Host = host
-				sshConfig.Port, err = strconv.Atoi(port)
-				if err != nil {
-					return nil, fmt.Errorf("invalid port value: %q", port)
+				sshConfig.Port, err2 = strconv.Atoi(port)
+				if err2 != nil {
+					return nil, fmt.Errorf(
+						"invalid port value %q: %w", port, err2,
+					)
 				}
 			}
 		}

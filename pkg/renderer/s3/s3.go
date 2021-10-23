@@ -74,7 +74,8 @@ func (d *driver) RenderYaml(
 		path = string(t)
 		client = d.defaultClient
 	default:
-		rawBytes, err := yamlhelper.ToYamlBytes(rawData)
+		var rawBytes []byte
+		rawBytes, err = yamlhelper.ToYamlBytes(rawData)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unexpected non yaml input: %w",
