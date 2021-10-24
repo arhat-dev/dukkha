@@ -232,52 +232,81 @@ func (f *BaseField) handleUnResolvedField(
 					)
 				}
 
-				// assume rendered data as yaml for further processing
-				func() {
-					defer func() {
-						// TODO: yaml.Unmarshal can panic on invalid but seemingly
-						// 		 correct input (e.g. markdown)
-						//
-						// related upstream issue: https://github.com/go-yaml/yaml/issues/665
-						errX := recover()
+				// check type hinting before assuming it's valid yaml
+				//
+				// see: TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
 
-						if errX != nil {
+				// scalar types cannot be applied with patch spec
+				// so the rendered data will be the final value for resolving
+
+				switch renderer.typeHint.(type) {
+				case TypeHintStr:
+					toResolve = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   strTag,
+						Value: string(renderedData),
+					}
+				case TypeHintInt:
+					toResolve = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   intTag,
+						Value: string(renderedData),
+					}
+				case TypeHintFloat:
+					toResolve = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   floatTag,
+						Value: string(renderedData),
+					}
+				default:
+					// assume rendered data as yaml for further processing
+					func() {
+						defer func() {
+							// TODO: yaml.Unmarshal can panic on invalid but seemingly
+							// 		 correct input (e.g. markdown)
+							//
+							// related upstream issue:
+							// 	https://github.com/go-yaml/yaml/issues/665
+							errX := recover()
+
+							if errX != nil {
+								toResolve = &yaml.Node{
+									Kind:  yaml.ScalarNode,
+									Tag:   strTag,
+									Value: string(renderedData),
+								}
+							}
+						}()
+
+						toResolve = new(yaml.Node)
+						err = yaml.Unmarshal(renderedData, toResolve)
+						if err != nil {
 							toResolve = &yaml.Node{
 								Kind:  yaml.ScalarNode,
 								Tag:   strTag,
 								Value: string(renderedData),
+							}
+						} else {
+							// unmarshal ok
+							if prepared := prepareYamlNode(toResolve); prepared != nil {
+								toResolve = prepared
+							}
+
+							switch {
+							case isStrScalar(toResolve), isBinaryScalar(toResolve):
+								// use original string instead of yaml unmarshaled string
+								// yaml.Unmarshal may modify string content when it's not
+								// valid yaml
+
+								toResolve = &yaml.Node{
+									Kind:  yaml.ScalarNode,
+									Tag:   strTag,
+									Value: string(renderedData),
+								}
 							}
 						}
 					}()
-
-					toResolve = new(yaml.Node)
-					err = yaml.Unmarshal(renderedData, toResolve)
-					if err != nil {
-						toResolve = &yaml.Node{
-							Kind:  yaml.ScalarNode,
-							Tag:   strTag,
-							Value: string(renderedData),
-						}
-					} else {
-						// unmarshal ok
-						if prepared := prepareYamlNode(toResolve); prepared != nil {
-							toResolve = prepared
-						}
-
-						switch {
-						case isStrScalar(toResolve), isBinaryScalar(toResolve):
-							// use original string instead of yaml unmarshaled string
-							// yaml.Unmarshal may modify string content when it's not
-							// valid yaml
-
-							toResolve = &yaml.Node{
-								Kind:  yaml.ScalarNode,
-								Tag:   strTag,
-								Value: string(renderedData),
-							}
-						}
-					}
-				}()
+				}
 			}
 
 			// apply patch if set

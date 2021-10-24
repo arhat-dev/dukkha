@@ -44,7 +44,7 @@ But with rendering suffix support, yaml docs like `foo@my-renderer: woo` and `fo
 
 To generate field value dynamically, aka. Conditional Rendering for any single yaml field.
 
-## Why adding suffix to field names, not extending yaml or create a paser?
+## Why adding suffix to field names, not extending yaml or create a parser?
 
 Build another yaml parser to support this feature is cool, but your yaml file will not be recognized by any other yaml parsers unless you implement such extension to other yaml parsers or this is standardized in yaml spec (which is not likely to happen for such dynamic content generation)
 
