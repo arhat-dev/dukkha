@@ -13,29 +13,29 @@
 # limitations under the License.
 
 DOCKER_CLI ?= docker run -t
-RUN_LINTER := ${DOCKER_CLI} --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)"
+RUN_CTR_APP := ${DOCKER_CLI} --rm -v "$(shell pwd):$(shell pwd)" -w "$(shell pwd)"
 
 lint.file:
-	${RUN_LINTER} ghcr.io/arhat-dev/editorconfig-checker:2.3 \
+	${RUN_CTR_APP} ghcr.io/arhat-dev/editorconfig-checker:2.3 \
 		editorconfig-checker -config .ecrc
 
 lint.shell:
-	${RUN_LINTER} koalaman/shellcheck-alpine:stable \
+	${RUN_CTR_APP} koalaman/shellcheck-alpine:stable \
 		sh -c "find . \
 			| grep -E -e '\.sh\$$' \
 			| grep -v vendor | grep -v \.git \
 			| xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
 lint.go:
-	${RUN_LINTER} ghcr.io/arhat-dev/golangci-lint:1.41 \
+	${RUN_CTR_APP} ghcr.io/arhat-dev/golangci-lint:1.41 \
 		golangci-lint run --fix
 
 lint.yaml:
-	${RUN_LINTER} ghcr.io/arhat-dev/yamllint:1.26 \
+	${RUN_CTR_APP} ghcr.io/arhat-dev/yamllint:1.26 \
 		yamllint -c .yaml-lint.yml .
 
 lint.all: \
 	lint.file \
 	lint.shell \
-	lint.go \
-	lint.yaml
+	lint.go
+# lint.yaml
