@@ -53,6 +53,22 @@ func (ens *_evalNS) Template(tplData interface{}) (string, error) {
 	return string(buf.Next(buf.Len())), nil
 }
 
+// Env expands environment variables in textData
+// textData can be string or bytes
+func (ens *_evalNS) Env(textData interface{}) (string, error) {
+	var toExpand string
+	switch tt := textData.(type) {
+	case string:
+		toExpand = tt
+	case []byte:
+		toExpand = string(tt)
+	default:
+		return "", fmt.Errorf("invalid non text data for expansion, got %T", tt)
+	}
+
+	return ExpandEnv(ens.rc, toExpand)
+}
+
 // Shell evaluates scriptData as bash script, inputs as stdin streams (if any)
 // if no input was provided, it will use os.Stdin as shell stdin
 // scriptData can be string or bytes

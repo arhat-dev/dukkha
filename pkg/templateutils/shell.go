@@ -1,16 +1,108 @@
 package templateutils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
+	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
+
+func ExpandEnv(rc dukkha.RenderingContext, toExpand string) (string, error) {
+	parser := syntax.NewParser(
+		syntax.Variant(syntax.LangBash),
+	)
+
+	word, err := parser.Document(strings.NewReader(toExpand))
+	if err != nil {
+		return "", fmt.Errorf(
+			"invalid expansion text %q: %w",
+			toExpand, err,
+		)
+	}
+
+	embeddedShellOutput := &bytes.Buffer{}
+	runner, err := CreateEmbeddedShellRunner(
+		rc.WorkingDir(), rc, nil, embeddedShellOutput, os.Stderr,
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"failed to create shell runner for env: %w",
+			err,
+		)
+	}
+
+	printer := syntax.NewPrinter(
+		syntax.FunctionNextLine(false),
+		syntax.Indent(2),
+	)
+
+	result, err := expand.Document(&expand.Config{
+		Env: rc,
+		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
+			buf := &bytes.Buffer{}
+			err2 := printer.Print(buf, cs)
+			if err2 != nil {
+				return fmt.Errorf("failed to get evaluation commands: %w", err2)
+			}
+
+			script := string(buf.Bytes()[2 : buf.Len()-1])
+
+			embeddedShellOutput.Reset()
+			err2 = RunScriptInEmbeddedShell(rc, runner, parser, script)
+			if err2 != nil {
+				return err2
+			}
+
+			_, err2 = embeddedShellOutput.WriteTo(w)
+			if err2 != nil {
+				return fmt.Errorf(
+					"failed to write embedded shell output to result value: %w", err,
+				)
+			}
+
+			return nil
+		},
+		ProcSubst: nil,
+		ReadDir: func(s string) ([]os.FileInfo, error) {
+			ents, err2 := os.ReadDir(s)
+			if err2 != nil {
+				return nil, err2
+			}
+
+			ret := make([]os.FileInfo, len(ents))
+			for i, e := range ents {
+				ret[i], err2 = e.Info()
+				if err2 != nil {
+					return nil, err2
+				}
+			}
+
+			return ret, nil
+		},
+		GlobStar: true,
+		NullGlob: true,
+		NoUnset:  true,
+	},
+		word,
+	)
+
+	if err != nil {
+		return "", fmt.Errorf(
+			"env expansion failed: %w",
+			err,
+		)
+	}
+
+	return result, nil
+}
 
 func CreateEmbeddedShellRunner(
 	workingDir string,
