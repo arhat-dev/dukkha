@@ -10,7 +10,7 @@
   matrix:
     pkg@env|template: |-
       {{-
-        shell "go list ./pkg/..."
+        eval.Shell "go list ./pkg/..."
         | removePrefix "$(go list -m)/"
         | addPrefix "- "
       -}}

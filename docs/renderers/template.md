@@ -25,7 +25,7 @@ There is a template func `shell` for running shell commands in template
 
 ```yaml
 foo@template: |-
-  {{- shell "echo 'Called From Template'" -}}
+  {{- eval.Shell "echo 'Called From Template'" -}}
 ```
 
 ## Suggested Use Cases

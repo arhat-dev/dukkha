@@ -1,19 +1,15 @@
 package templateutils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 	"text/template"
 
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
-	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/gomplate/funcs"
@@ -72,32 +68,9 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"archconv": func() *_archconvNS {
 				return archconvNS
 			},
-		}).
-		// run shell commands in template
-		Funcs(map[string]interface{}{
-			"shell": func(script string, inputs ...string) (string, error) {
-				var stdin io.Reader
-				if len(inputs) != 0 {
-					var readers []io.Reader
-					for _, in := range inputs {
-						readers = append(readers, strings.NewReader(in))
-					}
-
-					stdin = io.MultiReader(readers...)
-				} else {
-					stdin = os.Stdin
-				}
-
-				stdout := &bytes.Buffer{}
-				runner, err := CreateEmbeddedShellRunner(
-					rc.WorkingDir(), rc, stdin, stdout, os.Stderr,
-				)
-				if err != nil {
-					return "", err
-				}
-
-				err = RunScriptInEmbeddedShell(rc, runner, syntax.NewParser(), script)
-				return stdout.String(), err
+			// eval shell and template
+			"eval": func() *_evalNS {
+				return createEvalNS(rc)
 			},
 		}).
 		// text processing
