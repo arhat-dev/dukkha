@@ -72,6 +72,15 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"eval": func() *_evalNS {
 				return createEvalNS(rc)
 			},
+			"env": func() map[string]string {
+				return rc.Env()
+			},
+			"values": func() map[string]interface{} {
+				return rc.Values()
+			},
+			"matrix": func() map[string]string {
+				return rc.MatrixFilter().AsEntry()
+			},
 		}).
 		// text processing
 		Funcs(map[string]interface{}{

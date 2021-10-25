@@ -2,7 +2,7 @@
 
 ```yaml
 foo@template: |-
-  {{ .Env.MATRIX_ARCH }}
+  {{ matrix.arch }}
 ```
 
 Execute an embedded [golang template](https://golang.org/pkg/text/template/) and use the result as the real value

@@ -1,4 +1,4 @@
-{{- if eq .Env.HOST_KERNEL "windows" -}}
+{{- if eq env.HOST_KERNEL "windows" -}}
 kernel:
 - windows
 arch:

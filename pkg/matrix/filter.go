@@ -24,6 +24,26 @@ func (f *Filter) AddIgnore(key, value string) {
 	f.ignore = append(f.ignore, [2]string{key, value})
 }
 
+// AsEntry converts f.match to a matrix Entry (used for task matrix)
+// should only be used when you are sure the matrix filter is set
+// for your task matrix execution
+func (f *Filter) AsEntry() Entry {
+	if f == nil {
+		return nil
+	}
+
+	ret := make(map[string]string, len(f.match))
+	for k, v := range f.match {
+		if len(v) == 0 {
+			ret[k] = ""
+		} else {
+			ret[k] = v[0]
+		}
+	}
+
+	return ret
+}
+
 func (f *Filter) Clone() *Filter {
 	var (
 		matchFilter  = make(map[string][]string, len(f.match))

@@ -12,18 +12,18 @@
     cxx: g++
 
     # cc@template: |-
-    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
-    #     {{- archconv.DebianTripleName .Env.MATRIX_ARCH -}}
-    #   {{- else if eq .Env.HOST_OS "alpine" -}}
-    #     {{- archconv.AlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- if eq env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- archconv.DebianTripleName matrix.arch -}}
+    #   {{- else if eq env.HOST_OS "alpine" -}}
+    #     {{- archconv.AlpineTripleName matrix.arch -}}
     #   {{- get -}}
     #   -gcc
 
     # cc@template: |-
-    #   {{- if eq .Env.HOST_OS "debian" "ubuntu" -}}
-    #     {{- archconv.DebianTripleName .Env.MATRIX_ARCH -}}
-    #   {{- else if eq .Env.HOST_OS "alpine" -}}
-    #     {{- archconv.AlpineTripleName .Env.MATRIX_ARCH -}}
+    #   {{- if eq env.HOST_OS "debian" "ubuntu" -}}
+    #     {{- archconv.DebianTripleName matrix.arch -}}
+    #   {{- else if eq env.HOST_OS "alpine" -}}
+    #     {{- archconv.AlpineTripleName matrix.arch -}}
     #   {{- get -}}
     #   -g++
 

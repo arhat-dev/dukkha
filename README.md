@@ -83,7 +83,7 @@ workflow:run:
   jobs@template:
   # render environment variables before shell evaluation
   - shell@env: |-
-      echo ${MATRIX_KERNEL}/{{ .Env.MATRIX_ARCH }}
+      echo ${MATRIX_KERNEL}/{{ matrix.arch }}
   # run shell script from http server
   - shell@template|http: |-
       https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}

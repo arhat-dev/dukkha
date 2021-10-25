@@ -71,7 +71,7 @@ buildah:build:
   - --pull
   - --no-cache
   - --build-arg
-  - MATRIX_ARCH={{ .Env.MATRIX_ARCH }}
+  - MATRIX_ARCH={{ matrix.arch }}
 
 buildah:xbuild:
 - name: dukkha

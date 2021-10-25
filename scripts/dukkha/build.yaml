@@ -16,7 +16,7 @@ tools:
     shell_name: bootstrap
     cmd@template|env:
     - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
-    - ghcr.io/arhat-dev/builder-golang:1.17-alpine-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH | trimSuffix "hf" }}
+    - ghcr.io/arhat-dev/builder-golang:1.17-alpine-{{ matrix.arch | default env.HOST_ARCH | trimSuffix "hf" }}
     - go
   cosign:
   - name: local
@@ -44,8 +44,8 @@ cosign:upload:
     public_key@http: https://arhat.dev/.well-known/cosign.pub
   files:
   - path@template: |-
-      {{- $blob_file := printf "build/dukkha.%s.%s" .Env.MATRIX_KERNEL .Env.MATRIX_ARCH -}}
-      {{- if eq .Env.MATRIX_KERNEL "windows" -}}
+      {{- $blob_file := printf "build/dukkha.%s.%s" matrix.kernel matrix.arch -}}
+      {{- if eq matrix.kernel "windows" -}}
         {{- $blob_file = printf "%s.exe" $blob_file -}}
       {{- end -}}
       {{- $blob_file -}}

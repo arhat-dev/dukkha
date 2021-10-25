@@ -17,7 +17,7 @@
 
   path@env: ./${MATRIX_PKG}
   json_output_file@template: |-
-      build/test-profile/result-{{ .Env.MATRIX_PKG | strings.KebabCase }}.json
+      build/test-profile/result-{{ matrix.pkg | strings.KebabCase }}.json
 
   verbose: true
   panic_on_exit_0: true
@@ -27,31 +27,31 @@
     coverage:
       enabled: true
       output@template: |-
-        coverage.{{ .Env.MATRIX_PKG | strings.KebabCase }}.txt
+        coverage.{{ matrix.pkg | strings.KebabCase }}.txt
       packages@env:
       - ./${MATRIX_PKG}
 
     memory:
       enabled: true
       output@template: |-
-        memory.{{ .Env.MATRIX_PKG | strings.KebabCase }}.out
+        memory.{{ matrix.pkg | strings.KebabCase }}.out
 
     cpu:
       enabled: true
       output@template: |-
-        cpu.{{ .Env.MATRIX_PKG | strings.KebabCase }}.out
+        cpu.{{ matrix.pkg | strings.KebabCase }}.out
 
     mutex:
       enabled: true
       output@template: |-
-        mutex.{{ .Env.MATRIX_PKG | strings.KebabCase }}.out
+        mutex.{{ matrix.pkg | strings.KebabCase }}.out
 
     block:
       enabled: true
       output@template: |-
-        block.{{ .Env.MATRIX_PKG | strings.KebabCase }}.out
+        block.{{ matrix.pkg | strings.KebabCase }}.out
 
     trace:
       enabled: true
       output@template: |-
-        trace.{{ .Env.MATRIX_PKG | strings.KebabCase }}.out
+        trace.{{ matrix.pkg | strings.KebabCase }}.out
