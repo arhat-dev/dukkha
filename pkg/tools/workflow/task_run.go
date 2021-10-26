@@ -33,7 +33,7 @@ type TaskRun struct {
 func (w *TaskRun) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	return w.next(rc, options, 0)
+	return w.next(rc.DeriveNew(), options, 0)
 }
 
 func (w *TaskRun) next(
@@ -57,7 +57,7 @@ func (w *TaskRun) next(
 
 		// resolve single job (Hook)
 		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Action) error {
-			thisAction, err = h.GenSpecs(mCtx, index)
+			thisAction, err = h.GenSpecs(mCtx.DeriveNew(), index)
 			return err
 		})
 	}, "Jobs")
