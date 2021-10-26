@@ -41,6 +41,8 @@ type TaskRelease struct {
 }
 
 type ReleaseFileSpec struct {
+	rs.BaseField `yaml:"-"`
+
 	// path to the file, can use glob
 	Path string `yaml:"path"`
 	// the display label as noted in gh docs
