@@ -133,7 +133,7 @@ __NOTE:__ Combinations of `KERNEL` and `ARCH` are available at [scripts/dukkha/b
 - Option 1: Download and verify signature of dukkha using [`sget`](https://github.com/sigstore/cosign)
 
 ```bash
-sget -key https://arhat.dev/.well-known/cosign.pub -o dukkha \
+sget --key https://arhat.dev/.well-known/cosign.pub -o dukkha \
   "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
 chmod +x dukkha
 ```

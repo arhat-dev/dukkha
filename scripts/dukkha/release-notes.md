@@ -28,5 +28,5 @@
 Fetch signed pre-built executables using [`sget`](https://github.com/sigstore/cosign#blobs)
 
 ```bash
-sget -key https://arhat.dev/.well-known/cosign.pub ghcr.io/arhat-dev/dist/dukkha:{{ env.GIT_TAG | trimPrefix "v" }}-{KERNEL}-{ARCH}
+sget --key https://arhat.dev/.well-known/cosign.pub ghcr.io/arhat-dev/dist/dukkha:{{ env.GIT_TAG | trimPrefix "v" }}-{KERNEL}-{ARCH}
 ```
