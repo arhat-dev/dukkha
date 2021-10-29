@@ -234,78 +234,31 @@ func (f *BaseField) handleUnResolvedField(
 
 				// check type hinting before assuming it's valid yaml
 				//
-				// see: TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
+				// see TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
+				// for reasons this pre-type hint check exists
 
 				// scalar types cannot be applied with patch spec
 				// so the rendered data will be the final value for resolving
 
+				var tag string
 				switch renderer.typeHint.(type) {
 				case TypeHintStr:
-					toResolve = &yaml.Node{
-						Kind:  yaml.ScalarNode,
-						Tag:   strTag,
-						Value: string(renderedData),
-					}
+					tag = strTag
 				case TypeHintInt:
-					toResolve = &yaml.Node{
-						Kind:  yaml.ScalarNode,
-						Tag:   intTag,
-						Value: string(renderedData),
-					}
+					tag = intTag
 				case TypeHintFloat:
-					toResolve = &yaml.Node{
-						Kind:  yaml.ScalarNode,
-						Tag:   floatTag,
-						Value: string(renderedData),
-					}
+					tag = floatTag
 				default:
 					// assume rendered data as yaml for further processing
-					func() {
-						defer func() {
-							// TODO: yaml.Unmarshal can panic on invalid but seemingly
-							// 		 correct input (e.g. markdown)
-							//
-							// related upstream issue:
-							// 	https://github.com/go-yaml/yaml/issues/665
-							errX := recover()
+					toResolve = assumeValidYaml(renderedData)
+				}
 
-							if errX != nil {
-								toResolve = &yaml.Node{
-									Kind:  yaml.ScalarNode,
-									Tag:   strTag,
-									Value: string(renderedData),
-								}
-							}
-						}()
-
-						toResolve = new(yaml.Node)
-						err = yaml.Unmarshal(renderedData, toResolve)
-						if err != nil {
-							toResolve = &yaml.Node{
-								Kind:  yaml.ScalarNode,
-								Tag:   strTag,
-								Value: string(renderedData),
-							}
-						} else {
-							// unmarshal ok
-							if prepared := prepareYamlNode(toResolve); prepared != nil {
-								toResolve = prepared
-							}
-
-							switch {
-							case isStrScalar(toResolve), isBinaryScalar(toResolve):
-								// use original string instead of yaml unmarshaled string
-								// yaml.Unmarshal may modify string content when it's not
-								// valid yaml
-
-								toResolve = &yaml.Node{
-									Kind:  yaml.ScalarNode,
-									Tag:   strTag,
-									Value: string(renderedData),
-								}
-							}
-						}
-					}()
+				if len(tag) != 0 {
+					toResolve = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   tag,
+						Value: string(renderedData),
+					}
 				}
 			}
 
@@ -320,24 +273,12 @@ func (f *BaseField) handleUnResolvedField(
 					// renderer (e.g. `foo@!: { ... }`)
 					tmp = patchSrc
 				} else {
-					hint := renderer.typeHint
-					if hint == nil {
-						hint = TypeHintNone{}
-					}
-
-					var hintedToResolve *yaml.Node
-
-					// hintedToResolve can be nil
-					hintedToResolve, err = hint.apply(toResolve)
+					toResolve, err = applyHint(renderer.typeHint, toResolve)
 					if err != nil {
 						return fmt.Errorf(
 							"failed to ensure type hint %q on patch target of %q: %w",
-							hint, yamlKey, err,
+							renderer.typeHint, yamlKey, err,
 						)
-					}
-
-					if hintedToResolve != nil {
-						toResolve = hintedToResolve
 					}
 
 					err = toResolve.Decode(&tmp)
@@ -378,24 +319,12 @@ func (f *BaseField) handleUnResolvedField(
 			}
 
 			// apply hint after resolving (rendering)
-			hint := renderer.typeHint
-			if hint == nil {
-				hint = TypeHintNone{}
-			}
-
-			var hintedToResolve *yaml.Node
-
-			// hintedToResolve can be nil
-			hintedToResolve, err = hint.apply(toResolve)
+			toResolve, err = applyHint(renderer.typeHint, toResolve)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to ensure type hint %q on yaml key %q: %w",
-					hint, yamlKey, err,
+					renderer.typeHint, yamlKey, err,
 				)
-			}
-
-			if hintedToResolve != nil {
-				toResolve = hintedToResolve
 			}
 		}
 
@@ -416,6 +345,76 @@ func (f *BaseField) handleUnResolvedField(
 	}
 
 	return tryResolve(rc, depth-1, target)
+}
+
+// assumeValidYaml tries its best to unmarshal renderedData as yaml.Node
+func assumeValidYaml(renderedData []byte) (ret *yaml.Node) {
+	defer func() {
+		// TODO: yaml.Unmarshal can panic on invalid but seemingly
+		// 		 correct input (e.g. markdown)
+		//
+		// related upstream issue:
+		// 	https://github.com/go-yaml/yaml/issues/665
+		errX := recover()
+
+		if errX != nil {
+			ret = &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Tag:   strTag,
+				Value: string(renderedData),
+			}
+		}
+	}()
+
+	ret = new(yaml.Node)
+	err := yaml.Unmarshal(renderedData, ret)
+	if err != nil {
+		ret = &yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Tag:   strTag,
+			Value: string(renderedData),
+		}
+	} else {
+		// unmarshal ok
+		if prepared := prepareYamlNode(ret); prepared != nil {
+			ret = prepared
+		}
+
+		switch {
+		case isStrScalar(ret), isBinaryScalar(ret):
+			// use original string instead of yaml unmarshaled string
+			// yaml.Unmarshal may modify string content when it's not
+			// valid yaml
+
+			ret = &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Tag:   strTag,
+				Value: string(renderedData),
+			}
+		}
+	}
+
+	return
+}
+
+// applyHint applies type hint to yaml.Node, default to TypeHintNone if hint is nil
+// return value is set to input if the hinted result is nil
+func applyHint(hint TypeHint, in *yaml.Node) (*yaml.Node, error) {
+	if hint == nil {
+		hint = TypeHintNone{}
+	}
+
+	// hintedToResolve can be nil
+	hintedToResolve, err := hint.apply(in)
+	if err != nil {
+		return in, err
+	}
+
+	if hintedToResolve != nil {
+		return hintedToResolve, nil
+	}
+
+	return in, nil
 }
 
 // resolve user provided data as patch spec

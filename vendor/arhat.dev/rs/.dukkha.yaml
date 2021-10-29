@@ -40,7 +40,7 @@ golang:test:
     - ${HOST_ARCH}
     pkg@env|template: |-
       {{-
-        shell "go list ./..."
+        eval.Shell "go list ./..."
         | removePrefix "$(go list -m)"
         | addPrefix "- ./"
       -}}
