@@ -91,7 +91,7 @@ jobs:
 
     - name: Install qemu-static
       run: |
-        sudo podman run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        sudo podman run --rm --privileged docker.io/aptman/qus -s -- -p
 
         sudo apt update
         sudo apt install -y qemu-user-static
