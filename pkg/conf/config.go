@@ -46,14 +46,21 @@ func NewConfig() *Config {
 type GlobalConfig struct {
 	rs.BaseField `yaml:"-"`
 
-	// CacheDir to store script file and temporary task execution data
+	// CacheDir set DUKKHA_CACHE_DIR to store script file and intermediate
+	// task execution data
 	CacheDir string `yaml:"cache_dir"`
 
+	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not
+	// detect branch name of origin/HEAD (e.g. github ci environment)
 	DefaultGitBranch string `yaml:"default_git_branch"`
 
-	// Env
+	// Env add global environment variables for all working parts in dukkha
 	Env dukkha.Env `yaml:"env"`
 
+	// Values is the global store of runtime values
+	//
+	// accessible from renderer template `{{ values.YOUR_VAL_KEY }}`
+	// and renderer env/shell `${VALUES.YOUR_VAL_KEY}`
 	Values rs.AnyObjectMap `yaml:"values"`
 }
 
@@ -115,19 +122,22 @@ type Config struct {
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
 
-	// Include other files using path relative to this config
-	// no rendering suffix for this field
+	// Include other files using path relative to DUKKHA_WORKING_DIR
+	// only local path (and path glob) is supported.
+	//
+	// You should always use relative path unless you do not want to
+	// maintain compatibility with other environments.
+	//
+	// no rendering suffix support for this field
 	Include []string `yaml:"include"`
 
 	// Shells for command execution
-	//
-	// this option is host specific and do not support
-	// renderers like `http`
 	Shells []*tools.BaseToolWithInit `yaml:"shells"`
 
+	// Renderers config options
 	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
 
-	// Language or tool specific tools
+	// Tools config options for registered tools
 	Tools Tools `yaml:"tools"`
 
 	Tasks map[string][]dukkha.Task `rs:"other"`

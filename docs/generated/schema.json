@@ -220,6 +220,9 @@
           },
           "type": "array"
         },
+        "global": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.conf.GlobalConfig"
+        },
         "golang:build": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.TaskBuild"
@@ -241,6 +244,12 @@
         "helm:package": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.helm.TaskPackage"
+          },
+          "type": "array"
+        },
+        "include": {
+          "items": {
+            "type": "string"
           },
           "type": "array"
         },
@@ -290,6 +299,12 @@
             "transform"
           ],
           "additionalProperties": false
+        },
+        "shells": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.BaseToolWithInit"
+          },
+          "type": "array"
         },
         "tools": {
           "properties": {
@@ -368,6 +383,9 @@
         }
       },
       "preferredOrder": [
+        "global",
+        "include",
+        "shells",
         "renderers",
         "tools",
         "buildah:build",
@@ -479,6 +497,9 @@
         "^github:release@((.*\\?.+\\|?)+)?!$": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^global@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^golang(:.+){0,1}:build$": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.TaskBuild"
@@ -518,6 +539,9 @@
         "^renderers@((.*\\?.+\\|?)+)?!$": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^shells@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^tools@((.*\\?.+\\|?)+)?!$": {
           "$ref": "#/definitions/PatchSpec"
         },
@@ -537,6 +561,51 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^workflow:test@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.conf.GlobalConfig": {
+      "properties": {
+        "cache_dir": {
+          "type": "string",
+          "description": "set DUKKHA_CACHE_DIR to store script file and intermediate task execution data",
+          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script file and intermediate task execution data"
+        },
+        "default_git_branch": {
+          "type": "string",
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "description": "add global environment variables for all working parts in dukkha",
+          "x-intellij-html-description": "add global environment variables for all working parts in dukkha"
+        },
+        "values": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${VALUES.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${VALUES.YOUR_VAL_KEY}</code>"
+        }
+      },
+      "preferredOrder": [
+        "cache_dir",
+        "default_git_branch",
+        "env",
+        "values"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^cache_dir@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^default_git_branch@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^values@((.*\\?.+\\|?)+)?!$": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -863,6 +932,52 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^task@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.BaseToolWithInit": {
+      "properties": {
+        "cmd": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shell_name": {
+          "type": "string"
+        },
+        "use_shell": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "cmd",
+        "use_shell",
+        "shell_name"
+      ],
+      "patternProperties": {
+        "^cmd@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^use_shell@((.*\\?.+\\|?)+)?!$": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3532,6 +3647,10 @@
       "type": "string",
       "description": "human-readable data size in KB, MB, GB, TB, TB",
       "x-intellij-html-description": "human-readable data size in KB, MB, GB, TB, TB"
+    },
+    "arhat.dev.rs.AnyObjectMap": {
+      "description": "a `map[string]interface{}` equivalent with rendering suffix support",
+      "x-intellij-html-description": "a <code>map[string]interface{}</code> equivalent with rendering suffix support"
     },
     "time.Duration": {
       "type": "integer",

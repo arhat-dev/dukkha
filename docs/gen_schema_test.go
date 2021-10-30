@@ -9,6 +9,7 @@ import (
 	"testing"
 	_ "unsafe" // for go:linkname
 
+	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/huandu/xstrings"
 	"github.com/stretchr/testify/assert"
@@ -41,27 +42,40 @@ func TestGenerateSchema(t *testing.T) {
 		}
 	}
 
-	rdrsTyp := reflect.StructOf(rdrs)
-	configModelFields := make([]reflect.StructField, len(_tasks)+2)
-	configModelFields[0] = reflect.StructField{
+	var configModelFields []reflect.StructField
+	dukkhaConfigType := reflect.TypeOf((*conf.Config)(nil)).Elem()
+	for i := 1; i < dukkhaConfigType.NumField(); i++ {
+		fi := dukkhaConfigType.Field(i)
+		if fi.PkgPath != "" {
+			// unexported
+			continue
+		}
+
+		yamlKey := strings.Split(fi.Tag.Get("yaml"), ",")[0]
+		switch yamlKey {
+		case "-", "", "renderers", "tools":
+			continue
+		}
+
+		configModelFields = append(configModelFields, fi)
+	}
+
+	configModelFields = append(configModelFields, reflect.StructField{
 		Name: "Renderers",
-		Type: rdrsTyp,
+		Type: reflect.StructOf(rdrs),
 		Tag:  reflect.StructTag(`yaml:"renderers"`),
-	}
-
-	toolsTyp := reflect.StructOf(tools)
-	configModelFields[1] = reflect.StructField{
+	}, reflect.StructField{
 		Name: "Tools",
-		Type: toolsTyp,
+		Type: reflect.StructOf(tools),
 		Tag:  reflect.StructTag(`yaml:"tools"`),
-	}
+	})
 
-	for i, t := range _tasks {
-		configModelFields[i+2] = reflect.StructField{
+	for _, t := range _tasks {
+		configModelFields = append(configModelFields, reflect.StructField{
 			Name: xstrings.FirstRuneToUpper(xstrings.ToCamelCase(strings.ReplaceAll(t.Name, ":", "_"))),
 			Type: reflect.SliceOf(t.Typ),
 			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s"`, t.Name)),
-		}
+		})
 	}
 
 	structStr := strings.ReplaceAll(
@@ -123,6 +137,8 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 		}
 	}
 
+	// include PatchSpec, so we can add patch spec for all definitions
+	// using patternProperties
 	psScm, err := schema.GenerateSchema("arhat.dev/rs", "PatchSpec", "yaml", formatRefName, false)
 	if err != nil {
 		return nil, err
@@ -133,9 +149,7 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 		scm.Definitions[k] = def
 	}
 
-	// TODO: add rendering suffix aware patterns
-	// 		 currently only have patch spec support
-	for _, def := range scm.Definitions {
+	for kind, def := range scm.Definitions {
 		if len(def.Properties) == 0 {
 			continue
 		}
@@ -145,9 +159,18 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 		}
 
 		for name := range def.Properties {
-			if name == "name" {
+			switch {
+			case name == "name":
+				// name property exists in tasks and tools
+				// which usually doesn't allow rendering suffix
+				continue
+			case kind == "Schema" && name == "include":
+				// top-level `include` doesn't have rendering suffix support
 				continue
 			}
+
+			// TODO: add rendering suffix aware patterns
+			// 		 currently only have patch spec support
 
 			patchSpecPattern := fmt.Sprintf(`^%s@((.*\?.+\|?)+)?!$`, name)
 			def.PatternProperties[patchSpecPattern] = &definition.Definition{

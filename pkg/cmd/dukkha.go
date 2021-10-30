@@ -76,6 +76,7 @@ func NewRootCmd() *cobra.Command {
 			switch {
 			case strings.HasPrefix(cmd.Use, "version"),
 				strings.HasPrefix(cmd.Use, "completion"):
+				// they don't need to know config options at all
 				return nil
 			}
 

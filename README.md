@@ -28,6 +28,10 @@ A typical build automation tool only takes one or two from the above at the same
 
 - Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix.
 
+- Editor support: Autocompletion for dukkha config (including autocompletion of patch spec)
+  - Add `https://raw.githubusercontent.com/arhat-dev/dukkha/master/docs/generated/schema.json` to your yaml schemas
+    - For vscode, add to `yaml.schemas` (for [yaml-language-server](https://github.com/redhat-developer/yaml-language-server#language-server-settings) which is embedded in [`redhat.vscode-yaml`](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) plugin)
+
 ### Task Execution Features
 
 - Declarative task definition, context aware and customizable tool invocation.
