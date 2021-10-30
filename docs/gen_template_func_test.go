@@ -1,18 +1,38 @@
 package docs_test
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
 	"sync"
+	"testing"
 	"text/template"
 	"text/template/parse"
 	"unsafe"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/templateutils"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestGenerateTemplateFuncDocs(t *testing.T) {
+	tpl, err := template.New("").ParseFiles("template_funcs.tpl")
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	tfs := collectTemplateFuncs()
+	buf := &bytes.Buffer{}
+	if !assert.NoError(t, tpl.ExecuteTemplate(buf, "template_funcs.tpl", tfs)) {
+		return
+	}
+
+	assert.NoError(t, os.WriteFile("./renderers/template_funcs.md", buf.Bytes(), 0644))
+}
 
 //go:linkname _Template text/template.Template
 type _Template struct {
@@ -75,9 +95,23 @@ func collectTemplateFuncs() []*templateFunc {
 				continue
 			}
 
+			ft := m.Func.Type()
+			var (
+				fin  []reflect.Type
+				fout []reflect.Type
+			)
+			// skip first (receiver)
+			for i := 1; i < ft.NumIn(); i++ {
+				fin = append(fin, ft.In(i))
+			}
+
+			for i := 0; i < ft.NumOut(); i++ {
+				fout = append(fout, ft.Out(i))
+			}
+
 			ret = append(ret, &templateFunc{
 				Name: k + "." + m.Name,
-				Func: m.Func.Type().String(),
+				Func: reflect.FuncOf(fin, fout, ft.IsVariadic()).String(),
 			})
 		}
 	}
