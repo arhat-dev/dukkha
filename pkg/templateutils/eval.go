@@ -7,8 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"mvdan.cc/sh/v3/syntax"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func createEvalNS(rc dukkha.RenderingContext) *_evalNS {

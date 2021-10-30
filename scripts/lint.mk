@@ -28,7 +28,7 @@ lint.shell:
 
 lint.go:
 	${RUN_CTR_APP} ghcr.io/arhat-dev/golangci-lint:1.41 \
-		golangci-lint run --fix
+		golangci-lint run --fix ./pkg/... ./cmd/...
 
 lint.yaml:
 	${RUN_CTR_APP} ghcr.io/arhat-dev/yamllint:1.26 \

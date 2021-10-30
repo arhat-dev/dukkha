@@ -82,6 +82,12 @@ linters-settings:
 
 issues:
   exclude-rules:
+  # - path: docs/
+  #   linters:
+  #   - unused
+  #   - goanalysis
+  #   - goanalysis_metalinter
+
   - path: _test\.go
     linters:
     - gocyclo
