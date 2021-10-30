@@ -39,7 +39,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 		srv.StartTLS()
 		defer srv.Close()
 
-		d := &driver{
+		d := &Driver{
 			DefaultConfig: rendererHTTPConfig{
 				User:     "foo",
 				Password: "bar",

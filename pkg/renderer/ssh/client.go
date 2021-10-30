@@ -11,7 +11,7 @@ import (
 )
 
 type Spec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// User for git ssh service, defaults to `git`
 	User string `yaml:"user"`

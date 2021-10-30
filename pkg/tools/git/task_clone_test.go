@@ -1,4 +1,4 @@
-package git_test
+package tool_git_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
-	"arhat.dev/dukkha/pkg/tools/git"
+	tool_git "arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
@@ -18,13 +18,13 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
 			Name:      "Invalid Empty",
-			Task:      &git.TaskClone{},
+			Task:      &tool_git.TaskClone{},
 			ExpectErr: true,
 			Options:   dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 		},
 		{
 			Name:    "Valid Clone Using Default Branch",
-			Task:    &git.TaskClone{URL: "example/foo.git"},
+			Task:    &tool_git.TaskClone{URL: "example/foo.git"},
 			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{
@@ -43,7 +43,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 		{
 			Name:    "Valid Clone Changing Remote Name",
-			Task:    &git.TaskClone{URL: "example/foo", RemoteName: "bar"},
+			Task:    &tool_git.TaskClone{URL: "example/foo", RemoteName: "bar"},
 			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
 			Expected: []dukkha.TaskExecSpec{
 				{

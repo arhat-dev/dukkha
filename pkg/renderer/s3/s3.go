@@ -22,15 +22,15 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &driver{
+	return &Driver{
 		name:        name,
 		CacheConfig: renderer.CacheConfig{EnableCache: false},
 	}
 }
 
-var _ dukkha.Renderer = (*driver)(nil)
+var _ dukkha.Renderer = (*Driver)(nil)
 
-type driver struct {
+type Driver struct {
 	rs.BaseField `yaml:"-"`
 	name         string
 
@@ -43,7 +43,7 @@ type driver struct {
 	cache *renderer.Cache
 }
 
-func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	if d.EnableCache {
 		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
 	}
@@ -53,7 +53,7 @@ func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return err
 }
 
-func (d *driver) RenderYaml(
+func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
 ) ([]byte, error) {
 	var (

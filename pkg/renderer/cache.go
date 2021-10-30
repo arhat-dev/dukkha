@@ -18,12 +18,22 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
+// CacheConfig is the config for cache control
 type CacheConfig struct {
 	rs.BaseField `yaml:"-"`
 
-	EnableCache    bool          `yaml:"enable_cache"`
-	CacheSizeLimit utils.Size    `yaml:"cache_size_limit"`
-	CacheMaxAge    time.Duration `yaml:"cache_max_age"`
+	// EnableCache activates caching support
+	// for renderers with remote fetch, it will cache it on local disk
+	// and cache_size_limit is not effective in that case
+	//
+	// Defaults to false
+	EnableCache bool `yaml:"enable_cache"`
+
+	// CacheSizeLimit limits maximum in memory size of cache
+	CacheSizeLimit utils.Size `yaml:"cache_size_limit"`
+
+	// CacheMaxAge limits maximum data cache time
+	CacheMaxAge time.Duration `yaml:"cache_max_age"`
 }
 
 type CacheRefreshFunc func(key string) ([]byte, error)

@@ -17,7 +17,7 @@ func TestNewDriver(t *testing.T) {
 }
 
 func TestDriver_Render(t *testing.T) {
-	d := NewDefault("").(*driver)
+	d := NewDefault("").(*Driver)
 
 	rv := dukkha_test.NewTestContext(context.TODO())
 	rv.AddEnv(true, &dukkha.EnvEntry{

@@ -21,7 +21,7 @@ Any valid yaml value
 
 ## Interoperation with `shell` renderer
 
-There is a template func `shell` for running shell commands in template
+There is a template func `eval.Shell` for running shell commands in template
 
 ```yaml
 foo@template: |-

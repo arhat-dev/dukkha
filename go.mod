@@ -21,13 +21,18 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/net v0.0.0-20211029160332-540bb53d3b2e
 	golang.org/x/sys v0.0.0-20211029165221-6e7872819dc8
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+	golang.org/x/tools v0.1.5
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	mvdan.cc/sh/v3 v3.4.0
 )
 
 replace github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
+
+replace github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41

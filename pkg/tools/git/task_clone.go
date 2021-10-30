@@ -1,4 +1,4 @@
-package git
+package tool_git
 
 import (
 	"fmt"

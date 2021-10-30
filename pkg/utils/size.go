@@ -8,6 +8,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Size is human-readable data size in KB, MB, GB, TB, TB
+//
+// Schema type is `string`
 type Size uint64
 
 var (

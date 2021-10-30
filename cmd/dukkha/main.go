@@ -25,20 +25,7 @@ import (
 	"arhat.dev/dukkha/pkg/cmd"
 	"arhat.dev/dukkha/pkg/version"
 
-	// Add extra renderers (enabled when config is set)
-	_ "arhat.dev/dukkha/pkg/renderer/git"
-	_ "arhat.dev/dukkha/pkg/renderer/http"
-	_ "arhat.dev/dukkha/pkg/renderer/input"
-
-	// Add tools
-	_ "arhat.dev/dukkha/pkg/tools/buildah"
-	_ "arhat.dev/dukkha/pkg/tools/cosign"
-	_ "arhat.dev/dukkha/pkg/tools/docker"
-	_ "arhat.dev/dukkha/pkg/tools/git"
-	_ "arhat.dev/dukkha/pkg/tools/github"
-	_ "arhat.dev/dukkha/pkg/tools/golang"
-	_ "arhat.dev/dukkha/pkg/tools/helm"
-	_ "arhat.dev/dukkha/pkg/tools/workflow"
+	_ "arhat.dev/dukkha/cmd/dukkha/addon"
 )
 
 func main() {

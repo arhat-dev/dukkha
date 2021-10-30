@@ -18,11 +18,11 @@ const (
 
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
-func NewDefault(name string) dukkha.Renderer { return &driver{name: name} }
+func NewDefault(name string) dukkha.Renderer { return &Driver{name: name} }
 
-var _ dukkha.Renderer = (*driver)(nil)
+var _ dukkha.Renderer = (*Driver)(nil)
 
-type driver struct {
+type Driver struct {
 	rs.BaseField `yaml:"-"`
 
 	Hide bool `yaml:"hide"`
@@ -30,11 +30,11 @@ type driver struct {
 	name string
 }
 
-func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(
+func (d *Driver) RenderYaml(
 	_ dukkha.RenderingContext, rawData interface{},
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)

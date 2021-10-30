@@ -55,7 +55,10 @@ func (orig Env) Clone() Env {
 type EnvEntry struct {
 	rs.BaseField `yaml:"-"`
 
-	Name  string `yaml:"name"`
+	// Name of the entry (in other words, key)
+	Name string `yaml:"name"`
+
+	// Value associated to the name
 	Value string `yaml:"value"`
 }
 
@@ -66,8 +69,8 @@ type (
 	TaskCreateFunc func(toolName string) Task
 )
 
-var globalTypeManager = &typeManager{
-	types: make(map[ifaceTypeKey]*ifaceFactory),
+var globalTypeManager = &TypeManager{
+	types: make(map[IfaceTypeKey]*IfaceFactory),
 }
 
 var GlobalInterfaceTypeHandler rs.InterfaceTypeHandler = globalTypeManager
@@ -85,6 +88,7 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 	}
 
 	globalTypeManager.register(
+		name,
 		rendererType,
 		regexp.MustCompile(fmt.Sprintf(`^%s(:.+){0,1}$`, name)),
 		func(subMatches []string) interface{} {
@@ -103,6 +107,7 @@ func RegisterTool(k ToolKind, create ToolCreateFunc) {
 	}
 
 	globalTypeManager.register(
+		string(k),
 		toolType,
 		regexp.MustCompile(fmt.Sprintf(`^%s$`, string(k))),
 		func(subMatches []string) interface{} { return create() },
@@ -119,6 +124,7 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 	}
 
 	globalTypeManager.register(
+		string(k)+":"+string(tk),
 		taskType,
 		regexp.MustCompile(
 			fmt.Sprintf(`^%s(:.+){0,1}:%s$`, string(k), string(tk)),
@@ -135,31 +141,39 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 
 // nolint:revive
 type (
-	ifaceTypeKey struct {
-		typ reflect.Type
+	IfaceTypeKey struct {
+		Typ reflect.Type
 	}
 
-	ifaceFactoryFunc func(subMatches []string) interface{}
+	IfaceFactoryFunc func(subMatches []string) interface{}
 
-	ifaceFactoryImpl struct {
-		exp         *regexp.Regexp
-		createField ifaceFactoryFunc
+	IfaceFactoryImpl struct {
+		// Name is the raw information about what instance we are creating
+		// currently only used in json schema generation
+		Name string
+		exp  *regexp.Regexp
+
+		Create IfaceFactoryFunc
 	}
 
-	ifaceFactory struct {
-		factories []*ifaceFactoryImpl
+	IfaceFactory struct {
+		Factories []*IfaceFactoryImpl
 	}
 )
 
-var _ rs.InterfaceTypeHandler = (*typeManager)(nil)
+var _ rs.InterfaceTypeHandler = (*TypeManager)(nil)
 
-type typeManager struct {
-	types map[ifaceTypeKey]*ifaceFactory
+type TypeManager struct {
+	types map[IfaceTypeKey]*IfaceFactory
 }
 
-func (h *typeManager) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
-	key := ifaceTypeKey{
-		typ: typ,
+func (h *TypeManager) Types() map[IfaceTypeKey]*IfaceFactory {
+	return h.types
+}
+
+func (h *TypeManager) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
+	key := IfaceTypeKey{
+		Typ: typ,
 	}
 
 	v, ok := h.types[key]
@@ -170,46 +184,51 @@ func (h *typeManager) Create(typ reflect.Type, yamlKey string) (interface{}, err
 		)
 	}
 
-	for _, impl := range v.factories {
+	for _, impl := range v.Factories {
 		if !impl.exp.MatchString(yamlKey) {
 			continue
 		}
 
 		if impl.exp.NumSubexp() == 0 {
-			return impl.createField(nil), nil
+			return impl.Create(nil), nil
 		}
 
-		return impl.createField(impl.exp.FindStringSubmatch(yamlKey)), nil
+		return impl.Create(impl.exp.FindStringSubmatch(yamlKey)), nil
 	}
 
 	return nil, fmt.Errorf("yaml field %q not resolved as %q", yamlKey, typ.String())
 }
 
-func (h *typeManager) register(
+func (h *TypeManager) register(
+	name string,
 	ifaceType reflect.Type,
 	yamlKeyMatch *regexp.Regexp,
-	createField ifaceFactoryFunc,
+	createField IfaceFactoryFunc,
 ) {
-	key := ifaceTypeKey{
-		typ: ifaceType,
+	key := IfaceTypeKey{
+		Typ: ifaceType,
 	}
 
 	v, ok := h.types[key]
 	if ok {
-		v.factories = append(v.factories,
-			&ifaceFactoryImpl{
-				exp:         yamlKeyMatch,
-				createField: createField,
+		v.Factories = append(v.Factories,
+			&IfaceFactoryImpl{
+				Name: name,
+				exp:  yamlKeyMatch,
+
+				Create: createField,
 			},
 		)
 
 		return
 	}
 
-	h.types[key] = &ifaceFactory{
-		factories: []*ifaceFactoryImpl{{
-			exp:         yamlKeyMatch,
-			createField: createField,
+	h.types[key] = &IfaceFactory{
+		Factories: []*IfaceFactoryImpl{{
+			Name: name,
+			exp:  yamlKeyMatch,
+
+			Create: createField,
 		}},
 	}
 }

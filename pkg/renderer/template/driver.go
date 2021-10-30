@@ -21,24 +21,24 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &driver{
+	return &Driver{
 		name: name,
 	}
 }
 
-var _ dukkha.Renderer = (*driver)(nil)
+var _ dukkha.Renderer = (*Driver)(nil)
 
-type driver struct {
+type Driver struct {
 	rs.BaseField `yaml:"-"`
 
 	name string
 }
 
-func (d *driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	return nil
 }
 
-func (d *driver) RenderYaml(
+func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)

@@ -28,6 +28,10 @@ dukkha:
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
 		go build -o build/dukkha -mod vendor ./cmd/dukkha
 
+.PHONY: docs
+docs:
+	go test -v -tags="docs" ./docs
+
 # testing
 include scripts/test/unit.mk
 

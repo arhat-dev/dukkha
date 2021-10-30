@@ -16,7 +16,7 @@ import (
 )
 
 type FetchSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Repo you want to fetch from
 	Repo string `yaml:"repo"`
@@ -29,7 +29,7 @@ type FetchSpec struct {
 }
 
 type inputFetchSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	Fetch FetchSpec `yaml:",inline"`
 	SSH   *ssh.Spec `yaml:"ssh,omitempty"`
