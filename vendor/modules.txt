@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.7.2
+# arhat.dev/pkg v0.7.3-0.20211031103932-2ba2f62218b1
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
@@ -8,11 +8,12 @@ arhat.dev/pkg/md5helper
 arhat.dev/pkg/rshelper
 arhat.dev/pkg/sha256helper
 arhat.dev/pkg/sorthelper
+arhat.dev/pkg/testhelper
 arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/rs v0.6.0
+# arhat.dev/rs v0.6.1-0.20211031063137-fd711ed8e5f5
 ## explicit
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1

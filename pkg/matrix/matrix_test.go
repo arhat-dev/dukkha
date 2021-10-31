@@ -3,9 +3,9 @@ package matrix
 import (
 	"testing"
 
+	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 
 	_ "embed"
 )
@@ -182,44 +182,29 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 	}
 }
 
-var (
-	//go:embed _fixtures/001-filter-amd64-got-unwanted-aix.yaml
-	fitlerAMD64GotUnwantedAIX []byte
-)
+func TestSpec_GenerateEntries_Fixture(t *testing.T) {
+	type testInputSpec struct {
+		rs.BaseField
 
-func TestMatrixConfig_GenerateEntries_Fixture(t *testing.T) {
-	tests := []struct {
-		name           string
-		yamlMatrixSpec []byte
-		matchFilter    map[string][]string
-		ignoreFilter   [][2]string
+		MatchFilter  map[string][]string `yaml:"match_filter"`
+		IgnoreFilter [][2]string         `yaml:"ignore_fitler"`
+		Spec         Spec                `yaml:"spec"`
+	}
 
-		expected []Entry
-	}{
-		{
-			name:           "001-filter-amd64-got-unwanted-aix",
-			yamlMatrixSpec: fitlerAMD64GotUnwantedAIX,
-			matchFilter:    map[string][]string{"arch": {"amd64"}},
-			expected: []Entry{
-				{"arch": "amd64", "kernel": "linux"},
-				{"arch": "amd64", "kernel": "darwin"},
-				// {"arch": "amd64", "kernel": "aix"},
-			},
+	testhelper.TestFixtures(t, "./_fixtures/gen-entries",
+		func() interface{} { return rs.Init(&testInputSpec{}, nil).(*testInputSpec) },
+		func() interface{} {
+			var data []Entry
+			return &data
 		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			spec := rs.Init(&Spec{}, nil).(*Spec)
-			if !assert.NoError(t, yaml.Unmarshal(test.yamlMatrixSpec, spec)) {
-				return
-			}
-
-			entries := spec.GenerateEntries(&Filter{
-				match:  test.matchFilter,
-				ignore: test.ignoreFilter,
+		func(t *testing.T, in, exp interface{}) {
+			spec := in.(*testInputSpec)
+			actual := spec.Spec.GenerateEntries(&Filter{
+				match:  spec.MatchFilter,
+				ignore: spec.IgnoreFilter,
 			}, "", "")
-			assert.EqualValues(t, test.expected, entries)
-		})
-	}
+
+			assert.EqualValues(t, exp, &actual)
+		},
+	)
 }

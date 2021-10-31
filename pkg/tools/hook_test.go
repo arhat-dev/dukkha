@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
@@ -15,53 +15,34 @@ import (
 	_ "embed"
 )
 
-var (
-	//go:embed _fixtures/001-hook-script-whitespace-trimed-after-rendering.yaml
-	hookScriptWhitespaceTrimedAfterRendering []byte
+func TestActionFixtures(t *testing.T) {
+	type testInputSpec struct {
+		rs.BaseField
 
-	// nolint:revive
-	//go:embed _fixtures/001-expected.yaml
-	_expected_001 []byte
-)
-
-func TestHookFixtures(t *testing.T) {
-	testCases := []struct {
-		name  string
-		input []byte
-
-		env      dukkha.Env
-		expected []byte
-	}{
-		{
-			name:  "001-hook-script-whitespace-trimed-after-rendering",
-			input: hookScriptWhitespaceTrimedAfterRendering,
-			env: dukkha.Env{
-				{Name: "VERSION", Value: "1.26.1"},
-			},
-			expected: _expected_001,
-		},
+		Env  dukkha.Env `yaml:"env"`
+		Spec Action     `yaml:"spec"`
 	}
 
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
+	testhelper.TestFixtures(t, "./_fixtures/action",
+		func() interface{} { return rs.Init(&testInputSpec{}, nil).(*testInputSpec) },
+		func() interface{} { return rs.Init(&Action{}, nil).(*Action) },
+		func(t *testing.T, in interface{}, exp interface{}) {
+			actual := in.(*testInputSpec)
+			expected := exp.(*Action)
+
 			ctx := dukkha_test.NewTestContext(context.TODO())
 			ctx.AddRenderer("env", env.NewDefault(""))
-			ctx.AddEnv(true, test.env...)
+			ctx.AddEnv(true, actual.Env...)
 
-			actual := rs.Init(&Action{}, nil).(*Action)
-			assert.NoError(t, yaml.Unmarshal(test.input, actual))
-			assert.NoError(t, actual.ResolveFields(ctx, -1))
-
-			expected := rs.Init(&Action{}, nil).(*Action)
-			assert.NoError(t, yaml.Unmarshal(test.expected, expected))
+			assert.NoError(t, actual.Spec.ResolveFields(ctx, -1))
 
 			t.Log(actual)
 
-			assert.EqualValues(t, expected.Cmd, actual.Cmd)
-			assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
-			assert.EqualValues(t, expected.EmbeddedShell, actual.EmbeddedShell)
-			assert.EqualValues(t, expected.ExternalShell, actual.ExternalShell)
-			assert.EqualValues(t, expected.Task, actual.Task)
-		})
-	}
+			assert.EqualValues(t, expected.Cmd, actual.Spec.Cmd)
+			assert.EqualValues(t, expected.ContinueOnError, actual.Spec.ContinueOnError)
+			assert.EqualValues(t, expected.EmbeddedShell, actual.Spec.EmbeddedShell)
+			assert.EqualValues(t, expected.ExternalShell, actual.Spec.ExternalShell)
+			assert.EqualValues(t, expected.Task, actual.Spec.Task)
+		},
+	)
 }

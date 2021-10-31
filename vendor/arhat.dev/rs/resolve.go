@@ -1,6 +1,7 @@
 package rs
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -255,6 +256,7 @@ func (f *BaseField) handleUnResolvedField(
 
 				if len(tag) != 0 {
 					toResolve = &yaml.Node{
+						Style: guessYamlStringStyle(renderedData),
 						Kind:  yaml.ScalarNode,
 						Tag:   tag,
 						Value: string(renderedData),
@@ -347,8 +349,17 @@ func (f *BaseField) handleUnResolvedField(
 	return tryResolve(rc, depth-1, target)
 }
 
-// assumeValidYaml tries its best to unmarshal renderedData as yaml.Node
-func assumeValidYaml(renderedData []byte) (ret *yaml.Node) {
+func guessYamlStringStyle(s []byte) yaml.Style {
+	switch {
+	case bytes.IndexByte(s, '\n') != -1:
+		return yaml.LiteralStyle
+	default:
+		return 0
+	}
+}
+
+// assumeValidYaml tries its best to unmarshal data as yaml.Node
+func assumeValidYaml(data []byte) (ret *yaml.Node) {
 	defer func() {
 		// TODO: yaml.Unmarshal can panic on invalid but seemingly
 		// 		 correct input (e.g. markdown)
@@ -359,38 +370,43 @@ func assumeValidYaml(renderedData []byte) (ret *yaml.Node) {
 
 		if errX != nil {
 			ret = &yaml.Node{
+				Style: guessYamlStringStyle(data),
 				Kind:  yaml.ScalarNode,
 				Tag:   strTag,
-				Value: string(renderedData),
+				Value: string(data),
 			}
 		}
 	}()
 
 	ret = new(yaml.Node)
-	err := yaml.Unmarshal(renderedData, ret)
+	err := yaml.Unmarshal(data, ret)
 	if err != nil {
 		ret = &yaml.Node{
+			Style: guessYamlStringStyle(data),
 			Kind:  yaml.ScalarNode,
 			Tag:   strTag,
-			Value: string(renderedData),
-		}
-	} else {
-		// unmarshal ok
-		if prepared := prepareYamlNode(ret); prepared != nil {
-			ret = prepared
+			Value: string(data),
 		}
 
-		switch {
-		case isStrScalar(ret), isBinaryScalar(ret):
-			// use original string instead of yaml unmarshaled string
-			// yaml.Unmarshal may modify string content when it's not
-			// valid yaml
+		return
+	}
 
-			ret = &yaml.Node{
-				Kind:  yaml.ScalarNode,
-				Tag:   strTag,
-				Value: string(renderedData),
-			}
+	// unmarshal ok
+	if prepared := prepareYamlNode(ret); prepared != nil {
+		ret = prepared
+	}
+
+	switch {
+	case isStrScalar(ret), isBinaryScalar(ret):
+		// use original string instead of yaml unmarshaled string
+		// yaml.Unmarshal may modify string content when it's not
+		// valid yaml
+
+		ret = &yaml.Node{
+			Style: guessYamlStringStyle(data),
+			Kind:  yaml.ScalarNode,
+			Tag:   strTag,
+			Value: string(data),
 		}
 	}
 

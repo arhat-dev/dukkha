@@ -47,6 +47,7 @@ func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
 	}
 
 	return &yaml.Node{
+		Style: guessYamlStringStyle(data),
 		Kind:  yaml.ScalarNode,
 		Tag:   strTag,
 		Value: strings.TrimSuffix(string(data), "\n"),

@@ -3,11 +3,11 @@ package rshelper
 import (
 	"fmt"
 
+	"arhat.dev/rs"
 	"go.uber.org/multierr"
 
 	"arhat.dev/pkg/envhelper"
 	"arhat.dev/pkg/yamlhelper"
-	"arhat.dev/rs"
 )
 
 // EnvRenderingHandler expands rawData with environment variables with bash string replacement functions support

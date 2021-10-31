@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"text/template"
 
-	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
+
+	"arhat.dev/pkg/yamlhelper"
 )
 
 // TemplateHandler execute raw data as text/template
