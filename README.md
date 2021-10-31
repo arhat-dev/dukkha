@@ -23,7 +23,7 @@ A typical build automation tool only takes one or two from the above at the same
 ### Content Rendering Features
 
 - Rendering suffix
-  - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix if you're not.
+  - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix.
   - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
 
 - Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix.
@@ -146,7 +146,7 @@ chmod +x dukkha
 
 ## Further Thoughts
 
-As you may have noticed, the core of `dukkha` is the rendering suffix, we have more toughts on the usage of rendering suffix as it dramatically eases the management of yaml config:
+As you may have noticed, the core of `dukkha` is the rendering suffix, we have more thoughts on the usage of rendering suffix as it dramatically eases the management of yaml config:
 
 - Extend dukkha to be something like `systemd` for system configration and process management
 - Manage kubernetes manifests in GitOps pipeline
