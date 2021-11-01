@@ -141,7 +141,7 @@ func Diff(base, other *Node, visitingKey []string) []*Entry {
 
 		// only can be missing
 		ret = append(ret, &Entry{
-			Key:      append(visitingKey),
+			Key:      append(visitingKey, child.elemKey),
 			Kind:     KindAdded,
 			DivertAt: child,
 		})

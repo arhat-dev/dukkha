@@ -8,6 +8,6 @@ current:
   kind: deleted
   divert_key: .a
 
-- key: []
+- key: [.c]
   kind: added
   divert_key: .c
