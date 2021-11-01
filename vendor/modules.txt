@@ -136,7 +136,7 @@ github.com/spf13/pflag
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert
-# github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca => github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41
+# github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca => github.com/arhat-dev/schemer v0.0.0-20211101151919-3dc044236b92
 ## explicit
 github.com/weaveworks/schemer/definition
 github.com/weaveworks/schemer/importer
@@ -228,4 +228,4 @@ mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
-# github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41
+# github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211101151919-3dc044236b92

@@ -48,9 +48,18 @@ func (dg *Generator) newStructDefinition(
 		panic(fmt.Errorf("Cannot handle non-struct TypeSpec %s", name))
 	}
 	for _, field := range structType.Fields.List {
-		tag := GetFieldTag(field)
+		tags := strings.Split(GetFieldTag(field).Get(dg.TagNamespace), ",")
+		fieldName := tags[0]
+		inline := len(field.Names) == 0 && fieldName == ""
+		if !inline {
+			for _, v := range tags {
+				if v == "inline" {
+					inline = true
+					break
+				}
+			}
+		}
 
-		fieldName := strings.Split(tag.Get(dg.TagNamespace), ",")[0]
 		fieldDoc := field.Doc.Text()
 
 		if def.Properties == nil {
@@ -61,7 +70,7 @@ func (dg *Generator) newStructDefinition(
 		var preferredOrder []string
 		var properties map[string]*Definition
 		// If we are embedded and don't specify a JSON field name
-		if len(field.Names) == 0 && fieldName == "" {
+		if inline {
 			// We have to handle an embedded field, get its definition
 			// and deconstruct it into this def
 			ref, _ := dg.newPropertyRef(thisPkg, "", field.Type, fieldDoc, true)

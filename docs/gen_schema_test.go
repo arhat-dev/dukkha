@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -113,6 +114,40 @@ func formatRefName(pkg, name string) string {
 	return strings.ReplaceAll(pkg, "/", ".") + "." + name
 }
 
+const (
+	// only match when first renderer with a patch suffix
+	patchSuffixPatternFormat = `^%s@[^\|]*!`
+
+	renderingSuffixPatternFormat = `^%s@.*`
+)
+
+func TestPatchSpecPattern(t *testing.T) {
+	tests := []struct {
+		str   string
+		match bool
+	}{
+		{"foo@!", true},
+		{"foo@test!", true},
+		{"foo@test!|env", true},
+		{"foo@test?int!", true},
+		{"foo@test?int!|env", true},
+
+		// should not match
+		{"foo", false},
+		{"foo@", false},
+		{"foo@?int", false},
+		{"foo@test|env!", false},
+		{"foo@env|int!", false},
+	}
+	for _, test := range tests {
+		t.Run(test.str, func(t *testing.T) {
+			match, err := regexp.MatchString(fmt.Sprintf(patchSuffixPatternFormat, "foo"), test.str)
+			assert.NoError(t, err)
+			assert.Equal(t, test.match, match)
+		})
+	}
+}
+
 func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 	scm, err := schema.GenerateSchema(
 		pkgPath, topLevelStructName, "yaml", formatRefName, false,
@@ -158,7 +193,9 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 			def.PatternProperties = make(map[string]*definition.Definition, len(def.Properties))
 		}
 
-		for name := range def.Properties {
+		// Add additional pattern properties while keep plain properties to make
+		// autocompletion happy
+		for name, prop := range def.Properties {
 			switch {
 			case name == "name":
 				// name property exists in tasks and tools
@@ -172,10 +209,13 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 			// TODO: add rendering suffix aware patterns
 			// 		 currently only have patch spec support
 
-			patchSpecPattern := fmt.Sprintf(`^%s@((.*\?.+\|?)+)?!$`, name)
-			def.PatternProperties[patchSpecPattern] = &definition.Definition{
+			patchPattern := fmt.Sprintf(patchSuffixPatternFormat, name)
+			def.PatternProperties[patchPattern] = &definition.Definition{
 				Ref: psDef,
 			}
+
+			rsPattern := fmt.Sprintf(renderingSuffixPatternFormat, name)
+			def.PatternProperties[rsPattern] = prop
 
 			// pattern := fmt.Sprintf(`^%s(@(.*\?.+\|?)+)?$`, name)
 			// patternProps[pattern] = prop

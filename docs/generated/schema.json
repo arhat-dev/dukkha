@@ -34,16 +34,30 @@
       "description": "per rfc6902",
       "x-intellij-html-description": "per rfc6902",
       "patternProperties": {
-        "^op@((.*\\?.+\\|?)+)?!$": {
+        "^op@.*": {
+          "type": "string"
+        },
+        "^op@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^select@((.*\\?.+\\|?)+)?!$": {
+        "^select@.*": {
+          "type": "string",
+          "description": "part of the value for patching  this action happens before patching",
+          "x-intellij-html-description": "part of the value for patching  this action happens before patching"
+        },
+        "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^value@((.*\\?.+\\|?)+)?!$": {
+        "^value@.*": {
+          "$ref": "#/definitions/AnyObject"
+        },
+        "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -67,10 +81,20 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^select@((.*\\?.+\\|?)+)?!$": {
+        "^select@.*": {
+          "type": "string",
+          "description": "some data from the source",
+          "x-intellij-html-description": "some data from the source"
+        },
+        "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^value@((.*\\?.+\\|?)+)?!$": {
+        "^value@.*": {
+          "$ref": "#/definitions/AnyObject",
+          "description": "for the source",
+          "x-intellij-html-description": "for the source"
+        },
+        "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -135,25 +159,69 @@
       "description": "input definition for renderers with a patching suffix",
       "x-intellij-html-description": "input definition for renderers with a patching suffix",
       "patternProperties": {
-        "^map_list_append@((.*\\?.+\\|?)+)?!$": {
+        "^map_list_append@.*": {
+          "type": "boolean",
+          "description": "to append lists instead of replacing existing list",
+          "x-intellij-html-description": "to append lists instead of replacing existing list",
+          "default": "false"
+        },
+        "^map_list_append@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^map_list_item_unique@((.*\\?.+\\|?)+)?!$": {
+        "^map_list_item_unique@.*": {
+          "type": "boolean",
+          "description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
+          "x-intellij-html-description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
+          "default": "false"
+        },
+        "^map_list_item_unique@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^merge@((.*\\?.+\\|?)+)?!$": {
+        "^merge@.*": {
+          "items": {
+            "$ref": "#/definitions/MergeSource"
+          },
+          "type": "array",
+          "description": "additional data into Value  this action happens first",
+          "x-intellij-html-description": "additional data into Value  this action happens first"
+        },
+        "^merge@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^patch@((.*\\?.+\\|?)+)?!$": {
+        "^patch@.*": {
+          "items": {
+            "$ref": "#/definitions/JSONPatchSpec"
+          },
+          "type": "array",
+          "description": "Value using standard rfc6902 json-patch  this action happens after merge",
+          "x-intellij-html-description": "Value using standard rfc6902 json-patch  this action happens after merge"
+        },
+        "^patch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^select@((.*\\?.+\\|?)+)?!$": {
+        "^select@.*": {
+          "type": "string",
+          "description": "part of the data as final result  this action happens after merge and patch",
+          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch"
+        },
+        "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^unique@((.*\\?.+\\|?)+)?!$": {
+        "^unique@.*": {
+          "type": "boolean",
+          "description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
+          "x-intellij-html-description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
+          "default": "false"
+        },
+        "^unique@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^value@((.*\\?.+\\|?)+)?!$": {
+        "^value@.*": {
+          "$ref": "#/definitions/AnyObject",
+          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be `[bar, foo]`",
+          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be <code>[bar, foo]</code>"
+        },
+        "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -431,16 +499,40 @@
           },
           "type": "array"
         },
-        "^buildah:build@((.*\\?.+\\|?)+)?!$": {
+        "^buildah:build@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
+          },
+          "type": "array"
+        },
+        "^buildah:build@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^buildah:login@((.*\\?.+\\|?)+)?!$": {
+        "^buildah:login@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskLogin"
+          },
+          "type": "array"
+        },
+        "^buildah:login@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^buildah:push@((.*\\?.+\\|?)+)?!$": {
+        "^buildah:push@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskPush"
+          },
+          "type": "array"
+        },
+        "^buildah:push@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^buildah:xbuild@((.*\\?.+\\|?)+)?!$": {
+        "^buildah:xbuild@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskXBuild"
+          },
+          "type": "array"
+        },
+        "^buildah:xbuild@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cosign(:.+){0,1}:upload$": {
@@ -449,7 +541,13 @@
           },
           "type": "array"
         },
-        "^cosign:upload@((.*\\?.+\\|?)+)?!$": {
+        "^cosign:upload@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskUpload"
+          },
+          "type": "array"
+        },
+        "^cosign:upload@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^docker(:.+){0,1}:build$": {
@@ -470,13 +568,31 @@
           },
           "type": "array"
         },
-        "^docker:build@((.*\\?.+\\|?)+)?!$": {
+        "^docker:build@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.docker.TaskBuild"
+          },
+          "type": "array"
+        },
+        "^docker:build@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^docker:login@((.*\\?.+\\|?)+)?!$": {
+        "^docker:login@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.docker.TaskLogin"
+          },
+          "type": "array"
+        },
+        "^docker:login@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^docker:push@((.*\\?.+\\|?)+)?!$": {
+        "^docker:push@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.docker.TaskPush"
+          },
+          "type": "array"
+        },
+        "^docker:push@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^git(:.+){0,1}:clone$": {
@@ -485,7 +601,13 @@
           },
           "type": "array"
         },
-        "^git:clone@((.*\\?.+\\|?)+)?!$": {
+        "^git:clone@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.git.TaskClone"
+          },
+          "type": "array"
+        },
+        "^git:clone@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^github(:.+){0,1}:release$": {
@@ -494,10 +616,19 @@
           },
           "type": "array"
         },
-        "^github:release@((.*\\?.+\\|?)+)?!$": {
+        "^github:release@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.github.TaskRelease"
+          },
+          "type": "array"
+        },
+        "^github:release@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^global@((.*\\?.+\\|?)+)?!$": {
+        "^global@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.conf.GlobalConfig"
+        },
+        "^global@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^golang(:.+){0,1}:build$": {
@@ -512,10 +643,22 @@
           },
           "type": "array"
         },
-        "^golang:build@((.*\\?.+\\|?)+)?!$": {
+        "^golang:build@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.TaskBuild"
+          },
+          "type": "array"
+        },
+        "^golang:build@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^golang:test@((.*\\?.+\\|?)+)?!$": {
+        "^golang:test@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.TaskTest"
+          },
+          "type": "array"
+        },
+        "^golang:test@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^helm(:.+){0,1}:index$": {
@@ -530,19 +673,147 @@
           },
           "type": "array"
         },
-        "^helm:index@((.*\\?.+\\|?)+)?!$": {
+        "^helm:index@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.helm.TaskIndex"
+          },
+          "type": "array"
+        },
+        "^helm:index@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^helm:package@((.*\\?.+\\|?)+)?!$": {
+        "^helm:package@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.helm.TaskPackage"
+          },
+          "type": "array"
+        },
+        "^helm:package@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^renderers@((.*\\?.+\\|?)+)?!$": {
+        "^renderers@.*": {
+          "properties": {
+            "echo": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
+            },
+            "env": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
+            },
+            "file": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
+            },
+            "git": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
+            },
+            "http": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
+            },
+            "input": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
+            },
+            "s3": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
+            },
+            "shell": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
+            },
+            "template": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
+            },
+            "transform": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            }
+          },
+          "preferredOrder": [
+            "echo",
+            "env",
+            "file",
+            "git",
+            "http",
+            "input",
+            "s3",
+            "shell",
+            "template",
+            "transform"
+          ],
+          "additionalProperties": false
+        },
+        "^renderers@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shells@((.*\\?.+\\|?)+)?!$": {
+        "^shells@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.BaseToolWithInit"
+          },
+          "type": "array"
+        },
+        "^shells@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^tools@((.*\\?.+\\|?)+)?!$": {
+        "^tools@.*": {
+          "properties": {
+            "buildah": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.Tool"
+              },
+              "type": "array"
+            },
+            "cosign": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.Tool"
+              },
+              "type": "array"
+            },
+            "docker": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.docker.Tool"
+              },
+              "type": "array"
+            },
+            "git": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.git.Tool"
+              },
+              "type": "array"
+            },
+            "github": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.github.Tool"
+              },
+              "type": "array"
+            },
+            "golang": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.Tool"
+              },
+              "type": "array"
+            },
+            "helm": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.helm.Tool"
+              },
+              "type": "array"
+            },
+            "workflow": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.workflow.Tool"
+              },
+              "type": "array"
+            }
+          },
+          "preferredOrder": [
+            "buildah",
+            "cosign",
+            "docker",
+            "git",
+            "github",
+            "golang",
+            "helm",
+            "workflow"
+          ],
+          "additionalProperties": false
+        },
+        "^tools@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^workflow(:.+){0,1}:run$": {
@@ -557,10 +828,22 @@
           },
           "type": "array"
         },
-        "^workflow:run@((.*\\?.+\\|?)+)?!$": {
+        "^workflow:run@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.workflow.TaskRun"
+          },
+          "type": "array"
+        },
+        "^workflow:run@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^workflow:test@((.*\\?.+\\|?)+)?!$": {
+        "^workflow:test@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.workflow.TaskTest"
+          },
+          "type": "array"
+        },
+        "^workflow:test@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -596,16 +879,36 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^cache_dir@((.*\\?.+\\|?)+)?!$": {
+        "^cache_dir@.*": {
+          "type": "string",
+          "description": "set DUKKHA_CACHE_DIR to store script file and intermediate task execution data",
+          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script file and intermediate task execution data"
+        },
+        "^cache_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^default_git_branch@((.*\\?.+\\|?)+)?!$": {
+        "^default_git_branch@.*": {
+          "type": "string",
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)"
+        },
+        "^default_git_branch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "description": "add global environment variables for all working parts in dukkha",
+          "x-intellij-html-description": "add global environment variables for all working parts in dukkha"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^values@((.*\\?.+\\|?)+)?!$": {
+        "^values@.*": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${VALUES.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${VALUES.YOUR_VAL_KEY}</code>"
+        },
+        "^values@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -635,7 +938,12 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^value@((.*\\?.+\\|?)+)?!$": {
+        "^value@.*": {
+          "type": "string",
+          "description": "associated to the name",
+          "x-intellij-html-description": "associated to the name"
+        },
+        "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -677,16 +985,42 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^arch@((.*\\?.+\\|?)+)?!$": {
+        "^arch@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^arch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^exclude@((.*\\?.+\\|?)+)?!$": {
+        "^exclude@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+          },
+          "type": "array"
+        },
+        "^exclude@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^include@((.*\\?.+\\|?)+)?!$": {
+        "^include@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+          },
+          "type": "array"
+        },
+        "^include@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^kernel@((.*\\?.+\\|?)+)?!$": {
+        "^kernel@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set",
+          "x-intellij-html-description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set"
+        },
+        "^kernel@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -722,13 +1056,29 @@
         "cache_max_age"
       ],
       "patternProperties": {
-        "^cache_max_age@((.*\\?.+\\|?)+)?!$": {
+        "^cache_max_age@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "limits maximum data cache time",
+          "x-intellij-html-description": "limits maximum data cache time"
+        },
+        "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cache_size_limit@((.*\\?.+\\|?)+)?!$": {
+        "^cache_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "limits maximum in memory size of cache",
+          "x-intellij-html-description": "limits maximum in memory size of cache"
+        },
+        "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enable_cache@((.*\\?.+\\|?)+)?!$": {
+        "^enable_cache@.*": {
+          "type": "boolean",
+          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
+          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
+          "default": "false"
+        },
+        "^enable_cache@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -750,29 +1100,128 @@
           "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
           "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
           "default": "false"
+        },
+        "host": {
+          "type": "string",
+          "description": "of git ssh server e.g. gitlab.com",
+          "x-intellij-html-description": "of git ssh server e.g. gitlab.com"
+        },
+        "host_key": {
+          "type": "string",
+          "description": "public key to verify remote host",
+          "x-intellij-html-description": "public key to verify remote host"
+        },
+        "password": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "description": "of ssh service, defaults to `22`",
+          "x-intellij-html-description": "of ssh service, defaults to <code>22</code>"
+        },
+        "private_key": {
+          "type": "string",
+          "description": "authentication",
+          "x-intellij-html-description": "authentication"
+        },
+        "user": {
+          "type": "string",
+          "description": "for git ssh service, defaults to `git`",
+          "x-intellij-html-description": "for git ssh service, defaults to <code>git</code>"
         }
       },
       "preferredOrder": [
         "enable_cache",
         "cache_size_limit",
-        "cache_max_age"
+        "cache_max_age",
+        "user",
+        "host",
+        "port",
+        "host_key",
+        "private_key",
+        "password"
       ],
       "description": "git renderer implementation",
       "x-intellij-html-description": "git renderer implementation",
       "patternProperties": {
-        "^cache_max_age@((.*\\?.+\\|?)+)?!$": {
+        "^cache_max_age@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "limits maximum data cache time",
+          "x-intellij-html-description": "limits maximum data cache time"
+        },
+        "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cache_size_limit@((.*\\?.+\\|?)+)?!$": {
+        "^cache_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "limits maximum in memory size of cache",
+          "x-intellij-html-description": "limits maximum in memory size of cache"
+        },
+        "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enable_cache@((.*\\?.+\\|?)+)?!$": {
+        "^enable_cache@.*": {
+          "type": "boolean",
+          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
+          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
+          "default": "false"
+        },
+        "^enable_cache@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^host@.*": {
+          "type": "string",
+          "description": "of git ssh server e.g. gitlab.com",
+          "x-intellij-html-description": "of git ssh server e.g. gitlab.com"
+        },
+        "^host@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^host_key@.*": {
+          "type": "string",
+          "description": "public key to verify remote host",
+          "x-intellij-html-description": "public key to verify remote host"
+        },
+        "^host_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^password@.*": {
+          "type": "string"
+        },
+        "^password@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^port@.*": {
+          "type": "integer",
+          "description": "of ssh service, defaults to `22`",
+          "x-intellij-html-description": "of ssh service, defaults to <code>22</code>"
+        },
+        "^port@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^private_key@.*": {
+          "type": "string",
+          "description": "authentication",
+          "x-intellij-html-description": "authentication"
+        },
+        "^private_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^user@.*": {
+          "type": "string",
+          "description": "for git ssh service, defaults to `git`",
+          "x-intellij-html-description": "for git ssh service, defaults to <code>git</code>"
+        },
+        "^user@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
     },
     "arhat.dev.dukkha.pkg.renderer.http.Driver": {
       "properties": {
+        "body": {
+          "type": "string"
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
           "description": "limits maximum data cache time",
@@ -788,21 +1237,196 @@
           "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
           "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
           "default": "false"
+        },
+        "headers": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.headers"
+        },
+        "method": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "proxy": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.httpProxyConfig"
+        },
+        "tls": {
+          "$ref": "#/definitions/arhat.dev.pkg.tlshelper.TLSConfig"
+        },
+        "user": {
+          "type": "string"
         }
       },
       "preferredOrder": [
         "enable_cache",
         "cache_size_limit",
-        "cache_max_age"
+        "cache_max_age",
+        "user",
+        "password",
+        "headers",
+        "method",
+        "proxy",
+        "tls",
+        "body"
       ],
       "patternProperties": {
-        "^cache_max_age@((.*\\?.+\\|?)+)?!$": {
+        "^body@.*": {
+          "type": "string"
+        },
+        "^body@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cache_size_limit@((.*\\?.+\\|?)+)?!$": {
+        "^cache_max_age@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "limits maximum data cache time",
+          "x-intellij-html-description": "limits maximum data cache time"
+        },
+        "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enable_cache@((.*\\?.+\\|?)+)?!$": {
+        "^cache_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "limits maximum in memory size of cache",
+          "x-intellij-html-description": "limits maximum in memory size of cache"
+        },
+        "^cache_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^enable_cache@.*": {
+          "type": "boolean",
+          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
+          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
+          "default": "false"
+        },
+        "^enable_cache@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^headers@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.headers"
+        },
+        "^headers@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^method@.*": {
+          "type": "string"
+        },
+        "^method@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^password@.*": {
+          "type": "string"
+        },
+        "^password@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^proxy@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.httpProxyConfig"
+        },
+        "^proxy@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^tls@.*": {
+          "$ref": "#/definitions/arhat.dev.pkg.tlshelper.TLSConfig"
+        },
+        "^tls@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^user@.*": {
+          "type": "string"
+        },
+        "^user@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.renderer.http.headers": {
+      "items": {
+        "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.nameValuePair"
+      },
+      "type": "array"
+    },
+    "arhat.dev.dukkha.pkg.renderer.http.httpProxyConfig": {
+      "properties": {
+        "cgi": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "http": {
+          "type": "string"
+        },
+        "https": {
+          "type": "string"
+        },
+        "no_proxy": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "http",
+        "https",
+        "no_proxy",
+        "cgi"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^cgi@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^cgi@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^enabled@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^http@.*": {
+          "type": "string"
+        },
+        "^http@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^https@.*": {
+          "type": "string"
+        },
+        "^https@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^no_proxy@.*": {
+          "type": "string"
+        },
+        "^no_proxy@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.renderer.http.nameValuePair": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "value"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^value@.*": {
+          "type": "string"
+        },
+        "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -819,13 +1443,29 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^hide@((.*\\?.+\\|?)+)?!$": {
+        "^hide@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^hide@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
     },
     "arhat.dev.dukkha.pkg.renderer.s3.Driver": {
       "properties": {
+        "access_key_id": {
+          "type": "string"
+        },
+        "access_key_secret": {
+          "type": "string"
+        },
+        "base_path": {
+          "type": "string"
+        },
+        "bucket": {
+          "type": "string"
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
           "description": "limits maximum data cache time",
@@ -841,21 +1481,85 @@
           "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
           "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
           "default": "false"
+        },
+        "endpoint_url": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
         }
       },
       "preferredOrder": [
         "enable_cache",
         "cache_size_limit",
-        "cache_max_age"
+        "cache_max_age",
+        "endpoint_url",
+        "region",
+        "bucket",
+        "base_path",
+        "access_key_id",
+        "access_key_secret"
       ],
       "patternProperties": {
-        "^cache_max_age@((.*\\?.+\\|?)+)?!$": {
+        "^access_key_id@.*": {
+          "type": "string"
+        },
+        "^access_key_id@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cache_size_limit@((.*\\?.+\\|?)+)?!$": {
+        "^access_key_secret@.*": {
+          "type": "string"
+        },
+        "^access_key_secret@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enable_cache@((.*\\?.+\\|?)+)?!$": {
+        "^base_path@.*": {
+          "type": "string"
+        },
+        "^base_path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^bucket@.*": {
+          "type": "string"
+        },
+        "^bucket@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^cache_max_age@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "limits maximum data cache time",
+          "x-intellij-html-description": "limits maximum data cache time"
+        },
+        "^cache_max_age@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^cache_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "limits maximum in memory size of cache",
+          "x-intellij-html-description": "limits maximum in memory size of cache"
+        },
+        "^cache_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^enable_cache@.*": {
+          "type": "boolean",
+          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
+          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
+          "default": "false"
+        },
+        "^enable_cache@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^endpoint_url@.*": {
+          "type": "string"
+        },
+        "^endpoint_url@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^region@.*": {
+          "type": "string"
+        },
+        "^region@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -916,22 +1620,56 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^chdir@((.*\\?.+\\|?)+)?!$": {
+        "^chdir@.*": {
+          "type": "string",
+          "description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action",
+          "x-intellij-html-description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action"
+        },
+        "^chdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
+          "x-intellij-html-description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "description": "specific to this action",
+          "x-intellij-html-description": "specific to this action"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell@((.*\\?.+\\|?)+)?!$": {
+        "^shell@.*": {
+          "type": "string",
+          "description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+        },
+        "^shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^task@((.*\\?.+\\|?)+)?!$": {
+        "^task@.*": {
+          "type": "string",
+          "description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+        },
+        "^task@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -968,16 +1706,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1061,28 +1817,92 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^after:failure@((.*\\?.+\\|?)+)?!$": {
+        "^after:failure@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information"
+        },
+        "^after:failure@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^after:matrix:failure@((.*\\?.+\\|?)+)?!$": {
+        "^after:matrix:failure@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs after a failed matrix execution  This hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a failed matrix execution  This hook May have reference to matrix information"
+        },
+        "^after:matrix:failure@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^after:matrix:success@((.*\\?.+\\|?)+)?!$": {
+        "^after:matrix:success@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs after a successful matrix execution  This hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a successful matrix execution  This hook May have reference to matrix information"
+        },
+        "^after:matrix:success@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^after:matrix@((.*\\?.+\\|?)+)?!$": {
+        "^after:matrix@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information"
+        },
+        "^after:matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^after:success@((.*\\?.+\\|?)+)?!$": {
+        "^after:success@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information"
+        },
+        "^after:success@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^after@((.*\\?.+\\|?)+)?!$": {
+        "^after@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "any condition of the task execution including success, failure, canceled (hook `before` failure)  This hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "any condition of the task execution including success, failure, canceled (hook <code>before</code> failure)  This hook MUST NOT have any reference to matrix information"
+        },
+        "^after@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^before:matrix@((.*\\?.+\\|?)+)?!$": {
+        "^before:matrix@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "Before a specific matrix execution start  This hook May have reference to matrix information",
+          "x-intellij-html-description": "Before a specific matrix execution start  This hook May have reference to matrix information"
+        },
+        "^before:matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^before@((.*\\?.+\\|?)+)?!$": {
+        "^before@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array",
+          "description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run `After` hooks  This hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
+        },
+        "^before@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1102,10 +1922,16 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^image@((.*\\?.+\\|?)+)?!$": {
+        "^image@.*": {
+          "type": "string"
+        },
+        "^image@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^manifest@((.*\\?.+\\|?)+)?!$": {
+        "^manifest@.*": {
+          "type": "string"
+        },
+        "^manifest@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1169,31 +1995,70 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^build_args@((.*\\?.+\\|?)+)?!$": {
+        "^build_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "--build-arg",
+          "x-intellij-html-description": "--build-arg"
+        },
+        "^build_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^context@((.*\\?.+\\|?)+)?!$": {
+        "^context@.*": {
+          "type": "string"
+        },
+        "^context@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^file@((.*\\?.+\\|?)+)?!$": {
+        "^file@.*": {
+          "type": "string"
+        },
+        "^file@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^image_names@((.*\\?.+\\|?)+)?!$": {
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1242,28 +2107,53 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^password@((.*\\?.+\\|?)+)?!$": {
+        "^password@.*": {
+          "type": "string"
+        },
+        "^password@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^registry@((.*\\?.+\\|?)+)?!$": {
+        "^registry@.*": {
+          "type": "string"
+        },
+        "^registry@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^tls_skip_verify@((.*\\?.+\\|?)+)?!$": {
+        "^tls_skip_verify@.*": {
+          "type": "boolean"
+        },
+        "^tls_skip_verify@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^username@((.*\\?.+\\|?)+)?!$": {
+        "^username@.*": {
+          "type": "string"
+        },
+        "^username@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1303,19 +2193,38 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^image_names@((.*\\?.+\\|?)+)?!$": {
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1364,22 +2273,49 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^image_names@((.*\\?.+\\|?)+)?!$": {
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^steps@((.*\\?.+\\|?)+)?!$": {
+        "^steps@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.step"
+          },
+          "type": "array",
+          "description": "Context string  `yaml:\"context\"`",
+          "x-intellij-html-description": "Context string  <code>yaml:&quot;context&quot;</code>"
+        },
+        "^steps@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1416,16 +2352,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1441,7 +2395,10 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^url@((.*\\?.+\\|?)+)?!$": {
+        "^url@.*": {
+          "type": "string"
+        },
+        "^url@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1476,19 +2433,37 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^arch@((.*\\?.+\\|?)+)?!$": {
+        "^arch@.*": {
+          "type": "string"
+        },
+        "^arch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_pull_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_pull_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_pull_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^kernel@((.*\\?.+\\|?)+)?!$": {
+        "^kernel@.*": {
+          "type": "string"
+        },
+        "^kernel@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^ref@((.*\\?.+\\|?)+)?!$": {
+        "^ref@.*": {
+          "type": "string"
+        },
+        "^ref@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1504,7 +2479,10 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1536,19 +2514,34 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^http@((.*\\?.+\\|?)+)?!$": {
+        "^http@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromHTTPSpec"
+        },
+        "^http@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^image@((.*\\?.+\\|?)+)?!$": {
+        "^image@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromImageSpec"
+        },
+        "^image@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^local@((.*\\?.+\\|?)+)?!$": {
+        "^local@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromLocalSpec"
+        },
+        "^local@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^step@((.*\\?.+\\|?)+)?!$": {
+        "^step@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromStepSpec"
+        },
+        "^step@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^text@((.*\\?.+\\|?)+)?!$": {
+        "^text@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromTextSpec"
+        },
+        "^text@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1570,10 +2563,18 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^id@((.*\\?.+\\|?)+)?!$": {
+        "^id@.*": {
+          "type": "string",
+          "description": "of that step",
+          "x-intellij-html-description": "of that step"
+        },
+        "^id@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1589,7 +2590,10 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^data@((.*\\?.+\\|?)+)?!$": {
+        "^data@.*": {
+          "type": "string"
+        },
+        "^data@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1605,7 +2609,10 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1634,13 +2641,27 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^from@((.*\\?.+\\|?)+)?!$": {
+        "^from@.*": {
+          "type": "string"
+        },
+        "^from@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^options@((.*\\?.+\\|?)+)?!$": {
+        "^options@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable",
+          "x-intellij-html-description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable"
+        },
+        "^options@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^to@((.*\\?.+\\|?)+)?!$": {
+        "^to@.*": {
+          "type": "string"
+        },
+        "^to@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1722,37 +2743,94 @@
       "description": "structured `buildah <subcmd>` for image building",
       "x-intellij-html-description": "structured <code>buildah &lt;subcmd&gt;</code> for image building",
       "patternProperties": {
-        "^commit@((.*\\?.+\\|?)+)?!$": {
+        "^commit@.*": {
+          "type": "boolean",
+          "description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)",
+          "x-intellij-html-description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)"
+        },
+        "^commit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^commit_as@((.*\\?.+\\|?)+)?!$": {
+        "^commit_as@.*": {
+          "type": "string",
+          "description": "set the image name the container committed as",
+          "x-intellij-html-description": "set the image name the container committed as"
+        },
+        "^commit_as@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^compress@((.*\\?.+\\|?)+)?!$": {
+        "^compress@.*": {
+          "type": "boolean",
+          "description": "when commit, defaults to true",
+          "x-intellij-html-description": "when commit, defaults to true"
+        },
+        "^compress@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^copy@((.*\\?.+\\|?)+)?!$": {
+        "^copy@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.stepCopy",
+          "description": "files to somewhere",
+          "x-intellij-html-description": "files to somewhere"
+        },
+        "^copy@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_commit_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_commit_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_commit_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^from@((.*\\?.+\\|?)+)?!$": {
+        "^from@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.stepFrom",
+          "description": "some rootfs",
+          "x-intellij-html-description": "some rootfs"
+        },
+        "^from@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^id@((.*\\?.+\\|?)+)?!$": {
+        "^id@.*": {
+          "type": "string",
+          "description": "of this step, if not set, will be the array index of this step",
+          "x-intellij-html-description": "of this step, if not set, will be the array index of this step"
+        },
+        "^id@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^record@((.*\\?.+\\|?)+)?!$": {
+        "^record@.*": {
+          "type": "boolean",
+          "description": "to add flag --add-history",
+          "x-intellij-html-description": "to add flag --add-history"
+        },
+        "^record@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^run@((.*\\?.+\\|?)+)?!$": {
+        "^run@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.stepRun",
+          "description": "some command",
+          "x-intellij-html-description": "some command"
+        },
+        "^run@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^set@((.*\\?.+\\|?)+)?!$": {
+        "^set@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.stepSet",
+          "description": "default options for all following steps",
+          "x-intellij-html-description": "default options for all following steps"
+        },
+        "^set@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^skip@((.*\\?.+\\|?)+)?!$": {
+        "^skip@.*": {
+          "type": "boolean",
+          "description": "this step when set to true",
+          "x-intellij-html-description": "this step when set to true",
+          "default": "false"
+        },
+        "^skip@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1783,13 +2861,27 @@
       "description": "structured `buildah copy`",
       "x-intellij-html-description": "structured <code>buildah copy</code>",
       "patternProperties": {
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for buildah copy",
+          "x-intellij-html-description": "for buildah copy"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^from@((.*\\?.+\\|?)+)?!$": {
+        "^from@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyFromSpec"
+        },
+        "^from@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^to@((.*\\?.+\\|?)+)?!$": {
+        "^to@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.copyToSpec"
+        },
+        "^to@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1838,22 +2930,53 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^arch@((.*\\?.+\\|?)+)?!$": {
+        "^arch@.*": {
+          "type": "string"
+        },
+        "^arch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_pull_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_pull_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_pull_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^kernel@((.*\\?.+\\|?)+)?!$": {
+        "^kernel@.*": {
+          "type": "string"
+        },
+        "^kernel@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^mount@((.*\\?.+\\|?)+)?!$": {
+        "^mount@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.mountSpec"
+          },
+          "type": "array",
+          "description": "TODO: implement",
+          "x-intellij-html-description": "TODO: implement"
+        },
+        "^mount@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^ref@((.*\\?.+\\|?)+)?!$": {
+        "^ref@.*": {
+          "type": "string",
+          "description": "image",
+          "x-intellij-html-description": "image"
+        },
+        "^ref@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1911,22 +3034,62 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "as bare exec",
+          "x-intellij-html-description": "as bare exec"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^executable_args@((.*\\?.+\\|?)+)?!$": {
+        "^executable_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for the executable",
+          "x-intellij-html-description": "for the executable"
+        },
+        "^executable_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^executable_file@((.*\\?.+\\|?)+)?!$": {
+        "^executable_file@.*": {
+          "type": "string",
+          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as `script`",
+          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as <code>script</code>"
+        },
+        "^executable_file@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^script@((.*\\?.+\\|?)+)?!$": {
+        "^script@.*": {
+          "type": "string",
+          "description": " helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company",
+          "x-intellij-html-description": "helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company"
+        },
+        "^script@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^script_args@((.*\\?.+\\|?)+)?!$": {
+        "^script_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for the script",
+          "x-intellij-html-description": "for the script"
+        },
+        "^script_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2012,37 +3175,100 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^annotations@((.*\\?.+\\|?)+)?!$": {
+        "^annotations@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+          },
+          "type": "array"
+        },
+        "^annotations@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^entrypoint@((.*\\?.+\\|?)+)?!$": {
+        "^entrypoint@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^entrypoint@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+          },
+          "type": "array"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^labels@((.*\\?.+\\|?)+)?!$": {
+        "^labels@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+          },
+          "type": "array"
+        },
+        "^labels@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^ports@((.*\\?.+\\|?)+)?!$": {
+        "^ports@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^ports@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell@((.*\\?.+\\|?)+)?!$": {
+        "^shell@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "command to interpreter scripts in run step",
+          "x-intellij-html-description": "command to interpreter scripts in run step"
+        },
+        "^shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^stop_signal@((.*\\?.+\\|?)+)?!$": {
+        "^stop_signal@.*": {
+          "type": "string"
+        },
+        "^stop_signal@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^user@((.*\\?.+\\|?)+)?!$": {
+        "^user@.*": {
+          "type": "string",
+          "description": "for command running in run step",
+          "x-intellij-html-description": "for command running in run step"
+        },
+        "^user@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^volumes@((.*\\?.+\\|?)+)?!$": {
+        "^volumes@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^volumes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^workdir@((.*\\?.+\\|?)+)?!$": {
+        "^workdir@.*": {
+          "type": "string",
+          "description": "Workdir",
+          "x-intellij-html-description": "Workdir"
+        },
+        "^workdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2062,10 +3288,16 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^content_type@((.*\\?.+\\|?)+)?!$": {
+        "^content_type@.*": {
+          "type": "string"
+        },
+        "^content_type@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2120,28 +3352,59 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^files@((.*\\?.+\\|?)+)?!$": {
+        "^files@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.FileSpec"
+          },
+          "type": "array"
+        },
+        "^files@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^image_names@((.*\\?.+\\|?)+)?!$": {
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^kind@((.*\\?.+\\|?)+)?!$": {
+        "^kind@.*": {
+          "type": "string"
+        },
+        "^kind@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^signing@((.*\\?.+\\|?)+)?!$": {
+        "^signing@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec"
+        },
+        "^signing@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2178,16 +3441,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2232,25 +3513,51 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^annotations@((.*\\?.+\\|?)+)?!$": {
+        "^annotations@.*": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "^annotations@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^private_key@((.*\\?.+\\|?)+)?!$": {
+        "^private_key@.*": {
+          "type": "string"
+        },
+        "^private_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^private_key_password@((.*\\?.+\\|?)+)?!$": {
+        "^private_key_password@.*": {
+          "type": "string"
+        },
+        "^private_key_password@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^public_key@((.*\\?.+\\|?)+)?!$": {
+        "^public_key@.*": {
+          "type": "string"
+        },
+        "^public_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^repo@((.*\\?.+\\|?)+)?!$": {
+        "^repo@.*": {
+          "type": "string"
+        },
+        "^repo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^verify@((.*\\?.+\\|?)+)?!$": {
+        "^verify@.*": {
+          "type": "boolean"
+        },
+        "^verify@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2296,16 +3603,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2365,34 +3690,68 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^local_branch@((.*\\?.+\\|?)+)?!$": {
+        "^local_branch@.*": {
+          "type": "string"
+        },
+        "^local_branch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^remote_branch@((.*\\?.+\\|?)+)?!$": {
+        "^remote_branch@.*": {
+          "type": "string"
+        },
+        "^remote_branch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^remote_name@((.*\\?.+\\|?)+)?!$": {
+        "^remote_name@.*": {
+          "type": "string"
+        },
+        "^remote_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^url@((.*\\?.+\\|?)+)?!$": {
+        "^url@.*": {
+          "type": "string"
+        },
+        "^url@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2429,16 +3788,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2462,10 +3839,20 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^label@((.*\\?.+\\|?)+)?!$": {
+        "^label@.*": {
+          "type": "string",
+          "description": "the display label as noted in gh docs https://cli.github.com/manual/gh_release_create",
+          "x-intellij-html-description": "the display label as noted in gh docs https://cli.github.com/manual/gh<em>release</em>create"
+        },
+        "^label@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^path@.*": {
+          "type": "string",
+          "description": "path to the file, can use glob",
+          "x-intellij-html-description": "path to the file, can use glob"
+        },
+        "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2527,34 +3914,70 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^draft@((.*\\?.+\\|?)+)?!$": {
+        "^draft@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^draft@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^files@((.*\\?.+\\|?)+)?!$": {
+        "^files@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.github.ReleaseFileSpec"
+          },
+          "type": "array"
+        },
+        "^files@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^notes@((.*\\?.+\\|?)+)?!$": {
+        "^notes@.*": {
+          "type": "string"
+        },
+        "^notes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^pre_release@((.*\\?.+\\|?)+)?!$": {
+        "^pre_release@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^pre_release@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^tag@((.*\\?.+\\|?)+)?!$": {
+        "^tag@.*": {
+          "type": "string"
+        },
+        "^tag@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^title@((.*\\?.+\\|?)+)?!$": {
+        "^title@.*": {
+          "type": "string"
+        },
+        "^title@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2591,16 +4014,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2676,31 +4117,86 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^cc@((.*\\?.+\\|?)+)?!$": {
+        "^cc@.*": {
+          "type": "string"
+        },
+        "^cc@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cflags@((.*\\?.+\\|?)+)?!$": {
+        "^cflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "CGO_CFLAGS",
+          "x-intellij-html-description": "CGO_CFLAGS"
+        },
+        "^cflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cppflags@((.*\\?.+\\|?)+)?!$": {
+        "^cppflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "CGO_CPPFLAGS",
+          "x-intellij-html-description": "CGO_CPPFLAGS"
+        },
+        "^cppflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cxx@((.*\\?.+\\|?)+)?!$": {
+        "^cxx@.*": {
+          "type": "string"
+        },
+        "^cxx@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cxxflags@((.*\\?.+\\|?)+)?!$": {
+        "^cxxflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "CGO_CXXFLAGS",
+          "x-intellij-html-description": "CGO_CXXFLAGS"
+        },
+        "^cxxflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Enable cgo",
+          "x-intellij-html-description": "Enable cgo",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^fc@((.*\\?.+\\|?)+)?!$": {
+        "^fc@.*": {
+          "type": "string"
+        },
+        "^fc@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^fflags@((.*\\?.+\\|?)+)?!$": {
+        "^fflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "CGO_FFLAGS",
+          "x-intellij-html-description": "CGO_FFLAGS"
+        },
+        "^fflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^ldflags@((.*\\?.+\\|?)+)?!$": {
+        "^ldflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "CGO_LDFLAGS",
+          "x-intellij-html-description": "CGO_LDFLAGS"
+        },
+        "^ldflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2729,6 +4225,12 @@
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
         },
+        "ldflags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
@@ -2743,6 +4245,16 @@
         },
         "path": {
           "type": "string"
+        },
+        "race": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "preferredOrder": [
@@ -2755,35 +4267,97 @@
         "path",
         "extra_args",
         "outputs",
+        "race",
+        "ldflags",
+        "tags",
         "cgo"
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^cgo@((.*\\?.+\\|?)+)?!$": {
+        "^cgo@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc"
+        },
+        "^cgo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^chdir@((.*\\?.+\\|?)+)?!$": {
+        "^chdir@.*": {
+          "type": "string"
+        },
+        "^chdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^extra_args@((.*\\?.+\\|?)+)?!$": {
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^ldflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^ldflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^outputs@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^outputs@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^outputs@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^race@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^race@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^tags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^tags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2802,6 +4376,19 @@
         "continue_on_error": {
           "type": "boolean",
           "default": "false"
+        },
+        "count": {
+          "type": "integer",
+          "description": "go test -count",
+          "x-intellij-html-description": "go test -count"
+        },
+        "cpu": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "description": "go test -cpu",
+          "x-intellij-html-description": "go test -cpu"
         },
         "custom_args": {
           "items": {
@@ -2822,8 +4409,33 @@
         "env": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
+        "failfast": {
+          "type": "boolean",
+          "description": "go test -failfast",
+          "x-intellij-html-description": "go test -failfast",
+          "default": "false"
+        },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "json_output_file": {
+          "type": "string",
+          "description": "JSONOutputFile",
+          "x-intellij-html-description": "JSONOutputFile"
+        },
+        "ldflags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "log_file": {
+          "type": "string"
+        },
+        "match": {
+          "type": "string",
+          "description": "go test -run",
+          "x-intellij-html-description": "go test -run"
         },
         "matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
@@ -2831,11 +4443,54 @@
         "name": {
           "type": "string"
         },
+        "panic_on_exit_0": {
+          "type": "boolean",
+          "description": "Panic on call to os.Exit(0)",
+          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "default": "false"
+        },
+        "parallel": {
+          "type": "integer",
+          "description": "go test -parallel",
+          "x-intellij-html-description": "go test -parallel"
+        },
         "path": {
           "type": "string"
         },
         "profile": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testProfileSpec"
+        },
+        "race": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "short": {
+          "type": "boolean",
+          "description": "go test -short",
+          "x-intellij-html-description": "go test -short",
+          "default": "false"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "timeout": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "go test -timeout",
+          "x-intellij-html-description": "go test -timeout"
+        },
+        "verbose": {
+          "type": "boolean",
+          "description": "go test -v",
+          "x-intellij-html-description": "go test -v",
+          "default": "false"
+        },
+        "work_dir": {
+          "type": "string",
+          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
         }
       },
       "preferredOrder": [
@@ -2847,6 +4502,21 @@
         "cgo",
         "path",
         "chdir",
+        "race",
+        "ldflags",
+        "tags",
+        "log_file",
+        "count",
+        "cpu",
+        "parallel",
+        "failfast",
+        "short",
+        "timeout",
+        "match",
+        "verbose",
+        "json_output_file",
+        "panic_on_exit_0",
+        "work_dir",
         "benchmark",
         "profile",
         "custom_cmd_prefix",
@@ -2854,37 +4524,207 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^benchmark@((.*\\?.+\\|?)+)?!$": {
+        "^benchmark@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testBenchmarkSpec"
+        },
+        "^benchmark@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cgo@((.*\\?.+\\|?)+)?!$": {
+        "^cgo@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc"
+        },
+        "^cgo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^chdir@((.*\\?.+\\|?)+)?!$": {
+        "^chdir@.*": {
+          "type": "string"
+        },
+        "^chdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^custom_args@((.*\\?.+\\|?)+)?!$": {
+        "^count@.*": {
+          "type": "integer",
+          "description": "go test -count",
+          "x-intellij-html-description": "go test -count"
+        },
+        "^count@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^custom_cmd_prefix@((.*\\?.+\\|?)+)?!$": {
+        "^cpu@.*": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "description": "go test -cpu",
+          "x-intellij-html-description": "go test -cpu"
+        },
+        "^cpu@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^custom_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "custom args only used when running the test",
+          "x-intellij-html-description": "custom args only used when running the test"
+        },
+        "^custom_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^custom_cmd_prefix@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "to run compiled test file with this cmd prefix",
+          "x-intellij-html-description": "to run compiled test file with this cmd prefix"
+        },
+        "^custom_cmd_prefix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^path@((.*\\?.+\\|?)+)?!$": {
+        "^failfast@.*": {
+          "type": "boolean",
+          "description": "go test -failfast",
+          "x-intellij-html-description": "go test -failfast",
+          "default": "false"
+        },
+        "^failfast@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^profile@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^json_output_file@.*": {
+          "type": "string",
+          "description": "JSONOutputFile",
+          "x-intellij-html-description": "JSONOutputFile"
+        },
+        "^json_output_file@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^ldflags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^ldflags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^log_file@.*": {
+          "type": "string"
+        },
+        "^log_file@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^match@.*": {
+          "type": "string",
+          "description": "go test -run",
+          "x-intellij-html-description": "go test -run"
+        },
+        "^match@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^panic_on_exit_0@.*": {
+          "type": "boolean",
+          "description": "Panic on call to os.Exit(0)",
+          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "default": "false"
+        },
+        "^panic_on_exit_0@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^parallel@.*": {
+          "type": "integer",
+          "description": "go test -parallel",
+          "x-intellij-html-description": "go test -parallel"
+        },
+        "^parallel@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^path@.*": {
+          "type": "string"
+        },
+        "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^profile@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testProfileSpec"
+        },
+        "^profile@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^race@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^race@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^short@.*": {
+          "type": "boolean",
+          "description": "go test -short",
+          "x-intellij-html-description": "go test -short",
+          "default": "false"
+        },
+        "^short@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^tags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^tags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^timeout@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "go test -timeout",
+          "x-intellij-html-description": "go test -timeout"
+        },
+        "^timeout@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^verbose@.*": {
+          "type": "boolean",
+          "description": "go test -v",
+          "x-intellij-html-description": "go test -v",
+          "default": "false"
+        },
+        "^verbose@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^work_dir@.*": {
+          "type": "string",
+          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
+        },
+        "^work_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2921,16 +4761,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2948,7 +4806,12 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Enbaled by default if benchmark is enabled",
+          "x-intellij-html-description": "Enbaled by default if benchmark is enabled"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2991,19 +4854,45 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^count@((.*\\?.+\\|?)+)?!$": {
+        "^count@.*": {
+          "type": "integer",
+          "description": "of benchmark run",
+          "x-intellij-html-description": "of benchmark run"
+        },
+        "^count@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^duration@((.*\\?.+\\|?)+)?!$": {
+        "^duration@.*": {
+          "$ref": "#/definitions/time.Duration",
+          "description": "of each benchmark run",
+          "x-intellij-html-description": "of each benchmark run"
+        },
+        "^duration@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Run benchmarks during test execution",
+          "x-intellij-html-description": "Run benchmarks during test execution",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^match@((.*\\?.+\\|?)+)?!$": {
+        "^match@.*": {
+          "type": "string",
+          "description": "Run only regexp matched benchmarks  go test -bench  defaults to `.` (all)",
+          "x-intellij-html-description": "Run only regexp matched benchmarks  go test -bench  defaults to <code>.</code> (all)"
+        },
+        "^match@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^memory@((.*\\?.+\\|?)+)?!$": {
+        "^memory@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.benchmarkMemorySpec",
+          "description": "benchmark settings",
+          "x-intellij-html-description": "benchmark settings"
+        },
+        "^memory@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3034,13 +4923,29 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Profile goroutine blocking during test execution",
+          "x-intellij-html-description": "Profile goroutine blocking during test execution",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "filename of block profile  go test -blockprofile  defaults to `block.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of block profile  go test -blockprofile  defaults to <code>block.out</code> if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^rate@((.*\\?.+\\|?)+)?!$": {
+        "^rate@.*": {
+          "type": "integer",
+          "description": "of block profile  go test -blockprofilerate  no default",
+          "x-intellij-html-description": "of block profile  go test -blockprofilerate  no default"
+        },
+        "^rate@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3065,10 +4970,21 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Profile cpu during test execution",
+          "x-intellij-html-description": "Profile cpu during test execution",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "filename of cpu profile  go test -cpuprofile  defaults to `cpu.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of cpu profile  go test -cpuprofile  defaults to <code>cpu.out</code> if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3106,16 +5022,38 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^mode@((.*\\?.+\\|?)+)?!$": {
+        "^mode@.*": {
+          "type": "string",
+          "description": "of coverage  go test -covermode  defaults to `atomic` if not set and `enabled` is true",
+          "x-intellij-html-description": "of coverage  go test -covermode  defaults to <code>atomic</code> if not set and <code>enabled</code> is true"
+        },
+        "^mode@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and `enabled` is true",
+          "x-intellij-html-description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^packages@((.*\\?.+\\|?)+)?!$": {
+        "^packages@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "to coverage  go test -coverpkg  no default (use golang default behavior)",
+          "x-intellij-html-description": "to coverage  go test -coverpkg  no default (use golang default behavior)"
+        },
+        "^packages@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3146,13 +5084,29 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Profile memory during test execution",
+          "x-intellij-html-description": "Profile memory during test execution",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^rate@((.*\\?.+\\|?)+)?!$": {
+        "^rate@.*": {
+          "type": "integer",
+          "description": "of memory profile  go test -memprofilerate",
+          "x-intellij-html-description": "of memory profile  go test -memprofilerate"
+        },
+        "^rate@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3183,13 +5137,29 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Profile mutex during test execution",
+          "x-intellij-html-description": "Profile mutex during test execution",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^fraction@((.*\\?.+\\|?)+)?!$": {
+        "^fraction@.*": {
+          "type": "integer",
+          "description": "number  go test -mutexprofilefraction",
+          "x-intellij-html-description": "number  go test -mutexprofilefraction"
+        },
+        "^fraction@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "filename of mutex profile  go test -mutexprofile  defaults to `mutex.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of mutex profile  go test -mutexprofile  defaults to <code>mutex.out</code> if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3243,25 +5213,60 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^block@((.*\\?.+\\|?)+)?!$": {
+        "^block@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testBlockProfileSpec",
+          "description": "Goroutine Block profile",
+          "x-intellij-html-description": "Goroutine Block profile"
+        },
+        "^block@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^coverage@((.*\\?.+\\|?)+)?!$": {
+        "^coverage@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testCoverageProfileSpec",
+          "description": "profile",
+          "x-intellij-html-description": "profile"
+        },
+        "^coverage@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^cpu@((.*\\?.+\\|?)+)?!$": {
+        "^cpu@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testCPUProfileSpec",
+          "description": "profile",
+          "x-intellij-html-description": "profile"
+        },
+        "^cpu@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^memory@((.*\\?.+\\|?)+)?!$": {
+        "^memory@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testMemoryProfileSpec",
+          "description": "profile",
+          "x-intellij-html-description": "profile"
+        },
+        "^memory@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^mutex@((.*\\?.+\\|?)+)?!$": {
+        "^mutex@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testMutexProfileSpec",
+          "description": "profile",
+          "x-intellij-html-description": "profile"
+        },
+        "^mutex@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output_dir@((.*\\?.+\\|?)+)?!$": {
+        "^output_dir@.*": {
+          "type": "string",
+          "description": "Directory to save all profile output files",
+          "x-intellij-html-description": "Directory to save all profile output files"
+        },
+        "^output_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^trace@((.*\\?.+\\|?)+)?!$": {
+        "^trace@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testTraceProfileSpec",
+          "description": "profile",
+          "x-intellij-html-description": "profile"
+        },
+        "^trace@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3286,10 +5291,21 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Write test execution trace",
+          "x-intellij-html-description": "Write test execution trace",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^output@((.*\\?.+\\|?)+)?!$": {
+        "^output@.*": {
+          "type": "string",
+          "description": "filename of trace profile  go test -trace  defaults to trace.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of trace profile  go test -trace  defaults to trace.out if not set and <code>enabled</code> is true"
+        },
+        "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3318,16 +5334,29 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^enabled@((.*\\?.+\\|?)+)?!$": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^gpg_key_name@((.*\\?.+\\|?)+)?!$": {
+        "^gpg_key_name@.*": {
+          "type": "string"
+        },
+        "^gpg_key_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^gpg_key_passphrase@((.*\\?.+\\|?)+)?!$": {
+        "^gpg_key_passphrase@.*": {
+          "type": "string"
+        },
+        "^gpg_key_passphrase@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^gpg_keyring@((.*\\?.+\\|?)+)?!$": {
+        "^gpg_keyring@.*": {
+          "type": "string"
+        },
+        "^gpg_keyring@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3372,25 +5401,47 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^merge@((.*\\?.+\\|?)+)?!$": {
+        "^merge@.*": {
+          "type": "string"
+        },
+        "^merge@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^packages_dir@((.*\\?.+\\|?)+)?!$": {
+        "^packages_dir@.*": {
+          "type": "string"
+        },
+        "^packages_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^repo_url@((.*\\?.+\\|?)+)?!$": {
+        "^repo_url@.*": {
+          "type": "string"
+        },
+        "^repo_url@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3435,25 +5486,47 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^chart@((.*\\?.+\\|?)+)?!$": {
+        "^chart@.*": {
+          "type": "string"
+        },
+        "^chart@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^packages_dir@((.*\\?.+\\|?)+)?!$": {
+        "^packages_dir@.*": {
+          "type": "string"
+        },
+        "^packages_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^signing@((.*\\?.+\\|?)+)?!$": {
+        "^signing@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.helm.PackageSigningSpec"
+        },
+        "^signing@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3490,16 +5563,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3539,19 +5630,38 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^jobs@((.*\\?.+\\|?)+)?!$": {
+        "^jobs@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+          },
+          "type": "array"
+        },
+        "^jobs@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3583,16 +5693,29 @@
         "continue_on_error"
       ],
       "patternProperties": {
-        "^continue_on_error@((.*\\?.+\\|?)+)?!$": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^hooks@((.*\\?.+\\|?)+)?!$": {
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^matrix@((.*\\?.+\\|?)+)?!$": {
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3629,16 +5752,34 @@
         "shell_name"
       ],
       "patternProperties": {
-        "^cmd@((.*\\?.+\\|?)+)?!$": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^env@((.*\\?.+\\|?)+)?!$": {
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^shell_name@((.*\\?.+\\|?)+)?!$": {
+        "^shell_name@.*": {
+          "type": "string"
+        },
+        "^shell_name@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^use_shell@((.*\\?.+\\|?)+)?!$": {
+        "^use_shell@.*": {
+          "type": "boolean",
+          "description": "Whether to run this tool in shell and which shell to use",
+          "x-intellij-html-description": "Whether to run this tool in shell and which shell to use",
+          "default": "false"
+        },
+        "^use_shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3647,6 +5788,180 @@
       "type": "string",
       "description": "human-readable data size in KB, MB, GB, TB, TB",
       "x-intellij-html-description": "human-readable data size in KB, MB, GB, TB, TB"
+    },
+    "arhat.dev.pkg.tlshelper.TLSConfig": {
+      "properties": {
+        "allow_insecure_hashes": {
+          "type": "boolean",
+          "description": "options for dtls",
+          "x-intellij-html-description": "options for dtls",
+          "default": "false"
+        },
+        "ca_cert": {
+          "type": "string"
+        },
+        "cert": {
+          "type": "string"
+        },
+        "cipher_suites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "insecure_skip_verify": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "key": {
+          "type": "string"
+        },
+        "key_log_file": {
+          "type": "string",
+          "description": "write tls session shared key to this file",
+          "x-intellij-html-description": "write tls session shared key to this file"
+        },
+        "pre_shared_key": {
+          "$ref": "#/definitions/arhat.dev.pkg.tlshelper.TLSPreSharedKeyConfig"
+        },
+        "server_name": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "ca_cert",
+        "cert",
+        "key",
+        "server_name",
+        "insecure_skip_verify",
+        "key_log_file",
+        "cipher_suites",
+        "allow_insecure_hashes",
+        "pre_shared_key"
+      ],
+      "additionalProperties": false,
+      "description": "for common tls settings, support both client and server tls nolint:maligned",
+      "x-intellij-html-description": "for common tls settings, support both client and server tls nolint:maligned",
+      "patternProperties": {
+        "^allow_insecure_hashes@.*": {
+          "type": "boolean",
+          "description": "options for dtls",
+          "x-intellij-html-description": "options for dtls",
+          "default": "false"
+        },
+        "^allow_insecure_hashes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^ca_cert@.*": {
+          "type": "string"
+        },
+        "^ca_cert@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^cert@.*": {
+          "type": "string"
+        },
+        "^cert@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^cipher_suites@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cipher_suites@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^enabled@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^enabled@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^insecure_skip_verify@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^insecure_skip_verify@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^key@.*": {
+          "type": "string"
+        },
+        "^key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^key_log_file@.*": {
+          "type": "string",
+          "description": "write tls session shared key to this file",
+          "x-intellij-html-description": "write tls session shared key to this file"
+        },
+        "^key_log_file@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^pre_shared_key@.*": {
+          "$ref": "#/definitions/arhat.dev.pkg.tlshelper.TLSPreSharedKeyConfig"
+        },
+        "^pre_shared_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^server_name@.*": {
+          "type": "string"
+        },
+        "^server_name@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.pkg.tlshelper.TLSPreSharedKeyConfig": {
+      "properties": {
+        "identity_hint": {
+          "type": "string",
+          "description": "the client hint provided to server, base64 encoded value",
+          "x-intellij-html-description": "the client hint provided to server, base64 encoded value"
+        },
+        "server_hint_mapping": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs",
+          "x-intellij-html-description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs"
+        }
+      },
+      "preferredOrder": [
+        "server_hint_mapping",
+        "identity_hint"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^identity_hint@.*": {
+          "type": "string",
+          "description": "the client hint provided to server, base64 encoded value",
+          "x-intellij-html-description": "the client hint provided to server, base64 encoded value"
+        },
+        "^identity_hint@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^server_hint_mapping@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs",
+          "x-intellij-html-description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs"
+        },
+        "^server_hint_mapping@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
     },
     "arhat.dev.rs.AnyObjectMap": {
       "description": "a `map[string]interface{}` equivalent with rendering suffix support",

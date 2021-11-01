@@ -54,8 +54,8 @@ github.com/Microsoft/go-winio v0.5.1/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpz
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02 h1:JXGyALZeC5GOIeBeNNvPfFtSFz0JEzVa7YqdVshTwa0=
 github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02/go.mod h1:oZaL7+2R1XEeSSQNvmdqrr3B96+FIJZDKO3lakRFwss=
-github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41 h1:sWA6T+g8tyA6GzntqmN8EkPk2V5YqgqasLGIs0vEmG8=
-github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
+github.com/arhat-dev/schemer v0.0.0-20211101151919-3dc044236b92 h1:+RmfRtDUWuV8bb0V0jYJ9SZRXtenb0V23GJlckIIe8Q=
+github.com/arhat-dev/schemer v0.0.0-20211101151919-3dc044236b92/go.mod h1:QquiGW1TWJ/+xC933AiiKO09ggryYteH+gBbLhmf3Z0=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=

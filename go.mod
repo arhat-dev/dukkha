@@ -35,5 +35,5 @@ require (
 
 replace (
 	github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
-	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211030142515-1e93a7df5c41
+	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211101151919-3dc044236b92
 )
