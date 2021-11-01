@@ -47,11 +47,21 @@ jobs:
       with:
         go-version: 1.17.x
 
+    - name: Ensure docs up to date
+      run: |
+        while ! make docs ; do
+          :
+        done
+
+        if ! git diff --exit-code ; then
+          echo "docs not up to date"
+          exit 1
+        fi
+
     - name: Ensure tidy gomod
       run: |
         make vendor
-        if ! git diff --exit-code
-        then
+        if ! git diff --exit-code ; then
           echo "go mod not tidy"
           exit 1
         fi
