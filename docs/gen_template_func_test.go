@@ -20,7 +20,7 @@ import (
 )
 
 func TestGenerateTemplateFuncDocs(t *testing.T) {
-	tpl, err := template.New("").ParseFiles("template_funcs.tpl")
+	tpl, err := template.ParseFiles("template_funcs.tpl")
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -31,7 +31,7 @@ func TestGenerateTemplateFuncDocs(t *testing.T) {
 		return
 	}
 
-	assert.NoError(t, os.WriteFile("./renderers/template_funcs.md", buf.Bytes(), 0644))
+	assert.NoError(t, os.WriteFile("./generated/template_funcs.md", buf.Bytes(), 0644))
 }
 
 //go:linkname _Template text/template.Template

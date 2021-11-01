@@ -9,7 +9,7 @@ Execute an embedded [golang template](https://golang.org/pkg/text/template/) and
 
 __NOTICE:__
 
-- [template_funcs.md](./template_funcs.md) provides an overview of supported functions
+- [template_funcs.md](../generated/template_funcs.md) provides an overview of supported functions
 - Most template functions without namespace (i.e. functions without `.` in name, e.g. `deepEqual`) come from [`masterminds/sprig`](https://masterminds.github.io/sprig/)
 - Most template functions with namespace (i.e. functions with `.` in name, e.g. `time.ParseLocal`) come from [`hairyhenderson/gomplate`](https://docs.gomplate.ca/)
 
