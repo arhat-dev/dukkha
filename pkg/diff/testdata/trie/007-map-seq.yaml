@@ -1,0 +1,11 @@
+a:
+  b:
+  - c
+  - d
+  - e
+---
+- key: [.a, .b, "[0]"]
+  value: c
+
+- key: [.a, .b, "[1]"]
+  value: d

@@ -1,0 +1,13 @@
+original:
+  a: b
+
+current:
+  c: d
+---
+- key: [.a]
+  kind: deleted
+  divert_key: .a
+
+- key: []
+  kind: added
+  divert_key: .c

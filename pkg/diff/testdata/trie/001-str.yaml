@@ -1,0 +1,7 @@
+foo
+---
+- key: []
+  value: foo
+
+- key: ["foo"]
+  nearest: foo

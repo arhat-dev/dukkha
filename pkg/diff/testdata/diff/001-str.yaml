@@ -1,0 +1,6 @@
+original: a
+current: b
+---
+- key: []
+  kind: updated
+  divert_key: ""

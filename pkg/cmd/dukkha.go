@@ -28,6 +28,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/cmd/completion"
 	"arhat.dev/dukkha/pkg/cmd/debug"
+	"arhat.dev/dukkha/pkg/cmd/diff"
 	"arhat.dev/dukkha/pkg/cmd/render"
 	"arhat.dev/dukkha/pkg/cmd/run"
 	"arhat.dev/dukkha/pkg/conf"
@@ -177,6 +178,7 @@ func NewRootCmd() *cobra.Command {
 		debugCmd,
 		// dukkha run
 		run.NewRunCmd(&appCtx),
+		diff.NewDiffCmd(&appCtx),
 	)
 
 	return rootCmd

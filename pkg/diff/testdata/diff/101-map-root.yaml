@@ -1,0 +1,8 @@
+original:
+  a: b
+
+current:
+---
+- key: []
+  kind: deleted
+  divert_key: ""

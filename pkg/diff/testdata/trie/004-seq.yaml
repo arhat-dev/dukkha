@@ -1,0 +1,14 @@
+- foo
+- bar
+---
+# root node
+- key: []
+  # value: ""
+
+- key: ["[0]"]
+  value: foo
+
+- key: ["[1]"]
+  value: bar
+
+- key: ["[3]"]

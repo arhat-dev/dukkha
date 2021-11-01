@@ -1,0 +1,8 @@
+1.1
+---
+# root node
+- key: []
+  value: "1.1"
+
+- key: ["1.1"]
+  nearest: "1.1"

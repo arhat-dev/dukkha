@@ -1,0 +1,19 @@
+original:
+  a: x
+  second: 1
+  third: 1
+
+current:
+  a: x
+  # ensure different order
+  third: 0
+  second: 0
+---
+# should be ordered as original doc
+- key: [.second]
+  kind: updated
+  divert_key: .second
+
+- key: [.third]
+  kind: updated
+  divert_key: .third

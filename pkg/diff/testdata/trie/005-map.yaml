@@ -1,0 +1,23 @@
+a:
+  b:
+    c: d
+  x: y
+---
+# root node
+- key: []
+  # value: ""
+
+- key: [.a]
+  # value: ""
+
+- key: [.a, .b]
+  # value: ""
+
+- key: [.a, .b, .c]
+  value: d
+
+- key: [.a, .b, .c, .d]
+  nearest: d
+
+- key: [.a, .x]
+  value: "y"

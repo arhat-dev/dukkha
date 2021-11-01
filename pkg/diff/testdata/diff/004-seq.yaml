@@ -1,0 +1,10 @@
+original:
+- a
+- b
+current:
+- a
+- c
+---
+- key: ["[1]"]
+  kind: updated
+  divert_key: "[1]"
