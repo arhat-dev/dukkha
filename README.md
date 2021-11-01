@@ -43,27 +43,27 @@ A typical build automation tool only takes one or two from the above at the same
   - While matrix values are still limited to strings in order to make them available as environment variables.
   - Command line option `--matrix` (`-m`) for `dukkha run` controls which matrix set is chosen.
 
-  ```yaml
-  workflow:run:
-  - name: matrix-example
-    matrix:
-      # add your matrix spec
-      kernel: [linux, windows]
-      arch: [amd64, arm64]
-      my-mat-entry: [foo, bar]
+    ```yaml
+    workflow:run:
+    - name: matrix-example
+      matrix:
+        # add your matrix spec
+        kernel: [linux, windows]
+        arch: [amd64, arm64]
+        my-mat-entry: [foo, bar]
 
-      # and exclude some
-      exclude: # `exclude` is reserved
-      # match certain matrix entry
-      - { kernel: [windows], arch: [amd64] }
-      # partial matching is supported as well
-      - arch: arm64
+        # and exclude some
+        exclude: # `exclude` is reserved
+        # match certain matrix entry
+        - { kernel: [windows], arch: [amd64] }
+        # partial matching is supported as well
+        - arch: arm64
 
-      # and include extra matrix, regardless of what `exclude` says
-      include: # `include` is reserved field
-      - { kernel: [linux], arch: [x86, riscv64] }
-      - { kernel: [darwin], arch: [arm64] }
-  ```
+        # and include extra matrix, regardless of what `exclude` says
+        include: # `include` is reserved field
+        - { kernel: [linux], arch: [x86, riscv64] }
+        - { kernel: [darwin], arch: [arm64] }
+    ```
 
 - Shell completion for tools, tasks and task matrix
   - Run `dukkha completion --help` for instructions
@@ -133,7 +133,7 @@ export ARCH=amd64
 
 __NOTE:__ Combinations of `KERNEL` and `ARCH` are available at [scripts/dukkha/build-matrix.yml](./scripts/dukkha/build-matrix.yml)
 
-- Option 1: Download and verify signature of dukkha using [`sget`](https://github.com/sigstore/cosign)
+- Option 1: Download and verify signature of dukkha using [`sget`][sget]
 
 ```bash
 sget --key https://arhat.dev/.well-known/cosign.pub -o dukkha \
@@ -172,3 +172,4 @@ limitations under the License.
 ```
 
 [rs]: https://github.com/arhat-dev/rs#readme
+[sget]: https://github.com/sigstore/cosign#sget

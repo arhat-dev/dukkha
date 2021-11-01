@@ -5,13 +5,13 @@ a:
 ---
 # root node
 - key: []
-  # value: ""
+  value: null
 
 - key: [.a]
-  # value: ""
+  value: null
 
 - key: [.a, .b]
-  # value: ""
+  value: null
 
 - key: [.a, .b, .c]
   value: d

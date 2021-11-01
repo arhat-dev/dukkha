@@ -3,7 +3,7 @@
 ---
 # root node
 - key: []
-  # value: ""
+  value: null
 
 - key: ["[0]"]
   value: foo

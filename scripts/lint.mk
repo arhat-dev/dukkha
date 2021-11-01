@@ -37,5 +37,5 @@ lint.yaml:
 lint.all: \
 	lint.file \
 	lint.shell \
-	lint.go
-# lint.yaml
+	lint.go \
+	lint.yaml

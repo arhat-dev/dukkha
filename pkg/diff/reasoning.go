@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// ReasonDiff (WIP) try to reason how to update src doc to generate these diff entries
+//
 // src is the yaml doc with rendering suffix unmarshaled as a trie node
 // diffEntries are calculated by comparing yaml doc generated from src and
 // actual state of that generated doc

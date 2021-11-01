@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	_ "unsafe" // for go:linkname
 
 	"gopkg.in/yaml.v3"
 )
@@ -16,11 +17,53 @@ func newNode(parent *Node, elemKey string) *Node {
 	}
 }
 
+type rsSpec struct {
+	renderer string
+	typeHint string
+	patch    bool
+}
+
+// maintain the same behavior as
+// https://github.com/arhat-dev/rs/blob/master/field.go#L403
+func parseRenderingSuffix(suffix string) []*rsSpec {
+	var (
+		parts = strings.Split(suffix, "|")
+		ret   []*rsSpec
+	)
+
+	for _, part := range parts {
+		size := len(part)
+		if size == 0 {
+			continue
+		}
+
+		spec := &rsSpec{
+			patch: part[size-1] == '!',
+		}
+
+		if spec.patch {
+			part = part[:size-1]
+			// size-- // size not used any more
+		}
+
+		if idx := strings.LastIndexByte(part, '?'); idx >= 0 {
+			spec.typeHint = part[idx+1:]
+			part = part[:idx]
+		}
+
+		spec.renderer = part
+		ret = append(ret, spec)
+	}
+
+	return ret
+}
+
 type Node struct {
 	elemKey string
 	parent  *Node
 
-	raw *yaml.Node
+	rsSpecs []*rsSpec
+	raw     *yaml.Node
 
 	scalarData *yaml.Node
 
@@ -41,14 +84,29 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 			n.childIndex = make(map[string]int)
 		}
 
-		// TODO: handle merging and rendering suffix
-		for i := 0; i < len(yn.Content); i += 2 {
-			k := yn.Content[i].Value
+		pairs, err := unmarshalMap(yn)
+		if err != nil {
+			return err
+		}
+
+		for _, pair := range pairs {
+			k := pair[0].Value
+
+			var rsSpecs []*rsSpec
+			// handle rendering suffix first
+			// maintain the same behavior as
+			// https://github.com/arhat-dev/rs/blob/master/unmarshal.go#L40
+			suffixStart := strings.LastIndexByte(k, '@')
+			if suffixStart != -1 {
+				rsSpecs = parseRenderingSuffix(k[suffixStart+1:])
+				k = k[:suffixStart]
+			}
+
 			if strings.IndexByte(k, '.') != -1 {
 				k = strconv.Quote(k)
 			}
 			k = "." + k
-			v := yn.Content[i+1]
+			v := pair[1]
 
 			child := newNode(n, k)
 			err := child.UnmarshalYAML(v)
@@ -56,8 +114,9 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 				return err
 			}
 
+			child.rsSpecs = rsSpecs
 			n.children = append(n.children, child)
-			n.childIndex[k] = i / 2
+			n.childIndex[k] = len(n.children) - 1
 		}
 
 		return nil
@@ -66,8 +125,11 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 			n.childIndex = make(map[string]int)
 		}
 
-		// TODO: handle merging
 		for i, v := range yn.Content {
+			for v.Alias != nil {
+				v = v.Alias
+			}
+
 			idx := "[" + strconv.FormatInt(int64(i), 10) + "]"
 
 			child := newNode(n, idx)
@@ -121,3 +183,6 @@ func (n *Node) Get(key []string) (_ *Node, exact bool) {
 		return n.children[i].Get(key[1:])
 	}
 }
+
+//go:linkname unmarshalMap arhat.dev/rs.unmarshalMap
+func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error)
