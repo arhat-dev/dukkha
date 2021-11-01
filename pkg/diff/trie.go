@@ -6,6 +6,7 @@ import (
 	"strings"
 	_ "unsafe" // for go:linkname
 
+	_ "arhat.dev/rs" // add required references for go:linkname
 	"gopkg.in/yaml.v3"
 )
 

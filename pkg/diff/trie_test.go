@@ -6,8 +6,6 @@ import (
 	"arhat.dev/pkg/testhelper"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	_ "arhat.dev/rs" // add required references for go:linkname during testing
 )
 
 var (
