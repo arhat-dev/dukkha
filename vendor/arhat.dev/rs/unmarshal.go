@@ -23,7 +23,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		)
 	}
 
-	oneLevelMap, err := unmarshalMap(n)
+	oneLevelMap, err := unmarshalYamlMap(n)
 	if err != nil {
 		return fmt.Errorf(
 			"rs: data unmarshal failed for %s: %w",
@@ -59,7 +59,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 			v := kv[1]
 			if field == nil {
-				if f.catchOtherField == nil {
+				if f.inlineMap == nil {
 					if allowUnknown {
 						continue
 					}
@@ -70,11 +70,17 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 					)
 				}
 
-				field = f.catchOtherField
+				field = f.inlineMap
 				v = fakeMap(kv[0], kv[1])
 			}
 
-			err = f.unmarshal(yamlKey, v, field.fieldValue, field.isCatchOther)
+			err = unmarshal(
+				yamlKey,
+				v,
+				field.fieldValue,
+				&field.isInlineMapItem,
+				f._opts,
+			)
 			if err != nil {
 				return fmt.Errorf(
 					"rs: failed to unmarshal yaml field %q to %s.%s: %w",
@@ -89,18 +95,10 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 		yamlKey, suffix := rawYamlKey[:suffixStart], rawYamlKey[suffixStart+1:]
 
-		if _, ok := visited[yamlKey]; ok {
-			return fmt.Errorf(
-				"rs: duplicate yaml data field %q for %s, please note"+
-					" rendering suffix won't change the field name",
-				yamlKey, f._parentType.String(),
-			)
-		}
-
 		v := kv[1]
 		field = f.getField(yamlKey)
 		if field == nil {
-			if f.catchOtherField == nil {
+			if f.inlineMap == nil {
 				if allowUnknown {
 					continue
 				}
@@ -111,8 +109,16 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 				)
 			}
 
-			field = f.catchOtherField
+			field = f.inlineMap
 			v = fakeMap(cloneYamlNode(kv[0], strTag, yamlKey), kv[1])
+		}
+
+		if _, ok := visited[yamlKey]; ok && !field.isInlineMapItem {
+			return fmt.Errorf(
+				"rs: duplicate yaml data field %q for %s, please note"+
+					" rendering suffix won't change the field name",
+				yamlKey, f._parentType.String(),
+			)
 		}
 
 		// do not unmarshal now, we only render the value
@@ -120,8 +126,8 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 		visited[yamlKey] = struct{}{}
 
-		field.base.addUnresolvedField(yamlKey, suffix,
-			field.fieldName, field.fieldValue, field.isCatchOther,
+		field.base.addUnresolvedField(yamlKey, suffix, nil,
+			field.fieldName, field.fieldValue, field.isInlineMapItem,
 			v,
 		)
 	}
@@ -129,11 +135,12 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
-func (f *BaseField) unmarshal(
+func unmarshal(
 	yamlKey string,
 	in *yaml.Node,
 	outVal reflect.Value,
-	keepOld bool,
+	keepOld *bool,
+	opts *Options,
 ) error {
 	if !outVal.IsValid() {
 		// no way to know what value we can set
@@ -174,15 +181,16 @@ func (f *BaseField) unmarshal(
 	case reflect.Chan, reflect.Func:
 		return fmt.Errorf("invalid out value is not data type for yaml key %q", yamlKey)
 	case reflect.Array:
-		return f.unmarshalArray(yamlKey, in, outVal)
+		return unmarshalArray(yamlKey, in, outVal, opts)
 	case reflect.Slice:
-		return f.unmarshalSlice(yamlKey, in, outVal, keepOld)
+		return unmarshalSlice(yamlKey, in, outVal, keepOld, opts)
 	case reflect.Map:
-		return f.unmarshalMap(yamlKey, in, outVal, keepOld)
+		_, err := unmarshalMap(yamlKey, in, outVal, reflect.Value{}, keepOld, opts)
+		return err
 	case reflect.Struct:
-		return f.unmarshalStruct(yamlKey, in, outVal)
+		return unmarshalStruct(yamlKey, in, outVal, opts)
 	case reflect.Interface:
-		handled, err := f.unmarshalInterface(yamlKey, in, outVal, keepOld)
+		handled, err := unmarshalInterface(yamlKey, in, outVal, keepOld, opts)
 		if !handled {
 			// fallback to go-yaml behavior
 			return in.Decode(outVal.Addr().Interface())
@@ -194,8 +202,13 @@ func (f *BaseField) unmarshal(
 	}
 }
 
-func (f *BaseField) unmarshalStruct(yamlKey string, in *yaml.Node, outVal reflect.Value) error {
-	tryInit(outVal, f._opts)
+func unmarshalStruct(
+	yamlKey string,
+	in *yaml.Node,
+	outVal reflect.Value,
+	opts *Options,
+) error {
+	tryInit(outVal, opts)
 
 	var (
 		err error
@@ -235,19 +248,20 @@ func (f *BaseField) unmarshalStruct(yamlKey string, in *yaml.Node, outVal reflec
 }
 
 // unmarshalInterface handles interface type creation
-func (f *BaseField) unmarshalInterface(
+func unmarshalInterface(
 	yamlKey string,
 	in *yaml.Node,
 	outVal reflect.Value,
-	keepOld bool,
+	keepOld *bool,
+	opts *Options,
 ) (bool, error) {
-	if f._opts == nil || f._opts.InterfaceTypeHandler == nil {
+	if opts == nil || opts.InterfaceTypeHandler == nil {
 		// there is no interface type handler
 		// use default behavior for interface{} types
 		return false, nil
 	}
 
-	fVal, err := f._opts.InterfaceTypeHandler.Create(outVal.Type(), yamlKey)
+	fVal, err := opts.InterfaceTypeHandler.Create(outVal.Type(), yamlKey)
 	if err != nil {
 		if errors.Is(err, ErrInterfaceTypeNotHandled) && outVal.Type() == rawInterfaceType {
 			// no type information provided, decode using go-yaml directly
@@ -273,10 +287,15 @@ func (f *BaseField) unmarshalInterface(
 	}
 
 	// DO NOT use outVal directly, which will always match reflect.Interface
-	return true, f.unmarshal(yamlKey, in, val, keepOld)
+	return true, unmarshal(yamlKey, in, val, keepOld, opts)
 }
 
-func (f *BaseField) unmarshalArray(yamlKey string, in *yaml.Node, outVal reflect.Value) error {
+func unmarshalArray(
+	yamlKey string,
+	in *yaml.Node,
+	outVal reflect.Value,
+	opts *Options,
+) error {
 	if in.Kind != yaml.SequenceNode {
 		var err error
 		in, err = TypeHintObjects{}.apply(in)
@@ -298,11 +317,11 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *yaml.Node, outVal reflect
 	}
 
 	for i := 0; i < expectedSize; i++ {
-		err := f.unmarshal(
+		err := unmarshal(
 			yamlKey, in.Content[i], outVal.Index(i),
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
-			false,
+			nil, opts,
 		)
 		if err != nil {
 			return fmt.Errorf(
@@ -315,8 +334,18 @@ func (f *BaseField) unmarshalArray(yamlKey string, in *yaml.Node, outVal reflect
 	return nil
 }
 
-func (f *BaseField) unmarshalSlice(yamlKey string, in *yaml.Node, outVal reflect.Value, keepOld bool) error {
+func unmarshalSlice(
+	yamlKey string,
+	in *yaml.Node,
+	outVal reflect.Value,
+	keepOld *bool,
+	opts *Options,
+) error {
 	if in.Kind != yaml.SequenceNode {
+		if isNull(in) {
+			return nil
+		}
+
 		var err error
 		in, err = TypeHintObjects{}.apply(in)
 		if err != nil {
@@ -331,11 +360,11 @@ func (f *BaseField) unmarshalSlice(yamlKey string, in *yaml.Node, outVal reflect
 	tmpVal := reflect.MakeSlice(outVal.Type(), size, size)
 
 	for i := 0; i < size; i++ {
-		err := f.unmarshal(
+		err := unmarshal(
 			yamlKey, in.Content[i], tmpVal.Index(i),
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
-			false,
+			nil, opts,
 		)
 		if err != nil {
 			return fmt.Errorf(
@@ -349,7 +378,7 @@ func (f *BaseField) unmarshalSlice(yamlKey string, in *yaml.Node, outVal reflect
 		return err
 	}
 
-	if outVal.IsZero() || !keepOld {
+	if outVal.IsZero() || keepOld == nil || !*keepOld {
 		outVal.Set(tmpVal)
 	} else {
 		outVal.Set(reflect.AppendSlice(outVal, tmpVal))
@@ -358,77 +387,69 @@ func (f *BaseField) unmarshalSlice(yamlKey string, in *yaml.Node, outVal reflect
 	return nil
 }
 
-func (f *BaseField) unmarshalMap(yamlKey string, in *yaml.Node, outVal reflect.Value, keepOld bool) error {
+// map key MUST be string
+// the return value is only meaningful when keepOld is set (resolving inline map pair)
+func unmarshalMap(
+	yamlKey string,
+	in *yaml.Node,
+	outVal reflect.Value,
+	inlineMapItemCache reflect.Value,
+	keepOld *bool,
+	opts *Options,
+) (ret reflect.Value, _ error) {
 	if in.Kind != yaml.MappingNode {
 		if isNull(in) {
-			return nil
+			return reflect.Value{}, nil
 		}
 
 		var err error
 		in, err = TypeHintObject{}.apply(in)
 		if err != nil {
-			return fmt.Errorf(
+			return reflect.Value{}, fmt.Errorf(
 				"unexpected input for map %q (%s): %w",
 				yamlKey, outVal.Type().String(), err,
 			)
 		}
 	}
 
-	// map key MUST be string
-	if outVal.IsNil() || !keepOld {
+	// keepOld can only be set when resolving inline map items
+	// then the `in` arg only contain a pair of key value
+	//
+	// when keepOld is set, there can be some data already unmarshaled
+	// inside the map, so we should not create a new map in that case
+	if outVal.IsNil() || keepOld == nil {
 		outVal.Set(reflect.MakeMap(outVal.Type()))
 	}
 
-	valType := outVal.Type().Elem()
-
-	isCatchOtherField := f.isCatchOtherField(yamlKey)
-	if isCatchOtherField {
-		if f.catchOtherCache == nil {
-			f.catchOtherCache = make(map[string]reflect.Value)
-		}
-	}
-
-	m, err := unmarshalMap(in)
+	m, err := unmarshalYamlMap(in)
 	if err != nil {
-		return err
+		return reflect.Value{}, err
 	}
 
-	for _, kv := range m {
-		// since indexed map value is not addressable
-		// we have to keep the original data in BaseField cache
-
-		var val reflect.Value
+	valType := outVal.Type().Elem()
+	for i, kv := range m {
+		if i == 0 && keepOld != nil && *keepOld && inlineMapItemCache.IsValid() {
+			ret = inlineMapItemCache
+		} else {
+			ret = reflect.New(valType)
+		}
 
 		k := kv[0].Value
-		if isCatchOtherField {
-			cachedData, ok := f.catchOtherCache[k]
-			if ok {
-				val = cachedData
-			} else {
-				val = reflect.New(valType)
-				f.catchOtherCache[k] = val
-			}
-		} else {
-			val = reflect.New(valType)
-		}
-
-		err := f.unmarshal(
+		err := unmarshal(
 			// use k rather than `yamlKey`
-			// because it can be the field catching other
-			// (field tag: `rs:"other"`)
 			k,
-			kv[1], val, keepOld,
+			kv[1], ret, keepOld, opts,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
+			return reflect.Value{}, fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
 				valType.String(), k, err,
 			)
 		}
 
-		outVal.SetMapIndex(reflect.ValueOf(k), val.Elem())
+		outVal.SetMapIndex(reflect.ValueOf(k), ret.Elem())
 	}
 
-	return nil
+	return ret, nil
 }
 
 func checkAssignable(yamlKey string, in, out reflect.Value) error {

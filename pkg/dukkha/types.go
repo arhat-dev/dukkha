@@ -9,8 +9,8 @@ import (
 	"arhat.dev/rs"
 )
 
-func ResolveEnv(t rs.Field, mCtx RenderingContext, envFieldName string) error {
-	err := t.ResolveFields(mCtx, 1, envFieldName)
+func ResolveEnv(t rs.Field, mCtx RenderingContext, envFieldName, envTagName string) error {
+	err := t.ResolveFields(mCtx, 1, envTagName)
 	if err != nil {
 		return fmt.Errorf("failed to get env overview: %w", err)
 	}

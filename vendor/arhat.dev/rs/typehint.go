@@ -35,10 +35,13 @@ func (TypeHintNone) apply(v *yaml.Node) (*yaml.Node, error) {
 	return prepareYamlNode(v), nil
 }
 
-func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
+func applyStrHint(n *yaml.Node) (*yaml.Node, error) {
 	switch {
 	case isStrScalar(n), isBinaryScalar(n):
 		return n, nil
+	case isBoolScalar(n), isFloatScalar(n), isIntScalar(n):
+		// TODO: shall we cast null to string directly?
+		return castScalarNode(n, strTag)
 	}
 
 	data, err := yaml.Marshal(n)
@@ -54,7 +57,11 @@ func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
 	}, nil
 }
 
-func (tho TypeHintObject) apply(n *yaml.Node) (ret *yaml.Node, err error) {
+func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
+	return applyStrHint(n)
+}
+
+func applyObjectHint(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
 	if n == nil || isNull(n) {
 		return nil, nil
@@ -107,7 +114,11 @@ func (tho TypeHintObject) apply(n *yaml.Node) (ret *yaml.Node, err error) {
 	}
 }
 
-func (tho TypeHintObjects) apply(n *yaml.Node) (ret *yaml.Node, err error) {
+func (tho TypeHintObject) apply(n *yaml.Node) (ret *yaml.Node, err error) {
+	return applyObjectHint(n)
+}
+
+func applyObjectsHint(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
 	if n == nil || isNull(n) {
 		return nil, nil
@@ -161,15 +172,20 @@ func (tho TypeHintObjects) apply(n *yaml.Node) (ret *yaml.Node, err error) {
 	}
 }
 
+func (tho TypeHintObjects) apply(n *yaml.Node) (ret *yaml.Node, err error) {
+	return applyObjectsHint(n)
+}
+
 func (TypeHintFloat) apply(n *yaml.Node) (*yaml.Node, error) {
-	return scalarNodeToScalarNode(n, floatTag)
+	return castScalarNode(n, floatTag)
 }
 
 func (TypeHintInt) apply(n *yaml.Node) (*yaml.Node, error) {
-	return scalarNodeToScalarNode(n, intTag)
+	return castScalarNode(n, intTag)
 }
 
-func scalarNodeToScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
+// cast scalar node directly by changing the tag of it
+func castScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
 	n = prepareYamlNode(n)
 	if n == nil || isNull(n) {
 		return nil, nil

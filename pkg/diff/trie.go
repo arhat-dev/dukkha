@@ -185,5 +185,5 @@ func (n *Node) Get(key []string) (_ *Node, exact bool) {
 	}
 }
 
-//go:linkname unmarshalMap arhat.dev/rs.unmarshalMap
+//go:linkname unmarshalMap arhat.dev/rs.unmarshalYamlMap
 func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error)

@@ -20,22 +20,17 @@ type BaseField struct {
 	_parentType  reflect.Type
 	_parentValue reflect.Value
 
-	// key: yamlKey
-	unresolvedFields map[string]*unresolvedFieldSpec
-
 	_opts *Options
 
-	// yamlKey -> map value
-	// TODO: separate static data and runtime generated data
-	catchOtherCache map[string]reflect.Value
-
-	catchOtherFields map[string]struct{}
-
 	// normalFields are those without `rs:"other"` field tag
-	// key: yaml tag name or lower case exported field name
+	// key: first value of the specified field tag namespace
+	// 		or lower case version of the exported field name (go-yaml's default behavior)
 	normalFields map[string]*fieldRef
+	inlineMap    *fieldRef
 
-	catchOtherField *fieldRef
+	// key: yamlKey
+	unresolvedNormalFields   map[string]*unresolvedFieldSpec
+	unresolvedInlineMapItems map[string][]*unresolvedFieldSpec
 }
 
 func (f *BaseField) initialized() bool {
@@ -45,14 +40,14 @@ func (f *BaseField) initialized() bool {
 type tagSpec struct {
 	yamlKey string
 
-	inline     bool
-	omitempty  bool
-	catchOther bool
+	inline    bool
+	omitempty bool
+	inlineMap bool
 }
 
 // parseFieldTags
-// if the field is unexported or ignored by its data tag (e.g. `yaml:"-"`)
-// the return value will be nil
+//
+// return value will be nil if the field is unexported or ignored by its data tag (e.g. `yaml:"-"`)
 func (f *BaseField) parseFieldTags(sf *reflect.StructField, dataTagNS string) (*tagSpec, error) {
 	if len(sf.PkgPath) != 0 {
 		// unexported
@@ -93,7 +88,7 @@ func (f *BaseField) parseFieldTags(sf *reflect.StructField, dataTagNS string) (*
 			}
 
 			// inline map is equivalent to `rs:"other"`
-			ret.catchOther = true
+			ret.inlineMap = true
 		case "omitempty":
 			ret.omitempty = true
 		default:
@@ -107,7 +102,7 @@ func (f *BaseField) parseFieldTags(sf *reflect.StructField, dataTagNS string) (*
 		case "other":
 			// other is used to match unhandled values
 			// only supports map[string]Any
-			ret.catchOther = true
+			ret.inlineMap = true
 		case "":
 		default:
 			return nil, fmt.Errorf(
@@ -283,7 +278,7 @@ type fieldRef struct {
 
 	// this field is only set to true for fields with
 	// `rs:"other"` struct field tag
-	isCatchOther bool
+	isInlineMapItem bool
 }
 
 // addField adds one field identified by its yamlKey
@@ -294,20 +289,20 @@ func (f *BaseField) addField(
 	base *BaseField,
 	ts *tagSpec,
 ) bool {
-	if ts.catchOther {
-		if f.catchOtherField != nil {
+	if ts.inlineMap {
+		if f.inlineMap != nil {
 			panic(fmt.Errorf(
 				"bad field tags in %s: only one map in the struct can have `rs:\"other\"` tag",
 				f._parentType.String(),
 			))
 		}
 
-		f.catchOtherField = &fieldRef{
+		f.inlineMap = &fieldRef{
 			fieldName:  fieldName,
 			fieldValue: fieldValue,
 			base:       base,
 
-			isCatchOther: true,
+			isInlineMapItem: true,
 		}
 
 		return true
@@ -329,8 +324,8 @@ func (f *BaseField) addField(
 		fieldValue: fieldValue,
 		base:       base,
 
-		omitempty:    ts.omitempty,
-		isCatchOther: false,
+		omitempty:       ts.omitempty,
+		isInlineMapItem: false,
 	}
 
 	return true
@@ -341,55 +336,78 @@ func (f *BaseField) getField(yamlKey string) *fieldRef {
 }
 
 type unresolvedFieldSpec struct {
-	fieldName   string
-	fieldValue  reflect.Value
-	rawDataList []*yaml.Node
-	renderers   []*rendererSpec
+	// fieldName is struct field name when isInlineMapItem = false
+	// otherwise it's inline map item key
+	fieldName  string
+	fieldValue reflect.Value
+	rawData    *yaml.Node
+	renderers  []*rendererSpec
 
-	isCatchOtherField bool
+	isInlineMapItem bool
 }
 
 func (f *BaseField) addUnresolvedField(
 	// key part
 	yamlKey string,
 	suffix string,
+	resolvedSuffix []*rendererSpec,
 
 	// value part
 	fieldName string,
 	fieldValue reflect.Value,
-	isCatchOtherField bool,
+	isInlineMapItem bool,
 	rawData *yaml.Node,
 ) {
-	if f.unresolvedFields == nil {
-		f.unresolvedFields = make(map[string]*unresolvedFieldSpec)
+	if resolvedSuffix == nil {
+		resolvedSuffix = parseRenderingSuffix(suffix)
 	}
 
-	if isCatchOtherField {
-		if f.catchOtherFields == nil {
-			f.catchOtherFields = make(map[string]struct{})
-		}
-
-		f.catchOtherFields[yamlKey] = struct{}{}
-	}
-
-	if old, exists := f.unresolvedFields[yamlKey]; exists {
-		// TODO: no idea how can this happen, the key suggests this can only
-		// 	     happen when there are duplicate yaml keys, which is invalid yaml
-		//       go-yaml should errored before we add this
-		// 		 so this is considered as unreachable code
-
-		// unreachable
-		old.rawDataList = append(old.rawDataList, rawData)
+	if !isInlineMapItem {
+		f.addUnresolvedNormalField(yamlKey, resolvedSuffix, fieldName, fieldValue, rawData)
 		return
 	}
 
-	f.unresolvedFields[yamlKey] = &unresolvedFieldSpec{
-		fieldName:   fieldName,
-		fieldValue:  fieldValue,
-		rawDataList: []*yaml.Node{rawData},
-		renderers:   parseRenderingSuffix(suffix),
+	if f.unresolvedInlineMapItems == nil {
+		f.unresolvedInlineMapItems = make(map[string][]*unresolvedFieldSpec)
+	}
 
-		isCatchOtherField: isCatchOtherField,
+	f.unresolvedInlineMapItems[yamlKey] = append(f.unresolvedInlineMapItems[yamlKey], &unresolvedFieldSpec{
+		fieldName:  yamlKey,
+		fieldValue: f.inlineMap.fieldValue,
+		rawData:    rawData,
+		renderers:  resolvedSuffix,
+
+		isInlineMapItem: true,
+	})
+}
+
+func (f *BaseField) addUnresolvedNormalField(
+	// key part
+	yamlKey string,
+	renderers []*rendererSpec,
+
+	// value part
+	fieldName string,
+	fieldValue reflect.Value,
+	rawData *yaml.Node,
+) {
+	if f.unresolvedNormalFields == nil {
+		f.unresolvedNormalFields = make(map[string]*unresolvedFieldSpec)
+	}
+
+	// it can have multiple values only when it's an inline map item
+	if old, exists := f.unresolvedNormalFields[yamlKey]; exists {
+		old.rawData = rawData
+		return
+	}
+
+	f.unresolvedNormalFields[yamlKey] = &unresolvedFieldSpec{
+		fieldName:  fieldName,
+		fieldValue: fieldValue,
+		rawData:    rawData,
+		renderers:  renderers,
+
+		isInlineMapItem: false,
 	}
 }
 

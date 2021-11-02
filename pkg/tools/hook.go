@@ -63,18 +63,18 @@ type TaskHooks struct {
 	After []Action `yaml:"after,omitempty"`
 }
 
-func (*TaskHooks) GetFieldNameByStage(stage dukkha.TaskExecStage) string {
+func (*TaskHooks) GetTagNameByStage(stage dukkha.TaskExecStage) string {
 	return map[dukkha.TaskExecStage]string{
-		dukkha.StageBefore: "Before",
+		dukkha.StageBefore: "before",
 
-		dukkha.StageBeforeMatrix:       "BeforeMatrix",
-		dukkha.StageAfterMatrixSuccess: "AfterMatrixSuccess",
-		dukkha.StageAfterMatrixFailure: "AfterMatrixFailure",
-		dukkha.StageAfterMatrix:        "AfterMatrix",
+		dukkha.StageBeforeMatrix:       "before:matrix",
+		dukkha.StageAfterMatrixSuccess: "after:matrix:success",
+		dukkha.StageAfterMatrixFailure: "after:matrix:failure",
+		dukkha.StageAfterMatrix:        "after:matrix",
 
-		dukkha.StageAfterSuccess: "AfterSuccess",
-		dukkha.StageAfterFailure: "AfterFailure",
-		dukkha.StageAfter:        "After",
+		dukkha.StageAfterSuccess: "after:success",
+		dukkha.StageAfterFailure: "after:failure",
+		dukkha.StageAfter:        "after",
 	}[stage]
 }
 
@@ -91,7 +91,7 @@ func (h *TaskHooks) GenSpecs(
 
 	logger.D("resolving hooks for overview")
 	// just to get a list of hook actions available
-	err := h.ResolveFields(taskCtx, 1, h.GetFieldNameByStage(stage))
+	err := h.ResolveFields(taskCtx, 1, h.GetTagNameByStage(stage))
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve hook spec: %w", err)
 	}

@@ -49,7 +49,7 @@ type Tool interface {
 		mCtx TaskExecContext,
 		depth int,
 		do func() error,
-		fieldNames ...string,
+		tagNames ...string,
 	) error
 }
 

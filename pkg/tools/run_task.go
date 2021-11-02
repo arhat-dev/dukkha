@@ -49,7 +49,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
 		req.Context.AddEnv(true, req.Tool.GetEnv()...)
 		return nil
-	}, "BaseTool.Env")
+	}, "BaseTool.env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve tool specific env: %w", err)
 	}

@@ -44,19 +44,19 @@ type BaseTask struct {
 }
 
 func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := t.ResolveFields(mCtx, -1, "TaskName")
+	err := t.ResolveFields(mCtx, -1, "name")
 	if err != nil {
 		return fmt.Errorf("failed to resolve task name: %w", err)
 	}
 
-	return dukkha.ResolveEnv(t, mCtx, "Env")
+	return dukkha.ResolveEnv(t, mCtx, "Env", "env")
 }
 
 func (t *BaseTask) DoAfterFieldsResolved(
 	ctx dukkha.RenderingContext,
 	depth int,
 	do func() error,
-	fieldNames ...string,
+	tagNames ...string,
 ) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -66,14 +66,14 @@ func (t *BaseTask) DoAfterFieldsResolved(
 		return err
 	}
 
-	if len(fieldNames) == 0 {
+	if len(tagNames) == 0 {
 		// resolve all fields of the real task type
 		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
 			return fmt.Errorf("failed to resolve tool fields: %w", err)
 		}
 	} else {
-		forBase, forImpl := separateBaseAndImpl("BaseTask.", fieldNames)
+		forBase, forImpl := separateBaseAndImpl("BaseTask.", tagNames)
 		if len(forBase) != 0 {
 			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
@@ -106,7 +106,7 @@ func (t *BaseTask) InitBaseTask(
 	t.impl = impl
 
 	typ := reflect.TypeOf(impl).Elem()
-	t.fieldsToResolve = getFieldNamesToResolve(typ)
+	t.fieldsToResolve = getTagNamesToResolve(typ)
 }
 
 func (t *BaseTask) ToolKind() dukkha.ToolKind { return t.toolKind }
@@ -165,7 +165,7 @@ func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, e
 		// t.DoAfterFieldsResolved is intended to serve
 		// real task type, so we have to add the prefix
 		// `BaseTask.`
-		"BaseTask.Matrix",
+		"BaseTask.matrix",
 	)
 
 	return ret, err

@@ -17,10 +17,10 @@ func (f *BaseField) MarshalYAML() (interface{}, error) {
 
 	// handle catch other fields first, so they can be overridden
 	// by normal fields
-	if f.catchOtherField != nil && f.catchOtherField.fieldValue.IsValid() {
+	if f.inlineMap != nil && f.inlineMap.fieldValue.IsValid() {
 		// NOTE: we MUST not use catch other cache since user can
 		// 		 access map directly without updating our cache
-		iter := f.catchOtherField.fieldValue.MapRange()
+		iter := f.inlineMap.fieldValue.MapRange()
 		for iter.Next() {
 			// always include it no matter what value it has
 			//

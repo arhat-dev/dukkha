@@ -98,17 +98,17 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 }
 
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(g, rc, "Env")
+	err := dukkha.ResolveEnv(g, rc, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve global env: %w", err)
 	}
 
-	err = g.ResolveFields(rc, -1, "CacheDir")
+	err = g.ResolveFields(rc, -1, "cache_dir")
 	if err != nil {
 		return fmt.Errorf("failed to resolve cache dir: %w", err)
 	}
 
-	err = g.ResolveFields(rc, -1, "DefaultGitBranch")
+	err = g.ResolveFields(rc, -1, "default_git_branch")
 	if err != nil {
 		return fmt.Errorf("failed to resolve default git branch: %w", err)
 	}
@@ -247,7 +247,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	// step 2: resolve global config (except Values), ensure cache dir exists
 	{
 		logger.D("resolving global config")
-		err := c.ResolveFields(appCtx, 1, "Global")
+		err := c.ResolveFields(appCtx, 1, "global")
 		if err != nil {
 			return fmt.Errorf("failed to get global config overview: %w", err)
 		}
@@ -284,7 +284,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	// step 3: resolve renderers
 	{
 		logger.D("resolving renderers config overview")
-		err := c.ResolveFields(appCtx, 1, "Renderers")
+		err := c.ResolveFields(appCtx, 1, "renderers")
 		if err != nil {
 			return fmt.Errorf("failed to get renderers config overview: %w", err)
 		}
@@ -315,7 +315,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	{
 		logger.D("resolving global values")
 
-		err := c.Global.ResolveFields(appCtx, -1, "Values")
+		err := c.Global.ResolveFields(appCtx, -1, "values")
 		if err != nil {
 			return fmt.Errorf("failed to resolve global values: %w", err)
 		}
@@ -338,7 +338,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	{
 		logger.D("resolving shell config overview")
 
-		err := c.ResolveFields(appCtx, 1, "Shells")
+		err := c.ResolveFields(appCtx, 1, "shells")
 		if err != nil {
 			return fmt.Errorf("failed to resolve shell config overview: %w", err)
 		}

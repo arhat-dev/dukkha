@@ -15,7 +15,7 @@ Before we start, let's agree on the concept `renderer` is just a simple function
 input -> [ renderer ] -> output
 ```
 
-A plain yaml doc looks like this:
+Now, let's start from an ordinary yaml doc:
 
 ```yaml
 foo: bar
@@ -29,11 +29,11 @@ Now what if we would like to use some environment variable value as `foo`'s valu
 foo: ${FOO}
 ```
 
-Now, you get `${FOO}` for your `foo` after unmarshaling, you have to code you own logic to map `${FOO}` to some system environment variable (e.g. make a `os.ExpandEnv` function call).
+You can only get `${FOO}` for your `foo` after unmarshaling, you have to code you own logic to map `${FOO}` to some system environment variable.
 
-What you code, is actually a `renderer` with its usage limited to `foo`.
+WAIT A MINUTE! Isn't it actually a `renderer` with its usage specific to `foo`?
 
-Rendering suffix is here to help, it offers a way to make your yaml doc dynamic on its own, you control what configuration you get in yaml, not in your compiled code.
+Rendering suffix is here to help to reuse your renderers, it offers a way to make your yaml doc dynamic on its own, you control config resolving in yaml, not in compiled code.
 
 ### How it looks?
 
@@ -108,7 +108,7 @@ See [known_limitation_test.go](./known_limitation_test.go) for sample code and w
 
 - Golang built-in map with rendering suffix applied to map key are treated as is, rendering suffix won't be recognized.
   - For `map[string]interface{}`, `foo@foo: bar` is just a map item with key `foo@foo`, value `bar`, no data to be resolved.
-  - The reason for this limitation is obvious since built-in map types doesn't have `BaseField` embedded, but it can be counterintuitive when you have a map field in a struct having `BaseField` embedded.
+  - The reason for this limitation is obvious since built-in map types don't have `BaseField` embedded, but it can be counterintuitive when you have a map field in a struct having `BaseField` embedded.
 
 ## How it works?
 

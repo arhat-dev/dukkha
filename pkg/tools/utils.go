@@ -32,7 +32,7 @@ func GetScriptCache(cacheDir, script string) (string, error) {
 	return scriptPath, nil
 }
 
-func getFieldNamesToResolve(typ reflect.Type) []string {
+func getTagNamesToResolve(typ reflect.Type) []string {
 	var ret []string
 	for i := 1; i < typ.NumField(); i++ {
 		f := typ.Field(i)
@@ -55,6 +55,12 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 				// ignored explicitly
 				continue
 			}
+
+			tagName := strings.Split(yamlTags, ",")[0]
+			if len(tagName) != 0 {
+				ret = append(ret, tagName)
+				continue
+			}
 		case hasDukkhaTags:
 			if !strings.Contains(dukkhaTags, "other") {
 				continue
@@ -64,7 +70,7 @@ func getFieldNamesToResolve(typ reflect.Type) []string {
 			continue
 		}
 
-		ret = append(ret, f.Name)
+		// ret = append(ret, f.Name)
 	}
 
 	return ret

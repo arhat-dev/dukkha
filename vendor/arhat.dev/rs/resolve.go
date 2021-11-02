@@ -10,10 +10,10 @@ import (
 )
 
 func (f *BaseField) HasUnresolvedField() bool {
-	return len(f.unresolvedFields) != 0
+	return len(f.unresolvedNormalFields) != 0
 }
 
-func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...string) error {
+func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...string) error {
 	if !f.initialized() {
 		return fmt.Errorf("rs: struct not intialized before resolving")
 	}
@@ -22,23 +22,25 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 		return nil
 	}
 
-	if len(fieldNames) == 0 {
+	if len(names) == 0 {
 		// resolve all
 
-		for i := 1; i < f._parentValue.NumField(); i++ {
-			sf := f._parentType.Field(i)
-			if len(sf.PkgPath) != 0 {
-				// not exported
-				continue
-			}
-
-			err := f.resolveSingleField(
-				rc, depth, sf.Name, f._parentValue.Field(i),
-			)
+		for _, v := range f.normalFields {
+			err := v.base.resolveSingleField(rc, depth, v)
 			if err != nil {
 				return fmt.Errorf(
 					"rs: failed to resolve field %s.%s: %w",
-					f._parentType.String(), sf.Name, err,
+					f._parentType.String(), v.fieldName, err,
+				)
+			}
+		}
+
+		if v := f.inlineMap; v != nil {
+			err := v.base.resolveSingleField(rc, depth, v)
+			if err != nil {
+				return fmt.Errorf(
+					"rs: failed to resolve inline map %s.%s: %w",
+					f._parentType.String(), v.fieldName, err,
 				)
 			}
 		}
@@ -46,20 +48,24 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 		return nil
 	}
 
-	for _, name := range fieldNames {
-		fv := f._parentValue.FieldByName(name)
-		if !fv.IsValid() {
-			return fmt.Errorf(
-				"rs: no such field %q in struct %q",
-				name, f._parentType.String(),
-			)
+	for _, name := range names {
+		v, ok := f.normalFields[name]
+		if !ok {
+			if f.inlineMap != nil && f.inlineMap.fieldName == name {
+				v = f.inlineMap
+			} else {
+				return fmt.Errorf(
+					"rs: no such field %q in struct %q",
+					name, f._parentType.String(),
+				)
+			}
 		}
 
-		err := f.resolveSingleField(rc, depth, name, fv)
+		err := v.base.resolveSingleField(rc, depth, v)
 		if err != nil {
 			return fmt.Errorf(
-				"rs: failed to resolve requested field %s.%s: %w",
-				f._parentType.String(), name, err,
+				"rs: failed to resolve requested field %s of %s: %w",
+				name, f._parentType.String(), err,
 			)
 		}
 	}
@@ -70,28 +76,45 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, fieldNames ...
 func (f *BaseField) resolveSingleField(
 	rc RenderingHandler,
 	depth int,
-	fieldName string,
-	targetField reflect.Value,
+	targetField *fieldRef,
 ) error {
-	keepOld := false
+	if f.inlineMap == targetField {
+		for k, list := range f.unresolvedInlineMapItems {
+			// v.fieldName is inline map item key in this case
+			var itemCache reflect.Value
+			for i, v := range list {
+				// flush existing data with the same key on first pair
+				keepOld := i != 0
 
-	for k, v := range f.unresolvedFields {
-		if v.fieldName == fieldName {
-			err := f.handleUnResolvedField(
-				rc, depth, k, v, keepOld,
-			)
-			if err != nil {
-				return err
+				var err error
+				itemCache, err = handleUnresolvedField(
+					rc, depth, k, v, itemCache, keepOld, f._opts,
+				)
+				if err != nil {
+					return err
+				}
 			}
+		}
+	} else {
+		keepOld := false
+		for k, v := range f.unresolvedNormalFields {
+			if v.fieldName == targetField.fieldName {
+				_, err := handleUnresolvedField(
+					rc, depth, k, v, reflect.Value{}, keepOld, f._opts,
+				)
+				if err != nil {
+					return err
+				}
 
-			keepOld = true
+				keepOld = true
+			}
 		}
 	}
 
-	return f.handleResolvedField(rc, depth, targetField)
+	return handleResolvedField(rc, depth, targetField.fieldValue)
 }
 
-func (f *BaseField) handleResolvedField(
+func handleResolvedField(
 	rc RenderingHandler,
 	depth int,
 	field reflect.Value,
@@ -108,7 +131,7 @@ func (f *BaseField) handleResolvedField(
 
 		iter := field.MapRange()
 		for iter.Next() {
-			err := f.handleResolvedField(rc, depth-1, iter.Value())
+			err := handleResolvedField(rc, depth-1, iter.Value())
 			if err != nil {
 				return err
 			}
@@ -123,7 +146,7 @@ func (f *BaseField) handleResolvedField(
 
 		for i := 0; i < field.Len(); i++ {
 			tt := field.Index(i)
-			err := f.handleResolvedField(rc, depth-1, tt)
+			err := handleResolvedField(rc, depth-1, tt)
 			if err != nil {
 				return err
 			}
@@ -180,173 +203,182 @@ func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error
 	return nil
 }
 
-func (f *BaseField) handleUnResolvedField(
+func handleUnresolvedField(
 	rc RenderingHandler,
 	depth int,
 	yamlKey string,
 	v *unresolvedFieldSpec,
+	inlineMapItemCache reflect.Value,
 	keepOld bool,
-) error {
+	opts *Options,
+) (reflect.Value, error) {
 	target := v.fieldValue
 
-	for i, rawData := range v.rawDataList {
-		toResolve := rawData
-		if v.isCatchOtherField {
-			// unwrap map data for resolving
-			toResolve = rawData.Content[1]
+	toResolve := v.rawData
+	if v.isInlineMapItem {
+		// unwrap map data for resolving
+		toResolve = v.rawData.Content[1]
+	}
+
+	for _, renderer := range v.renderers {
+		var (
+			patchSpec *PatchSpec
+			patchSrc  interface{}
+			err       error
+		)
+
+		if renderer.patchSpec {
+			patchSpec, patchSrc, err = resolvePatchSpec(rc, toResolve, opts)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf(
+					"failed to resolve patch spec for renderer %q: %w",
+					renderer.name, err,
+				)
+			}
+
+			// should use patchSrc instead of toResolve since we need to patch
+			toResolve = nil
 		}
 
-		for _, renderer := range v.renderers {
-			var (
-				patchSpec *PatchSpec
-				patchSrc  interface{}
-				err       error
-			)
+		if len(renderer.name) != 0 {
+			var renderedData []byte
 
-			if renderer.patchSpec {
-				patchSpec, patchSrc, err = f.resolvePatchSpec(rc, toResolve)
-				if err != nil {
-					return fmt.Errorf(
-						"failed to resolve patch spec for renderer %q: %w",
-						renderer.name, err,
-					)
-				}
-
-				// should use patchSrc instead of toResolve since we need to patch
-				toResolve = nil
-			}
-
-			if len(renderer.name) != 0 {
-				var renderedData []byte
-
-				var input interface{} = toResolve
-				if patchSpec != nil {
-					// resolve patch value if was a patch
-					input = patchSrc
-				}
-
-				renderedData, err = rc.RenderYaml(renderer.name, input)
-				if err != nil {
-					return fmt.Errorf(
-						"renderer %q failed to render value: %w",
-						renderer.name, err,
-					)
-				}
-
-				// check type hinting before assuming it's valid yaml
-				//
-				// see TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
-				// for reasons this pre-type hint check exists
-
-				// scalar types cannot be applied with patch spec
-				// so the rendered data will be the final value for resolving
-
-				var tag string
-				switch renderer.typeHint.(type) {
-				case TypeHintStr:
-					tag = strTag
-				case TypeHintInt:
-					tag = intTag
-				case TypeHintFloat:
-					tag = floatTag
-				default:
-					// assume rendered data as yaml for further processing
-					toResolve = assumeValidYaml(renderedData)
-				}
-
-				if len(tag) != 0 {
-					toResolve = &yaml.Node{
-						Style: guessYamlStringStyle(renderedData),
-						Kind:  yaml.ScalarNode,
-						Tag:   tag,
-						Value: string(renderedData),
-					}
-				}
-			}
-
-			// apply patch if set
+			var input interface{} = toResolve
 			if patchSpec != nil {
-				// apply type hint before patching to make sure value
-				// being patched is correctly typed
+				// resolve patch value if was a patch
+				input = patchSrc
+			}
 
-				var tmp interface{}
-				if toResolve == nil {
-					// toResolve can be nill if this is a patch without
-					// renderer (e.g. `foo@!: { ... }`)
-					tmp = patchSrc
-				} else {
-					toResolve, err = applyHint(renderer.typeHint, toResolve)
-					if err != nil {
-						return fmt.Errorf(
-							"failed to ensure type hint %q on patch target of %q: %w",
-							renderer.typeHint, yamlKey, err,
-						)
-					}
+			renderedData, err = rc.RenderYaml(renderer.name, input)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf(
+					"renderer %q failed to render value: %w",
+					renderer.name, err,
+				)
+			}
 
-					err = toResolve.Decode(&tmp)
-					if err != nil {
-						return fmt.Errorf(
-							"failed to decode data as patch source: %w",
-							err,
-						)
-					}
+			// check type hinting before assuming it's valid yaml
+			//
+			// see TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
+			// for reasons this pre-type hint check exists
+
+			// scalar types cannot be applied with patch spec
+			// so the rendered data will be the final value for resolving
+
+			var tag string
+			switch renderer.typeHint.(type) {
+			case TypeHintStr:
+				tag = strTag
+			case TypeHintInt:
+				tag = intTag
+			case TypeHintFloat:
+				tag = floatTag
+			default:
+				// assume rendered data as yaml for further processing
+				toResolve = assumeValidYaml(renderedData)
+			}
+
+			if len(tag) != 0 {
+				toResolve = &yaml.Node{
+					Style: guessYamlStringStyle(renderedData),
+					Kind:  yaml.ScalarNode,
+					Tag:   tag,
+					Value: string(renderedData),
+				}
+			}
+		}
+
+		// apply patch if set
+		if patchSpec != nil {
+			// apply type hint before patching to make sure value
+			// being patched is correctly typed
+
+			var tmp interface{}
+			if toResolve == nil {
+				// toResolve can be nill if this is a patch without
+				// renderer (e.g. `foo@!: { ... }`)
+				tmp = patchSrc
+			} else {
+				toResolve, err = applyHint(renderer.typeHint, toResolve)
+				if err != nil {
+					return reflect.Value{}, fmt.Errorf(
+						"failed to ensure type hint %q on patch target of %q: %w",
+						renderer.typeHint, yamlKey, err,
+					)
 				}
 
-				tmp, err = patchSpec.ApplyTo(tmp)
+				err = toResolve.Decode(&tmp)
 				if err != nil {
-					return fmt.Errorf(
-						"failed to apply patches: %w",
+					return reflect.Value{}, fmt.Errorf(
+						"failed to decode data as patch source: %w",
 						err,
 					)
 				}
-
-				// patch doc is generated from arbitrary yaml data
-				// with built-in interface{}, so we are able to marshal it into
-				// json, and parse as *yaml.Node for further processing
-
-				var dataBytes []byte
-				dataBytes, err = json.Marshal(tmp)
-				if err != nil {
-					return fmt.Errorf("failed to marshal patched data: %w", err)
-				}
-
-				// json data is deemed to be valid yaml, if not, that means we
-				// have a big problem then. so we don't need to save yaml.Unmarshal
-				// from panic here
-				toResolve = new(yaml.Node)
-				err = yaml.Unmarshal(dataBytes, toResolve)
-				if err != nil {
-					return fmt.Errorf("failed to prepare patched data: %w", err)
-				}
 			}
 
-			// apply hint after resolving (rendering)
-			toResolve, err = applyHint(renderer.typeHint, toResolve)
+			tmp, err = patchSpec.ApplyTo(rc, tmp)
 			if err != nil {
-				return fmt.Errorf(
-					"failed to ensure type hint %q on yaml key %q: %w",
-					renderer.typeHint, yamlKey, err,
+				return reflect.Value{}, fmt.Errorf(
+					"failed to apply patches: %w",
+					err,
 				)
 			}
+
+			// patch doc is generated from arbitrary yaml data
+			// with built-in interface{}, so we are able to marshal it into
+			// json, and parse as *yaml.Node for further processing
+
+			var dataBytes []byte
+			dataBytes, err = json.Marshal(tmp)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf("failed to marshal patched data: %w", err)
+			}
+
+			// json data is deemed to be valid yaml, if not, that means we
+			// have a big problem then. so we don't need to save yaml.Unmarshal
+			// from panic here
+			toResolve = new(yaml.Node)
+			err = yaml.Unmarshal(dataBytes, toResolve)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf("failed to prepare patched data: %w", err)
+			}
 		}
 
-		resolved := toResolve
-		if v.isCatchOtherField {
-			// wrap back for catch other filed
-			resolved = fakeMap(rawData.Content[0], resolved)
-		}
-
-		actualKeepOld := keepOld || v.isCatchOtherField || i != 0
-		err := f.unmarshal(yamlKey, resolved, target, actualKeepOld)
+		// apply hint after resolving (rendering)
+		toResolve, err = applyHint(renderer.typeHint, toResolve)
 		if err != nil {
-			return fmt.Errorf(
-				"failed to unmarshal resolved value of %q to field %q: %w",
-				yamlKey, v.fieldName, err,
+			return reflect.Value{}, fmt.Errorf(
+				"failed to ensure type hint %q on yaml key %q: %w",
+				renderer.typeHint, yamlKey, err,
 			)
 		}
 	}
 
-	return tryResolve(rc, depth-1, target)
+	var (
+		resolved = toResolve
+		err      error
+	)
+	if v.isInlineMapItem {
+		inlineMapItemCache, err = unmarshalMap(
+			yamlKey,
+			fakeMap(v.rawData.Content[0], resolved),
+			target,
+			inlineMapItemCache,
+			&keepOld,
+			opts,
+		)
+	} else {
+		err = unmarshal(yamlKey, resolved, target, nil, opts)
+	}
+
+	if err != nil {
+		return reflect.Value{}, fmt.Errorf(
+			"failed to unmarshal resolved value of %q to field %q: %w",
+			yamlKey, v.fieldName, err,
+		)
+	}
+
+	return inlineMapItemCache, tryResolve(rc, depth-1, target)
 }
 
 func guessYamlStringStyle(s []byte) yaml.Style {
@@ -434,16 +466,16 @@ func applyHint(hint TypeHint, in *yaml.Node) (*yaml.Node, error) {
 }
 
 // resolve user provided data as patch spec
-func (f *BaseField) resolvePatchSpec(
+func resolvePatchSpec(
 	rc RenderingHandler,
 	toResolve *yaml.Node,
+	opts *Options,
 ) (
 	patchSpec *PatchSpec,
 	value interface{},
 	err error,
 ) {
-
-	patchSpec = Init(&PatchSpec{}, f._opts).(*PatchSpec)
+	patchSpec = Init(&PatchSpec{}, opts).(*PatchSpec)
 	err = toResolve.Decode(patchSpec)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -460,15 +492,34 @@ func (f *BaseField) resolvePatchSpec(
 		)
 	}
 
-	value = patchSpec.Value.NormalizedValue()
-	return patchSpec, value, nil
+	value, err = handleOptionalRenderingSuffixResolving(
+		rc, patchSpec.Value, patchSpec.Resolve,
+	)
+	return patchSpec, value, err
 }
 
-func (f *BaseField) isCatchOtherField(yamlKey string) bool {
-	if f.catchOtherFields == nil {
-		return false
+func handleOptionalRenderingSuffixResolving(rc RenderingHandler, n *yaml.Node, resolve *bool) (interface{}, error) {
+	n = prepareYamlNode(n)
+	if n == nil {
+		return nil, nil
 	}
 
-	_, ok := f.catchOtherFields[yamlKey]
-	return ok
+	if resolve == nil || *resolve {
+		any := new(AnyObject)
+		err := n.Decode(any)
+		if err != nil {
+			return nil, err
+		}
+
+		err = any.ResolveFields(rc, -1)
+		return any.NormalizedValue(), err
+	}
+
+	var ret interface{}
+	err := n.Decode(&ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }

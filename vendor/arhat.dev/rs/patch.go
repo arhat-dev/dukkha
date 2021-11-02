@@ -7,13 +7,19 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/itchyny/gojq"
+	"gopkg.in/yaml.v3"
 )
 
 type MergeSource struct {
 	BaseField `yaml:"-" json:"-"`
 
 	// Value for the source
-	Value AnyObject `yaml:"value,omitempty"`
+	Value *yaml.Node `yaml:"value,omitempty"`
+
+	// Resolve rendering suffix in value if any before being merged
+	//
+	// Defaults to `true`
+	Resolve *bool `yaml:"resolve" json:"-"`
 
 	// Select some data from the source
 	Select string `yaml:"select,omitempty"`
@@ -31,8 +37,13 @@ type PatchSpec struct {
 	// 		  value: https://example.com/bar.yaml
 	// 		  merge: { value: [foo] }
 	//
-	// then the resolve value of foo will be `[bar, foo]`
-	Value AnyObject `yaml:"value"`
+	// then the resolved value of foo will be `[bar, foo]`
+	Value *yaml.Node `yaml:"value"`
+
+	// Resolve rendering suffix in value if any before being patched
+	//
+	// Defaults to `true`
+	Resolve *bool `yaml:"resolve" json:"-"`
 
 	// Merge additional data into Value
 	//
@@ -101,13 +112,15 @@ func runJQ(query string, data interface{}) (interface{}, error) {
 	return ret, nil
 }
 
-func (s *PatchSpec) merge(valueData interface{}) (interface{}, error) {
+func (s *PatchSpec) merge(rc RenderingHandler, valueData interface{}) (interface{}, error) {
 	mergeSrc := make([]interface{}, len(s.Merge))
 	for i, m := range s.Merge {
-		v := m.Value.NormalizedValue()
+		v, err := handleOptionalRenderingSuffixResolving(rc, m.Value, m.Resolve)
+		if err != nil {
+			return nil, err
+		}
 
 		if len(m.Select) != 0 {
-			var err error
 			v, err = runJQ(m.Select, v)
 			if err != nil {
 				return nil, fmt.Errorf(
@@ -185,25 +198,33 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *PatchSpec) ApplyTo(valueData interface{}) (interface{}, error) {
-	data, err := s.merge(valueData)
+func (s *PatchSpec) ApplyTo(rc RenderingHandler, valueData interface{}) (interface{}, error) {
+	data, err := s.merge(rc, valueData)
 	if err != nil {
 		return nil, err
 	}
 
 	type resolvedJSONPatchSpec struct {
-		Operation string      `yaml:"op" json:"op"`
-		Path      string      `yaml:"path" json:"path"`
-		Value     interface{} `yaml:"value,omitempty" json:"value,omitempty"`
+		Operation string      `json:"op"`
+		Path      string      `json:"path"`
+		Value     interface{} `json:"value,omitempty"`
 	}
 
 	// apply select action to patches
 	patchSrc := make([]*resolvedJSONPatchSpec, len(s.Patch))
 	for i, p := range s.Patch {
+		var v interface{}
+		v, err = handleOptionalRenderingSuffixResolving(
+			rc, p.Value, p.Resolve,
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		spec := &resolvedJSONPatchSpec{
 			Path:      p.Path,
 			Operation: p.Operation,
-			Value:     p.Value.NormalizedValue(),
+			Value:     v,
 		}
 
 		if len(p.Select) != 0 {
@@ -358,14 +379,19 @@ func UniqueList(dt []interface{}) []interface{} {
 type JSONPatchSpec struct {
 	BaseField `yaml:"-" json:"-"`
 
-	Operation string `yaml:"op" json:"op"`
+	Operation string `yaml:"op"`
 
-	Path string `yaml:"path" json:"path"`
+	Path string `yaml:"path"`
 
-	Value AnyObject `yaml:"value,omitempty" json:"value,omitempty"`
+	Value *yaml.Node `yaml:"value,omitempty"`
+
+	// Resolve rendering suffix in value before being applied
+	//
+	// Defaults to `true`
+	Resolve *bool `yaml:"resolve"`
 
 	// Select part of the value for patching
 	//
 	// this action happens before patching
-	Select string `yaml:"select" json:"-"`
+	Select string `yaml:"select"`
 }

@@ -29,10 +29,11 @@ type Field interface {
 	// when depth == 0, do nothing
 	// when depth < 0, resolve recursively
 	//
-	// fieldNames instructs which fields to be resolved. When it's not empty,
-	// resolve specified fields only, otherwise, resolve all exported fields
-	// in the underlying struct.
-	ResolveFields(rc RenderingHandler, depth int, fieldNames ...string) error
+	// names limits which fields to be resolved, their values are derived from
+	// your field tags
+	// When it's not empty, resolve specified fields only, otherwise, resolve all exported fields
+	// in the struct.
+	ResolveFields(rc RenderingHandler, depth int, names ...string) error
 }
 
 type (

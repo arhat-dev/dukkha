@@ -243,7 +243,7 @@ type Task interface {
 		rc RenderingContext,
 		depth int,
 		do func() error,
-		fieldNames ...string,
+		tagNames ...string,
 	) error
 
 	ContinueOnError() bool

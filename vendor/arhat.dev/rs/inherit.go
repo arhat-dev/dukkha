@@ -2,7 +2,6 @@ package rs
 
 import (
 	"fmt"
-	"reflect"
 )
 
 // Inherit unresolved fields from another BaseField
@@ -11,58 +10,71 @@ import (
 //
 // after a successful function call, f wiil be able to resolve its struct fields
 // with unresolved values from b and its own
-func (f *BaseField) Inherit(b *BaseField) error {
-	if len(b.unresolvedFields) == 0 {
+func (f *BaseField) Inherit(other *BaseField) error {
+	if other == nil {
 		return nil
 	}
 
-	if f.unresolvedFields == nil {
-		f.unresolvedFields = make(map[string]*unresolvedFieldSpec)
+	if !f.initialized() {
+		return fmt.Errorf("rs.BaseField.Inherit: self not initialized")
 	}
 
-	for k, v := range b.unresolvedFields {
-		existingV, ok := f.unresolvedFields[k]
-		if !ok {
-			f.unresolvedFields[k] = &unresolvedFieldSpec{
-				fieldName:         v.fieldName,
-				fieldValue:        f._parentValue.FieldByName(v.fieldName),
-				isCatchOtherField: v.isCatchOtherField,
-				rawDataList:       v.rawDataList,
-				renderers:         v.renderers,
+	if !other.initialized() {
+		return fmt.Errorf("rs.BaseField.Inherit: incoming target not initialized")
+	}
+
+	if len(other.unresolvedNormalFields) != 0 {
+		if f.unresolvedNormalFields == nil {
+			f.unresolvedNormalFields = make(map[string]*unresolvedFieldSpec)
+		}
+
+		for k, v := range other.unresolvedNormalFields {
+			existingV, ok := f.unresolvedNormalFields[k]
+			if !ok {
+				f.addUnresolvedField(
+					k,
+					"", v.renderers,
+					v.fieldName,
+					f.normalFields[k].fieldValue,
+					v.isInlineMapItem,
+					v.rawData,
+				)
+
+				continue
 			}
 
-			continue
-		}
+			switch {
+			case existingV.fieldName != v.fieldName,
+				existingV.isInlineMapItem != v.isInlineMapItem:
+				return fmt.Errorf(
+					"rs: invalid field not match, want %q, got %q",
+					existingV.fieldName, v.fieldName,
+				)
+			}
 
-		switch {
-		case existingV.fieldName != v.fieldName,
-			existingV.isCatchOtherField != v.isCatchOtherField:
-			return fmt.Errorf(
-				"rs: invalid field not match, want %q, got %q",
-				existingV.fieldName, v.fieldName,
-			)
-		}
-
-		existingV.rawDataList = append(existingV.rawDataList, v.rawDataList...)
-	}
-
-	if len(b.catchOtherCache) != 0 {
-		if f.catchOtherCache == nil {
-			f.catchOtherCache = make(map[string]reflect.Value)
-		}
-
-		for k, v := range b.catchOtherCache {
-			f.catchOtherCache[k] = v
+			existingV.rawData = v.rawData
 		}
 	}
 
-	if len(b.catchOtherFields) != 0 {
-		if f.catchOtherFields == nil {
-			f.catchOtherFields = make(map[string]struct{})
+	// here we do not merge rawData for items sharing the same key since their rendering suffix
+	// may differ from each other
+
+	if len(other.unresolvedInlineMapItems) != 0 {
+		if f.unresolvedInlineMapItems == nil {
+			f.unresolvedInlineMapItems = make(map[string][]*unresolvedFieldSpec)
 		}
 
-		for k, v := range b.catchOtherFields {
-			f.catchOtherFields[k] = v
+		for k, list := range other.unresolvedInlineMapItems {
+			for _, v := range list {
+				f.unresolvedInlineMapItems[k] = append(f.unresolvedInlineMapItems[k], &unresolvedFieldSpec{
+					fieldName:  v.fieldName,
+					fieldValue: f.inlineMap.fieldValue,
+					rawData:    v.rawData,
+					renderers:  v.renderers,
+
+					isInlineMapItem: true,
+				})
+			}
 		}
 	}
 

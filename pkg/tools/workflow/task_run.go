@@ -60,7 +60,7 @@ func (w *TaskRun) next(
 			thisAction, err = h.GenSpecs(mCtx.DeriveNew(), index)
 			return err
 		})
-	}, "Jobs")
+	}, "jobs")
 	if err != nil || !hasJob {
 		return nil, err
 	}

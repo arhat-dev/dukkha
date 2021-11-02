@@ -91,18 +91,19 @@ func checkScalarType(n *yaml.Node, expectedTag string) bool {
 
 	if len(n.Tag) == 0 || n.Tag == "!" {
 		n.Tag = n.ShortTag()
-		if len(n.Tag) == 0 || n.Tag == "!" {
-			n.Tag = nullTag
-		}
+	}
+
+	// n.SchortTag may not generate valid tag value when value is not set
+	if len(n.Tag) == 0 || n.Tag == "!" {
+		n.Tag = nullTag
 	}
 
 	return shortTag(n.Tag) == expectedTag
 }
 
-// func isIntScalar(n *yaml.Node) bool    { return checkScalarType(n, intTag) }
-// func isFloatScalar(n *yaml.Node) bool  { return checkScalarType(n, floatTag) }
-// func isBoolScalar(n *yaml.Node) bool   { return checkScalarType(n, boolTag) }
-
+func isIntScalar(n *yaml.Node) bool    { return checkScalarType(n, intTag) }
+func isFloatScalar(n *yaml.Node) bool  { return checkScalarType(n, floatTag) }
+func isBoolScalar(n *yaml.Node) bool   { return checkScalarType(n, boolTag) }
 func isNullScalar(n *yaml.Node) bool   { return checkScalarType(n, nullTag) }
 func isBinaryScalar(n *yaml.Node) bool { return checkScalarType(n, binaryTag) }
 func isStrScalar(n *yaml.Node) bool    { return checkScalarType(n, strTag) }

@@ -41,7 +41,7 @@ func fakeMap(k, v *yaml.Node) *yaml.Node {
 	}
 }
 
-func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error) {
+func unmarshalYamlMap(n *yaml.Node) ([][]*yaml.Node, error) {
 	var ret [][]*yaml.Node
 	for i := 0; i < len(n.Content); i += 2 {
 		if !isMerge(n.Content[i]) {
