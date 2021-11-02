@@ -92,7 +92,7 @@ func diffFile(baseDocSrc, newDocSrc string) error {
 		baseDocDrained, newDocDrained bool
 	)
 
-	count := 0
+	printDocSep := false
 	for {
 		current := new(diff.Node)
 		err = nd.Decode(current)
@@ -124,16 +124,18 @@ func diffFile(baseDocSrc, newDocSrc string) error {
 			baseDocDrained = true
 		}
 
-		if count != 0 {
+		if printDocSep {
 			fmt.Println("---")
+		} else {
+			printDocSep = true
 		}
 
 		diffEntries := diff.Diff(base, current, []string{})
-		// TODO: use source input as reason source
-		if len(diff.ReasonDiff(base, diffEntries)) == 0 {
+		if len(diffEntries) == 0 {
 			fmt.Println("# no difference")
+		} else {
+			// TODO: use source input as reason source
+			_ = ReasonDiff(base, diffEntries)
 		}
-
-		count++
 	}
 }
