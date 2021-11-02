@@ -1,8 +1,8 @@
 arhat.dev/pkg v0.7.3-0.20211031103932-2ba2f62218b1 h1:syRveRqCBJoGqrIo8zPMBChk9b4FjKtKwiO0rhmuTRY=
 arhat.dev/pkg v0.7.3-0.20211031103932-2ba2f62218b1/go.mod h1:zPTNrA/tEoOUSpFQFyr7McM3LO8WQRhwNcULbcAM+ms=
 arhat.dev/rs v0.6.0/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
-arhat.dev/rs v0.6.1-0.20211102154520-15c130efa4d2 h1:U0meKnX+F8HnUWCdKqc3sJyfTZnDihcGD2TG/hddHhs=
-arhat.dev/rs v0.6.1-0.20211102154520-15c130efa4d2/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
+arhat.dev/rs v0.6.1-0.20211102221717-0709e3672668 h1:TcThTBng6IEosxc6anz5BBd8XSkCBzbGimcZIIDbPmI=
+arhat.dev/rs v0.6.1-0.20211102221717-0709e3672668/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=

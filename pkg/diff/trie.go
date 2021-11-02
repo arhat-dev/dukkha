@@ -18,18 +18,26 @@ func newNode(parent *Node, elemKey string) *Node {
 	}
 }
 
-type rsSpec struct {
-	renderer string
-	typeHint string
-	patch    bool
+type RendererSpec struct {
+	Name     string
+	TypeHint string
+	Patch    bool
+}
+
+func (r *RendererSpec) Clone() *RendererSpec {
+	return &RendererSpec{
+		Name:     r.Name,
+		TypeHint: r.TypeHint,
+		Patch:    r.Patch,
+	}
 }
 
 // maintain the same behavior as
 // https://github.com/arhat-dev/rs/blob/master/field.go#L403
-func parseRenderingSuffix(suffix string) []*rsSpec {
+func parseRenderingSuffix(suffix string) []*RendererSpec {
 	var (
 		parts = strings.Split(suffix, "|")
-		ret   []*rsSpec
+		ret   []*RendererSpec
 	)
 
 	for _, part := range parts {
@@ -38,21 +46,21 @@ func parseRenderingSuffix(suffix string) []*rsSpec {
 			continue
 		}
 
-		spec := &rsSpec{
-			patch: part[size-1] == '!',
+		spec := &RendererSpec{
+			Patch: part[size-1] == '!',
 		}
 
-		if spec.patch {
+		if spec.Patch {
 			part = part[:size-1]
 			// size-- // size not used any more
 		}
 
 		if idx := strings.LastIndexByte(part, '?'); idx >= 0 {
-			spec.typeHint = part[idx+1:]
+			spec.TypeHint = part[idx+1:]
 			part = part[:idx]
 		}
 
-		spec.renderer = part
+		spec.Name = part
 		ret = append(ret, spec)
 	}
 
@@ -63,8 +71,8 @@ type Node struct {
 	elemKey string
 	parent  *Node
 
-	rsSpecs []*rsSpec
-	raw     *yaml.Node
+	Renderers []*RendererSpec
+	RawNode   *yaml.Node
 
 	scalarData *yaml.Node
 
@@ -73,11 +81,14 @@ type Node struct {
 }
 
 func (n *Node) MarshalYAML() (interface{}, error) {
-	return n.raw, nil
+	return n.RawNode, nil
 }
 
+//go:linkname unmarshalMap arhat.dev/rs.unmarshalYamlMap
+func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error)
+
 func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
-	n.raw = yn
+	n.RawNode = yn
 
 	switch yn.Kind {
 	case yaml.MappingNode:
@@ -93,7 +104,7 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 		for _, pair := range pairs {
 			k := pair[0].Value
 
-			var rsSpecs []*rsSpec
+			var rsSpecs []*RendererSpec
 			// handle rendering suffix first
 			// maintain the same behavior as
 			// https://github.com/arhat-dev/rs/blob/master/unmarshal.go#L40
@@ -115,7 +126,7 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 				return err
 			}
 
-			child.rsSpecs = rsSpecs
+			child.Renderers = rsSpecs
 			n.children = append(n.children, child)
 			n.childIndex[k] = len(n.children) - 1
 		}
@@ -167,23 +178,58 @@ func (n *Node) ElementKey() string {
 // Get a trie node according to the key sequence in order
 // exact is set to true when there
 // key always refer to node's children
-func (n *Node) Get(key []string) (_ *Node, exact bool) {
+func (n *Node) Get(key []string) (_ *Node, tailKey []string) {
 	switch {
 	case len(key) == 0:
 		// no key for this node (selected by upper level)
 		// then this node is the exact one
-		return n, true
+		return n, nil
 	case len(n.children) == 0:
-		return n, false
+		return n, key
 	default:
 		i, ok := n.childIndex[key[0]]
 		if !ok {
-			return n, false
+			return n, key
 		}
 
 		return n.children[i].Get(key[1:])
 	}
 }
 
-//go:linkname unmarshalMap arhat.dev/rs.unmarshalYamlMap
-func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error)
+func (n *Node) Clone() *Node {
+	clone := &Node{
+		elemKey:    n.elemKey,
+		parent:     n.parent,
+		Renderers:  nil,
+		RawNode:    n.RawNode,
+		scalarData: n.scalarData,
+		children:   nil,
+		childIndex: nil,
+	}
+
+	for _, rdr := range n.Renderers {
+		clone.Renderers = append(clone.Renderers, rdr.Clone())
+	}
+
+	for _, child := range n.children {
+		clone.children = append(clone.children, child.Clone())
+	}
+
+	for k, v := range n.childIndex {
+		if clone.childIndex == nil {
+			clone.childIndex = make(map[string]int)
+		}
+
+		clone.childIndex[k] = v
+	}
+
+	return clone
+}
+
+func (n *Node) Append(other *Node) {
+	if n.childIndex == nil {
+		n.childIndex = make(map[string]int)
+	}
+
+	n.children = append(n.children, other)
+}

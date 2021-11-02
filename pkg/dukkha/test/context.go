@@ -20,7 +20,11 @@ func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error { return ni
 func (*echoRenderer) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{},
 ) ([]byte, error) {
-	return yaml.Marshal(rawData)
+	rd, err := rs.NormalizeRawData(rawData)
+	if err != nil {
+		return nil, err
+	}
+	return yaml.Marshal(rd)
 }
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {

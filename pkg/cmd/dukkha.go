@@ -113,7 +113,8 @@ func NewRootCmd() *cobra.Command {
 
 			var needTasks bool
 			switch {
-			case strings.HasPrefix(cmd.Use, "render"):
+			case strings.HasPrefix(cmd.Use, "render"),
+				strings.HasPrefix(cmd.Use, "diff"):
 				needTasks = false
 			case strings.HasPrefix(cmd.Use, "debug"):
 				needTasks = len(args) != 0

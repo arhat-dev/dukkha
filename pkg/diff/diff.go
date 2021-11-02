@@ -23,7 +23,9 @@ type Entry struct {
 }
 
 // Diff
-func Diff(base, other *Node, visitingKey []string) []*Entry {
+func Diff(base, other *Node) []*Entry { return diff(base, other, []string{}) }
+
+func diff(base, other *Node, visitingKey []string) []*Entry {
 	switch {
 	case base == nil && other == nil:
 		return nil
@@ -61,7 +63,7 @@ func Diff(base, other *Node, visitingKey []string) []*Entry {
 
 			// base: map/slice => updated
 
-			if other.raw.ShortTag() == "!!null" {
+			if other.RawNode.ShortTag() == "!!null" {
 				return []*Entry{{Key: visitingKey, DivertAt: base, Kind: KindDeleted}}
 			}
 
@@ -76,7 +78,7 @@ func Diff(base, other *Node, visitingKey []string) []*Entry {
 			return []*Entry{{Key: visitingKey, DivertAt: base, Kind: KindDeleted}}
 		}
 
-		if base.raw.ShortTag() == "!!null" {
+		if base.RawNode.ShortTag() == "!!null" {
 			return []*Entry{{Key: visitingKey, DivertAt: other, Kind: KindAdded}}
 		}
 
@@ -126,7 +128,7 @@ func Diff(base, other *Node, visitingKey []string) []*Entry {
 		}
 
 		ret = append(ret,
-			Diff(
+			diff(
 				child,
 				other.children[j],
 				append(visitingKey, child.elemKey),

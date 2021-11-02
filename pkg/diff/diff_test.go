@@ -30,7 +30,7 @@ func TestDiff(t *testing.T) {
 			expectedEntries := *exp.(*[]*Expected)
 
 			var actualEntries []*Expected
-			for _, ent := range Diff(s.Original, s.Current, []string{}) {
+			for _, ent := range Diff(s.Original, s.Current) {
 				actualEntries = append(actualEntries, &Expected{
 					Key:       ent.Key,
 					Kind:      ent.Kind,

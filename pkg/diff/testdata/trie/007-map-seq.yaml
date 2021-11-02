@@ -6,6 +6,8 @@ a:
 ---
 - key: [.a, .b, "[0]"]
   value: c
+  tail_key: null
 
 - key: [.a, .b, "[1]"]
   value: d
+  tail_key: null

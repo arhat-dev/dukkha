@@ -3,5 +3,9 @@
       c: d
 ---
 - key: []
+  value: null
+  tail_key: null
+
 - key: ["[0]", .a, .b, .c]
   value: d
+  tail_key: null

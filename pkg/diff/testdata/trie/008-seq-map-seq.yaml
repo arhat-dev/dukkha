@@ -5,9 +5,12 @@
 ---
 - key: ["[0]", .a, .b, "[0]", .c]
   value: d
+  tail_key: null
 
 - key: ["[0]", .a, .b, "[1]", .e]
   value: f
+  tail_key: null
 
 - key: ["[0]", .a, .b, "[1]", .e, .x]
   nearest: f
+  tail_key: [.x]

@@ -3,6 +3,7 @@ package file
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -68,6 +69,8 @@ func (d *Driver) RenderYaml(
 			d.name, rawData,
 		)
 	}
+
+	path = strings.TrimSpace(path)
 
 	var data []byte
 	if d.cache != nil {

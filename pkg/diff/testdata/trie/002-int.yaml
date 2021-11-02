@@ -3,6 +3,8 @@
 # root node
 - key: []
   value: "1"
+  tail_key: null
 
 - key: ["1"]
   nearest: "1"
+  tail_key: ["1"]

@@ -4,6 +4,8 @@ a:
 ---
 - key: [.a, "[0]", .b, "[0]", .c]
   value: d
+  tail_key: null
 
 - key: [.a, "[0]", .b, "[0]", .c, .e]
   nearest: d
+  tail_key: [.e]

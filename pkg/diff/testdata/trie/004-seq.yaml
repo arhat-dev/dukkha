@@ -4,11 +4,15 @@
 # root node
 - key: []
   value: null
+  tail_key: null
 
 - key: ["[0]"]
   value: foo
+  tail_key: null
 
 - key: ["[1]"]
   value: bar
+  tail_key: null
 
 - key: ["[3]"]
+  tail_key: ["[3]"]

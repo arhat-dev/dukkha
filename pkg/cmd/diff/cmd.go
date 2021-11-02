@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/diff"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -17,6 +19,7 @@ func NewDiffCmd(ctx *dukkha.Context) *cobra.Command {
 	_ = ctx
 
 	var (
+		source    string
 		recursive bool
 	)
 
@@ -33,7 +36,7 @@ func NewDiffCmd(ctx *dukkha.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return diffFile(args[0], args[1])
+			return diffFile(*ctx, source, args[0], args[1])
 		},
 	}
 
@@ -42,57 +45,72 @@ func NewDiffCmd(ctx *dukkha.Context) *cobra.Command {
 		"diff directories recursively",
 	)
 
+	flags.StringVarP(&source, "source", "s", "",
+		"set path to source doc which generated the original file",
+	)
+
 	return diffCmd
 }
 
-func diffFile(baseDocSrc, newDocSrc string) error {
+func diffFile(rc rs.RenderingHandler, srcDocSrc, baseDocSrc, newDocSrc string) error {
 	if baseDocSrc == newDocSrc {
 		return nil
 	}
 
-	var (
-		baseDoc, newDoc io.ReadCloser
-
-		err error
-	)
-
-	switch "-" {
-	case baseDocSrc:
-		baseDoc = os.Stdin
-		newDoc, err = os.Open(newDocSrc)
-		if err != nil {
-			return err
-		}
-	case newDocSrc:
-		baseDoc, err = os.Open(baseDocSrc)
-		newDoc = os.Stdin
-		if err != nil {
-			return err
-		}
-	default:
-		baseDoc, err = os.Open(baseDocSrc)
-		if err != nil {
-			return err
-		}
-		newDoc, err = os.Open(newDocSrc)
-		if err != nil {
-			return err
-		}
+	if srcDocSrc == newDocSrc {
+		return fmt.Errorf("invalid source doc should not be the same as new doc")
 	}
 
-	defer func() {
-		_ = baseDoc.Close()
-		_ = newDoc.Close()
-	}()
+	stdinUsed := false
+	newDecoder := func(src string) (*yaml.Decoder, func(), error) {
+		if src == "-" {
+			if stdinUsed {
+				return nil, nil, fmt.Errorf("only one of src/base/new doc can use stdin")
+			}
+			stdinUsed = true
+			return yaml.NewDecoder(os.Stdin), func() {}, nil
+		}
 
-	bd := yaml.NewDecoder(baseDoc)
-	nd := yaml.NewDecoder(newDoc)
+		rd, err := os.Open(src)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return yaml.NewDecoder(rd), func() { _ = rd.Close() }, nil
+	}
+
+	var sd *yaml.Decoder
+	if srcDocSrc != "" && srcDocSrc != baseDocSrc {
+		var (
+			cleanupSD func()
+			err       error
+		)
+		sd, cleanupSD, err = newDecoder(srcDocSrc)
+		if err != nil {
+			return fmt.Errorf("failed to open src doc: %w", err)
+		}
+		defer cleanupSD()
+	}
+
+	bd, cleanupBD, err := newDecoder(baseDocSrc)
+	if err != nil {
+		return fmt.Errorf("failed to open base doc: %w", err)
+	}
+	defer cleanupBD()
+
+	nd, cleanupND, err := newDecoder(newDocSrc)
+	if err != nil {
+		return fmt.Errorf("failed to open target doc: %w", err)
+	}
+	defer cleanupND()
 
 	var (
-		baseDocDrained, newDocDrained bool
+		sdDrain  = sd == nil
+		bdDrain  = false
+		ndDrain  = false
+		printSep = false
 	)
 
-	printDocSep := false
 	for {
 		current := new(diff.Node)
 		err = nd.Decode(current)
@@ -101,12 +119,12 @@ func diffFile(baseDocSrc, newDocSrc string) error {
 				return err
 			}
 
-			if baseDocDrained {
-				// both drained
+			if bdDrain && sdDrain {
+				// all drained
 				return nil
 			}
 
-			newDocDrained = true
+			ndDrain = true
 		}
 
 		base := new(diff.Node)
@@ -116,26 +134,47 @@ func diffFile(baseDocSrc, newDocSrc string) error {
 				return err
 			}
 
-			if newDocDrained {
-				// both drained
+			if ndDrain && sdDrain {
+				// all drained
 				return nil
 			}
 
-			baseDocDrained = true
+			bdDrain = true
 		}
 
-		if printDocSep {
+		src := base
+		if sd != nil {
+			src = new(diff.Node)
+			err = sd.Decode(src)
+			if err != nil {
+				if err != io.EOF {
+					return err
+				}
+
+				if ndDrain && bdDrain {
+					// all drained
+					return nil
+				}
+
+				sdDrain = true
+			}
+		}
+
+		if printSep {
 			fmt.Println("---")
 		} else {
-			printDocSep = true
+			printSep = true
 		}
 
-		diffEntries := diff.Diff(base, current, []string{})
+		diffEntries := diff.Diff(base, current)
 		if len(diffEntries) == 0 {
 			fmt.Println("# no difference")
-		} else {
-			// TODO: use source input as reason source
-			_ = ReasonDiff(base, diffEntries)
+			continue
+		}
+
+		reasons := reasonDiff(rc, src, current, diffEntries)
+		for _, v := range reasons {
+			fmt.Print(v)
 		}
 	}
 }

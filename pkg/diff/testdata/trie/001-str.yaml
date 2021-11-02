@@ -2,6 +2,8 @@ foo
 ---
 - key: []
   value: foo
+  tail_key: null
 
-- key: ["foo"]
+- key: [foo]
   nearest: foo
+  tail_key: [foo]

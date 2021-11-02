@@ -6,18 +6,24 @@ a:
 # root node
 - key: []
   value: null
+  tail_key: null
 
 - key: [.a]
   value: null
+  tail_key: null
 
 - key: [.a, .b]
   value: null
+  tail_key: null
 
 - key: [.a, .b, .c]
   value: d
+  tail_key: null
 
 - key: [.a, .b, .c, .d]
   nearest: d
+  tail_key: [.d]
 
 - key: [.a, .x]
   value: "y"
+  tail_key: null

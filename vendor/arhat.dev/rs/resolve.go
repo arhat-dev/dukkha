@@ -220,144 +220,18 @@ func handleUnresolvedField(
 		toResolve = v.rawData.Content[1]
 	}
 
+	var err error
 	for _, renderer := range v.renderers {
-		var (
-			patchSpec *PatchSpec
-			patchSrc  interface{}
-			err       error
+		toResolve, err = tryRender(rc,
+			renderer.name, renderer.typeHint, renderer.patchSpec,
+			toResolve,
 		)
-
-		if renderer.patchSpec {
-			patchSpec, patchSrc, err = resolvePatchSpec(rc, toResolve, opts)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf(
-					"failed to resolve patch spec for renderer %q: %w",
-					renderer.name, err,
-				)
-			}
-
-			// should use patchSrc instead of toResolve since we need to patch
-			toResolve = nil
-		}
-
-		if len(renderer.name) != 0 {
-			var renderedData []byte
-
-			var input interface{} = toResolve
-			if patchSpec != nil {
-				// resolve patch value if was a patch
-				input = patchSrc
-			}
-
-			renderedData, err = rc.RenderYaml(renderer.name, input)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf(
-					"renderer %q failed to render value: %w",
-					renderer.name, err,
-				)
-			}
-
-			// check type hinting before assuming it's valid yaml
-			//
-			// see TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
-			// for reasons this pre-type hint check exists
-
-			// scalar types cannot be applied with patch spec
-			// so the rendered data will be the final value for resolving
-
-			var tag string
-			switch renderer.typeHint.(type) {
-			case TypeHintStr:
-				tag = strTag
-			case TypeHintInt:
-				tag = intTag
-			case TypeHintFloat:
-				tag = floatTag
-			default:
-				// assume rendered data as yaml for further processing
-				toResolve = assumeValidYaml(renderedData)
-			}
-
-			if len(tag) != 0 {
-				toResolve = &yaml.Node{
-					Style: guessYamlStringStyle(renderedData),
-					Kind:  yaml.ScalarNode,
-					Tag:   tag,
-					Value: string(renderedData),
-				}
-			}
-		}
-
-		// apply patch if set
-		if patchSpec != nil {
-			// apply type hint before patching to make sure value
-			// being patched is correctly typed
-
-			var tmp interface{}
-			if toResolve == nil {
-				// toResolve can be nill if this is a patch without
-				// renderer (e.g. `foo@!: { ... }`)
-				tmp = patchSrc
-			} else {
-				toResolve, err = applyHint(renderer.typeHint, toResolve)
-				if err != nil {
-					return reflect.Value{}, fmt.Errorf(
-						"failed to ensure type hint %q on patch target of %q: %w",
-						renderer.typeHint, yamlKey, err,
-					)
-				}
-
-				err = toResolve.Decode(&tmp)
-				if err != nil {
-					return reflect.Value{}, fmt.Errorf(
-						"failed to decode data as patch source: %w",
-						err,
-					)
-				}
-			}
-
-			tmp, err = patchSpec.ApplyTo(rc, tmp)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf(
-					"failed to apply patches: %w",
-					err,
-				)
-			}
-
-			// patch doc is generated from arbitrary yaml data
-			// with built-in interface{}, so we are able to marshal it into
-			// json, and parse as *yaml.Node for further processing
-
-			var dataBytes []byte
-			dataBytes, err = json.Marshal(tmp)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf("failed to marshal patched data: %w", err)
-			}
-
-			// json data is deemed to be valid yaml, if not, that means we
-			// have a big problem then. so we don't need to save yaml.Unmarshal
-			// from panic here
-			toResolve = new(yaml.Node)
-			err = yaml.Unmarshal(dataBytes, toResolve)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf("failed to prepare patched data: %w", err)
-			}
-		}
-
-		// apply hint after resolving (rendering)
-		toResolve, err = applyHint(renderer.typeHint, toResolve)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"failed to ensure type hint %q on yaml key %q: %w",
-				renderer.typeHint, yamlKey, err,
-			)
+			return reflect.Value{}, fmt.Errorf("failed to render value for %q", yamlKey)
 		}
 	}
 
-	var (
-		resolved = toResolve
-		err      error
-	)
+	resolved := toResolve
 	if v.isInlineMapItem {
 		inlineMapItemCache, err = unmarshalMap(
 			yamlKey,
@@ -379,6 +253,148 @@ func handleUnresolvedField(
 	}
 
 	return inlineMapItemCache, tryResolve(rc, depth-1, target)
+}
+
+func tryRender(
+	rc RenderingHandler,
+	rendererName string,
+	typeHint TypeHint,
+	isPatchSpec bool,
+	toResolve *yaml.Node,
+) (*yaml.Node, error) {
+	var (
+		patchSpec *PatchSpec
+		patchSrc  interface{}
+		err       error
+	)
+
+	if isPatchSpec {
+		patchSpec, patchSrc, err = resolvePatchSpec(rc, toResolve)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to resolve patch spec for renderer %q: %w",
+				rendererName, err,
+			)
+		}
+
+		// should use patchSrc instead of toResolve since we need to patch
+		toResolve = nil
+	}
+
+	if len(rendererName) != 0 {
+		var renderedData []byte
+
+		var input interface{} = toResolve
+		if patchSpec != nil {
+			// resolve patch value if was a patch
+			input = patchSrc
+		}
+
+		renderedData, err = rc.RenderYaml(rendererName, input)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"renderer %q failed to render value: %w",
+				rendererName, err,
+			)
+		}
+
+		// check type hinting before assuming it's valid yaml
+		//
+		// see TestResolve_yaml_unmarshal_invalid_but_no_error in resolve_test.go
+		// for reasons this pre-type hint check exists
+
+		// scalar types cannot be applied with patch spec
+		// so the rendered data will be the final value for resolving
+
+		var tag string
+		switch typeHint.(type) {
+		case TypeHintStr:
+			tag = strTag
+		case TypeHintInt:
+			tag = intTag
+		case TypeHintFloat:
+			tag = floatTag
+		default:
+			// assume rendered data as yaml for further processing
+			toResolve = assumeValidYaml(renderedData)
+		}
+
+		if len(tag) != 0 {
+			toResolve = &yaml.Node{
+				Style: guessYamlStringStyle(renderedData),
+				Kind:  yaml.ScalarNode,
+				Tag:   tag,
+				Value: string(renderedData),
+			}
+		}
+	}
+
+	// apply patch if set
+	if patchSpec != nil {
+		// apply type hint before patching to make sure value
+		// being patched is correctly typed
+
+		var tmp interface{}
+		if toResolve == nil {
+			// toResolve can be nill if this is a patch without
+			// renderer (e.g. `foo@!: { ... }`)
+			tmp = patchSrc
+		} else {
+			toResolve, err = applyHint(typeHint, toResolve)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed to ensure type hint %q on patch target: %w",
+					typeHint, err,
+				)
+			}
+
+			err = toResolve.Decode(&tmp)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed to decode data as patch source: %w",
+					err,
+				)
+			}
+		}
+
+		tmp, err = patchSpec.ApplyTo(rc, tmp)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to apply patches: %w",
+				err,
+			)
+		}
+
+		// patch doc is generated from arbitrary yaml data
+		// with built-in interface{}, so we are able to marshal it into
+		// json, and parse as *yaml.Node for further processing
+
+		var dataBytes []byte
+		dataBytes, err = json.Marshal(tmp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal patched data: %w", err)
+		}
+
+		// json data is deemed to be valid yaml, if not, that means we
+		// have a big problem then. so we don't need to save yaml.Unmarshal
+		// from panic here
+		toResolve = new(yaml.Node)
+		err = yaml.Unmarshal(dataBytes, toResolve)
+		if err != nil {
+			return nil, fmt.Errorf("failed to prepare patched data: %w", err)
+		}
+	}
+
+	// apply hint after resolving (rendering)
+	toResolve, err = applyHint(typeHint, toResolve)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to ensure type hint %q: %w",
+			typeHint, err,
+		)
+	}
+
+	return toResolve, nil
 }
 
 func guessYamlStringStyle(s []byte) yaml.Style {
@@ -469,13 +485,12 @@ func applyHint(hint TypeHint, in *yaml.Node) (*yaml.Node, error) {
 func resolvePatchSpec(
 	rc RenderingHandler,
 	toResolve *yaml.Node,
-	opts *Options,
 ) (
 	patchSpec *PatchSpec,
 	value interface{},
 	err error,
 ) {
-	patchSpec = Init(&PatchSpec{}, opts).(*PatchSpec)
+	patchSpec = Init(&PatchSpec{}, nil).(*PatchSpec)
 	err = toResolve.Decode(patchSpec)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
