@@ -33,7 +33,3 @@ func ReasonDiff(src *diff.Node, diffEntries []*diff.Entry) []*diff.Entry {
 
 	return diffEntries
 }
-
-func reasonFile() {
-
-}

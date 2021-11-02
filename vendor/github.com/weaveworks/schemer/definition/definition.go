@@ -123,6 +123,7 @@ func (dg *Generator) newPropertyRef(thisPkg, referenceName string, t ast.Expr, p
 	var refTypeName string
 	var refTypeSpec *ast.TypeSpec
 
+typeSwitch:
 	switch tt := t.(type) {
 	case *ast.Ident:
 		typeName := tt.Name
@@ -151,8 +152,21 @@ func (dg *Generator) newPropertyRef(thisPkg, referenceName string, t ast.Expr, p
 		)
 		thisPkg, typeName, refTypeSpec, err = dg.Importer.FindImportedTypeSpec(tt)
 		if err != nil {
-			panic(fmt.Errorf("Couldn't import type from identifier: %w", err))
+			pkg := tt.X.(*ast.Ident).Name
+			typeName := tt.Sel.Name
+
+			switch {
+			case pkg == "yaml" && typeName == "Node":
+				def = &Definition{}
+				break typeSwitch
+			}
+
+			panic(fmt.Errorf(
+				"Couldn't import type %s.%s from identifier: %w",
+				pkg, typeName, err,
+			))
 		}
+
 		refTypeName = dg.FromatRefName(thisPkg, typeName)
 		def = &Definition{}
 		setTypeOrRef(def, refTypeName)

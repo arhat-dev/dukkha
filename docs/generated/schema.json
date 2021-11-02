@@ -3,10 +3,6 @@
   "type": "object",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "AnyObject": {
-      "description": "a `interface{}` equivalent with rendering suffix support",
-      "x-intellij-html-description": "a <code>interface{}</code> equivalent with rendering suffix support"
-    },
     "JSONPatchSpec": {
       "properties": {
         "op": {
@@ -15,19 +11,24 @@
         "path": {
           "type": "string"
         },
+        "resolve": {
+          "type": "boolean",
+          "description": "rendering suffix in value before being applied",
+          "x-intellij-html-description": "rendering suffix in value before being applied",
+          "default": true
+        },
         "select": {
           "type": "string",
           "description": "part of the value for patching  this action happens before patching",
           "x-intellij-html-description": "part of the value for patching  this action happens before patching"
         },
-        "value": {
-          "$ref": "#/definitions/AnyObject"
-        }
+        "value": {}
       },
       "preferredOrder": [
         "op",
         "path",
         "value",
+        "resolve",
         "select"
       ],
       "additionalProperties": false,
@@ -46,6 +47,15 @@
         "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^resolve@.*": {
+          "type": "boolean",
+          "description": "rendering suffix in value before being applied",
+          "x-intellij-html-description": "rendering suffix in value before being applied",
+          "default": true
+        },
+        "^resolve@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^select@.*": {
           "type": "string",
           "description": "part of the value for patching  this action happens before patching",
@@ -54,9 +64,7 @@
         "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
-        "^value@.*": {
-          "$ref": "#/definitions/AnyObject"
-        },
+        "^value@.*": {},
         "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
@@ -64,23 +72,38 @@
     },
     "MergeSource": {
       "properties": {
+        "resolve": {
+          "type": "boolean",
+          "description": "rendering suffix in value if any before being merged",
+          "x-intellij-html-description": "rendering suffix in value if any before being merged",
+          "default": true
+        },
         "select": {
           "type": "string",
           "description": "some data from the source",
           "x-intellij-html-description": "some data from the source"
         },
         "value": {
-          "$ref": "#/definitions/AnyObject",
           "description": "for the source",
           "x-intellij-html-description": "for the source"
         }
       },
       "preferredOrder": [
         "value",
+        "resolve",
         "select"
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^resolve@.*": {
+          "type": "boolean",
+          "description": "rendering suffix in value if any before being merged",
+          "x-intellij-html-description": "rendering suffix in value if any before being merged",
+          "default": true
+        },
+        "^resolve@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^select@.*": {
           "type": "string",
           "description": "some data from the source",
@@ -90,7 +113,6 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^value@.*": {
-          "$ref": "#/definitions/AnyObject",
           "description": "for the source",
           "x-intellij-html-description": "for the source"
         },
@@ -129,6 +151,12 @@
           "description": "Value using standard rfc6902 json-patch  this action happens after merge",
           "x-intellij-html-description": "Value using standard rfc6902 json-patch  this action happens after merge"
         },
+        "resolve": {
+          "type": "boolean",
+          "description": "rendering suffix in value if any before being patched",
+          "x-intellij-html-description": "rendering suffix in value if any before being patched",
+          "default": true
+        },
         "select": {
           "type": "string",
           "description": "part of the data as final result  this action happens after merge and patch",
@@ -141,13 +169,13 @@
           "default": "false"
         },
         "value": {
-          "$ref": "#/definitions/AnyObject",
-          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be `[bar, foo]`",
-          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be <code>[bar, foo]</code>"
+          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be `[bar, foo]`",
+          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be <code>[bar, foo]</code>"
         }
       },
       "preferredOrder": [
         "value",
+        "resolve",
         "merge",
         "patch",
         "select",
@@ -199,6 +227,15 @@
         "^patch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^resolve@.*": {
+          "type": "boolean",
+          "description": "rendering suffix in value if any before being patched",
+          "x-intellij-html-description": "rendering suffix in value if any before being patched",
+          "default": true
+        },
+        "^resolve@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^select@.*": {
           "type": "string",
           "description": "part of the data as final result  this action happens after merge and patch",
@@ -217,9 +254,8 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^value@.*": {
-          "$ref": "#/definitions/AnyObject",
-          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be `[bar, foo]`",
-          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolve value of foo will be <code>[bar, foo]</code>"
+          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be `[bar, foo]`",
+          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be <code>[bar, foo]</code>"
         },
         "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

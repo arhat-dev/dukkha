@@ -166,7 +166,8 @@ func ImportPathFromSelector(it *ast.SelectorExpr) (path string, name string, err
 	// We assume we'll find an import on the lefthand side of the SelectorExpr
 	importIdent := it.X.(*ast.Ident)
 	if importIdent.Obj == nil {
-		return "", "", fmt.Errorf("Missing Obj for ident")
+		// TODO: not compatible with gopkg.in style import (e.g. gopkg.in/yaml.v3)
+		return "", "", fmt.Errorf("Missing Obj for ident %v", importIdent)
 	}
 	importSpec := importIdent.Obj.Decl.(*ast.ImportSpec)
 	if importSpec.Path.Kind != token.STRING {

@@ -30,7 +30,7 @@ dukkha:
 
 .PHONY: docs
 docs:
-	go test -v -tags="docs" ./docs
+	go test -v -mod=readonly -tags="docs" ./docs
 
 # testing
 include scripts/test/unit.mk
