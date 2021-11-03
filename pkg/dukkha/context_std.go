@@ -20,22 +20,8 @@ type contextStd struct {
 	cancel context.CancelFunc
 }
 
-func (c *contextStd) Done() <-chan struct{} {
-	return c.ctx.Done()
-}
-
-func (c *contextStd) Err() error {
-	return c.ctx.Err()
-}
-
-func (c *contextStd) Deadline() (time.Time, bool) {
-	return c.ctx.Deadline()
-}
-
-func (c *contextStd) Value(key interface{}) interface{} {
-	return c.ctx.Value(key)
-}
-
-func (c *contextStd) Cancel() {
-	c.cancel()
-}
+func (c *contextStd) Done() <-chan struct{}             { return c.ctx.Done() }
+func (c *contextStd) Err() error                        { return c.ctx.Err() }
+func (c *contextStd) Deadline() (time.Time, bool)       { return c.ctx.Deadline() }
+func (c *contextStd) Value(key interface{}) interface{} { return c.ctx.Value(key) }
+func (c *contextStd) Cancel()                           { c.cancel() }

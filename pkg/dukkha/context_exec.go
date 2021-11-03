@@ -162,13 +162,8 @@ func (c *contextExec) SetTask(k ToolKey, tK TaskKey) {
 	c.taskName = tK.Name
 }
 
-func (c *contextExec) OutputPrefix() string {
-	return c.outputPrefix
-}
-
-func (c *contextExec) SetOutputPrefix(s string) {
-	c.outputPrefix = s
-}
+func (c *contextExec) OutputPrefix() string     { return c.outputPrefix }
+func (c *contextExec) SetOutputPrefix(s string) { c.outputPrefix = s }
 
 func (c *contextExec) SetTaskColors(prefixColor, outputColor termenv.Color) {
 	if c.prefixColor != nil || c.outputColor != nil {
@@ -187,21 +182,10 @@ func (c *contextExec) CurrentTask() TaskKey { return TaskKey{Kind: c.taskKind, N
 
 func (c *contextExec) SetRuntimeOptions(opts RuntimeOptions) { c.runtimeOpts = opts }
 
-func (c *contextExec) FailFast() bool {
-	return c.runtimeOpts.FailFast
-}
-
-func (c *contextExec) ColorOutput() bool {
-	return c.runtimeOpts.ColorOutput
-}
-
-func (c *contextExec) TranslateANSIStream() bool {
-	return c.runtimeOpts.TranslateANSIStream
-}
-
-func (c *contextExec) RetainANSIStyle() bool {
-	return c.runtimeOpts.RetainANSIStyle
-}
+func (c *contextExec) FailFast() bool            { return c.runtimeOpts.FailFast }
+func (c *contextExec) ColorOutput() bool         { return c.runtimeOpts.ColorOutput }
+func (c *contextExec) TranslateANSIStream() bool { return c.runtimeOpts.TranslateANSIStream }
+func (c *contextExec) RetainANSIStyle() bool     { return c.runtimeOpts.RetainANSIStyle }
 
 func (c *contextExec) ClaimWorkers(n int) int {
 	if c.runtimeOpts.Workers > n {
@@ -212,10 +196,5 @@ func (c *contextExec) ClaimWorkers(n int) int {
 	return c.runtimeOpts.Workers
 }
 
-func (c *contextExec) SetState(s TaskExecState) {
-	c.state = s
-}
-
-func (c *contextExec) State() TaskExecState {
-	return c.state
-}
+func (c *contextExec) SetState(s TaskExecState) { c.state = s }
+func (c *contextExec) State() TaskExecState     { return c.state }

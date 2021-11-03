@@ -196,7 +196,7 @@ func doRun(
 			setReplaceEntry(err)
 			if err != nil {
 				ctx.SetState(dukkha.TaskExecFailed)
-				return fmt.Errorf("failed to execute alter exec func: %w", err)
+				return err
 			}
 
 			switch t := subSpecs.(type) {

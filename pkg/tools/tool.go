@@ -53,9 +53,9 @@ func (t *BaseToolWithInit) GetExecSpec(
 type BaseTool struct {
 	rs.BaseField `yaml:"-"`
 
-	ToolName string     `yaml:"name"`
-	Env      dukkha.Env `yaml:"env"`
-	Cmd      []string   `yaml:"cmd"`
+	ToolName dukkha.ToolName `yaml:"name"`
+	Env      dukkha.Env      `yaml:"env"`
+	Cmd      []string        `yaml:"cmd"`
 
 	// Whether to run this tool in shell and which shell to use
 	UsingShell     bool   `yaml:"use_shell"`
@@ -75,7 +75,7 @@ type BaseTool struct {
 }
 
 func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
-func (t *BaseTool) Name() dukkha.ToolName { return dukkha.ToolName(t.ToolName) }
+func (t *BaseTool) Name() dukkha.ToolName { return t.ToolName }
 func (t *BaseTool) UseShell() bool        { return t.UsingShell }
 func (t *BaseTool) ShellName() string     { return t.UsingShellName }
 
@@ -98,8 +98,7 @@ func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
 }
 
 func (t *BaseTool) AllTasks() map[dukkha.TaskKey]dukkha.Task { return t.tasks }
-
-func (t *BaseTool) GetEnv() dukkha.Env { return t.Env }
+func (t *BaseTool) GetEnv() dukkha.Env                       { return t.Env }
 
 // InitBaseTool must be called in your own version of Init()
 // with correct defaultExecutable name
@@ -136,21 +135,21 @@ func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
 }
 
 // Run task
-func (t *BaseTool) Run(taskCtx dukkha.TaskExecContext) error {
-	tsk, ok := t.tasks[taskCtx.CurrentTask()]
+func (t *BaseTool) Run(ctx dukkha.TaskExecContext, key dukkha.TaskKey) error {
+	tsk, ok := t.tasks[key]
 	if !ok {
-		return fmt.Errorf("task %q not found", taskCtx.CurrentTask())
+		return fmt.Errorf("task %q not found", key)
 	}
 
 	return RunTask(&TaskExecRequest{
-		Context: taskCtx,
+		Context: ctx,
 		Tool:    t.impl,
 		Task:    tsk,
 	})
 }
 
 func (t *BaseTool) DoAfterFieldsResolved(
-	ctx dukkha.TaskExecContext,
+	ctx dukkha.RenderingContext,
 	depth int,
 	do func() error,
 	tagNames ...string,

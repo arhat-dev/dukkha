@@ -3,7 +3,6 @@ package dukkha
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"arhat.dev/rs"
 )
@@ -30,6 +29,10 @@ type TaskExecContext interface {
 	DeriveNew() Context
 	Cancel()
 
+	// WithCustomParent divert from current context.Context
+	// intended to be only used for defered `after` hooks
+	WithCustomParent(parent context.Context) TaskExecContext
+
 	ExecValues
 }
 
@@ -49,9 +52,7 @@ var (
 
 // Context of dukkha app, contains global settings and values
 type dukkhaContext struct {
-	contextStd
-
-	cache *sync.Map
+	*contextStd
 
 	// shells
 	contextShells
@@ -76,7 +77,7 @@ func NewConfigResolvingContext(
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
-		contextStd: *ctxStd,
+		contextStd: ctxStd,
 
 		contextShells: *newContextShells(),
 		contextTools:  *newContextTools(),
@@ -84,7 +85,7 @@ func NewConfigResolvingContext(
 		contextExec:   *newContextExec(),
 
 		contextRendering: *newContextRendering(
-			ctxStd.ctx, ifaceTypeHandler, globalEnv,
+			ctxStd, ifaceTypeHandler, globalEnv,
 		),
 	}
 
@@ -92,15 +93,18 @@ func NewConfigResolvingContext(
 }
 
 func (c *dukkhaContext) DeriveNew() Context {
-	ctxStd := newContextStd(c.contextStd.ctx)
+	return c.deriveNew(c.contextStd.ctx, true)
+}
+
+func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context {
+	ctxStd := newContextStd(parent)
 	newCtx := &dukkhaContext{
-		contextStd: *ctxStd,
-		cache:      c.cache,
+		contextStd: ctxStd,
 
 		contextShells:    c.contextShells,
 		contextTools:     c.contextTools,
 		contextTasks:     c.contextTasks,
-		contextRendering: *c.contextRendering.clone(ctxStd.ctx),
+		contextRendering: *c.contextRendering.clone(ctxStd, deepCopy),
 		contextExec:      *c.contextExec.deriveNew(),
 	}
 
@@ -113,6 +117,9 @@ func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
 		return fmt.Errorf("tool %q not found", k)
 	}
 
-	c.contextExec.SetTask(k, tK)
-	return tool.Run(c)
+	return tool.Run(c, tK)
+}
+
+func (c *dukkhaContext) WithCustomParent(parent context.Context) TaskExecContext {
+	return c.deriveNew(parent, false)
 }

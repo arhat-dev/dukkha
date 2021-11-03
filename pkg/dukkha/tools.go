@@ -1,7 +1,5 @@
 package dukkha
 
-import "arhat.dev/rs"
-
 type (
 	ToolKind string
 	ToolName string
@@ -18,7 +16,7 @@ func (k ToolKey) String() string {
 
 // nolint:revive
 type Tool interface {
-	rs.Field
+	Resolvable
 
 	// Kind of the tool, e.g. golang, docker
 	Kind() ToolKind
@@ -43,14 +41,7 @@ type Tool interface {
 
 	ResolveTasks(tasks []Task) error
 
-	Run(taskCtx TaskExecContext) error
-
-	DoAfterFieldsResolved(
-		mCtx TaskExecContext,
-		depth int,
-		do func() error,
-		tagNames ...string,
-	) error
+	Run(taskCtx TaskExecContext, tsk TaskKey) error
 }
 
 type ToolManager interface {
@@ -72,13 +63,8 @@ type contextTools struct {
 	tools map[ToolKey]Tool
 }
 
-func (c *contextTools) AddTool(k ToolKey, t Tool) {
-	c.tools[k] = t
-}
-
-func (c *contextTools) AllTools() map[ToolKey]Tool {
-	return c.tools
-}
+func (c *contextTools) AddTool(k ToolKey, t Tool)  { c.tools[k] = t }
+func (c *contextTools) AllTools() map[ToolKey]Tool { return c.tools }
 
 func (c *contextTools) GetTool(k ToolKey) (Tool, bool) {
 	t, ok := c.tools[k]

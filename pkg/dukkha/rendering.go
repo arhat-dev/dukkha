@@ -51,12 +51,12 @@ type RendererManager interface {
 }
 
 func newContextRendering(
-	ctx context.Context,
+	ctx *contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
 	globalEnv map[string]string,
 ) *contextRendering {
 	return &contextRendering{
-		Context: ctx,
+		contextStd: ctx,
 
 		envValues: newEnvValues(globalEnv),
 
@@ -72,8 +72,7 @@ var (
 )
 
 type contextRendering struct {
-	context.Context
-
+	*contextStd
 	*envValues
 
 	ifaceTypeHandler rs.InterfaceTypeHandler
@@ -82,13 +81,21 @@ type contextRendering struct {
 	values map[string]interface{}
 }
 
-func (c *contextRendering) clone(newCtx context.Context) *contextRendering {
-	return &contextRendering{
-		Context: newCtx,
+func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
 
-		envValues: c.envValues.clone(),
+	envValues := c.envValues
+	if deepCopy {
+		envValues = c.envValues.clone()
+	}
+
+	return &contextRendering{
+		contextStd: newCtx,
+
+		envValues: envValues,
 		renderers: c.renderers,
-		values:    c.values,
+
+		// values are global scoped, DO NOT deep copy in any case
+		values: c.values,
 	}
 }
 

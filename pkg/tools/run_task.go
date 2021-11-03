@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -38,10 +39,14 @@ func RunTask(req *TaskExecRequest) (err error) {
 		resultMU.Lock()
 		defer resultMU.Unlock()
 
-		errCollection = append(errCollection, taskResult{
-			matrixSpec: spec.BriefString(),
-			errMsg:     err.Error(),
-		})
+		res := &taskResult{
+			errMsg: err.Error(),
+		}
+		if spec != nil {
+			res.matrixSpec = spec.BriefString()
+		}
+
+		errCollection = append(errCollection, *res)
 	}
 
 	// task may need tool specific env, resolve tool env first
@@ -60,18 +65,20 @@ func RunTask(req *TaskExecRequest) (err error) {
 
 	wg := &sync.WaitGroup{}
 
+	unstoppableTaskCtx := req.Context.WithCustomParent(context.Background())
 	// ensure hook `after` always run
 	defer func() {
 		// TODO: handle hook error
 		hookAfter, err2 := req.Task.GetHookExecSpecs(
-			req.Context, dukkha.StageAfter,
+			unstoppableTaskCtx, dukkha.StageAfter,
 		)
+
 		if err2 != nil {
-			appendErrorResult(make(matrix.Entry), err2)
+			appendErrorResult(nil, err2)
 		} else {
-			err2 = doRun(req.Context, hookAfter, nil)
+			err2 = doRun(unstoppableTaskCtx, hookAfter, nil)
 			if err2 != nil {
-				appendErrorResult(make(matrix.Entry), err2)
+				appendErrorResult(nil, err2)
 			}
 		}
 
@@ -87,14 +94,14 @@ func RunTask(req *TaskExecRequest) (err error) {
 
 	// run hook `before`
 	hookBefore, err := req.Task.GetHookExecSpecs(
-		req.Context, dukkha.StageBefore,
+		unstoppableTaskCtx, dukkha.StageBefore,
 	)
 	if err != nil {
 		// cancel task execution
 		return err
 	}
 
-	err = doRun(req.Context, hookBefore, nil)
+	err = doRun(unstoppableTaskCtx, hookBefore, nil)
 	if err != nil {
 		// cancel task execution
 		return err
@@ -144,6 +151,8 @@ matrixRun:
 		)
 
 		wg.Add(1)
+
+		unstoppableMatrixCtx := mCtx.WithCustomParent(context.Background())
 		go func(ms matrix.Entry) {
 			var err3 error
 			defer func() {
@@ -162,13 +171,13 @@ matrixRun:
 				}
 
 				hookAfterMatrix, err4 := req.Task.GetHookExecSpecs(
-					mCtx, dukkha.StageAfterMatrix,
+					unstoppableMatrixCtx, dukkha.StageAfterMatrix,
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
 				} else {
 					// TODO: handle hook error
-					err4 = doRun(mCtx, hookAfterMatrix, nil)
+					err4 = doRun(unstoppableMatrixCtx, hookAfterMatrix, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -176,14 +185,14 @@ matrixRun:
 			}()
 
 			hookBeofreMatrix, err3 := req.Task.GetHookExecSpecs(
-				mCtx, dukkha.StageBeforeMatrix,
+				unstoppableMatrixCtx, dukkha.StageBeforeMatrix,
 			)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 				return
 			}
 
-			err3 = doRun(mCtx, hookBeofreMatrix, nil)
+			err3 = doRun(unstoppableMatrixCtx, hookBeofreMatrix, nil)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 				return
@@ -215,12 +224,12 @@ matrixRun:
 				appendErrorResult(ms, err3)
 
 				hookAfterMatrixFailure, err4 := req.Task.GetHookExecSpecs(
-					mCtx, dukkha.StageAfterMatrixFailure,
+					unstoppableMatrixCtx, dukkha.StageAfterMatrixFailure,
 				)
 				if err4 != nil {
 					appendErrorResult(ms, err4)
 				} else {
-					err4 = doRun(mCtx, hookAfterMatrixFailure, nil)
+					err4 = doRun(unstoppableMatrixCtx, hookAfterMatrixFailure, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -230,12 +239,12 @@ matrixRun:
 			}
 
 			hookAfterMatrixSuccess, err3 := req.Task.GetHookExecSpecs(
-				mCtx, dukkha.StageAfterMatrixSuccess,
+				unstoppableMatrixCtx, dukkha.StageAfterMatrixSuccess,
 			)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 			} else {
-				err3 = doRun(mCtx, hookAfterMatrixSuccess, nil)
+				err3 = doRun(unstoppableMatrixCtx, hookAfterMatrixSuccess, nil)
 				if err3 != nil {
 					appendErrorResult(ms, err3)
 				}
@@ -247,32 +256,32 @@ matrixRun:
 
 	if len(errCollection) != 0 {
 		hookAfterFailure, err2 := req.Task.GetHookExecSpecs(
-			req.Context, dukkha.StageAfterFailure,
+			unstoppableTaskCtx, dukkha.StageAfterFailure,
 		)
 		if err2 != nil {
-			appendErrorResult(make(matrix.Entry), err2)
+			appendErrorResult(nil, err2)
 			return
 		}
 
-		err2 = doRun(req.Context, hookAfterFailure, nil)
+		err2 = doRun(unstoppableTaskCtx, hookAfterFailure, nil)
 		if err2 != nil {
-			appendErrorResult(make(matrix.Entry), err2)
+			appendErrorResult(nil, err2)
 		}
 
 		return
 	}
 
 	hookAfterSuccess, err := req.Task.GetHookExecSpecs(
-		req.Context, dukkha.StageAfterSuccess,
+		unstoppableTaskCtx, dukkha.StageAfterSuccess,
 	)
 	if err != nil {
-		appendErrorResult(make(matrix.Entry), err)
+		appendErrorResult(nil, err)
 		return
 	}
 
-	err = doRun(req.Context, hookAfterSuccess, nil)
+	err = doRun(unstoppableTaskCtx, hookAfterSuccess, nil)
 	if err != nil {
-		appendErrorResult(make(matrix.Entry), err)
+		appendErrorResult(nil, err)
 		return
 	}
 
