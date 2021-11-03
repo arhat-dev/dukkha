@@ -28,14 +28,7 @@ type TaskExecContext interface {
 	TaskUser
 
 	DeriveNew() Context
-
 	Cancel()
-
-	TranslateANSIStream() bool
-	RetainANSIStyle() bool
-	ColorOutput() bool
-	FailFast() bool
-	ClaimWorkers(n int) int
 
 	ExecValues
 }
@@ -56,27 +49,24 @@ var (
 
 // Context of dukkha app, contains global settings and values
 type dukkhaContext struct {
-	*contextStd
+	contextStd
 
 	cache *sync.Map
 
 	// shells
-	*contextShells
+	contextShells
 
 	// tools
-	*contextTools
+	contextTools
 
 	// tasks
-	*contextTasks
+	contextTasks
 
 	// rendering
-	*contextRendering
+	contextRendering
 
 	// task execution, can be null if not running any task
-	*contextExec
-
-	// application settings
-	runtimeOpts RuntimeOptions
+	contextExec
 }
 
 func NewConfigResolvingContext(
@@ -86,14 +76,14 @@ func NewConfigResolvingContext(
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
-		contextStd: ctxStd,
+		contextStd: *ctxStd,
 
-		contextShells: newContextShells(),
-		contextTools:  newContextTools(),
-		contextTasks:  newContextTasks(),
-		contextExec:   newContextExec(),
+		contextShells: *newContextShells(),
+		contextTools:  *newContextTools(),
+		contextTasks:  *newContextTasks(),
+		contextExec:   *newContextExec(),
 
-		contextRendering: newContextRendering(
+		contextRendering: *newContextRendering(
 			ctxStd.ctx, ifaceTypeHandler, globalEnv,
 		),
 	}
@@ -104,24 +94,14 @@ func NewConfigResolvingContext(
 func (c *dukkhaContext) DeriveNew() Context {
 	ctxStd := newContextStd(c.contextStd.ctx)
 	newCtx := &dukkhaContext{
-		contextStd: ctxStd,
+		contextStd: *ctxStd,
 		cache:      c.cache,
 
 		contextShells:    c.contextShells,
 		contextTools:     c.contextTools,
 		contextTasks:     c.contextTasks,
-		contextRendering: c.contextRendering.clone(ctxStd.ctx),
-
-		// initialized later
-		contextExec: nil,
-
-		runtimeOpts: c.runtimeOpts,
-	}
-
-	if c.contextExec != nil {
-		newCtx.contextExec = c.contextExec.deriveNew()
-	} else {
-		newCtx.contextExec = newContextExec()
+		contextRendering: *c.contextRendering.clone(ctxStd.ctx),
+		contextExec:      *c.contextExec.deriveNew(),
 	}
 
 	return newCtx
@@ -135,33 +115,4 @@ func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
 
 	c.contextExec.SetTask(k, tK)
 	return tool.Run(c)
-}
-
-func (c *dukkhaContext) FailFast() bool {
-	return c.runtimeOpts.FailFast
-}
-
-func (c *dukkhaContext) ColorOutput() bool {
-	return c.runtimeOpts.ColorOutput
-}
-
-func (c *dukkhaContext) TranslateANSIStream() bool {
-	return c.runtimeOpts.TranslateANSIStream
-}
-
-func (c *dukkhaContext) RetainANSIStyle() bool {
-	return c.runtimeOpts.RetainANSIStyle
-}
-
-func (c *dukkhaContext) ClaimWorkers(n int) int {
-	if c.runtimeOpts.Workers > n {
-		return n
-	}
-
-	// TODO: limit workers
-	return c.runtimeOpts.Workers
-}
-
-func (c *dukkhaContext) AddCache(key, value string) {
-	// TBD: runtime cache https://github.com/arhat-dev/dukkha/issues/37
 }

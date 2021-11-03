@@ -1,8 +1,6 @@
 package workflow
 
 import (
-	"io"
-
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -27,62 +25,11 @@ type TaskRun struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	Jobs []tools.Action `yaml:"jobs"`
+	Jobs tools.Actions `yaml:"jobs"`
 }
 
 func (w *TaskRun) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	return w.next(rc.DeriveNew(), options, 0)
-}
-
-func (w *TaskRun) next(
-	mCtx dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
-	index int,
-) ([]dukkha.TaskExecSpec, error) {
-	var (
-		thisAction dukkha.RunTaskOrRunCmd
-		hasJob     = false
-	)
-
-	var err error
-	// depth = 1 to get job list only
-	err = w.DoAfterFieldsResolved(mCtx, 1, func() error {
-		if index >= len(w.Jobs) {
-			return nil
-		}
-
-		hasJob = true
-
-		// resolve single job (Hook)
-		return w.Jobs[index].DoAfterFieldResolved(mCtx, func(h *tools.Action) error {
-			thisAction, err = h.GenSpecs(mCtx.DeriveNew(), index)
-			return err
-		})
-	}, "jobs")
-	if err != nil || !hasJob {
-		return nil, err
-	}
-
-	return []dukkha.TaskExecSpec{
-		{
-			AlterExecFunc: func(
-				replace dukkha.ReplaceEntries,
-				stdin io.Reader,
-				stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunCmd, error) {
-				return thisAction, nil
-			},
-		},
-		{
-			AlterExecFunc: func(
-				replace dukkha.ReplaceEntries,
-				stdin io.Reader,
-				stdout, stderr io.Writer,
-			) (dukkha.RunTaskOrRunCmd, error) {
-				return w.next(mCtx, options, index+1)
-			},
-		},
-	}, nil
+	return tools.ResolveActions(rc, w, "Jobs", "jobs", options)
 }

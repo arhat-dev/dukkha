@@ -69,7 +69,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		} else {
-			err2 = runHook(req.Context, dukkha.StageAfter, hookAfter)
+			err2 = doRun(req.Context, hookAfter, nil)
 			if err2 != nil {
 				appendErrorResult(make(matrix.Entry), err2)
 			}
@@ -94,7 +94,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		return err
 	}
 
-	err = runHook(req.Context, dukkha.StageBefore, hookBefore)
+	err = doRun(req.Context, hookBefore, nil)
 	if err != nil {
 		// cancel task execution
 		return err
@@ -168,7 +168,7 @@ matrixRun:
 					appendErrorResult(ms, err4)
 				} else {
 					// TODO: handle hook error
-					err4 = runHook(mCtx, dukkha.StageAfterMatrix, hookAfterMatrix)
+					err4 = doRun(mCtx, hookAfterMatrix, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -183,7 +183,7 @@ matrixRun:
 				return
 			}
 
-			err3 = runHook(mCtx, dukkha.StageBeforeMatrix, hookBeofreMatrix)
+			err3 = doRun(mCtx, hookBeofreMatrix, nil)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 				return
@@ -220,7 +220,7 @@ matrixRun:
 				if err4 != nil {
 					appendErrorResult(ms, err4)
 				} else {
-					err4 = runHook(mCtx, dukkha.StageAfterMatrixFailure, hookAfterMatrixFailure)
+					err4 = doRun(mCtx, hookAfterMatrixFailure, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -235,7 +235,7 @@ matrixRun:
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 			} else {
-				err3 = runHook(mCtx, dukkha.StageAfterMatrixSuccess, hookAfterMatrixSuccess)
+				err3 = doRun(mCtx, hookAfterMatrixSuccess, nil)
 				if err3 != nil {
 					appendErrorResult(ms, err3)
 				}
@@ -254,7 +254,7 @@ matrixRun:
 			return
 		}
 
-		err2 = runHook(req.Context, dukkha.StageAfterFailure, hookAfterFailure)
+		err2 = doRun(req.Context, hookAfterFailure, nil)
 		if err2 != nil {
 			appendErrorResult(make(matrix.Entry), err2)
 		}
@@ -270,7 +270,7 @@ matrixRun:
 		return
 	}
 
-	err = runHook(req.Context, dukkha.StageAfterSuccess, hookAfterSuccess)
+	err = doRun(req.Context, hookAfterSuccess, nil)
 	if err != nil {
 		appendErrorResult(make(matrix.Entry), err)
 		return

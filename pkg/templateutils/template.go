@@ -81,6 +81,10 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"matrix": func() map[string]string {
 				return rc.MatrixFilter().AsEntry()
 			},
+			// state task execution
+			"state": func() *_stateNS {
+				return createStateNS(rc)
+			},
 		}).
 		// text processing
 		Funcs(map[string]interface{}{

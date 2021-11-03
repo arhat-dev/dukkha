@@ -64,6 +64,7 @@ func doRun(
 					<-timer.C
 				}
 
+				ctx.SetState(dukkha.TaskExecCanceled)
 				return ctx.Err()
 			}
 		}
@@ -189,9 +190,12 @@ func doRun(
 
 		// alter exec func can generate sub exec specs
 		if es.AlterExecFunc != nil {
+			ctx.SetState(dukkha.TaskExecWorking)
+
 			subSpecs, err := es.AlterExecFunc(replace, stdin, stdout, stderr)
 			setReplaceEntry(err)
 			if err != nil {
+				ctx.SetState(dukkha.TaskExecFailed)
 				return fmt.Errorf("failed to execute alter exec func: %w", err)
 			}
 
@@ -208,7 +212,8 @@ func doRun(
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to run sub tasks: %w", err)
+				ctx.SetState(dukkha.TaskExecFailed)
+				return err
 			}
 
 			continue
@@ -257,11 +262,13 @@ func doRun(
 				// using embedded shell
 				sh, ok := ctx.GetShell(es.ShellName)
 				if !ok {
+					ctx.SetState(dukkha.TaskExecFailed)
 					return fmt.Errorf("shell %q not found", es.ShellName)
 				}
 
 				_, shellCmd, err = sh.GetExecSpec(cmd, false)
 				if err != nil {
+					ctx.SetState(dukkha.TaskExecFailed)
 					return fmt.Errorf("failed to get exec spec for shell %q: %w", es.ShellName, err)
 				}
 			}
@@ -277,6 +284,7 @@ func doRun(
 			output.WriteExecStart(ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
 		}
 
+		ctx.SetState(dukkha.TaskExecWorking)
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx,
 			Command: cmd,
@@ -289,6 +297,7 @@ func doRun(
 			Stderr: stderr,
 		})
 		if err != nil {
+			ctx.SetState(dukkha.TaskExecFailed)
 			setReplaceEntry(err)
 			if !es.IgnoreError {
 				return fmt.Errorf("failed to prepare command [ %s ]: %w", strings.Join(cmd, " "), err)
@@ -304,6 +313,7 @@ func doRun(
 		setReplaceEntry(err)
 
 		if err != nil {
+			ctx.SetState(dukkha.TaskExecFailed)
 			if !es.IgnoreError {
 				return fmt.Errorf("command exited with error: %w", err)
 			}
@@ -312,6 +322,8 @@ func doRun(
 			log.Log.I("error ignored", log.Error(err))
 			continue
 		}
+
+		ctx.SetState(dukkha.TaskExecSucceeded)
 	}
 
 	return nil

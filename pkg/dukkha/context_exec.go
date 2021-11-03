@@ -6,6 +6,15 @@ import (
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
+// RuntimeOptions for task execution
+type RuntimeOptions struct {
+	FailFast            bool
+	ColorOutput         bool
+	TranslateANSIStream bool
+	RetainANSIStyle     bool
+	Workers             int
+}
+
 type TaskExecOptions interface {
 	NextMatrixExecOptions(useShell bool, shellName string, toolCmd []string) TaskMatrixExecOptions
 }
@@ -85,7 +94,27 @@ type ExecValues interface {
 	CurrentTask() TaskKey
 
 	SetTask(k ToolKey, tK TaskKey)
+
+	TranslateANSIStream() bool
+	RetainANSIStyle() bool
+	ColorOutput() bool
+	FailFast() bool
+	ClaimWorkers(n int) int
+
+	SetState(s TaskExecState)
+	State() TaskExecState
 }
+
+type TaskExecState int
+
+const (
+	TaskExecPending TaskExecState = iota
+	TaskExecNotStarted
+	TaskExecWorking
+	TaskExecSucceeded
+	TaskExecFailed
+	TaskExecCanceled
+)
 
 func newContextExec() *contextExec {
 	return &contextExec{}
@@ -104,6 +133,10 @@ type contextExec struct {
 
 	prefixColor termenv.Color
 	outputColor termenv.Color
+
+	state TaskExecState
+
+	runtimeOpts RuntimeOptions
 }
 
 func (c *contextExec) deriveNew() *contextExec {
@@ -117,6 +150,8 @@ func (c *contextExec) deriveNew() *contextExec {
 		outputPrefix: c.outputPrefix,
 		prefixColor:  c.prefixColor,
 		outputColor:  c.outputColor,
+
+		runtimeOpts: c.runtimeOpts,
 	}
 }
 
@@ -144,18 +179,43 @@ func (c *contextExec) SetTaskColors(prefixColor, outputColor termenv.Color) {
 	c.outputColor = outputColor
 }
 
-func (c *contextExec) PrefixColor() termenv.Color {
-	return c.prefixColor
+func (c *contextExec) PrefixColor() termenv.Color { return c.prefixColor }
+func (c *contextExec) OutputColor() termenv.Color { return c.outputColor }
+
+func (c *contextExec) CurrentTool() ToolKey { return ToolKey{Kind: c.toolKind, Name: c.toolName} }
+func (c *contextExec) CurrentTask() TaskKey { return TaskKey{Kind: c.taskKind, Name: c.taskName} }
+
+func (c *contextExec) SetRuntimeOptions(opts RuntimeOptions) { c.runtimeOpts = opts }
+
+func (c *contextExec) FailFast() bool {
+	return c.runtimeOpts.FailFast
 }
 
-func (c *contextExec) OutputColor() termenv.Color {
-	return c.outputColor
+func (c *contextExec) ColorOutput() bool {
+	return c.runtimeOpts.ColorOutput
 }
 
-func (c *contextExec) CurrentTool() ToolKey {
-	return ToolKey{Kind: c.toolKind, Name: c.toolName}
+func (c *contextExec) TranslateANSIStream() bool {
+	return c.runtimeOpts.TranslateANSIStream
 }
 
-func (c *contextExec) CurrentTask() TaskKey {
-	return TaskKey{Kind: c.taskKind, Name: c.taskName}
+func (c *contextExec) RetainANSIStyle() bool {
+	return c.runtimeOpts.RetainANSIStyle
+}
+
+func (c *contextExec) ClaimWorkers(n int) int {
+	if c.runtimeOpts.Workers > n {
+		return n
+	}
+
+	// TODO: limit workers
+	return c.runtimeOpts.Workers
+}
+
+func (c *contextExec) SetState(s TaskExecState) {
+	c.state = s
+}
+
+func (c *contextExec) State() TaskExecState {
+	return c.state
 }

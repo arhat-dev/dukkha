@@ -431,6 +431,8 @@
 - `sockaddr.Offset` (`func(int, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`)
 - `sockaddr.Sort` (`func(string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`)
 - `sockaddr.Unique` (`func(string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`)
+- `state.Failed` (`func() bool`)
+- `state.Succeeded` (`func() bool`)
 - `strconv.Unquote` (`func(string) (string, error)`)
 - `strings.Abbrev` (`func(...interface {}) (string, error)`)
 - `strings.CamelCase` (`func(interface {}) (string, error)`)

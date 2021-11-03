@@ -984,6 +984,9 @@
         }
       }
     },
+    "arhat.dev.dukkha.pkg.dukkha.ToolName": {
+      "type": "string"
+    },
     "arhat.dev.dukkha.pkg.matrix.Spec": {
       "properties": {
         "arch": {
@@ -1629,10 +1632,20 @@
           "description": "specific to this action",
           "x-intellij-html-description": "specific to this action"
         },
+        "idle": {
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+        },
         "name": {
           "type": "string",
-          "description": "of this action, optional",
-          "x-intellij-html-description": "of this action, optional"
+          "description": "of this action  if set, can be used as value for `Next`",
+          "x-intellij-html-description": "of this action  if set, can be used as value for <code>Next</code>",
+          "default": "#i"
+        },
+        "next": {
+          "type": "string",
+          "description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list",
+          "x-intellij-html-description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list"
         },
         "shell": {
           "type": "string",
@@ -1648,13 +1661,17 @@
       "preferredOrder": [
         "name",
         "env",
+        "idle",
         "task",
         "shell",
         "cmd",
         "chdir",
-        "continue_on_error"
+        "continue_on_error",
+        "next"
       ],
       "additionalProperties": false,
+      "description": "a collection of all kinds of work can be done in a single step but only one kind of work is allowed in a single step",
+      "x-intellij-html-description": "a collection of all kinds of work can be done in a single step but only one kind of work is allowed in a single step",
       "patternProperties": {
         "^chdir@.*": {
           "type": "string",
@@ -1692,6 +1709,21 @@
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^idle@.*": {
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+        },
+        "^idle@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^next@.*": {
+          "type": "string",
+          "description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list",
+          "x-intellij-html-description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list"
+        },
+        "^next@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^shell@.*": {
           "type": "string",
           "description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
@@ -1710,6 +1742,12 @@
         }
       }
     },
+    "arhat.dev.dukkha.pkg.tools.Actions": {
+      "items": {
+        "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
+      },
+      "type": "array"
+    },
     "arhat.dev.dukkha.pkg.tools.BaseToolWithInit": {
       "properties": {
         "cmd": {
@@ -1722,7 +1760,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -1777,66 +1815,42 @@
     "arhat.dev.dukkha.pkg.tools.TaskHooks": {
       "properties": {
         "after": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "any condition of the task execution including success, failure, canceled (hook `before` failure)  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "any condition of the task execution including success, failure, canceled (hook <code>before</code> failure)  This hook MUST NOT have any reference to matrix information"
         },
         "after:failure": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information"
         },
         "after:matrix": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information"
         },
         "after:matrix:failure": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a failed matrix execution  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after a failed matrix execution  This hook May have reference to matrix information"
         },
         "after:matrix:success": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a successful matrix execution  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after a successful matrix execution  This hook May have reference to matrix information"
         },
         "after:success": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information"
         },
         "before": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run `After` hooks  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
         },
         "before:matrix": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "Before a specific matrix execution start  This hook May have reference to matrix information",
           "x-intellij-html-description": "Before a specific matrix execution start  This hook May have reference to matrix information"
         }
@@ -1854,10 +1868,7 @@
       "additionalProperties": false,
       "patternProperties": {
         "^after:failure@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information"
         },
@@ -1865,10 +1876,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix:failure@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a failed matrix execution  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after a failed matrix execution  This hook May have reference to matrix information"
         },
@@ -1876,10 +1884,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix:success@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a successful matrix execution  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after a successful matrix execution  This hook May have reference to matrix information"
         },
@@ -1887,10 +1892,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information",
           "x-intellij-html-description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information"
         },
@@ -1898,10 +1900,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:success@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information"
         },
@@ -1909,10 +1908,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^after@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "any condition of the task execution including success, failure, canceled (hook `before` failure)  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "any condition of the task execution including success, failure, canceled (hook <code>before</code> failure)  This hook MUST NOT have any reference to matrix information"
         },
@@ -1920,10 +1916,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^before:matrix@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "Before a specific matrix execution start  This hook May have reference to matrix information",
           "x-intellij-html-description": "Before a specific matrix execution start  This hook May have reference to matrix information"
         },
@@ -1931,10 +1924,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^before@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
           "description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run `After` hooks  This hook MUST NOT have any reference to matrix information",
           "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
         },
@@ -2368,7 +2358,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -3457,7 +3447,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -3619,7 +3609,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -3804,7 +3794,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -4030,7 +4020,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -4777,7 +4767,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -5579,7 +5569,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"
@@ -5644,10 +5634,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
         },
         "jobs": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions"
         },
         "matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
@@ -5686,10 +5673,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^jobs@.*": {
-          "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Action"
-          },
-          "type": "array"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions"
         },
         "^jobs@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5768,7 +5752,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
         },
         "shell_name": {
           "type": "string"

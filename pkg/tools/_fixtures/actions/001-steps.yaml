@@ -1,0 +1,28 @@
+actions:
+- idle@: step-1
+- idle@: step-2
+- idle@: step-3
+---
+steps:
+# after initial resolving
+- actions:
+  - idle: step-1
+  - {}
+  - {}
+
+# after second resolving
+- actions:
+  - idle: step-1
+  - idle: step-2
+  - {}
+
+# after third resolving
+- actions:
+  - idle: step-1
+  - idle: step-2
+  - idle: step-3
+
+- actions:
+  - idle: step-1
+  - idle: step-2
+  - idle: step-3

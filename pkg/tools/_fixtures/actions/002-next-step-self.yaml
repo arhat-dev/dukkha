@@ -1,0 +1,27 @@
+actions:
+# explicit step
+- name: step-1
+  idle@: step-1
+  next@template: |-
+    {{- if not values.done_step_1 -}}
+    {{- $_ := dukkha.SetValue "done_step_1" "true" -}} step-1
+    {{- end -}}
+---
+steps:
+# after initial resolving, *next not resolved
+- actions:
+  - name: step-1
+    idle: step-1
+    next: null
+
+# after second resolving => go back to step1 with *next resolved
+- actions:
+  - name: step-1
+    idle: step-1
+    next: step-1
+
+# self check *next becoming different value
+- actions:
+  - name: step-1
+    idle: step-1
+    next: null

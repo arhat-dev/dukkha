@@ -141,6 +141,7 @@ func (s TaskExecStage) String() string {
 	}[s]
 }
 
+// one of `tools.TaskExecRequest`, `[]dukkha.TaskExecSpec`
 type RunTaskOrRunCmd interface{}
 
 type ReplaceEntries map[string]*ReplaceEntry
@@ -204,7 +205,7 @@ type TaskExecSpec struct {
 }
 
 type Task interface {
-	rs.Field
+	Resolvable
 
 	// Kind of the tool managing this task (e.g. docker)
 	ToolKind() ToolKind
@@ -234,7 +235,13 @@ type Task interface {
 	// GetHookExecSpecs generate hook run target
 	//
 	// The implementation MUST be safe to be used concurrently
-	GetHookExecSpecs(ctx TaskExecContext, state TaskExecStage) ([]RunTaskOrRunCmd, error)
+	GetHookExecSpecs(ctx TaskExecContext, state TaskExecStage) ([]TaskExecSpec, error)
+
+	ContinueOnError() bool
+}
+
+type Resolvable interface {
+	rs.Field
 
 	// DoAfterFieldsResolved is a helper function to ensure no data race
 	//
@@ -245,8 +252,6 @@ type Task interface {
 		do func() error,
 		tagNames ...string,
 	) error
-
-	ContinueOnError() bool
 }
 
 type TaskManager interface {

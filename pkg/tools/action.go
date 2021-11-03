@@ -15,14 +15,29 @@ import (
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
+// Action is a collection of all kinds of work can be done in a single step
+// but only one kind of work is allowed in a single step
 type Action struct {
 	rs.BaseField `yaml:"-"`
 
-	// Name of this action, optional
+	// Name of this action
+	//
+	// if set, can be used as value for `Next`
+	//
+	// Defaults to `#i` where i is the index of this action in slice (starting from 0)
+	//
+	// this field MUST NOT use any kind of rendering suffix, or will be set
+	// to default
 	Name string `yaml:"name"`
 
 	// Env specific to this action
 	Env dukkha.Env `yaml:"env"`
+
+	// Idle does nothing but serves as a placeholder for preparation purpose
+	// recommended usage of Idle action is to apply renderers like `template`
+	// to do some task execution state related operation (e.g. set global
+	// value with `dukkha.SetValue`)
+	Idle interface{} `yaml:"idle,omitempty"`
 
 	// Task reference of this action
 	//
@@ -52,10 +67,18 @@ type Action struct {
 	// following actions in list (if any)
 	ContinueOnError bool `yaml:"continue_on_error"`
 
+	// Next action name
+	// NOTE: this field is resolved after execution finished (right before leaving this action)
+	//
+	// Defaults to the next action in the same list
+	Next *string `yaml:"next"`
+
 	mu sync.Mutex
 }
 
-func (act *Action) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *Action) error) error {
+func (act *Action) DoAfterFieldResolved(
+	mCtx dukkha.TaskExecContext, do func() error, tagNames ...string,
+) error {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
@@ -64,31 +87,40 @@ func (act *Action) DoAfterFieldResolved(mCtx dukkha.TaskExecContext, do func(h *
 		return fmt.Errorf("failed to resolve action specific env: %w", err)
 	}
 
-	err = act.ResolveFields(mCtx, -1)
+	if len(tagNames) == 0 {
+		tagNames = []string{
+			"idle", "task", "shell", "cmd", "chdir",
+			"continue_on_error", "ExternalShell",
+		}
+	}
+
+	err = act.ResolveFields(mCtx, -1, tagNames...)
 	if err != nil {
 		return fmt.Errorf("failed to resolve fields: %w", err)
 	}
 
-	return do(act)
+	return do()
 }
 
 func (act *Action) GenSpecs(
 	ctx dukkha.TaskExecContext, index int,
 ) (dukkha.RunTaskOrRunCmd, error) {
-	hookID := "#" + strconv.FormatInt(int64(index), 10)
+	actionID := "#" + strconv.FormatInt(int64(index), 10)
 	if len(act.Name) != 0 {
-		hookID = fmt.Sprintf("%s (%s)", act.Name, hookID)
+		actionID = fmt.Sprintf("%s (%s)", act.Name, actionID)
 	}
 
 	switch {
+	case act.Idle != nil:
+		return []dukkha.TaskExecSpec{}, nil
 	case len(act.Task) != 0:
-		return act.genTaskActionSpecs(ctx, hookID)
+		return act.genTaskActionSpecs(ctx, actionID)
 	case len(act.Cmd) != 0:
-		return act.genCmdActionSpecs(ctx, hookID)
+		return act.genCmdActionSpecs(ctx, actionID)
 	case len(act.EmbeddedShell) != 0:
-		return act.genEmbeddedShellActionSpecs(ctx, hookID)
+		return act.genEmbeddedShellActionSpecs(ctx, actionID)
 	default:
-		return act.genExternalShellActionSpecs(ctx, hookID)
+		return act.genExternalShellActionSpecs(ctx, actionID)
 	}
 }
 

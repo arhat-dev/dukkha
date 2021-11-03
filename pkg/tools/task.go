@@ -125,7 +125,7 @@ func (t *BaseTask) ContinueOnError() bool {
 func (t *BaseTask) GetHookExecSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
-) ([]dukkha.RunTaskOrRunCmd, error) {
+) ([]dukkha.TaskExecSpec, error) {
 
 	t.mu.Lock()
 	defer t.mu.Unlock()
