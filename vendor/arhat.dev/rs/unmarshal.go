@@ -221,22 +221,20 @@ func unmarshalStruct(
 	default:
 		err = in.Decode(ot)
 	}
-	if err == nil {
+	if in.Kind == yaml.MappingNode {
+		return err
+	}
+
+	if isNull(in) {
 		return nil
 	}
 
-	if in.Kind != yaml.MappingNode {
-		if isNull(in) {
-			return nil
-		}
-
-		in, err = TypeHintObject{}.apply(in)
-		if err != nil {
-			return fmt.Errorf(
-				"unexpected input for struct %q %s: %w",
-				yamlKey, outVal.Type().String(), err,
-			)
-		}
+	in, err = TypeHintNone{}.apply(in)
+	if err != nil {
+		return fmt.Errorf(
+			"unexpected input for struct %q %s: %w",
+			yamlKey, outVal.Type().String(), err,
+		)
 	}
 
 	switch ot := out.(type) {

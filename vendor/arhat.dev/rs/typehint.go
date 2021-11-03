@@ -22,6 +22,7 @@ type (
 	TypeHintObjects struct{}
 	TypeHintInt     struct{}
 	TypeHintFloat   struct{}
+	TypeHintBool    struct{}
 )
 
 func (TypeHintNone) String() string    { return "" }
@@ -30,6 +31,7 @@ func (TypeHintObject) String() string  { return "obj" }
 func (TypeHintObjects) String() string { return "[]obj" }
 func (TypeHintInt) String() string     { return "int" }
 func (TypeHintFloat) String() string   { return "float" }
+func (TypeHintBool) String() string    { return "bool" }
 
 func (TypeHintNone) apply(v *yaml.Node) (*yaml.Node, error) {
 	return prepareYamlNode(v), nil
@@ -184,6 +186,10 @@ func (TypeHintInt) apply(n *yaml.Node) (*yaml.Node, error) {
 	return castScalarNode(n, intTag)
 }
 
+func (TypeHintBool) apply(n *yaml.Node) (*yaml.Node, error) {
+	return castScalarNode(n, boolTag)
+}
+
 // cast scalar node directly by changing the tag of it
 func castScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
 	n = prepareYamlNode(n)
@@ -241,6 +247,7 @@ var supportedTypeHints = map[string]TypeHint{
 	"obj":   TypeHintObject{},
 	"int":   TypeHintInt{},
 	"float": TypeHintFloat{},
+	"bool":  TypeHintBool{},
 }
 
 func ParseTypeHint(h string) (TypeHint, error) {

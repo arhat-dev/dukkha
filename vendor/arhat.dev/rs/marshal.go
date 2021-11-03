@@ -8,6 +8,10 @@ import (
 	"reflect"
 )
 
+// MarshalYAML implements yaml.Marshaler by making a map of all fields
+// known to BaseField
+//
+// You can opt-out with build tag `rs_noyamlmarshaler`
 func (f *BaseField) MarshalYAML() (interface{}, error) {
 	if !f.initialized() {
 		return nil, fmt.Errorf("rs: struct not intialized before marshaling")
