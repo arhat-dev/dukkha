@@ -20,7 +20,10 @@ import (
 )
 
 func TestGenerateTemplateFuncDocs(t *testing.T) {
-	tpl, err := template.ParseFiles("template_funcs.tpl")
+	tpl, err := templateutils.CreateTemplate(
+		dukkha_test.NewTestContext(context.TODO()),
+	).ParseFiles("template_funcs.tpl")
+
 	if !assert.NoError(t, err) {
 		return
 	}
