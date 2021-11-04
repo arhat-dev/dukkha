@@ -4,6 +4,7 @@
 [![PkgGoDev](https://pkg.go.dev/badge/arhat.dev/rs)](https://pkg.go.dev/arhat.dev/rs)
 [![GoReportCard](https://goreportcard.com/badge/arhat.dev/rs)](https://goreportcard.com/report/arhat.dev/rs)
 [![Coverage](https://badge.arhat.dev/sonar/coverage/arhat-dev_rs?branch=master&token=563ff8cf318c9303285b4dd4eeb0c660)](https://sonar.arhat.dev/dashboard?id=arhat-dev_rs)
+[![Telegram](https://img.shields.io/static/v1?label=telegram&message=join&style=flat-square&logo=telegram&logoColor=ffffff&color=54A7E6&labelColor=555555)](https://t.me/joinchat/xcTR4nLDTOs2Yzcy)
 
 `R`endering `S`uffix Support for yaml
 

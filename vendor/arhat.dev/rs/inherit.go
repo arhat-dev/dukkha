@@ -11,7 +11,7 @@ import (
 // after a successful function call, f wiil be able to resolve its struct fields
 // with unresolved values from b and its own
 func (f *BaseField) Inherit(other *BaseField) error {
-	if other == nil {
+	if other == nil || other == f {
 		return nil
 	}
 

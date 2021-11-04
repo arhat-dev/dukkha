@@ -55,8 +55,14 @@ func longTag(tag string) string {
 	return tag
 }
 
-func isNull(n *yaml.Node) bool {
-	for {
+func isMerge(n *yaml.Node) bool {
+	return n.Kind == yaml.ScalarNode &&
+		n.Value == "<<" &&
+		(n.Tag == "" || n.Tag == "!" || shortTag(n.Tag) == mergeTag)
+}
+
+func isEmpty(n *yaml.Node) bool {
+	for n != nil {
 		switch n.Kind {
 		case 0:
 			// node not initialized
@@ -76,12 +82,8 @@ func isNull(n *yaml.Node) bool {
 			return false
 		}
 	}
-}
 
-func isMerge(n *yaml.Node) bool {
-	return n.Kind == yaml.ScalarNode &&
-		n.Value == "<<" &&
-		(n.Tag == "" || n.Tag == "!" || shortTag(n.Tag) == mergeTag)
+	return n == nil
 }
 
 func checkScalarType(n *yaml.Node, expectedTag string) bool {
@@ -89,13 +91,22 @@ func checkScalarType(n *yaml.Node, expectedTag string) bool {
 		return false
 	}
 
-	if len(n.Tag) == 0 || n.Tag == "!" {
-		n.Tag = n.ShortTag()
+	if len(n.Value) == 0 && len(n.Tag) == 0 {
+		n.Tag = nullTag
+		return n.Tag == expectedTag
 	}
 
-	// n.SchortTag may not generate valid tag value when value is not set
 	if len(n.Tag) == 0 || n.Tag == "!" {
-		n.Tag = nullTag
+		n.Tag = n.ShortTag()
+		if len(n.Tag) != 0 {
+			return n.Tag == expectedTag
+		}
+
+		// n.SchortTag may not generate valid tag value when value is not set
+		if len(n.Tag) == 0 || n.Tag == "!" {
+			n.Tag = nullTag
+			return n.Tag == expectedTag
+		}
 	}
 
 	return shortTag(n.Tag) == expectedTag

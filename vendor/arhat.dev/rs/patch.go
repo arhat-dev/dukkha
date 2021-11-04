@@ -19,7 +19,7 @@ type MergeSource struct {
 	// Resolve rendering suffix in value if any before being merged
 	//
 	// Defaults to `true`
-	Resolve *bool `yaml:"resolve" json:"-"`
+	Resolve *bool `yaml:"resolve"`
 
 	// Select some data from the source
 	Select string `yaml:"select,omitempty"`
@@ -43,7 +43,7 @@ type PatchSpec struct {
 	// Resolve rendering suffix in value if any before being patched
 	//
 	// Defaults to `true`
-	Resolve *bool `yaml:"resolve" json:"-"`
+	Resolve *bool `yaml:"resolve"`
 
 	// Merge additional data into Value
 	//
@@ -183,9 +183,8 @@ doMerge:
 			goto doMerge
 		}
 	default:
+		// TODO: merge scalar data, how?
 		if len(mergeSrc) != 0 {
-			// scalar types want merge?
-			// currently not supported
 			return nil, fmt.Errorf(
 				"mergering scalar type value (%T) is not supported",
 				valueData,

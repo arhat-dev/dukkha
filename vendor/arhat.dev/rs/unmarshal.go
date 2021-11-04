@@ -152,16 +152,22 @@ func unmarshal(
 		)
 	}
 
+	outKind := outVal.Kind()
+
 	in = prepareYamlNode(in)
 	// reset to zero value if already set
-	if in == nil || isNull(in) {
+	if isEmpty(in) {
+		// only clear out ptr value to keep same behavior as
+		// yaml.Unmarshal
 		if outVal.CanSet() {
-			outVal.Set(reflect.Zero(outVal.Type()))
+			switch outKind {
+			case reflect.Ptr, reflect.Map, reflect.Slice:
+				outVal.Set(reflect.Zero(outVal.Type()))
+			}
 		}
 		return nil
 	}
 
-	outKind := outVal.Kind()
 	// we are trying to set value of it, so initialize the pointer when not set before
 	for outKind == reflect.Ptr {
 		if outVal.IsNil() {
@@ -185,7 +191,7 @@ func unmarshal(
 	case reflect.Slice:
 		return unmarshalSlice(yamlKey, in, outVal, keepOld, opts)
 	case reflect.Map:
-		_, err := unmarshalMap(yamlKey, in, outVal, reflect.Value{}, keepOld, opts)
+		_, err := unmarshalMap(yamlKey, in, outVal, nil, keepOld, opts)
 		return err
 	case reflect.Struct:
 		return unmarshalStruct(yamlKey, in, outVal, opts)
@@ -225,7 +231,7 @@ func unmarshalStruct(
 		return err
 	}
 
-	if isNull(in) {
+	if isEmpty(in) {
 		return nil
 	}
 
@@ -296,7 +302,7 @@ func unmarshalArray(
 ) error {
 	if in.Kind != yaml.SequenceNode {
 		var err error
-		in, err = TypeHintObjects{}.apply(in)
+		in, err = applyObjectsHint(in)
 		if err != nil {
 			return fmt.Errorf(
 				"unexpected input for array %q (%s): %w",
@@ -340,12 +346,12 @@ func unmarshalSlice(
 	opts *Options,
 ) error {
 	if in.Kind != yaml.SequenceNode {
-		if isNull(in) {
+		if isEmpty(in) {
 			return nil
 		}
 
 		var err error
-		in, err = TypeHintObjects{}.apply(in)
+		in, err = applyObjectsHint(in)
 		if err != nil {
 			return fmt.Errorf(
 				"unexpected input for slice %q (%s): %w",
@@ -391,19 +397,15 @@ func unmarshalMap(
 	yamlKey string,
 	in *yaml.Node,
 	outVal reflect.Value,
-	inlineMapItemCache reflect.Value,
+	inlineMapItemCache *reflect.Value,
 	keepOld *bool,
 	opts *Options,
-) (ret reflect.Value, _ error) {
+) (ret *reflect.Value, _ error) {
 	if in.Kind != yaml.MappingNode {
-		if isNull(in) {
-			return reflect.Value{}, nil
-		}
-
 		var err error
-		in, err = TypeHintObject{}.apply(in)
+		in, err = applyObjectHint(in)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
+			return nil, fmt.Errorf(
 				"unexpected input for map %q (%s): %w",
 				yamlKey, outVal.Type().String(), err,
 			)
@@ -421,30 +423,31 @@ func unmarshalMap(
 
 	m, err := unmarshalYamlMap(in)
 	if err != nil {
-		return reflect.Value{}, err
+		return nil, err
 	}
 
 	valType := outVal.Type().Elem()
 	for i, kv := range m {
-		if i == 0 && keepOld != nil && *keepOld && inlineMapItemCache.IsValid() {
+		if i == 0 && keepOld != nil && *keepOld && inlineMapItemCache != nil {
 			ret = inlineMapItemCache
 		} else {
-			ret = reflect.New(valType)
+			val := reflect.New(valType).Elem()
+			ret = &val
 		}
 
 		k := kv[0].Value
 		err := unmarshal(
 			// use k rather than `yamlKey`
 			k,
-			kv[1], ret, keepOld, opts,
+			kv[1], *ret, keepOld, opts,
 		)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
+			return nil, fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
 				valType.String(), k, err,
 			)
 		}
 
-		outVal.SetMapIndex(reflect.ValueOf(k), ret.Elem())
+		outVal.SetMapIndex(reflect.ValueOf(k), *ret)
 	}
 
 	return ret, nil

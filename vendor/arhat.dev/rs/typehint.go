@@ -65,7 +65,7 @@ func (thi TypeHintStr) apply(n *yaml.Node) (*yaml.Node, error) {
 
 func applyObjectHint(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
-	if n == nil || isNull(n) {
+	if isEmpty(n) {
 		return nil, nil
 	}
 
@@ -122,7 +122,7 @@ func (tho TypeHintObject) apply(n *yaml.Node) (ret *yaml.Node, err error) {
 
 func applyObjectsHint(n *yaml.Node) (ret *yaml.Node, err error) {
 	n = prepareYamlNode(n)
-	if n == nil || isNull(n) {
+	if n == nil || isEmpty(n) {
 		return nil, nil
 	}
 
@@ -193,7 +193,7 @@ func (TypeHintBool) apply(n *yaml.Node) (*yaml.Node, error) {
 // cast scalar node directly by changing the tag of it
 func castScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
 	n = prepareYamlNode(n)
-	if n == nil || isNull(n) {
+	if n == nil || isEmpty(n) {
 		return nil, nil
 	}
 

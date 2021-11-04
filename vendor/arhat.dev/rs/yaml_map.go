@@ -32,7 +32,7 @@ func prepareYamlNode(n *yaml.Node) *yaml.Node {
 	return n
 }
 
-// fakeMap creates a fake map with one entry from two yaml scalar nodes
+// fakeMap constructs a single entry map node from two yaml nodes
 func fakeMap(k, v *yaml.Node) *yaml.Node {
 	return &yaml.Node{
 		Kind:    yaml.MappingNode,
