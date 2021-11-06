@@ -22,7 +22,7 @@ func doRun(
 	ctx dukkha.TaskExecContext,
 	execSpecs []dukkha.TaskExecSpec,
 	_replaceEntries *dukkha.ReplaceEntries,
-) error {
+) (err error) {
 	timer := time.NewTimer(0)
 	if !timer.Stop() {
 		<-timer.C
@@ -196,7 +196,12 @@ func doRun(
 			setReplaceEntry(err)
 			if err != nil {
 				ctx.SetState(dukkha.TaskExecFailed)
-				return err
+
+				if !es.IgnoreError {
+					return err
+				}
+
+				log.Log.I("error ignored", log.Error(err))
 			}
 
 			switch t := subSpecs.(type) {
@@ -207,13 +212,18 @@ func doRun(
 			case nil:
 				// nothing to do
 			default:
-				// TODO: log error instead of panic?
 				panic(fmt.Errorf("unexpected sub specs type: %T", t))
 			}
 
 			if err != nil {
 				ctx.SetState(dukkha.TaskExecFailed)
-				return err
+				if !es.IgnoreError {
+					return err
+				}
+
+				log.Log.I("sub spec error ignored", log.Error(err))
+			} else {
+				ctx.SetState(dukkha.TaskExecSucceeded)
 			}
 
 			continue

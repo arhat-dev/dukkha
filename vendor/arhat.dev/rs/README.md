@@ -71,13 +71,15 @@ As you may also be wondering how can `foo@env` be resolved as `foo` since they a
 - Supports arbitraty yaml doc without type definition in your own code.
   - Use [`AnyObject`](https://pkg.go.dev/arhat.dev/rs#AnyObject) as `interface{}`.
   - Use [`AnyObjectMap`](https://pkg.go.dev/arhat.dev/rs#AnyObjectMap) as `map[string]interface{}`.
-- Everything `gopkg.in/yaml.v3` supports are supported.
+- Everything (except `map`s using `interface{}` key) `gopkg.in/yaml.v3` supports are supported.
 - Extended but still vanilla yaml, your yaml doc stays valid for all standard yaml parser.
 
-Sample YAML Doc with all features above
+Sample YAML doc with all features mentioned above:
 
 ```yaml
+# patch spec `!`
 foo@a!: &foo
+  # rendering pipeline with type hint
   value@env|http?[]obj: https://example.com/${FOO_FILE_PATH}
   merge:
   - value@file: ./value-a.yml
@@ -96,6 +98,30 @@ bar@a!: *foo
 ```
 
 __NOTE:__ This module provides no renderer implementation, and the only built-in renderer is a pseudo renderer with empty name that skips rendering (output is what input is) for data patching and type hinting purpose (e.g. `foo@?int!: { ... patch spec ... }`). You have to roll out your own renderers. If you are in a hurry and want some handy renderers, try our [arhat.dev/pkg/rshelper.DefaultRenderingManager](https://pkg.go.dev/arhat.dev/pkg/rshelper#DefaultRenderingManager), it will give you `env`, `template` and `file` renderers.
+
+__NOTE:__ This library also supports custom yaml tag `!rs:<renderer>` (local tag) and `!tag:arhat.dev/rs:<renderer>` (global tag) with the same feature set as `@<renderer>` to your fields, but we do not recommend using that syntax as it may have issues with some yaml parser, a close example (since yaml anchor and alias cannot be used with yaml tag at the same time) of the one above is:
+
+```yaml
+# not supported
+# foo: !rs:a! &foo
+foo: !tag:arhat.dev/rs:a!
+  value: !rs:env|http?[]obj https://example.com/${FOO_FILE_PATH}
+  merge:
+  - value: !rs:file ./value-a.yml
+    select: |-
+      [ .[] | sort ]
+  patch:
+  - { op: remove, path: /0/foo }
+  - op: add
+    path: /0/foo
+    value: "bar"
+    select: '. + "-suffix-from-jq-query"'
+  select: |-
+    { foo: .[0].foo, bar: .[1].bar }
+
+# not supported
+# bar: !rs:a! *foo
+```
 
 ## Usage
 

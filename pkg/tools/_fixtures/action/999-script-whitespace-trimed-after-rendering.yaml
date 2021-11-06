@@ -1,0 +1,47 @@
+# expected behavior: rendered as string script with env expanded
+# actual behavior: env expanded, but some white space trimed
+
+# we try our best to make non yaml data as is
+
+# NOTE: issues like this can be solved with `str` type hint
+
+env:
+- name: VERSION
+  value: "1.26.1"
+
+idle@env: |-
+  mkdir -p build/yamllint
+  cat <<EOF > build/yamllint/Pipfile
+  [[source]]
+  url = 'https://pypi.python.org/simple'
+  verify_ssl = true
+  name = 'pypi'
+
+  [requires]
+  python_version = '3.8'
+
+  [packages]
+  yamllint = "==${VERSION}"
+  EOF
+---
+resolved:
+  env:
+  - name: VERSION
+    value: "1.26.1"
+  idle: |-
+    mkdir -p build/yamllint
+    cat <<EOF > build/yamllint/Pipfile
+    [[source]]
+    url = 'https://pypi.python.org/simple'
+    verify_ssl = true
+    name = 'pypi'
+
+    [requires]
+    python_version = '3.8'
+
+    [packages]
+    yamllint = "==1.26.1"
+    EOF
+
+result:
+  failed: false

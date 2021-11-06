@@ -151,19 +151,12 @@ func RunScriptInEmbeddedShell(
 ) error {
 	f, err := parser.Parse(strings.NewReader(script), "")
 	if err != nil {
-		return fmt.Errorf(
-			"failed to parse shell script:\n\n%s\n\nin embedded shell: %w",
-			script,
-			err,
-		)
+		return fmt.Errorf("invalid script (%v):\n%s", err, script)
 	}
 
 	err = runner.Run(ctx, f)
 	if err != nil {
-		return fmt.Errorf(
-			"failed to run script:\n\n%s\n\nin embedded shell: %w",
-			script, err,
-		)
+		return fmt.Errorf("embedded shell exited with error (%v):\n%s", err, script)
 	}
 
 	return nil

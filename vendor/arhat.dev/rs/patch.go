@@ -197,7 +197,12 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *PatchSpec) ApplyTo(rc RenderingHandler, valueData interface{}) (interface{}, error) {
+func (s *PatchSpec) Apply(rc RenderingHandler) (interface{}, error) {
+	valueData, err := handleOptionalRenderingSuffixResolving(rc, s.Value, s.Resolve)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := s.merge(rc, valueData)
 	if err != nil {
 		return nil, err

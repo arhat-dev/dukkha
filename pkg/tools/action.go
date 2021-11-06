@@ -99,6 +99,10 @@ func (act *Action) DoAfterFieldResolved(
 		return fmt.Errorf("failed to resolve fields: %w", err)
 	}
 
+	if do == nil {
+		return nil
+	}
+
 	return do()
 }
 
@@ -112,7 +116,8 @@ func (act *Action) GenSpecs(
 
 	switch {
 	case act.Idle != nil:
-		return []dukkha.TaskExecSpec{}, nil
+		ctx.SetState(dukkha.TaskExecSucceeded)
+		return nil, nil
 	case len(act.Task) != 0:
 		return act.genTaskActionSpecs(ctx, actionID)
 	case len(act.Cmd) != 0:
@@ -126,7 +131,7 @@ func (act *Action) GenSpecs(
 
 func (act *Action) genTaskActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
-) (dukkha.RunTaskOrRunCmd, error) {
+) (*TaskExecRequest, error) {
 	ref, err := dukkha.ParseTaskReference(act.Task, ctx.CurrentTool().Name)
 	if err != nil {
 		return nil, fmt.Errorf("%q: invalid task reference %q: %w", hookID, act.Task, err)
@@ -154,9 +159,10 @@ func (act *Action) genTaskActionSpecs(
 	}, nil
 }
 
+// nolint:unparam
 func (act *Action) genCmdActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
-) (dukkha.RunTaskOrRunCmd, error) {
+) ([]dukkha.TaskExecSpec, error) {
 	_ = ctx
 	_ = hookID
 	return []dukkha.TaskExecSpec{
@@ -169,9 +175,10 @@ func (act *Action) genCmdActionSpecs(
 	}, nil
 }
 
+// nolint:unparam
 func (act *Action) genEmbeddedShellActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
-) (dukkha.RunTaskOrRunCmd, error) {
+) ([]dukkha.TaskExecSpec, error) {
 
 	workingDir := act.Chdir
 	script := act.EmbeddedShell
@@ -195,10 +202,10 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 			err = templateutils.RunScriptInEmbeddedShell(ctx, runner, parser, script)
 			if err != nil {
-				return nil, fmt.Errorf("%q: failed to run command in embedded shell: %w", hookID, err)
+				return nil, err
 			}
 
-			return nil, err
+			return nil, nil
 		},
 		IgnoreError: act.ContinueOnError,
 	}}, nil
@@ -206,7 +213,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 func (act *Action) genExternalShellActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
-) (dukkha.RunTaskOrRunCmd, error) {
+) ([]dukkha.TaskExecSpec, error) {
 	// check other shell
 	_ = ctx
 	switch {

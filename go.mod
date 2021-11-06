@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.7.3
-	arhat.dev/rs v0.7.0
+	arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02

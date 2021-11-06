@@ -189,6 +189,8 @@ type TaskExecSpec struct {
 
 	Stdin io.Reader
 
+	// IgnoreError to ignore error generated after running this spec
+	// this option applies to all sub specs (as returned in AlterExecFunc)
 	IgnoreError bool
 
 	// UseShell if true, write command to local script cache

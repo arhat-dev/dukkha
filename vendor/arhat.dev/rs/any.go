@@ -2,12 +2,15 @@ package rs
 
 import (
 	"encoding/json"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
 // AnyObject is a `interface{}` equivalent with rendering suffix support
 type AnyObject struct {
+	BaseField `yaml:"-" json:"-"`
+
 	mapData    *AnyObjectMap
 	sliceData  []*AnyObject
 	scalarData interface{}
@@ -54,13 +57,52 @@ func (o *AnyObject) MarshalYAML() (interface{}, error) { return o.value(), nil }
 func (o *AnyObject) MarshalJSON() ([]byte, error)      { return json.Marshal(o.value()) }
 
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
+	if !o.BaseField.initialized() {
+		_ = Init(o, nil)
+	}
+
 	switch n.Kind {
 	case yaml.SequenceNode:
-		return n.Decode(&o.sliceData)
-	case yaml.MappingNode:
-		if o.mapData == nil {
-			o.mapData = Init(&AnyObjectMap{}, nil).(*AnyObjectMap)
+		o.sliceData = make([]*AnyObject, len(n.Content))
+		for i, vn := range n.Content {
+			o.sliceData[i] = Init(&AnyObject{}, o._opts).(*AnyObject)
+			err := o.sliceData[i].UnmarshalYAML(prepareYamlNode(vn))
+			if err != nil {
+				return err
+			}
 		}
+
+		return nil
+	case yaml.MappingNode:
+		pairs, err := unmarshalYamlMap(n)
+		if err != nil {
+			return err
+		}
+
+		var content []*yaml.Node
+		for _, pair := range pairs {
+			if suffix := strings.TrimPrefix(pair[0].Value, "__@"); suffix != pair[0].Value {
+				// is virtual key
+				err := o.BaseField.addUnresolvedField_self(suffix, pair[1])
+				if err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			content = append(content, pair...)
+		}
+
+		if len(content) == 0 {
+			return nil
+		}
+
+		n.Content = content
+		if o.mapData == nil {
+			o.mapData = Init(&AnyObjectMap{}, o._opts).(*AnyObjectMap)
+		}
+
 		return n.Decode(o.mapData)
 	case yaml.ScalarNode:
 		switch n.ShortTag() {
@@ -81,6 +123,11 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, names ...string) error {
 	if o == nil {
 		return nil
+	}
+
+	err := o.BaseField.ResolveFields(rc, depth)
+	if err != nil {
+		return err
 	}
 
 	if o.mapData != nil {

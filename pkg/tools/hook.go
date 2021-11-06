@@ -61,18 +61,26 @@ type TaskHooks struct {
 }
 
 func (*TaskHooks) getTagNameByStage(stage dukkha.TaskExecStage) [2]string {
-	return map[dukkha.TaskExecStage][2]string{
-		dukkha.StageBefore: {"Before", "before"},
-
-		dukkha.StageBeforeMatrix:       {"BeforeMatrix", "before:matrix"},
-		dukkha.StageAfterMatrixSuccess: {"AfterMatrixSuccess", "after:matrix:success"},
-		dukkha.StageAfterMatrixFailure: {"AfterMatrixFailure", "after:matrix:failure"},
-		dukkha.StageAfterMatrix:        {"AfterMatrix", "after:matrix"},
-
-		dukkha.StageAfterSuccess: {"AfterSuccess", "after:success"},
-		dukkha.StageAfterFailure: {"AfterFailure", "after:failure"},
-		dukkha.StageAfter:        {"After", "after"},
-	}[stage]
+	switch stage {
+	case dukkha.StageBefore:
+		return [2]string{"Before", "before"}
+	case dukkha.StageBeforeMatrix:
+		return [2]string{"BeforeMatrix", "before:matrix"}
+	case dukkha.StageAfterMatrixSuccess:
+		return [2]string{"AfterMatrixSuccess", "after:matrix:success"}
+	case dukkha.StageAfterMatrixFailure:
+		return [2]string{"AfterMatrixFailure", "after:matrix:failure"}
+	case dukkha.StageAfterMatrix:
+		return [2]string{"AfterMatrix", "after:matrix"}
+	case dukkha.StageAfterSuccess:
+		return [2]string{"AfterSuccess", "after:success"}
+	case dukkha.StageAfterFailure:
+		return [2]string{"AfterFailure", "after:failure"}
+	case dukkha.StageAfter:
+		return [2]string{"After", "after"}
+	default:
+		panic("invalid hook stage")
+	}
 }
 
 func (h *TaskHooks) GenSpecs(
@@ -92,6 +100,10 @@ func (h *TaskHooks) DoAfterFieldsResolved(
 	err := h.ResolveFields(ctx, depth, names...)
 	if err != nil {
 		return err
+	}
+
+	if do == nil {
+		return nil
 	}
 
 	return do()

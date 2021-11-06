@@ -6,7 +6,7 @@
   "NoColor": false,
   "Exclude": [
     "\\.git/.*", "\\.vscode/.*", "\\.idea/.*",
-    "build/.*"
+    "build/.*", "target/.*"
   ],
   "PassedFiles": [],
   "Disable": {

@@ -32,6 +32,13 @@ type Options struct {
 	//
 	// defaults to `false`
 	AllowUnknownFields bool
+
+	// AllowedRenderers limit renderers can be applied in rendering suffix
+	// when this option is not set (nil), not renderer will be rejected
+	// when set, only renderers with exact name matching will be allowed,
+	// thus you may need to set an empty entry to allow pseudo built-in
+	// empty renderer
+	AllowedRenderers map[string]struct{}
 }
 
 // Init the BaseField embedded in your struct, the BaseField must be the first field

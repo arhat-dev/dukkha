@@ -1,0 +1,9 @@
+shell: exit 1
+continue_on_error: true
+---
+resolved:
+  shell: exit 1
+  continue_on_error: true
+
+result:
+  failed: true

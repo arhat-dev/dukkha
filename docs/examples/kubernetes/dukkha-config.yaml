@@ -8,8 +8,8 @@ global:
     value@shell: |-
       kubectl version --output json | template:jq '".serverVersion.gitVersion"'
 
-  values@template!:
-    value@file: values.yaml
+  values@!:
+    value@file|template: values.yaml
     merge:
     - value:
         versions:

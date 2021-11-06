@@ -1,6 +1,8 @@
-arhat.dev/pkg v0.7.3-0.20211031112332-ffefabe6bd30 h1:RiByv6A0qfO695zRzeQM2r09lsPe67B2GDleZoXSkvg=
 arhat.dev/pkg v0.7.3-0.20211031112332-ffefabe6bd30/go.mod h1:zPTNrA/tEoOUSpFQFyr7McM3LO8WQRhwNcULbcAM+ms=
+arhat.dev/pkg v0.7.3 h1:wq+M+DEt+Gr8eBKK4/2PlEvyaPF86h9/4u0vV5NrNJM=
+arhat.dev/pkg v0.7.3/go.mod h1:QmcFSZKUYOlgbtw6b0zDJXE3Fo4aJWDuS/6xg2imu/Y=
 arhat.dev/rs v0.6.0/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
+arhat.dev/rs v0.7.0/go.mod h1:sJXVt9WQKBYdyiOwxBWBvGOYoDPqljtvPgOZ6ira9Y0=
 github.com/Microsoft/go-winio v0.5.1/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/creack/pty v1.1.17/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr4O4=
@@ -77,6 +79,7 @@ golang.org/x/sys v0.0.0-20210510120138-977fb7262007/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211029165221-6e7872819dc8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20211103235746-7861aae1554b/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=

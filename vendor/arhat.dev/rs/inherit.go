@@ -31,24 +31,26 @@ func (f *BaseField) Inherit(other *BaseField) error {
 		for k, v := range other.unresolvedNormalFields {
 			existingV, ok := f.unresolvedNormalFields[k]
 			if !ok {
-				f.addUnresolvedField(
+				err := f.addUnresolvedField(
 					k,
 					"", v.renderers,
-					v.fieldName,
-					f.normalFields[k].fieldValue,
-					v.isInlineMapItem,
+					f.normalFields[k],
 					v.rawData,
 				)
+
+				if err != nil {
+					return err
+				}
 
 				continue
 			}
 
 			switch {
-			case existingV.fieldName != v.fieldName,
-				existingV.isInlineMapItem != v.isInlineMapItem:
+			case existingV.ref.fieldName != v.ref.fieldName,
+				existingV.ref.isInlineMap != v.ref.isInlineMap:
 				return fmt.Errorf(
 					"rs: invalid field not match, want %q, got %q",
-					existingV.fieldName, v.fieldName,
+					existingV.ref.fieldName, v.ref.fieldName,
 				)
 			}
 
@@ -67,12 +69,9 @@ func (f *BaseField) Inherit(other *BaseField) error {
 		for k, list := range other.unresolvedInlineMapItems {
 			for _, v := range list {
 				f.unresolvedInlineMapItems[k] = append(f.unresolvedInlineMapItems[k], &unresolvedFieldSpec{
-					fieldName:  v.fieldName,
-					fieldValue: f.inlineMap.fieldValue,
-					rawData:    v.rawData,
-					renderers:  v.renderers,
-
-					isInlineMapItem: true,
+					ref:       f.inlineMap,
+					rawData:   v.rawData,
+					renderers: v.renderers,
 				})
 			}
 		}
