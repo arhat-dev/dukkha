@@ -893,8 +893,8 @@
         },
         "default_git_branch": {
           "type": "string",
-          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)",
-          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)"
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used."
         },
         "env": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
@@ -925,8 +925,8 @@
         },
         "^default_git_branch@.*": {
           "type": "string",
-          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)",
-          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)"
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used."
         },
         "^default_git_branch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1069,7 +1069,31 @@
       "x-intellij-html-description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude"
     },
     "arhat.dev.dukkha.pkg.renderer.echo.Driver": {},
-    "arhat.dev.dukkha.pkg.renderer.env.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.env.Driver": {
+      "properties": {
+        "enable_exec": {
+          "type": "boolean",
+          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will fail",
+          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will fail",
+          "default": false
+        }
+      },
+      "preferredOrder": [
+        "enable_exec"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^enable_exec@.*": {
+          "type": "boolean",
+          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will fail",
+          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will fail",
+          "default": false
+        },
+        "^enable_exec@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.renderer.file.Driver": {
       "properties": {
         "cache_max_age": {

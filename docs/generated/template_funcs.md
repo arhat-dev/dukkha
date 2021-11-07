@@ -305,7 +305,7 @@
 - `crypto.SHA512_256(interface {}) string`
 - `crypto.WPAPSK(interface {}, interface {}) (string, error)`
 - `dukkha.SetValue(string, interface {}) (interface {}, error)`
-- `eval.Env(interface {}) (string, error)`
+- `eval.Env(...interface {}) (string, error)`
 - `eval.Shell(interface {}, ...interface {}) (string, error)`
 - `eval.Template(interface {}) (string, error)`
 - `file.Exists(interface {}) bool`

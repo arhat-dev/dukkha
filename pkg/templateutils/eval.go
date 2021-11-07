@@ -54,9 +54,21 @@ func (ens *_evalNS) Template(tplData interface{}) (string, error) {
 	return string(buf.Next(buf.Len())), nil
 }
 
-// Env expands environment variables in textData
-// textData can be string or bytes
-func (ens *_evalNS) Env(textData interface{}) (string, error) {
+// Env expands environment variables in last argument, which can be string or bytes
+// valid options before last argument are
+// `disable_exec` to deny shell evaluation (default behvior)
+// `enable_exec` to allow shell evaluation during expansing
+func (ens *_evalNS) Env(args ...interface{}) (string, error) {
+	var textData interface{}
+	switch len(args) {
+	case 0:
+		return "", nil
+	case 1:
+		textData = args[0]
+	default:
+		textData = args[len(args)-1]
+	}
+
 	var toExpand string
 	switch tt := textData.(type) {
 	case string:
@@ -67,7 +79,17 @@ func (ens *_evalNS) Env(textData interface{}) (string, error) {
 		return "", fmt.Errorf("invalid non text data for expansion, got %T", tt)
 	}
 
-	return ExpandEnv(ens.rc, toExpand)
+	enableExec := false
+	for _, opt := range args[:len(args)-1] {
+		switch opt {
+		case "disable_exec":
+			enableExec = false
+		case "enable_exec":
+			enableExec = true
+		}
+	}
+
+	return ExpandEnv(ens.rc, toExpand, enableExec)
 }
 
 // Shell evaluates scriptData as bash script, inputs as stdin streams (if any)

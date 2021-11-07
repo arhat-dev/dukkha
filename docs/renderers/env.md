@@ -11,7 +11,12 @@ Generate field value by expanding environment variable references (`$env_name` o
 ```yaml
 renderers:
   # no options
-  env: {}
+  env:
+    # disable arbitrary command execution when expanding env if it is
+    # set to ture (e.g. `$(do something)` will error)
+    #
+    # Defaults to `true`
+    disable_exec: true
 ```
 
 ## Supported value types

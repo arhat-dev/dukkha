@@ -17,7 +17,8 @@ func TestNewDriver(t *testing.T) {
 }
 
 func TestDriver_Render(t *testing.T) {
-	d := NewDefault("").(*Driver)
+	vFalse := false
+	vTrue := true
 
 	rv := dukkha_test.NewTestContext(context.TODO())
 	rv.AddEnv(true, &dukkha.EnvEntry{
@@ -26,10 +27,11 @@ func TestDriver_Render(t *testing.T) {
 	})
 
 	tests := []struct {
-		name     string
-		rawData  interface{}
-		expected string
-		errStr   string
+		name       string
+		rawData    interface{}
+		expected   string
+		errStr     string
+		enableExec *bool
 	}{
 		{
 			name:     "Valid Plain Text",
@@ -59,29 +61,47 @@ func TestDriver_Render(t *testing.T) {
 			expected: "foo bar",
 		},
 		{
-			name:     "Valid Simple Shell Evaluation",
-			rawData:  "foo $(echo hello)",
-			expected: "foo hello",
+			name:       "Valid Simple Shell Evaluation",
+			rawData:    "foo $(echo hello)",
+			expected:   "foo hello",
+			enableExec: &vTrue,
 		},
 		{
-			name:     "Valid Shell Evaluation With Round Brackets",
-			rawData:  `foo $(echo hello)))`,
-			expected: "foo hello))",
+			name:       "Invalid Shell Evaluation When Exec Disabled Explicitly",
+			rawData:    "foo $(echo hello)",
+			errStr:     "unexpected command substitution",
+			enableExec: &vFalse,
 		},
 		{
-			name:     "Valid Multi Shell Evaluation With Round Brackets",
-			rawData:  "foo $(echo hello) $(echo hello)",
-			expected: "foo hello hello",
+			name:       "Invalid Shell Evaluation When Exec Disabled Implicitly",
+			rawData:    "foo $(echo hello)",
+			expected:   "foo hello",
+			errStr:     "unexpected command substitution",
+			enableExec: nil,
 		},
 		{
-			name:     "Valid Multi Embedded Shell Evaluation",
-			rawData:  "foo $(echo hello $(echo hello)) $(echo hello)",
-			expected: "foo hello hello hello",
+			name:       "Valid Shell Evaluation With Round Brackets",
+			rawData:    `foo $(echo hello)))`,
+			expected:   "foo hello))",
+			enableExec: &vTrue,
 		},
 		{
-			name:    "Invalid Non-Terminated Shell Evaluation",
-			rawData: "some $(non-terminated evaluation",
-			errStr:  "without matching ( with )",
+			name:       "Valid Multi Shell Evaluation With Round Brackets",
+			rawData:    "foo $(echo hello) $(echo hello)",
+			expected:   "foo hello hello",
+			enableExec: &vTrue,
+		},
+		{
+			name:       "Valid Multi Embedded Shell Evaluation",
+			rawData:    "foo $(echo hello $(echo hello)) $(echo hello)",
+			expected:   "foo hello hello hello",
+			enableExec: &vTrue,
+		},
+		{
+			name:       "Invalid Non-Terminated Shell Evaluation",
+			rawData:    "some $(non-terminated evaluation",
+			errStr:     "without matching ( with )",
+			enableExec: &vTrue,
 		},
 		{
 			name:    "Invalid Env Not Found",
@@ -89,9 +109,10 @@ func TestDriver_Render(t *testing.T) {
 			errStr:  "unbound variable",
 		},
 		{
-			name:    "Invalid Inner Non-Terminated Shell Evaluation",
-			rawData: "some $(inner(not-terminated)",
-			errStr:  "must be followed by )",
+			name:       "Invalid Inner Non-Terminated Shell Evaluation",
+			rawData:    "some $(inner(not-terminated)",
+			errStr:     "must be followed by )",
+			enableExec: &vTrue,
 		},
 		{
 			name:     "Valid Keep Reference Untouched",
@@ -112,6 +133,9 @@ func TestDriver_Render(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			d := NewDefault("").(*Driver)
+			d.EnableExec = test.enableExec
+
 			ret, err := d.RenderYaml(rv, test.rawData)
 			if len(test.errStr) != 0 {
 				if !assert.Error(t, err, ret) {

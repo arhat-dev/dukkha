@@ -36,6 +36,8 @@ renderers:
   http:
     enable_cache: true
     cache_max_age: 10s
+  env:
+    enable_exec: true
 
 shells:
 - name: bash
