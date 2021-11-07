@@ -41,7 +41,7 @@ type s3Client struct {
 	basePath string
 }
 
-func (c *s3Client) download(ctx context.Context, objPath string) ([]byte, error) {
+func (c *s3Client) download(ctx context.Context, objPath string) (io.ReadCloser, error) {
 	obj, err := c.client.GetObject(
 		ctx,
 		c.bucket,
@@ -51,10 +51,8 @@ func (c *s3Client) download(ctx context.Context, objPath string) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = obj.Close() }()
 
-	data, err := io.ReadAll(obj)
-	return data, err
+	return obj, err
 }
 
 func (c *rendererS3Config) createClient() (*s3Client, error) {

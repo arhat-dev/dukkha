@@ -1096,50 +1096,70 @@
     },
     "arhat.dev.dukkha.pkg.renderer.file.Driver": {
       "properties": {
+        "cache_item_size_limit": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "cache_size_limit": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         }
       },
       "preferredOrder": [
         "enable_cache",
+        "cache_item_size_limit",
         "cache_size_limit",
         "cache_max_age"
       ],
       "patternProperties": {
+        "^cache_item_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
+        "^cache_item_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache_max_age@.*": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache_size_limit@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "^enable_cache@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1148,21 +1168,29 @@
     },
     "arhat.dev.dukkha.pkg.renderer.git.Driver": {
       "properties": {
+        "cache_item_size_limit": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "cache_size_limit": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "host": {
           "type": "string",
@@ -1195,6 +1223,7 @@
       },
       "preferredOrder": [
         "enable_cache",
+        "cache_item_size_limit",
         "cache_size_limit",
         "cache_max_age",
         "user",
@@ -1207,27 +1236,38 @@
       "description": "git renderer implementation",
       "x-intellij-html-description": "git renderer implementation",
       "patternProperties": {
+        "^cache_item_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
+        "^cache_item_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache_max_age@.*": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache_size_limit@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "^enable_cache@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1285,21 +1325,29 @@
         "body": {
           "type": "string"
         },
+        "cache_item_size_limit": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "cache_size_limit": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "headers": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.headers"
@@ -1322,6 +1370,7 @@
       },
       "preferredOrder": [
         "enable_cache",
+        "cache_item_size_limit",
         "cache_size_limit",
         "cache_max_age",
         "user",
@@ -1339,27 +1388,38 @@
         "^body@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^cache_item_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
+        "^cache_item_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache_max_age@.*": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache_size_limit@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "^enable_cache@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1529,21 +1589,29 @@
         "bucket": {
           "type": "string"
         },
+        "cache_item_size_limit": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
         "cache_max_age": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "cache_size_limit": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "endpoint_url": {
           "type": "string"
@@ -1554,6 +1622,7 @@
       },
       "preferredOrder": [
         "enable_cache",
+        "cache_item_size_limit",
         "cache_size_limit",
         "cache_max_age",
         "endpoint_url",
@@ -1588,27 +1657,38 @@
         "^bucket@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^cache_item_size_limit@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
+          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
+        },
+        "^cache_item_size_limit@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache_max_age@.*": {
           "$ref": "#/definitions/time.Duration",
-          "description": "limits maximum data cache time",
-          "x-intellij-html-description": "limits maximum data cache time"
+          "description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "x-intellij-html-description": "limits maximum data caching time  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
+          "default": 0
         },
         "^cache_max_age@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache_size_limit@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cache",
-          "x-intellij-html-description": "limits maximum in memory size of cache"
+          "description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "x-intellij-html-description": "limits maximum in memory size of cache of the renderer  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
+          "default": 0
         },
         "^cache_size_limit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache_size_limit is not effective in that case  Defaults to false",
-          "x-intellij-html-description": "activates caching support for renderers with remote fetch, it will cache it on local disk and cache<em>size</em>limit is not effective in that case  Defaults to false",
-          "default": "false"
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "default": false
         },
         "^enable_cache@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

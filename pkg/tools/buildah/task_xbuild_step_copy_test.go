@@ -126,7 +126,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
 			ret, err := test.spec.genSpec(
 				ctx,
 				dukkha_test.CreateTaskMatrixExecOptions([]string{baseCmd}),

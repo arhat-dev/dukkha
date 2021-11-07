@@ -2,6 +2,7 @@ package dukkha_test
 
 import (
 	"context"
+	"testing"
 
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -18,7 +19,7 @@ type echoRenderer struct {
 func (r *echoRenderer) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
 func (*echoRenderer) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{},
+	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rd, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -27,11 +28,14 @@ func (*echoRenderer) RenderYaml(
 	return yaml.Marshal(rd)
 }
 
-func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
-	return NewTestContextWithGlobalEnv(ctx, nil)
+// nolint:revive
+func NewTestContext(t *testing.T, ctx context.Context) dukkha.ConfigResolvingContext {
+	return NewTestContextWithGlobalEnv(t, ctx, make(map[string]string))
 }
 
+// nolint:revive
 func NewTestContextWithGlobalEnv(
+	t *testing.T,
 	ctx context.Context,
 	globalEnv map[string]string,
 ) dukkha.ConfigResolvingContext {
@@ -41,6 +45,7 @@ func NewTestContextWithGlobalEnv(
 		globalEnv,
 	)
 
+	d.SetCacheDir(t.TempDir())
 	d.SetRuntimeOptions(dukkha.RuntimeOptions{
 		FailFast:            true,
 		ColorOutput:         false,

@@ -20,12 +20,32 @@ import (
 	"io"
 )
 
-type nopCloser struct {
+type customWriteCloser struct {
 	io.Writer
+	fClose func() error
 }
 
-func (nopCloser) Close() error { return nil }
+func (customWriteCloser) Close() error { return nil }
 
-func NopWriteCloser(w io.Writer) io.WriteCloser {
-	return nopCloser{w}
+func CustomWriteCloser(w io.Writer, fClose func() error) io.WriteCloser {
+	if fClose == nil {
+		fClose = func() error { return nil }
+	}
+
+	return &customWriteCloser{w, fClose}
+}
+
+type customReadCloser struct {
+	io.Reader
+	fClose func() error
+}
+
+func (c *customReadCloser) Close() error { return c.fClose() }
+
+func CustomReadCloser(r io.Reader, fClose func() error) io.ReadCloser {
+	if fClose == nil {
+		fClose = func() error { return nil }
+	}
+
+	return &customReadCloser{r, fClose}
 }

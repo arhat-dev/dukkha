@@ -35,7 +35,7 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 		},
 	}
 
-	ctx := dukkha_test.NewTestContext(context.TODO())
+	ctx := dukkha_test.NewTestContext(t, context.TODO())
 
 	tests.RunTaskExecSpecGenerationTests(t, ctx, testCases)
 }

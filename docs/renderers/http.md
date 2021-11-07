@@ -50,21 +50,26 @@ renderers:
 
 - String: URL
 
-```yaml
-foo@http: https://example.com/data
-```
+  ```yaml
+  foo@http: https://example.com/data
+  ```
 
 - Valid http fetch spec in yaml
 
-```yaml
-foo@http:
-  url: https://example.com/data
-  config:
-    # options are the same as Config Options .renderers.http
-    # but without cache related options
-    method: POST
-```
+  ```yaml
+  foo@http:
+    url: https://example.com/data
+    config:
+      # options are the same as Config Options .renderers.http
+      # but without cache related options
+      method: POST
+  ```
+
+## Supported Attributes
+
+- `cached-file`: Return local file path to cached file instead of fetched content.
 
 ## Suggested Use Cases
 
-Organization to share build recipes using certral http service.
+- Organization to share build recipes using certral http service.
+- Download file via http for other renderers

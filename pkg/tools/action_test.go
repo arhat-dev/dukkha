@@ -47,7 +47,7 @@ func TestActionFixtures(t *testing.T) {
 			actual := in.(*Action)
 			expected := exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
 			ctx.AddRenderer("env", env.NewDefault(""))
 
 			assert.NoError(t, actual.DoAfterFieldResolved(ctx, func() error { return nil }))

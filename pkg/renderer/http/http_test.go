@@ -51,10 +51,10 @@ func TestDriver_RenderYaml(t *testing.T) {
 			},
 		}
 
-		rc := dukkha_test.NewTestContext(context.TODO())
+		rc := dukkha_test.NewTestContext(t, context.TODO())
 		assert.NoError(t, d.Init(rc))
 
-		result, err := d.RenderYaml(rc, srv.URL+"/with-password")
+		result, err := d.RenderYaml(rc, srv.URL+"/with-password", nil)
 		assert.NoError(t, err)
 		assert.EqualValues(t, "/with-password", string(result))
 
@@ -69,7 +69,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 					InsecureSkipVerify: true,
 				},
 			},
-		}, nil))
+		}, nil), nil)
 
 		assert.NoError(t, err)
 		assert.EqualValues(t, "/no-password", string(result))

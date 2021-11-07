@@ -35,7 +35,7 @@ func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *Driver) RenderYaml(
-	_ dukkha.RenderingContext, rawData interface{},
+	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
