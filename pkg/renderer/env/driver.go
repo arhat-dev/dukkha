@@ -25,6 +25,14 @@ type Driver struct {
 	rs.BaseField `yaml:"-"`
 
 	name string
+
+	// EnableExec controls arbitrary command execution support when expanding env.
+	//
+	// if set to false, expanding env with shell evaluation (e.g. `$(do something)`)
+	// will fail
+	//
+	// Defaults to `false`
+	EnableExec *bool `yaml:"enable_exec"`
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
@@ -47,7 +55,8 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	ret, err := templateutils.ExpandEnv(rc, string(bytesToExpand))
+	enableExec := d.EnableExec != nil && *d.EnableExec
+	ret, err := templateutils.ExpandEnv(rc, string(bytesToExpand), enableExec)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 	}

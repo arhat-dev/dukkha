@@ -15,61 +15,22 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func ExpandEnv(rc dukkha.RenderingContext, toExpand string) (string, error) {
+// ExpandEnv expand environment variable in unix style (`$FOO`, `${BAR}`)
+// if enableExec is set to ture, also supports arbitrary command execution
+// using `$(do something)`
+func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (string, error) {
 	parser := syntax.NewParser(
 		syntax.Variant(syntax.LangBash),
 	)
 
 	word, err := parser.Document(strings.NewReader(toExpand))
 	if err != nil {
-		return "", fmt.Errorf(
-			"invalid expansion text %q: %w",
-			toExpand, err,
-		)
+		return "", fmt.Errorf("invalid text for env expansion: %w", err)
 	}
 
-	embeddedShellOutput := &bytes.Buffer{}
-	runner, err := CreateEmbeddedShellRunner(
-		rc.WorkingDir(), rc, nil, embeddedShellOutput, os.Stderr,
-	)
-	if err != nil {
-		return "", fmt.Errorf(
-			"failed to create shell runner for env: %w",
-			err,
-		)
-	}
-
-	printer := syntax.NewPrinter(
-		syntax.FunctionNextLine(false),
-		syntax.Indent(2),
-	)
-
-	result, err := expand.Document(&expand.Config{
-		Env: rc,
-		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
-			buf := &bytes.Buffer{}
-			err2 := printer.Print(buf, cs)
-			if err2 != nil {
-				return fmt.Errorf("failed to get evaluation commands: %w", err2)
-			}
-
-			script := string(buf.Bytes()[2 : buf.Len()-1])
-
-			embeddedShellOutput.Reset()
-			err2 = RunScriptInEmbeddedShell(rc, runner, parser, script)
-			if err2 != nil {
-				return err2
-			}
-
-			_, err2 = embeddedShellOutput.WriteTo(w)
-			if err2 != nil {
-				return fmt.Errorf(
-					"failed to write embedded shell output to result value: %w", err,
-				)
-			}
-
-			return nil
-		},
+	config := &expand.Config{
+		Env:       rc,
+		CmdSubst:  nil,
 		ProcSubst: nil,
 		ReadDir: func(s string) ([]os.FileInfo, error) {
 			ents, err2 := os.ReadDir(s)
@@ -90,18 +51,49 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string) (string, error) {
 		GlobStar: true,
 		NullGlob: true,
 		NoUnset:  true,
-	},
-		word,
-	)
-
-	if err != nil {
-		return "", fmt.Errorf(
-			"env expansion failed: %w",
-			err,
-		)
 	}
 
-	return result, nil
+	if enableExec {
+		stdout := &bytes.Buffer{}
+		runner, err := CreateEmbeddedShellRunner(
+			rc.WorkingDir(), rc, nil, stdout, os.Stderr,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to create shell runner for env: %w", err)
+		}
+
+		printer := syntax.NewPrinter(
+			syntax.FunctionNextLine(false),
+			syntax.Indent(2),
+		)
+
+		config.CmdSubst = func(w io.Writer, cs *syntax.CmdSubst) error {
+			buf := &bytes.Buffer{}
+			err2 := printer.Print(buf, cs)
+			if err2 != nil {
+				return fmt.Errorf("failed to get evaluation commands: %w", err2)
+			}
+
+			script := string(buf.Bytes()[2 : buf.Len()-1])
+
+			stdout.Reset()
+			err2 = RunScriptInEmbeddedShell(rc, runner, parser, script)
+			if err2 != nil {
+				return err2
+			}
+
+			_, err2 = stdout.WriteTo(w)
+			if err2 != nil {
+				return fmt.Errorf(
+					"failed to write embedded shell output to result value: %w", err,
+				)
+			}
+
+			return nil
+		}
+	}
+
+	return expand.Document(config, word)
 }
 
 func CreateEmbeddedShellRunner(

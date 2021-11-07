@@ -52,6 +52,9 @@ type GlobalConfig struct {
 
 	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not
 	// detect branch name of origin/HEAD (e.g. github ci environment)
+	//
+	// If your have multiple definitions of this option in different config
+	// file, only the first occurrence of the option is used.
 	DefaultGitBranch string `yaml:"default_git_branch"`
 
 	// Env add global environment variables for all working parts in dukkha
@@ -216,7 +219,7 @@ func (c *Config) Merge(a *Config) error {
 func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
 	logger := log.Log.WithName("config")
 
-	// step 1: create essential renderers
+	// step 1: create essential renderers to initialize renderers
 	{
 		logger.V("creating essential renderers")
 
@@ -244,7 +247,37 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 	}
 
-	// step 2: resolve global config (except Values), ensure cache dir exists
+	// step 2: resolve renderers
+	{
+		logger.D("resolving renderers config overview")
+		err := c.ResolveFields(appCtx, 1, "renderers")
+		if err != nil {
+			return fmt.Errorf("failed to get renderers config overview: %w", err)
+		}
+
+		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
+		for name, r := range c.Renderers {
+			logger := logger.WithFields(
+				log.Any("renderer", name),
+			)
+
+			logger.D("resolving renderer config fields")
+			err = r.ResolveFields(appCtx, -1)
+			if err != nil {
+				return fmt.Errorf("failed to resolve renderer %q config: %w", name, err)
+			}
+
+			err = r.Init(appCtx)
+			if err != nil {
+				return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
+			}
+
+			appCtx.AddRenderer(name, c.Renderers[name])
+		}
+		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
+	}
+
+	// step 3: resolve global config (except Values), ensure cache dir exists
 	{
 		logger.D("resolving global config")
 		err := c.ResolveFields(appCtx, 1, "global")
@@ -279,36 +312,6 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 
 		appCtx.SetCacheDir(cacheDir)
-	}
-
-	// step 3: resolve renderers
-	{
-		logger.D("resolving renderers config overview")
-		err := c.ResolveFields(appCtx, 1, "renderers")
-		if err != nil {
-			return fmt.Errorf("failed to get renderers config overview: %w", err)
-		}
-
-		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
-		for name, r := range c.Renderers {
-			logger := logger.WithFields(
-				log.Any("renderer", name),
-			)
-
-			logger.D("resolving renderer config fields")
-			err = r.ResolveFields(appCtx, -1)
-			if err != nil {
-				return fmt.Errorf("failed to resolve renderer %q config: %w", name, err)
-			}
-
-			err = r.Init(appCtx)
-			if err != nil {
-				return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
-			}
-
-			appCtx.AddRenderer(name, c.Renderers[name])
-		}
-		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
 	}
 
 	// step 4: resolve global Values
@@ -425,7 +428,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			)
 
 			logger.D("resolving tool config fields")
-			err = t.ResolveFields(appCtx, -1)
+			err = t.ResolveFields(appCtx, 1)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tool %q config: %w",
