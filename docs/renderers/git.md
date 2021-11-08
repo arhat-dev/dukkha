@@ -12,7 +12,6 @@ __NOTE:__ Configuration is required to activate this renderer, ssh config is req
 
 ```yaml
 renderers:
-  # no options
   git:
     # cache config
     # enable local cache, disable to always fetch from remote
