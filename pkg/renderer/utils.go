@@ -1,16 +1,16 @@
 package renderer
 
 import (
-	"path/filepath"
 	"time"
 
 	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func FormatCacheDir(dukkhaCacheDir, rendererName string) string {
-	return filepath.Join(dukkhaCacheDir, "renderer-"+rendererName)
-}
+const (
+	attrAllowExpired = "allow-expired"
+	attrCachedFile   = "cached-file"
+)
 
 func HandleRenderingRequestWithRemoteFetch(
 	cache *cache.TwoTierCache,
@@ -24,9 +24,9 @@ func HandleRenderingRequestWithRemoteFetch(
 	)
 	for _, attr := range attributes {
 		switch attr {
-		case "allow-expired":
+		case attrAllowExpired:
 			allowExpired = true
-		case "cached-file":
+		case attrCachedFile:
 			returnCachedFilePath = true
 		}
 	}

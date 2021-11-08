@@ -47,7 +47,7 @@ type Driver struct {
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	dir := renderer.FormatCacheDir(ctx.CacheDir(), d.name)
+	dir := ctx.RendererCacheDir(d.name)
 	if d.EnableCache {
 		d.cache = cache.NewTwoTierCache(
 			dir,
