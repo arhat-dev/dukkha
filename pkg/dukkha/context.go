@@ -3,8 +3,10 @@ package dukkha
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"arhat.dev/rs"
+	"github.com/huandu/xstrings"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
@@ -16,6 +18,8 @@ type ConfigResolvingContext interface {
 	ToolManager
 	TaskManager
 	RendererManager
+
+	RendererCacheDir(name string) string
 }
 
 type TaskExecContext interface {
@@ -109,6 +113,10 @@ func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context
 	}
 
 	return newCtx
+}
+
+func (c *dukkhaContext) RendererCacheDir(name string) string {
+	return filepath.Join(c.CacheDir(), "renderer", xstrings.ToKebabCase(name))
 }
 
 func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {

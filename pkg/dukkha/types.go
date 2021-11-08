@@ -83,8 +83,8 @@ var (
 )
 
 func RegisterRenderer(name string, create RendererCreateFunc) {
-	if strings.Contains(name, ":") {
-		panic(fmt.Sprintf("invalid renderer name %q containing `:`", name))
+	if strings.Contains(name, ":") || strings.Contains(name, "#") {
+		panic(fmt.Sprintf("invalid renderer name %q containing `:` or `#`", name))
 	}
 
 	globalTypeManager.register(
@@ -92,8 +92,8 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 		rendererType,
 		regexp.MustCompile(fmt.Sprintf(`^%s(:.+){0,1}$`, name)),
 		func(subMatches []string) interface{} {
-			if len(subMatches) > 1 {
-				return create(name + ":" + subMatches[1])
+			if len(subMatches) > 1 && len(subMatches[1]) > 1 {
+				return create(name + subMatches[1])
 			}
 
 			return create(name)
@@ -130,8 +130,8 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 			fmt.Sprintf(`^%s(:.+){0,1}:%s$`, string(k), string(tk)),
 		),
 		func(subMatches []string) interface{} {
-			if len(subMatches) > 1 {
-				return create(subMatches[1])
+			if len(subMatches) > 1 && len(subMatches[1]) > 1 {
+				return create(subMatches[1][1:])
 			}
 
 			return create("")

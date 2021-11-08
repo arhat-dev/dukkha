@@ -30,7 +30,7 @@ func TestDiffFile(t *testing.T) {
 		}
 
 		t.Run(d.Name(), func(t *testing.T) {
-			rc := dukkha_test.NewTestContext(context.TODO())
+			rc := dukkha_test.NewTestContext(t, context.TODO())
 			rc.AddRenderer("file", file.NewDefault(""))
 			rc.AddRenderer("env", env.NewDefault(""))
 

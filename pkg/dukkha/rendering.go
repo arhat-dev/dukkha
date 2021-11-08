@@ -34,6 +34,8 @@ type RenderingContext interface {
 	rs.RenderingHandler
 }
 
+type RendererAttribute string
+
 // Renderer to handle rendering suffix
 type Renderer interface {
 	rs.Field
@@ -41,7 +43,7 @@ type Renderer interface {
 	// Init the renderer and add itself to the context
 	Init(ctx ConfigResolvingContext) error
 
-	RenderYaml(rc RenderingContext, rawData interface{}) (result []byte, err error)
+	RenderYaml(rc RenderingContext, rawData interface{}, attributes []RendererAttribute) (result []byte, err error)
 }
 
 // RendererManager to manage renderers
@@ -122,12 +124,21 @@ func (c *contextRendering) Values() map[string]interface{} {
 }
 
 func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
+	var attributes []RendererAttribute
+	attrStart := strings.LastIndexByte(renderer, '#')
+	if attrStart != -1 {
+		renderer = renderer[:attrStart]
+		for _, attr := range strings.Split(renderer[attrStart+1:], ",") {
+			attributes = append(attributes, RendererAttribute(strings.TrimSpace(attr)))
+		}
+	}
+
 	v, ok := c.renderers[renderer]
 	if !ok {
 		return nil, fmt.Errorf("renderer %q not found", renderer)
 	}
 
-	return v.RenderYaml(c, rawData)
+	return v.RenderYaml(c, rawData, attributes)
 }
 
 func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (interface{}, error) {

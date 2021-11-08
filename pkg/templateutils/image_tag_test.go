@@ -47,7 +47,7 @@ func TestSetDefaultImageTag(t *testing.T) {
 	for _, mat := range tests {
 		spec := matrix.Entry(mat)
 
-		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), mat)
+		rc := dukkha_test.NewTestContextWithGlobalEnv(t, context.TODO(), mat)
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 
 		t.Run(spec.BriefString()+"_image_no_kernel_info", func(t *testing.T) {

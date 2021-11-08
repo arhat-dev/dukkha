@@ -2,12 +2,14 @@ package s3
 
 import (
 	"fmt"
+	"io"
 
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 )
@@ -40,12 +42,20 @@ type Driver struct {
 
 	defaultClient *s3Client
 
-	cache *renderer.Cache
+	cache *cache.TwoTierCache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+	dir := ctx.RendererCacheDir(d.name)
 	if d.EnableCache {
-		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
+		d.cache = cache.NewTwoTierCache(
+			dir,
+			int64(d.CacheItemSizeLimit),
+			int64(d.CacheSizeLimit),
+			int64(d.CacheMaxAge.Seconds()),
+		)
+	} else {
+		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
 	}
 
 	var err error
@@ -54,7 +64,7 @@ func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{},
+	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	var (
 		path   string
@@ -114,20 +124,14 @@ func (d *Driver) RenderYaml(
 		}
 	}
 
-	var data []byte
-	if d.cache != nil {
-		data, err = d.cache.Get(path,
-			renderer.CreateRefreshFuncForRemote(
-				renderer.FormatCacheDir(rc.CacheDir(), d.name),
-				d.CacheMaxAge,
-				func(key string) ([]byte, error) {
-					return client.download(rc, path)
-				},
-			),
-		)
-	} else {
-		data, err = client.download(rc, path)
-	}
+	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
+		d.cache,
+		cache.IdentifiableString(path),
+		func(key cache.IdentifiableObject) (io.ReadCloser, error) {
+			return client.download(rc, key.ScopeUniqueID())
+		},
+		attributes,
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf(

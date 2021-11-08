@@ -7,7 +7,8 @@
   "Exclude": [
     "\\.git/.*", "private/.*",
     "vendor/.*", "generated/.*",
-    "build/.*", "scripts/dukkha/cache/.*"
+    "build/.*", "scripts/dukkha/cache/.*",
+    ".*.tar.*", ".*.zip.*", ".*.rar.*"
   ],
   "AllowedContentTypes": [],
   "Disable": {

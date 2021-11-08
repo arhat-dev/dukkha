@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.7.3
+	arhat.dev/pkg v0.7.4-0.20211107170734-2ed4d06a18d9
 	arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
@@ -11,16 +11,21 @@ require (
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 	github.com/google/uuid v1.3.0
 	github.com/gosimple/slug v1.11.0
+	github.com/h2non/filetype v1.1.2-0.20210917125640-7fafb18134ff
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.5
+	github.com/klauspost/compress v1.13.6
 	github.com/minio/minio-go/v7 v7.0.15
 	github.com/muesli/termenv v0.9.0
+	github.com/nwaples/rardecode v1.1.2
+	github.com/pierrec/lz4/v4 v4.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519

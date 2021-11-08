@@ -11,6 +11,7 @@ import (
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 )
@@ -42,12 +43,20 @@ type Driver struct {
 	DefaultConfig rendererHTTPConfig `yaml:",inline"`
 
 	defaultClient *http.Client
-	cache         *renderer.Cache
+	cache         *cache.TwoTierCache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+	dir := ctx.RendererCacheDir(d.name)
 	if d.EnableCache {
-		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
+		d.cache = cache.NewTwoTierCache(
+			dir,
+			int64(d.CacheItemSizeLimit),
+			int64(d.CacheSizeLimit),
+			int64(d.CacheMaxAge.Seconds()),
+		)
+	} else {
+		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
 	}
 
 	var err error
@@ -56,7 +65,7 @@ func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{},
+	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	var (
 		reqURL string
@@ -121,21 +130,14 @@ func (d *Driver) RenderYaml(
 		config = &spec.Config
 	}
 
-	var data []byte
-	if d.cache != nil {
-		data, err = d.cache.Get(reqURL,
-			renderer.CreateRefreshFuncForRemote(
-				renderer.FormatCacheDir(rc.CacheDir(), d.name),
-				d.CacheMaxAge,
-				func(key string) ([]byte, error) {
-					// key is the url we passed in
-					return d.fetchRemote(client, key, config)
-				},
-			),
-		)
-	} else {
-		data, err = d.fetchRemote(client, reqURL, config)
-	}
+	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
+		d.cache,
+		cache.IdentifiableString(reqURL),
+		func(_ cache.IdentifiableObject) (io.ReadCloser, error) {
+			return d.fetchRemote(client, reqURL, config)
+		},
+		attributes,
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -151,7 +153,7 @@ func (d *Driver) fetchRemote(
 	client *http.Client,
 	url string,
 	config *rendererHTTPConfig,
-) ([]byte, error) {
+) (io.ReadCloser, error) {
 	var (
 		req *http.Request
 		err error
@@ -192,11 +194,5 @@ func (d *Driver) fetchRemote(
 		return nil, err
 	}
 
-	respBody, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return respBody, nil
+	return resp.Body, nil
 }

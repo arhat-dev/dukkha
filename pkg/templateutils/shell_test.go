@@ -40,7 +40,7 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
 			stdin, _ := io.Pipe()
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
@@ -94,7 +94,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
 
 			var input io.Reader
 			if len(test.input) != 0 {

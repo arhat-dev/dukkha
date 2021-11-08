@@ -57,7 +57,7 @@ ops:
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			d := &Driver{}
-			ret, err := d.RenderYaml(dukkha_test.NewTestContext(context.TODO()), test.specStr)
+			ret, err := d.RenderYaml(dukkha_test.NewTestContext(t, context.TODO()), test.specStr, nil)
 			assert.NoError(t, err)
 			assert.EqualValues(t, test.expected, strings.TrimSuffix(string(ret), "\n"))
 		})

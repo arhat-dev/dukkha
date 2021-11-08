@@ -3,14 +3,12 @@ package git
 import (
 	"archive/tar"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
 
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/rs"
-	gossh "golang.org/x/crypto/ssh"
 
 	"arhat.dev/dukkha/pkg/renderer/ssh"
 )
@@ -35,7 +33,7 @@ type inputFetchSpec struct {
 	SSH   *ssh.Spec `yaml:"ssh,omitempty"`
 }
 
-func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) ([]byte, error) {
+func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 	if len(f.Path) == 0 {
 		return nil, fmt.Errorf("invalid no path in repo set")
 	}
@@ -143,37 +141,16 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) ([]byte, error) {
 	}
 
 	tr := tar.NewReader(sbr)
-	var dataBuf []byte
-	for {
-		_, err = tr.Next()
-		if err == io.EOF {
-			break // end of archive
+	_, _ = tr.Next()
+
+	return iohelper.CustomReadCloser(tr, func() error {
+		for {
+			_, err = tr.Next()
+			if err == io.EOF {
+				break
+			}
 		}
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to read tar header: %w", err)
-		}
-
-		var data []byte
-		data, err = io.ReadAll(tr)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to read content in tar: %w", err,
-			)
-		}
-
-		if len(data) != 0 {
-			dataBuf = data
-		}
-	}
-
-	err = session.Wait()
-	if err != nil && !errors.Is(err, &gossh.ExitMissingError{}) {
-		return nil, fmt.Errorf(
-			"git-upload-archive exited with error: %q",
-			string(stderr.Next(stderr.Len())),
-		)
-	}
-
-	return dataBuf, nil
+		return session.Wait()
+	}), nil
 }

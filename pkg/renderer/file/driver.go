@@ -8,6 +8,7 @@ import (
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 )
@@ -36,19 +37,23 @@ type Driver struct {
 
 	renderer.CacheConfig `yaml:",inline"`
 
-	cache *renderer.Cache
+	cache *cache.Cache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	if d.EnableCache {
-		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
+		d.cache = cache.NewCache(
+			int64(d.CacheItemSizeLimit),
+			int64(d.CacheSizeLimit),
+			int64(d.CacheMaxAge.Seconds()),
+		)
 	}
 
 	return nil
 }
 
 func (d *Driver) RenderYaml(
-	_ dukkha.RenderingContext, rawData interface{},
+	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -74,16 +79,18 @@ func (d *Driver) RenderYaml(
 
 	var data []byte
 	if d.cache != nil {
-		data, err = d.cache.Get(path, os.ReadFile)
+		data, err = d.cache.Get(
+			cache.IdentifiableString(path),
+			func(_ cache.IdentifiableObject) ([]byte, error) {
+				return os.ReadFile(path)
+			},
+		)
 	} else {
 		data, err = os.ReadFile(path)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf(
-			"renderer.%s: %w",
-			d.name, err,
-		)
+		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 	}
 
 	return data, err

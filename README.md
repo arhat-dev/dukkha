@@ -25,6 +25,8 @@ A typical build automation tool only takes one or two from the above at the same
 - Rendering suffix
   - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix.
   - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
+  - In addition to basic renderer support, we have renderer attributes (`@<renderer>#<attr>`) to produce different kind of result
+    - A common use case of this feature is to reuse renderer `http`: by default it returns the content fetched from remote endpoint, but when applied with attribute `cached-file` as `http#cached-file`, it will produce local file path to the cached content.
 
 - Available as a cli for custom content rendering, run `dukkha render` over your own yaml docs using rendering suffix.
 

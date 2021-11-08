@@ -64,7 +64,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 
 	tests.RunTaskExecSpecGenerationTests(
 		t,
-		dukkha_test.NewTestContext(context.TODO()),
+		dukkha_test.NewTestContext(t, context.TODO()),
 		testCases,
 	)
 

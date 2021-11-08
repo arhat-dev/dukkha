@@ -20,7 +20,7 @@ func TestDriver_Render(t *testing.T) {
 	vFalse := false
 	vTrue := true
 
-	rv := dukkha_test.NewTestContext(context.TODO())
+	rv := dukkha_test.NewTestContext(t, context.TODO())
 	rv.AddEnv(true, &dukkha.EnvEntry{
 		Name:  "FOO",
 		Value: "bar",
@@ -136,7 +136,7 @@ func TestDriver_Render(t *testing.T) {
 			d := NewDefault("").(*Driver)
 			d.EnableExec = test.enableExec
 
-			ret, err := d.RenderYaml(rv, test.rawData)
+			ret, err := d.RenderYaml(rv, test.rawData, nil)
 			if len(test.errStr) != 0 {
 				if !assert.Error(t, err, ret) {
 					return

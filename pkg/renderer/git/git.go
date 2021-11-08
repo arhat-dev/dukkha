@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/renderer/ssh"
@@ -41,19 +43,27 @@ type Driver struct {
 
 	SSHConfig ssh.Spec `yaml:",inline"`
 
-	cache *renderer.Cache
+	cache *cache.TwoTierCache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+	dir := ctx.RendererCacheDir(d.name)
 	if d.EnableCache {
-		d.cache = renderer.NewCache(int64(d.CacheSizeLimit), d.CacheMaxAge)
+		d.cache = cache.NewTwoTierCache(
+			dir,
+			int64(d.CacheItemSizeLimit),
+			int64(d.CacheSizeLimit),
+			int64(d.CacheMaxAge.Seconds()),
+		)
+	} else {
+		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
 	}
 
 	return nil
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{},
+	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	var (
 		// reqURL format: <repo-name>.git/<path-in-repo>[@ref]
@@ -146,21 +156,15 @@ func (d *Driver) RenderYaml(
 		}
 	}
 
-	var data []byte
-	if d.cache != nil {
-		data, err = d.cache.Get(reqURL,
-			renderer.CreateRefreshFuncForRemote(
-				renderer.FormatCacheDir(rc.CacheDir(), d.name),
-				d.CacheMaxAge,
-				func(key string) ([]byte, error) {
-					// key is the url we passed in
-					return fetchConfig.fetchRemote(sshConfig)
-				},
-			),
-		)
-	} else {
-		data, err = fetchConfig.fetchRemote(sshConfig)
-	}
+	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
+		d.cache,
+		cache.IdentifiableString(reqURL),
+		func(_ cache.IdentifiableObject) (io.ReadCloser, error) {
+			// key is the url we passed in
+			return fetchConfig.fetchRemote(sshConfig)
+		},
+		attributes,
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf(
