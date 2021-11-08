@@ -49,6 +49,8 @@ func NewTwoTierCache(cacheDir string, itemMaxBytes, maxBytes, maxAgeSeconds int6
 	}
 }
 
+// TODO: garbage collect cached file
+
 type TwoTierCache struct {
 	cacheDirPath string
 
@@ -194,7 +196,7 @@ func storeLocalCache(
 	r io.Reader,
 	returnContent bool,
 ) (int64, []byte, error) {
-	f, err := os.OpenFile(cacheFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
+	f, err := os.OpenFile(cacheFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return 0, nil, err
 	}

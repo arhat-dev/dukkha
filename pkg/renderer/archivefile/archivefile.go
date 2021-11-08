@@ -4,10 +4,14 @@ package archivefile
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path"
 	"strings"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
+	"github.com/h2non/filetype"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/cache"
@@ -39,25 +43,28 @@ type Driver struct {
 
 	renderer.CacheConfig `yaml:",inline"`
 
-	cache *cache.Cache
+	cache *cache.TwoTierCache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	if d.EnableCache {
-		d.cache = cache.NewCache(
+		d.cache = cache.NewTwoTierCache(
+			ctx.RendererCacheDir(d.name),
 			int64(d.CacheItemSizeLimit),
 			int64(d.CacheSizeLimit),
 			int64(d.CacheMaxAge.Seconds()),
 		)
 	} else {
-		d.cache = cache.NewCache(0, 0, -1)
+		d.cache = cache.NewTwoTierCache(
+			ctx.RendererCacheDir(d.name), 0, 0, -1,
+		)
 	}
 
 	return nil
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -98,14 +105,14 @@ func (d *Driver) RenderYaml(
 	}
 
 	if spec == nil {
-		spec, err = convertPathToSpec(onlineSpec)
-		if err != nil {
-			return nil, fmt.Errorf("%s: invalid oneline spec %w", d.name, err)
-		}
+		spec = parseOneLineSpec(onlineSpec)
+	} else {
+		spec.Path = path.Clean(spec.Path)
 	}
 
-	data, err := d.cache.Get(spec, extractFileFromArchive)
-
+	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
+		d.cache, spec, extractFileFromArchive, attributes,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", d.name, err)
 	}
@@ -113,15 +120,46 @@ func (d *Driver) RenderYaml(
 	return data, err
 }
 
-// nolint:unparam
-func convertPathToSpec(onelineSpec string) (*inputSpec, error) {
+func parseOneLineSpec(onelineSpec string) *inputSpec {
 	onelineSpec = strings.TrimSpace(onelineSpec)
-	_ = onelineSpec
-	return nil, nil
+
+	ret := &inputSpec{
+		// there is no way to set password in one line spec
+		Password: "",
+	}
+
+	idx := strings.LastIndex(onelineSpec, ":")
+	if idx == -1 {
+		ret.Archive = onelineSpec
+	} else {
+		ret.Archive = onelineSpec[:idx]
+		ret.Path = path.Clean(onelineSpec[idx+1:])
+	}
+
+	return ret
 }
 
-func extractFileFromArchive(obj cache.IdentifiableObject) ([]byte, error) {
+func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error) {
 	spec := obj.(*inputSpec)
-	_ = spec
-	return nil, nil
+	info, err := os.Stat(spec.Archive)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, err := filetype.MatchFile(spec.Archive)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := os.Open(spec.Archive)
+	if err != nil {
+		return nil, err
+	}
+
+	type src struct {
+		sizeIface
+		*os.File
+	}
+
+	return unarchive(&src{info, f}, typ, spec.Path, spec.Password)
 }

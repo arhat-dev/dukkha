@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/cache"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/iohelper"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/cache"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func TestHandleRenderingRequestWithRemoteFetch(t *testing.T) {

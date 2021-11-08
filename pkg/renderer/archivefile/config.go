@@ -16,6 +16,9 @@ type inputSpec struct {
 
 	// Flatten generate a map of files in archive
 	Flatten bool `yaml:"flatten"`
+
+	// Password for password protected archive files
+	Password string `yaml:"password"`
 }
 
 func (s *inputSpec) ScopeUniqueID() string {
