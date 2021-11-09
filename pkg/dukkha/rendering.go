@@ -127,10 +127,11 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 	var attributes []RendererAttribute
 	attrStart := strings.LastIndexByte(renderer, '#')
 	if attrStart != -1 {
-		renderer = renderer[:attrStart]
 		for _, attr := range strings.Split(renderer[attrStart+1:], ",") {
 			attributes = append(attributes, RendererAttribute(strings.TrimSpace(attr)))
 		}
+
+		renderer = renderer[:attrStart]
 	}
 
 	v, ok := c.renderers[renderer]
