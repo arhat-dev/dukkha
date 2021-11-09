@@ -1,0 +1,9 @@
+options@env:
+- -o
+- ${out_dir}/data
+- -o
+- ${out_dir}/data
+sources: []
+bad_source: true
+---
+# expected:

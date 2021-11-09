@@ -52,9 +52,21 @@ func TestRender(t *testing.T) {
 		return
 	}
 
+	wd, err := os.Getwd()
+	if !assert.NoError(t, err, "unable to get working dir") {
+		return
+	}
+
+	if !assert.True(t, filepath.IsAbs(wd), "working dir is not absolute path") {
+		return
+	}
+
 	for _, test := range testCases {
 		os.Args = sliceutils.NewStrings(baseArgs, "-f", test["format"])
 		main()
+		if !assert.NoError(t, os.Chdir(wd)) {
+			assert.FailNow(t, "unable to go back to original working dir")
+		}
 	}
 
 	entries, err := os.ReadDir(expectedDir)

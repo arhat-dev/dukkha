@@ -3,6 +3,7 @@ package templateutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -28,9 +29,33 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 		return "", fmt.Errorf("invalid text for env expansion: %w", err)
 	}
 
+	printer := syntax.NewPrinter(
+		syntax.FunctionNextLine(false),
+		syntax.Indent(2),
+	)
+
 	config := &expand.Config{
-		Env:       rc,
-		CmdSubst:  nil,
+		Env: rc,
+		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
+			script, err2 := rebuildShellEvaluation(printer, cs)
+			if err2 != nil {
+				if err2 != errSkipBackquotedCmdSubst {
+					return err2
+				}
+
+				script, err2 = ExpandEnv(rc, script, false)
+				if err2 != nil {
+					return err2
+				}
+
+				script = "`" + script + "`"
+			} else {
+				script = "$(" + script + ")"
+			}
+
+			_, err2 = w.Write([]byte(script))
+			return err2
+		},
 		ProcSubst: nil,
 		ReadDir: func(s string) ([]os.FileInfo, error) {
 			ents, err2 := os.ReadDir(s)
@@ -62,19 +87,22 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 			return "", fmt.Errorf("failed to create shell runner for env: %w", err)
 		}
 
-		printer := syntax.NewPrinter(
-			syntax.FunctionNextLine(false),
-			syntax.Indent(2),
-		)
-
 		config.CmdSubst = func(w io.Writer, cs *syntax.CmdSubst) error {
-			buf := &bytes.Buffer{}
-			err2 := printer.Print(buf, cs)
+			script, err2 := rebuildShellEvaluation(printer, cs)
 			if err2 != nil {
-				return fmt.Errorf("failed to get evaluation commands: %w", err2)
-			}
+				if err2 != errSkipBackquotedCmdSubst {
+					return err2
+				}
 
-			script := string(buf.Bytes()[2 : buf.Len()-1])
+				script, err2 = ExpandEnv(rc, script, false)
+				if err2 != nil {
+					return err2
+				}
+
+				script = "`" + script + "`"
+				_, err2 = w.Write([]byte(script))
+				return err2
+			}
 
 			stdout.Reset()
 			err2 = RunScriptInEmbeddedShell(rc, runner, parser, script)
@@ -84,9 +112,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 
 			_, err2 = stdout.WriteTo(w)
 			if err2 != nil {
-				return fmt.Errorf(
-					"failed to write embedded shell output to result value: %w", err,
-				)
+				return fmt.Errorf("shell output not written: %w", err)
 			}
 
 			return nil
@@ -94,6 +120,28 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	}
 
 	return expand.Document(config, word)
+}
+
+var errSkipBackquotedCmdSubst = errors.New("skip CmdSubSt")
+
+func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
+	buf := &bytes.Buffer{}
+	err2 := printer.Print(buf, cs)
+	if err2 != nil {
+		return "", fmt.Errorf("failed to get evaluation commands: %w", err2)
+	}
+
+	rawCmd := string(buf.Next(buf.Len()))
+
+	// printed rawCmd is always in `$()` format
+	switch {
+	case !cs.Backquotes:
+		return rawCmd[2 : len(rawCmd)-1], nil
+	case cs.Backquotes:
+		return rawCmd[2 : len(rawCmd)-1], errSkipBackquotedCmdSubst
+	default:
+		return "", fmt.Errorf("invalid command substution: %q", rawCmd)
+	}
 }
 
 func CreateEmbeddedShellRunner(

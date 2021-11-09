@@ -67,17 +67,22 @@ func TestDriver_Render(t *testing.T) {
 			enableExec: &vTrue,
 		},
 		{
-			name:       "Invalid Shell Evaluation When Exec Disabled Explicitly",
+			name:       "Ignored Shell Evaluation When Exec Disabled Explicitly",
 			rawData:    "foo $(echo hello)",
-			errStr:     "unexpected command substitution",
+			expected:   "foo $(echo hello)",
 			enableExec: &vFalse,
 		},
 		{
-			name:       "Invalid Shell Evaluation When Exec Disabled Implicitly",
+			name:       "Ignored Shell Evaluation When Exec Disabled Implicitly",
 			rawData:    "foo $(echo hello)",
-			expected:   "foo hello",
-			errStr:     "unexpected command substitution",
+			expected:   "foo $(echo hello)",
 			enableExec: nil,
+		},
+		{
+			name:       "Always ignored backquoted shell evaluation",
+			rawData:    "foo `echo hello` $(echo hello)",
+			expected:   "foo `echo hello` hello",
+			enableExec: &vTrue,
 		},
 		{
 			name:       "Valid Shell Evaluation With Round Brackets",

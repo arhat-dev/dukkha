@@ -1,0 +1,30 @@
+options:
+- -r
+sources:
+- testdata
+bad_options: false
+bad_source: false
+output_files:
+- "-"
+---
+expected: |-
+  l2:top-file-data@file: testdata/data.txt
+  l2:l1-file-data@file: testdata/level-1/data.txt
+  l2:l2-file-data@file: testdata/level-1/level-2/data.txt
+  l2:top-shell-data@file: testdata/data.txt
+  l2:l1-shell-data@file: testdata/level-1/data.txt
+  l2:l2-shell-data@file: testdata/level-1/level-2/data.txt
+  ---
+  l1:top-file-data@file: testdata/data.txt
+  l1:l1-file-data@file: testdata/level-1/data.txt
+  l1:l2-file-data@file: testdata/level-1/level-2/data.txt
+  l1:top-shell-data@file: testdata/data.txt
+  l1:l1-shell-data@file: testdata/level-1/data.txt
+  l1:l2-shell-data@file: testdata/level-1/level-2/data.txt
+  ---
+  top:top-file-data@file: testdata/data.txt
+  top:l1-file-data@file: testdata/level-1/data.txt
+  top:l2-file-data@file: testdata/level-1/level-2/data.txt
+  top:top-shell-data@file: testdata/data.txt
+  top:l1-shell-data@file: testdata/level-1/data.txt
+  top:l2-shell-data@file: testdata/level-1/level-2/data.txt

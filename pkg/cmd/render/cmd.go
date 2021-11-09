@@ -5,26 +5,19 @@ import (
 	"io"
 	"os"
 
-	"github.com/itchyny/gojq"
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
-	var (
-		outputFormat string
-		indentSize   int
-		indentStyle  string
-		recursive    bool
-		resultQuery  string
+	// cli options
 
-		outputDests []string
-	)
+	opts := &Options{}
 
 	renderCmd := &cobra.Command{
 		Use:           "render",
-		Short:         "Render your yaml docs",
+		Short:         "Render yaml docs using rendering suffix",
 		Args:          cobra.ArbitraryArgs,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -35,100 +28,111 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var indentStr string
-			switch indentStyle {
-			case "space":
-				indentStr = " "
-			case "tab":
-				indentStr = "\t"
-			default:
-				indentStr = indentStyle
-			}
-
-			var query *gojq.Query
-			if len(resultQuery) != 0 {
-				var err error
-				query, err = gojq.Parse(resultQuery)
-				if err != nil {
-					return fmt.Errorf("invalid result query: %w", err)
-				}
-			}
-
-			var om map[string]*string
-			if len(outputDests) != 0 {
-				if len(outputDests) != len(args) {
-					return fmt.Errorf(
-						"number of output destination not matching sources: want %d, got %d",
-						len(args), len(outputDests),
-					)
-				}
-
-				om = make(map[string]*string)
-				for i := range outputDests {
-					src := args[i]
-
-					om[src] = &outputDests[i]
-				}
-			} else {
-				om = make(map[string]*string)
-				for _, src := range args {
-					om[src] = nil
-				}
-			}
-
-			var stdoutEnc encoder
-
-			createEncoder := func(w io.Writer) (encoder, error) {
-				if w == os.Stdout {
-					var err error
-					if stdoutEnc == nil {
-						stdoutEnc, err = newEncoder(
-							query, os.Stdout,
-							outputFormat, indentStr, indentSize,
-						)
-					}
-
-					return stdoutEnc, err
-				}
-
-				return newEncoder(query, w, outputFormat, indentStr, indentSize)
-			}
-
-			for _, src := range args {
-				err := renderYamlFileOrDir(
-					*ctx, src, om[src], outputFormat,
-					createEncoder,
-					recursive,
-					make(map[string]os.FileMode),
-				)
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
+			return run(*ctx, opts, args, os.Stdout)
 		},
 	}
 
-	flags := renderCmd.Flags()
-	flags.StringSliceVarP(&outputDests, "output", "o", nil,
+	createOptionsFlags(renderCmd, opts)
+	return renderCmd
+}
+
+func createOptionsFlags(cmd *cobra.Command, opts *Options) {
+	flags := cmd.Flags()
+	flags.StringSliceVarP(&opts.outputDests, "output", "o", nil,
 		"set output destionation for specified inputs (args)",
 	)
-	flags.StringVarP(&outputFormat, "output-format", "f", "yaml",
+	flags.StringVarP(&opts.outputFormat, "output-format", "f", "yaml",
 		"set output format, one of [json, yaml]",
 	)
-	flags.IntVarP(&indentSize, "indent-size", "n", 2,
+	flags.IntVarP(&opts.indentSize, "indent-size", "n", 2,
 		"set indent size",
 	)
-	flags.StringVarP(&indentStyle, "indent-style", "s", "space",
+	flags.StringVarP(&opts.indentStyle, "indent-style", "s", "space",
 		"set indent style, custom string or one of [space, tab]",
 	)
-	flags.BoolVarP(&recursive, "recursive", "r", false,
+	flags.BoolVarP(&opts.recursive, "recursive", "r", false,
 		"render directories recursively",
 	)
-	flags.StringVarP(&resultQuery, "query", "q", "",
+	flags.StringVarP(&opts.resultQuery, "query", "q", "",
 		"run jq style query over generated yaml/json docs before writing",
 	)
+	flags.StringSliceVar(&opts.chdir, "chdir", nil,
+		"set root of the soure for specified inputs (args) for relative path resovling, "+
+			"useful when you are rendering single file inside some child directory of the source directory",
+	)
+}
 
-	return renderCmd
+func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) error {
+	resolvedOpts, err := opts.Resolve(args, stdout)
+	if err != nil {
+		return fmt.Errorf("invalid options: %w", err)
+	}
+
+	if len(args) == 0 {
+		// render yaml from stdin only
+		return renderYamlReader(
+			appCtx,
+			os.Stdin,
+			resolvedOpts.OutputPathFor("-"),
+			0664,
+			resolvedOpts,
+		)
+	}
+
+	lastWorkDir := appCtx.WorkingDir()
+	for _, src := range args {
+		if src == "-" {
+			err = renderYamlReader(
+				appCtx,
+				os.Stdin,
+				resolvedOpts.OutputPathFor("-"),
+				0664,
+				resolvedOpts,
+			)
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		err = func() error {
+			// chdir at the entrypoint (root of the source yaml)
+			// make relative paths in that dir happy
+
+			chdir := resolvedOpts.ChdirFor(src)
+
+			if chdir != lastWorkDir {
+				err = os.Chdir(chdir)
+				if err != nil {
+					return fmt.Errorf(
+						"chdir: going to source root %q: %w",
+						src, err,
+					)
+				}
+
+				// change DUKKHA_WORKING_DIR to make renderers like
+				// `file`, `shell` and `env` work properly
+				appCtx.(interface {
+					OverrideWorkingDir(cwd string)
+				}).OverrideWorkingDir(chdir)
+
+				lastWorkDir = chdir
+			}
+
+			return renderYamlFile(
+				appCtx,
+				resolvedOpts.EntrypointFor(src),
+				resolvedOpts.OutputPathFor(src),
+				resolvedOpts,
+				make(map[string]os.FileMode),
+			)
+		}()
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

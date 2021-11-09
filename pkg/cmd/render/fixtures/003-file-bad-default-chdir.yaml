@@ -1,0 +1,7 @@
+options:
+# - --chdir=testdata/level-1
+sources:
+- testdata/level-1/src.yaml
+bad_options: false
+bad_source: true
+---

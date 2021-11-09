@@ -1,0 +1,7 @@
+l1:top-file-data@file: data.txt
+l1:l1-file-data@file: level-1/data.txt
+l1:l2-file-data@file: level-1/level-2/data.txt
+
+l1:top-shell-data@file|shell: script.sh
+l1:l1-shell-data@file|shell: level-1/script.sh
+l1:l2-shell-data@file|shell: level-1/level-2/script.sh

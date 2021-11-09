@@ -1,0 +1,13 @@
+options:
+- |-
+  -q={foo: ."top:top-file-data", bar: "bar" }
+sources:
+- testdata/src.yaml
+bad_options: false
+bad_source: false
+output_files:
+- "-"
+---
+expected: |-
+  foo@file: testdata/data.txt
+  bar: bar
