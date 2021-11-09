@@ -29,7 +29,9 @@ type Driver struct {
 	// EnableExec controls arbitrary command execution support when expanding env.
 	//
 	// if set to false, expanding env with shell evaluation (e.g. `$(do something)`)
-	// will fail
+	// will be skipped and formatted
+	//
+	// NOTE: shell evaluation of backqouted string is always skipped and formatted
 	//
 	// Defaults to `false`
 	EnableExec *bool `yaml:"enable_exec"`

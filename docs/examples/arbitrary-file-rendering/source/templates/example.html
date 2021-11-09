@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+<body>
+{{- range $_, $v := split "a,b,c,d" "," }}
+  <p>Example {{ $v }}</p>
+{{- end }}
+</body>
+</html>

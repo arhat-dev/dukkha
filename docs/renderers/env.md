@@ -6,6 +6,8 @@ foo@env: some $ENV_NAME or ${REF} or $(shell command)
 
 Generate field value by expanding environment variable references (`$env_name` or `${env_name}`) and evaluating shell command (`$(some command)`).
 
+__NOTE:__ Backquoted string (e.g. <code>\`do something\`</code>) is not treated as shell evaluation, that's just plain text to this renderer.
+
 ## Config Options
 
 ```yaml

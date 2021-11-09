@@ -138,6 +138,12 @@ func (c *envValues) OverrideDefaultGitBranch(branch string) {
 	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = branch
 }
 
+// OverrideWorkingDir set DUKKHA_WORKING_DIR to cwd
+// should not be exposed by any interface type in this package
+func (c *envValues) OverrideWorkingDir(cwd string) {
+	c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR] = cwd
+}
+
 func (c *envValues) WorkingDir() string {
 	return c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR]
 }

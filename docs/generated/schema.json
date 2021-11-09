@@ -1153,8 +1153,8 @@
       "properties": {
         "enable_exec": {
           "type": "boolean",
-          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will fail",
-          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will fail",
+          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
+          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
           "default": false
         }
       },
@@ -1165,8 +1165,8 @@
       "patternProperties": {
         "^enable_exec@.*": {
           "type": "boolean",
-          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will fail",
-          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will fail",
+          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
+          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
           "default": false
         },
         "^enable_exec@[^\\|]*!": {

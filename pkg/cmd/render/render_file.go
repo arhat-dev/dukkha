@@ -1,27 +1,19 @@
 package render
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"arhat.dev/rs"
-	"go.uber.org/multierr"
-	"gopkg.in/yaml.v3"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func renderYamlFileOrDir(
+func renderYamlFile(
 	rc dukkha.Context,
 	srcPath string,
 	destPath *string,
-	outputFormat string,
-	createEnc encoderCreateFunc,
-	recursive bool,
+	opts *ResolvedOptions,
 	srcPerm map[string]os.FileMode,
 ) error {
 	sInfo, err := os.Stat(srcPath)
@@ -56,19 +48,13 @@ func renderYamlFileOrDir(
 
 			switch filepath.Ext(name) {
 			case ".yml", ".yaml":
-				err3 = renderYamlFileOrDir(
-					rc, newSrc, newDest, outputFormat,
-					createEnc, recursive, srcPerm,
-				)
+				err3 = renderYamlFile(rc, newSrc, newDest, opts, srcPerm)
 				if err3 != nil {
 					return fmt.Errorf("failed to render file %q: %w", newSrc, err3)
 				}
 			default:
-				if ent.IsDir() && recursive {
-					err3 = renderYamlFileOrDir(
-						rc, newSrc, newDest, outputFormat,
-						createEnc, recursive, srcPerm,
-					)
+				if ent.IsDir() && opts.recursive {
+					err3 = renderYamlFile(rc, newSrc, newDest, opts, srcPerm)
 					if err3 != nil {
 						return fmt.Errorf("failed to render dir %q: %w", newSrc, err3)
 					}
@@ -87,77 +73,30 @@ func renderYamlFileOrDir(
 	}
 	defer func() { _ = srcFile.Close() }()
 
-	dec := yaml.NewDecoder(srcFile)
-	ret, err := parseYaml(dec, func() interface{} { return new(rs.AnyObject) })
+	// srcPath exitsts, ensure destination if any
 
-	// always write parsed yaml docs, regardless of errors
+	if destPath != nil {
+		// prepare destination parent dir if not exists
 
-	var enc encoder
-	if len(ret) != 0 {
-		if destPath == nil {
-			enc, err = createEnc(os.Stdout)
-			if err != nil {
-				return err
-			}
-		} else {
-			// prepare destination parent dir if not exists
-
-			err = ensureDestDir(srcPath, *destPath, srcPerm)
-			if err != nil {
-				return err
-			}
-
-			dest := *destPath
-			switch outputFormat {
-			case "json":
-				// change extension name
-				dest = strings.TrimSuffix(dest, filepath.Ext(srcPath)) + ".json"
-			case "yaml":
-				// do nothing since source file is yaml as well
-				// no matter .yml or .yaml
-			}
-			var destFile *os.File
-			destFile, err = os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, srcPerm[srcPath])
-			if err != nil {
-				return fmt.Errorf("failed to open output file %q: %w", dest, err)
-			}
-			defer func() { _ = destFile.Close() }()
-
-			enc, err = createEnc(destFile)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	err = os.Chdir(filepath.Dir(srcPath))
-	if err != nil {
-		return fmt.Errorf("failed to change working dir to source parent: %w", err)
-	}
-	defer func() {
-		err = os.Chdir(rc.WorkingDir())
+		err = ensureDestDir(srcPath, *destPath, srcPerm)
 		if err != nil {
-			panic(fmt.Errorf(
-				"failed to go back to dukkha working dir: %w", err,
-			))
-		}
-	}()
-
-	for _, doc := range ret {
-		obj := doc.(*rs.AnyObject)
-
-		err2 := obj.ResolveFields(rc, -1)
-		if err2 != nil {
-			return multierr.Append(err, err2)
+			return err
 		}
 
-		err2 = enc.Encode(obj)
-		if err2 != nil {
-			return multierr.Append(err, err2)
+		dest := *destPath
+		switch opts.outputFormat {
+		case "json":
+			// change extension name
+			dest = strings.TrimSuffix(dest, filepath.Ext(srcPath)) + ".json"
+		case "yaml":
+			// do nothing since source file is yaml as well
+			// no matter .yml or .yaml
 		}
+
+		destPath = &dest
 	}
 
-	return err
+	return renderYamlReader(rc, srcFile, destPath, srcPerm[srcPath], opts)
 }
 
 func ensureDestDir(srcPath, destPath string, srcPerm map[string]os.FileMode) error {
@@ -214,25 +153,4 @@ func ensureDestDir(srcPath, destPath string, srcPerm map[string]os.FileMode) err
 	}
 
 	return nil
-}
-
-func parseYaml(dec *yaml.Decoder, createOutObj func() interface{}) ([]interface{}, error) {
-	var ret []interface{}
-	for {
-		obj := createOutObj()
-		err := dec.Decode(obj)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return ret, nil
-			}
-
-			return ret, err
-		}
-
-		if obj == nil {
-			continue
-		}
-
-		ret = append(ret, obj)
-	}
 }

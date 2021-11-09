@@ -1,6 +1,7 @@
 package render
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,37 +13,83 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type (
-	encoder interface {
-		Encode(v *rs.AnyObject) error
-	}
-	encoderCreateFunc func(w io.Writer) (encoder, error)
-)
+type encoder interface {
+	Encode(v *rs.AnyObject) error
+}
 
-var _ encoder = (*encoderWithQueryRequest)(nil)
+var _ encoder = (*anyObjectEncoder)(nil)
 
-type encoderWithQueryRequest struct {
+type anyObjectEncoder struct {
+	writeDocSep bool
+
+	write  func([]byte) (int, error)
 	encode func(interface{}) error
 	query  *gojq.Query
 }
 
-func (e *encoderWithQueryRequest) Encode(v *rs.AnyObject) error {
+func (e *anyObjectEncoder) Encode(v *rs.AnyObject) error {
+	var toEncode interface{}
 	if e.query != nil {
 		ret, _, err := textquery.RunQuery(e.query, v.NormalizedValue(), nil)
 		if err != nil {
 			return err
 		}
 
-		switch len(ret) {
-		case 0:
+		if len(ret) == 0 {
 			return e.encode(nil)
-		case 1:
-			return e.encode(ret[0])
-		default:
+		}
+
+		if len(ret) != 1 {
 			return e.encode(ret)
 		}
+
+		toEncode = ret[0]
 	} else {
-		return e.encode(v)
+		toEncode = v.NormalizedValue()
+	}
+
+	if e.writeDocSep {
+		e.writeDocSep = false
+		_, err := e.write([]byte("---\n"))
+		if err != nil {
+			return err
+		}
+	}
+
+	// special case []byte and string, which can be produced by virtual key rederer
+	switch rt := toEncode.(type) {
+	case []byte:
+		_, err := e.write(rt)
+		if err != nil {
+			return err
+		}
+
+		if !bytes.HasSuffix(rt, []byte{'\n'}) {
+			_, err = e.write([]byte{'\n'})
+			if err != nil {
+				return err
+			}
+		}
+
+		e.writeDocSep = true
+		return nil
+	case string:
+		_, err := e.write([]byte(rt))
+		if err != nil {
+			return err
+		}
+
+		if !strings.HasSuffix(rt, "\n") {
+			_, err = e.write([]byte{'\n'})
+			if err != nil {
+				return err
+			}
+		}
+
+		e.writeDocSep = true
+		return nil
+	default:
+		return e.encode(rt)
 	}
 }
 
@@ -69,7 +116,8 @@ func newEncoder(
 		return nil, fmt.Errorf("unknown output format %q", outputFormat)
 	}
 
-	return &encoderWithQueryRequest{
+	return &anyObjectEncoder{
+		write:  w.Write,
 		encode: encImpl,
 		query:  query,
 	}, nil
