@@ -93,6 +93,7 @@ func (s *bufferredReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
 		// we need to make up some progress
 		if maxCap := int64(cap(s.buf)); maxCap < off {
 			// grow the buff
+			s.buf = s.buf[:maxCap]
 			s.buf = append(s.buf, make([]byte, off-maxCap)...)
 		}
 
