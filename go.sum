@@ -1,11 +1,11 @@
 arhat.dev/pkg v0.7.3-0.20211031112332-ffefabe6bd30/go.mod h1:zPTNrA/tEoOUSpFQFyr7McM3LO8WQRhwNcULbcAM+ms=
 arhat.dev/pkg v0.7.3/go.mod h1:QmcFSZKUYOlgbtw6b0zDJXE3Fo4aJWDuS/6xg2imu/Y=
-arhat.dev/pkg v0.7.4-0.20211109123634-b8f1f58f3c23 h1:DArRpOG/9/QwL1ELkytc4iI4gyUDTmvNfaoaQ7vkGiI=
-arhat.dev/pkg v0.7.4-0.20211109123634-b8f1f58f3c23/go.mod h1:QmcFSZKUYOlgbtw6b0zDJXE3Fo4aJWDuS/6xg2imu/Y=
+arhat.dev/pkg v0.8.0 h1:YE4Tr4yPBK2+G82KrHnti+21eiemyxvCsLxxgVZNA+I=
+arhat.dev/pkg v0.8.0/go.mod h1:WN2MoK4tM/DcZqzRPzS1cKiG2N+FcPBQJ8qK5F5CXB4=
 arhat.dev/rs v0.6.0/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
 arhat.dev/rs v0.7.0/go.mod h1:sJXVt9WQKBYdyiOwxBWBvGOYoDPqljtvPgOZ6ira9Y0=
-arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a h1:jo2DOVcFxEpDe2siNl3ceMpKzkZFyrFYejuLh+ykfLc=
-arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a/go.mod h1:FSH7DwQleSft5CudV8SGKPgEjZLsRPD3T13j5clQkQI=
+arhat.dev/rs v0.8.1 h1:eX47b7QXv5Id/Ghl+rLmurkuBcJekbEQtqZN2bCPGYA=
+arhat.dev/rs v0.8.1/go.mod h1:FSH7DwQleSft5CudV8SGKPgEjZLsRPD3T13j5clQkQI=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -401,8 +401,9 @@ golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20200414173820-0848c9571904/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f/go.mod h1:jdWPYTVW3xRLrWPugEBEK3UY2ZEsg3UU495nc5E+M+I=
-golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 h1:7I4JAnoQBe7ZtJcBaYHi5UtiO8tQHbUSXxL+pnGRANg=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa h1:idItI2DDfCokpg0N51B2VtiLdJ4vAuXC9fnCb2gACo4=
+golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
@@ -562,8 +563,9 @@ golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210925032602-92d5a993a665/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211029165221-6e7872819dc8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20211103235746-7861aae1554b h1:1VkfZQv42XQlA/jchYumAnv1UPo6RgF9rJFkTgZIxO4=
 golang.org/x/sys v0.0.0-20211103235746-7861aae1554b/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3 h1:T6tyxxvHMj2L1R2kZg0uNMpS8ZhB9lRa9XRGTCSA65w=
+golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210916214954-140adaaadfaf/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

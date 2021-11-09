@@ -261,6 +261,7 @@ func handleUnresolvedField(
 	resolved := toResolve
 	if v.ref.isInlineMap {
 		inlineMapItemCache, err = unmarshalMap(
+			rc,
 			yamlKey,
 			fakeMap(v.rawData.Content[0], resolved),
 			target,
@@ -268,7 +269,7 @@ func handleUnresolvedField(
 			&keepOld,
 		)
 	} else {
-		err = unmarshal(yamlKey, resolved, target, nil, nil)
+		err = unmarshal(rc, yamlKey, resolved, target, nil, nil)
 	}
 
 	if err != nil {

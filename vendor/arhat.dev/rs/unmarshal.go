@@ -99,7 +99,7 @@ func (f *BaseField) unmarshalNoRS(yamlKey string, kv []*yaml.Node, field *fieldR
 
 	// field is not nil
 
-	err := unmarshal(yamlKey, v, field, &field.isInlineMap, nil)
+	err := unmarshal(nil, yamlKey, v, field, &field.isInlineMap, nil)
 	if err != nil {
 		return fmt.Errorf("rs: failed to unmarshal yaml field %q to %s.%s: %w",
 			yamlKey, f._parentType.String(), field.fieldName, err,
@@ -147,7 +147,10 @@ func (f *BaseField) unmarshalRS(yamlKey, suffix string, kv []*yaml.Node) error {
 	return field.base.addUnresolvedField(yamlKey, suffix, nil, field, v)
 }
 
+// rc is used to resolve virtual key for rendered data (only happening during ResolveFileds)
+// so it can be nil when unmarhaling
 func unmarshal(
+	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
 	out *fieldRef,
@@ -214,7 +217,7 @@ func unmarshal(
 				continue
 			}
 
-			_, err := handleUnresolvedField(nil, 1, out.fieldName,
+			_, err := handleUnresolvedField(rc, 1, out.fieldName,
 				&unresolvedFieldSpec{
 					ref:       out,
 					rawData:   pair[1],
@@ -239,16 +242,16 @@ func unmarshal(
 	case reflect.Chan, reflect.Func:
 		return fmt.Errorf("invalid out value is not data type for yaml key %q", yamlKey)
 	case reflect.Array:
-		return unmarshalArray(yamlKey, in, out)
+		return unmarshalArray(rc, yamlKey, in, out)
 	case reflect.Slice:
-		return unmarshalSlice(yamlKey, in, out, keepOld)
+		return unmarshalSlice(rc, yamlKey, in, out, keepOld)
 	case reflect.Map:
-		_, err := unmarshalMap(yamlKey, in, out, nil, keepOld)
+		_, err := unmarshalMap(rc, yamlKey, in, out, nil, keepOld)
 		return err
 	case reflect.Struct:
 		return unmarshalStruct(yamlKey, in, out)
 	case reflect.Interface:
-		handled, err := unmarshalInterface(yamlKey, in, out, keepOld)
+		handled, err := unmarshalInterface(rc, yamlKey, in, out, keepOld)
 		if !handled {
 			// fallback to go-yaml behavior
 			return in.Decode(out.fieldValue.Addr().Interface())
@@ -304,6 +307,7 @@ func unmarshalStruct(
 
 // unmarshalInterface handles interface type creation
 func unmarshalInterface(
+	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
 	out *fieldRef,
@@ -342,10 +346,11 @@ func unmarshalInterface(
 	}
 
 	// DO NOT use outVal directly, which will always match reflect.Interface
-	return true, unmarshal(yamlKey, in, out.clone(val), keepOld, in)
+	return true, unmarshal(rc, yamlKey, in, out.clone(val), keepOld, in)
 }
 
 func unmarshalArray(
+	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
 	out *fieldRef,
@@ -371,7 +376,7 @@ func unmarshalArray(
 	}
 
 	for i := 0; i < expectedSize; i++ {
-		err := unmarshal(
+		err := unmarshal(rc,
 			yamlKey, in.Content[i], out.clone(out.fieldValue.Index(i)),
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
@@ -389,6 +394,7 @@ func unmarshalArray(
 }
 
 func unmarshalSlice(
+	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
 	outVal *fieldRef,
@@ -413,7 +419,7 @@ func unmarshalSlice(
 	tmpVal := reflect.MakeSlice(outVal.fieldValue.Type(), size, size)
 
 	for i := 0; i < size; i++ {
-		err := unmarshal(
+		err := unmarshal(rc,
 			yamlKey, in.Content[i], outVal.clone(tmpVal.Index(i)),
 			// always drop existing inner data
 			// (actually doesn't matter since it's new)
@@ -443,6 +449,7 @@ func unmarshalSlice(
 // map key MUST be string
 // the return value is only meaningful when keepOld is set (resolving inline map pair)
 func unmarshalMap(
+	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
 	outVal *fieldRef,
@@ -485,6 +492,7 @@ func unmarshalMap(
 
 		k := kv[0].Value
 		err := unmarshal(
+			rc,
 			// use k rather than `yamlKey`
 			k,
 			kv[1], outVal.clone(*ret), keepOld, in,

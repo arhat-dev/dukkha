@@ -15,7 +15,7 @@ func HijackStandardStreams(stdin, stdout, stderr *os.File, do func()) {
 		}()
 
 		os.Stdout = stdout
-		syscall.Stdout = getSyscallFD(uintptr(stdout.Fd()))
+		syscall.Stdout = getSyscallFD(stdout.Fd())
 	}
 
 	if stderr != nil {
@@ -27,7 +27,7 @@ func HijackStandardStreams(stdin, stdout, stderr *os.File, do func()) {
 		}()
 
 		os.Stderr = stderr
-		syscall.Stderr = getSyscallFD(uintptr(stderr.Fd()))
+		syscall.Stderr = getSyscallFD(stderr.Fd())
 	}
 
 	if stdin != nil {
@@ -39,7 +39,7 @@ func HijackStandardStreams(stdin, stdout, stderr *os.File, do func()) {
 		}()
 
 		os.Stdin = stdin
-		syscall.Stdin = getSyscallFD(uintptr(stdin.Fd()))
+		syscall.Stdin = getSyscallFD(stdin.Fd())
 	}
 
 	do()

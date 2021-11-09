@@ -3,8 +3,8 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.7.4-0.20211109123634-b8f1f58f3c23
-	arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a
+	arhat.dev/pkg v0.8.0
+	arhat.dev/rs v0.8.1
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -28,9 +28,9 @@ require (
 	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.7.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 	golang.org/x/net v0.0.0-20211104170005-ce137452f963
-	golang.org/x/sys v0.0.0-20211103235746-7861aae1554b
+	golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/tools v0.1.7
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect

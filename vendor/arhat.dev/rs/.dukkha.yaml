@@ -28,6 +28,10 @@ tools:
       go,
     ]
 
+renderers:
+  env:
+    enable_exec: true
+
 golang:test:
 - name: rs
   env:

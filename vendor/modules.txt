@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.7.4-0.20211109123634-b8f1f58f3c23
+# arhat.dev/pkg v0.8.0
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
@@ -13,7 +13,7 @@ arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/rs v0.7.1-0.20211106175455-04fd26f5a52a
+# arhat.dev/rs v0.8.1
 ## explicit
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1
@@ -184,7 +184,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+# golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 ## explicit
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -212,7 +212,7 @@ golang.org/x/net/idna
 golang.org/x/net/publicsuffix
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20211103235746-7861aae1554b
+# golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
