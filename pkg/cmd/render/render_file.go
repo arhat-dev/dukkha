@@ -18,7 +18,7 @@ func renderYamlFile(
 ) error {
 	sInfo, err := os.Stat(srcPath)
 	if err != nil {
-		return fmt.Errorf("failed to check src dir %q: %w", srcPath, err)
+		return fmt.Errorf("invalid file source: %w", err)
 	}
 
 	srcPerm[srcPath] = sInfo.Mode().Perm()
@@ -26,7 +26,7 @@ func renderYamlFile(
 	if sInfo.IsDir() {
 		entries, err2 := os.ReadDir(srcPath)
 		if err2 != nil {
-			return fmt.Errorf("failed to check files in src dir %q: %w", srcPath, err2)
+			return fmt.Errorf("unable to check files in src dir %q: %w", srcPath, err2)
 		}
 
 		for _, ent := range entries {

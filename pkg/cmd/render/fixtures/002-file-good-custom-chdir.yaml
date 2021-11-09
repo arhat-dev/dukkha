@@ -1,0 +1,16 @@
+options:
+- --chdir=testdata
+sources:
+- testdata/level-1/src.yaml
+bad_options: false
+bad_source: false
+output_files:
+- "-"
+---
+expected: |-
+  l1:top-file-data@file: testdata/data.txt
+  l1:l1-file-data@file: testdata/level-1/data.txt
+  l1:l2-file-data@file: testdata/level-1/level-2/data.txt
+  l1:top-shell-data@file: testdata/data.txt
+  l1:l1-shell-data@file: testdata/level-1/data.txt
+  l1:l2-shell-data@file: testdata/level-1/level-2/data.txt

@@ -1,6 +1,8 @@
 package testhelper
 
-import "io"
+import (
+	"io"
+)
 
 // NewAlwaysFailReader creates an reader already fail on Read() call
 // with provided err

@@ -2,9 +2,8 @@ package render
 
 import (
 	"fmt"
-	"io/fs"
+	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -13,6 +12,7 @@ import (
 
 func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 	// cli options
+
 	opts := &Options{}
 
 	renderCmd := &cobra.Command{
@@ -28,11 +28,16 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(*ctx, opts, args)
+			return run(*ctx, opts, args, os.Stdout)
 		},
 	}
 
-	flags := renderCmd.Flags()
+	createOptionsFlags(renderCmd, opts)
+	return renderCmd
+}
+
+func createOptionsFlags(cmd *cobra.Command, opts *Options) {
+	flags := cmd.Flags()
 	flags.StringSliceVarP(&opts.outputDests, "output", "o", nil,
 		"set output destionation for specified inputs (args)",
 	)
@@ -51,14 +56,16 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 	flags.StringVarP(&opts.resultQuery, "query", "q", "",
 		"run jq style query over generated yaml/json docs before writing",
 	)
-
-	return renderCmd
+	flags.StringSliceVar(&opts.chdir, "chdir", nil,
+		"set root of the soure for specified inputs (args) for relative path resovling, "+
+			"useful when you are rendering single file inside some child directory of the source directory",
+	)
 }
 
-func run(appCtx dukkha.Context, opts *Options, args []string) error {
-	resolvedOpts, err := opts.Resolve(args, os.Stdout)
+func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) error {
+	resolvedOpts, err := opts.Resolve(args, stdout)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid options: %w", err)
 	}
 
 	if len(args) == 0 {
@@ -66,19 +73,19 @@ func run(appCtx dukkha.Context, opts *Options, args []string) error {
 		return renderYamlReader(
 			appCtx,
 			os.Stdin,
-			resolvedOpts.outputMapping["-"],
+			resolvedOpts.OutputPathFor("-"),
 			0664,
 			resolvedOpts,
 		)
 	}
 
-	originalWorkDir := appCtx.WorkingDir()
+	lastWorkDir := appCtx.WorkingDir()
 	for _, src := range args {
 		if src == "-" {
 			err = renderYamlReader(
 				appCtx,
 				os.Stdin,
-				resolvedOpts.outputMapping["-"],
+				resolvedOpts.OutputPathFor("-"),
 				0664,
 				resolvedOpts,
 			)
@@ -90,39 +97,12 @@ func run(appCtx dukkha.Context, opts *Options, args []string) error {
 		}
 
 		err = func() error {
-			var info fs.FileInfo
-			info, err = os.Stat(src)
-			if err != nil {
-				return err
-			}
-
-			// default values when src is a dir
-			var (
-				chdir      string
-				entrypoint string
-			)
-			if info.IsDir() {
-				// we are going to chdir into src dicrectory, or we
-				// have already been there
-				//
-				// so the entrypoint is always current dir
-				entrypoint = "."
-				chdir = src
-			} else {
-				// regular file
-				entrypoint = src
-				chdir = filepath.Dir(chdir)
-			}
-
-			chdir, err = filepath.Abs(chdir)
-			if err != nil {
-				return err
-			}
-
 			// chdir at the entrypoint (root of the source yaml)
 			// make relative paths in that dir happy
 
-			if chdir != originalWorkDir {
+			chdir := resolvedOpts.ChdirFor(src)
+
+			if chdir != lastWorkDir {
 				err = os.Chdir(chdir)
 				if err != nil {
 					return fmt.Errorf(
@@ -131,31 +111,19 @@ func run(appCtx dukkha.Context, opts *Options, args []string) error {
 					)
 				}
 
-				// change DUKKHA_WORKING_DIR to make renderers like `shell`, `env` happy
+				// change DUKKHA_WORKING_DIR to make renderers like
+				// `file`, `shell` and `env` work properly
 				appCtx.(interface {
 					OverrideWorkingDir(cwd string)
 				}).OverrideWorkingDir(chdir)
 
-				// always chdir back to original working dir, since other
-				// input source can be relative path to the original working dir
-				defer func() {
-					appCtx.(interface {
-						OverrideWorkingDir(cwd string)
-					}).OverrideWorkingDir(originalWorkDir)
-
-					err = os.Chdir(originalWorkDir)
-					if err != nil {
-						panic(fmt.Errorf(
-							"failed to go back to dukkha working dir: %w", err,
-						))
-					}
-				}()
+				lastWorkDir = chdir
 			}
 
 			return renderYamlFile(
 				appCtx,
-				entrypoint,
-				resolvedOpts.outputMapping[src],
+				resolvedOpts.EntrypointFor(src),
+				resolvedOpts.OutputPathFor(src),
 				resolvedOpts,
 				make(map[string]os.FileMode),
 			)

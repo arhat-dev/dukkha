@@ -1,0 +1,6 @@
+sources:
+- "-"
+- ""
+bad_source: true
+---
+# expected:

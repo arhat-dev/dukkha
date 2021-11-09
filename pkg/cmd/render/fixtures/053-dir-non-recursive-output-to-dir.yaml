@@ -1,0 +1,16 @@
+options@env:
+- -o=${out_dir}/
+sources:
+- testdata
+bad_options: false
+bad_source: false
+output_files@env:
+- ${out_dir}/src.yaml
+---
+expected: |-
+  top:top-file-data@file: testdata/data.txt
+  top:l1-file-data@file: testdata/level-1/data.txt
+  top:l2-file-data@file: testdata/level-1/level-2/data.txt
+  top:top-shell-data@file: testdata/data.txt
+  top:l1-shell-data@file: testdata/level-1/data.txt
+  top:l2-shell-data@file: testdata/level-1/level-2/data.txt

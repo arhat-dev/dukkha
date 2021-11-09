@@ -1,0 +1,8 @@
+options@env:
+- -o=${out_dir}/
+sources:
+- testdata/src.yaml
+bad_options: false
+bad_source: true
+---
+# expected:
