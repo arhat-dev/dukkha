@@ -1,6 +1,6 @@
 # Arbitrary File Rendering
 
-Render any doc using rendering suffix
+Render any doc using rendering suffix, yaml files in [`source`](./source) directory show case the usage of virtual key (`__`) for embedding arbitraty content.
 
 ## Run
 
