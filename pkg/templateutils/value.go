@@ -9,7 +9,7 @@ import (
 )
 
 func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
-	out := new(rs.AnyObject)
+	out := rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject)
 	err := yaml.Unmarshal([]byte(v), out)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal yaml data\n\n%s\n\nerr: %w", v, err)

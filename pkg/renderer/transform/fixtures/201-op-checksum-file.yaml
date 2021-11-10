@@ -1,0 +1,25 @@
+data@transform:
+  value: testdata/data.txt
+  ops:
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: md5
+      sum: 29d058e3a86ddde73eb10ea79bc1db10
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: sha1
+      sum: 84e29ccb2a6f7e16bf2d1fcb20c7d124a4c5ee3e
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: sha224
+      sum: da8bf8c09e189b9f1db1f0c61fa58eeba3c4712d9a9ee0c289d9e2e2
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: sha256
+      sum: 39ee0ec5e0785cec83ae6c8115f909f2669424d8cfa02329735140fd97ee7083
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: sha512
+      sum: 97bf4c5ac11ffe766cc8b7244f9291cc136e0eb4de127392ca6a71a8c212d4d620efee9997ac5af4799269fcc8a6dcad1789975f81507f50c81d5c6f18584556
+---
+data: testdata/data.txt

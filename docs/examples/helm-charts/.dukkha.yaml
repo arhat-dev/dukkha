@@ -1,0 +1,16 @@
+global:
+  values:
+    renovate_values@file: values.yaml
+
+renderers:
+  http:
+    enable_cache: true
+    cache_item_size_limit: 1M
+    cache_max_age: 1h
+    cache_size_limit: 1G
+
+  archivefile:
+    enable_cache: true
+    cache_item_size_limit: 1M
+    cache_max_age: 1h
+    cache_size_limit: 1G
