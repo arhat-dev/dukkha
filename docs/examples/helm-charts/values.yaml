@@ -1,0 +1,15 @@
+__@transform|archivefile:
+  value@http#cached-file!:
+    value@http: &index_url https://docs.renovatebot.com/helm-charts/index.yaml
+    select: |-
+      .entries.renovate[0].urls[0]
+  ops:
+  - checksum:
+      file@template: "{{ VALUE }}"
+      kind: sha256
+      sum@!:
+        value@http: *index_url
+        select: .entries.renovate[0].digest
+  - template@?str:
+      archive: "{{ VALUE }}"
+      path: renovate/values.yaml

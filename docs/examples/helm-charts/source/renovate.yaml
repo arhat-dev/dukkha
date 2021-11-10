@@ -1,0 +1,1 @@
+__@template?str: "{{ values.renovate_values.cronjob.schedule }}"
