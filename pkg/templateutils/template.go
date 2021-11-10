@@ -85,6 +85,17 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"state": func() *_stateNS {
 				return createStateNS(rc)
 			},
+			// for transform renderer
+			"VALUE": func() string {
+				transformContext, ok := rc.(interface {
+					VALUE() string
+				})
+				if ok {
+					return transformContext.VALUE()
+				}
+
+				return ""
+			},
 		}).
 		// text processing
 		Funcs(map[string]interface{}{

@@ -1,0 +1,6 @@
+data@transform:
+  value: "10.10000"
+  ops:
+  - shell: 'template:strings.Quote "\"${VALUE}\"" | template:fromYaml'
+---
+data: "10.10000"

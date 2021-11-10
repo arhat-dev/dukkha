@@ -1,0 +1,11 @@
+data@transform?str:
+  value: foo
+  ops:
+  - template@?str:
+      foo: |-
+        {{ VALUE }}
+      bar: bar
+---
+data: |-
+  bar: bar
+  foo: 'foo'

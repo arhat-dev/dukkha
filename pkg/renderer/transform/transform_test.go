@@ -2,64 +2,46 @@ package transform
 
 import (
 	"context"
-	"strings"
 	"testing"
 
+	"arhat.dev/pkg/testhelper"
+	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/renderer/template"
 )
 
 func TestDriver_RenderYaml(t *testing.T) {
-	tests := []struct {
-		name     string
-		specStr  string
-		expected interface{}
-	}{
-		{
-			name: "Op Template YAML number",
-			specStr: `
-value: "10.10000"
-ops:
-- template: "{{- fromYaml .Value -}}"
-`,
-			expected: "10.1",
-		},
-		{
-			name: "Op Template YAML str",
-			specStr: `
-value: "10.10000"
-ops:
-- template: '{{- fromYaml (printf "%q" .Value) -}}'
-`,
-			expected: "10.10000",
-		},
-		{
-			name: "Op Shell YAML number",
-			specStr: `
-value: "10.10000"
-ops:
-- shell: 'template:fromYaml "\"${VALUE}\""'
-`,
-			expected: "10.1",
-		},
-		{
-			name: "Op Shell YAML str",
-			specStr: `
-value: "10.10000"
-ops:
-- shell: 'template:strings.Quote "\"${VALUE}\"" | template:fromYaml'
-`,
-			expected: "10.10000",
-		},
+	type TestSpec struct {
+		rs.BaseField
+
+		Data string `yaml:"data"`
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			d := &Driver{}
-			ret, err := d.RenderYaml(dukkha_test.NewTestContext(t, context.TODO()), test.specStr, nil)
-			assert.NoError(t, err)
-			assert.EqualValues(t, test.expected, strings.TrimSuffix(string(ret), "\n"))
-		})
+	type CheckSpec struct {
+		rs.BaseField
+
+		Data string `yaml:"data"`
 	}
+
+	testhelper.TestFixtures(t, "./fixtures",
+		func() interface{} { return rs.Init(&TestSpec{}, nil) },
+		func() interface{} { return rs.Init(&CheckSpec{}, nil) },
+		func(t *testing.T, spec, exp interface{}) {
+			actual := spec.(*TestSpec)
+			expected := exp.(*CheckSpec)
+
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
+			ctx.AddRenderer("transform", NewDefault("transform"))
+			ctx.AddRenderer("file", file.NewDefault("file"))
+			ctx.AddRenderer("template", template.NewDefault("template"))
+
+			assert.NoError(t, actual.ResolveFields(ctx, -1))
+			assert.NoError(t, expected.ResolveFields(ctx, -1))
+
+			assert.EqualValues(t, expected.Data, actual.Data)
+		},
+	)
 }

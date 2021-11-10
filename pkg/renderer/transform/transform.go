@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"text/template"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
+	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -46,9 +48,7 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	spec := rs.Init(&Spec{}, &rs.Options{
-		InterfaceTypeHandler: rc,
-	}).(*Spec)
+	spec := rs.Init(&Spec{}, nil).(*Spec)
 	err = yaml.Unmarshal(rawBytes, spec)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -57,7 +57,9 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	err = spec.ResolveFields(rc, -1)
+	// only resolve value and ops list, we need to resolve
+	// each operation step by step with `value` injected
+	err = spec.ResolveFields(rc, 2)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"renderer.%s: failed to resolve transform spec fields: %w",
@@ -65,7 +67,7 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	var data interface{} = spec.Value
+	data := []byte(spec.Value)
 	for i, op := range spec.Ops {
 		data, err = op.Do(rc, data)
 		if err != nil {
@@ -76,14 +78,7 @@ func (d *Driver) RenderYaml(
 		}
 	}
 
-	switch dt := data.(type) {
-	case string:
-		return []byte(dt), nil
-	case []byte:
-		return dt, nil
-	default:
-		return yaml.Marshal(data)
-	}
+	return data, nil
 }
 
 // Spec for yaml data transformation
@@ -100,50 +95,58 @@ type Spec struct {
 type Operation struct {
 	rs.BaseField `yaml:"-"`
 
-	Template *string `yaml:"template,omitempty"`
-	Shell    *string `yaml:"shell,omitempty"`
+	Template *string   `yaml:"template,omitempty"`
+	Shell    *string   `yaml:"shell,omitempty"`
+	Checksum *Checksum `yaml:"checksum,omitempty"`
 }
 
-type tplDataType struct {
-	dukkha.RenderingContext
-	Value interface{}
-}
+func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte, error) {
+	rc2 := _rc.(interface {
+		dukkha.RenderingContext
+		SetVALUE(s string)
+		VALUE() string
+	})
 
-func (op *Operation) Do(rc dukkha.RenderingContext, data interface{}) (interface{}, error) {
+	rc2.SetVALUE(string(valueBytes))
+	rc2.AddEnv(true, &dukkha.EnvEntry{
+		Name:  "VALUE",
+		Value: rc2.VALUE(),
+	})
+
+	// do not expose SetVALUE to template operation
+	rc := rc2.(interface {
+		dukkha.RenderingContext
+		VALUE() string
+	})
+
+	err := op.ResolveFields(rc, -1)
+	if err != nil {
+		return nil, err
+	}
+
 	switch {
 	case op.Template != nil:
 		tplStr := *op.Template
 
-		tpl, err := templateutils.CreateTemplate(rc).Parse(tplStr)
+		var tpl *template.Template
+		tpl, err = templateutils.CreateTemplate(rc).Parse(tplStr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse template %q: %w", tplStr, err)
 		}
 
 		buf := &bytes.Buffer{}
-		err = tpl.Execute(buf, &tplDataType{
-			RenderingContext: rc,
-			Value:            data,
-		})
+		err = tpl.Execute(buf, rc)
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute template %q: %w", tplStr, err)
 		}
 
-		return string(buf.Next(buf.Len())), nil
+		return buf.Next(buf.Len()), nil
 	case op.Shell != nil:
 		script := *op.Shell
 
-		valueBytes, err := yamlhelper.ToYamlBytes(data)
-		if err != nil {
-			return nil, err
-		}
-
-		rc.AddEnv(true, &dukkha.EnvEntry{
-			Name:  "VALUE",
-			Value: string(valueBytes),
-		})
-
 		buf := &bytes.Buffer{}
-		runner, err := templateutils.CreateEmbeddedShellRunner(
+		var runner *interp.Runner
+		runner, err = templateutils.CreateEmbeddedShellRunner(
 			rc.WorkingDir(), rc, nil, buf, os.Stderr,
 		)
 		if err != nil {
@@ -159,12 +162,13 @@ func (op *Operation) Do(rc dukkha.RenderingContext, data interface{}) (interface
 
 		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run shell script: %w", err)
+			return nil, err
 		}
 
-		return string(buf.Next(buf.Len())), nil
+		return buf.Next(buf.Len()), nil
+	case op.Checksum != nil:
+		return valueBytes, op.Checksum.Verify()
 	default:
-		// TODO: shall we consider nop as an error?
-		return data, nil
+		return valueBytes, nil
 	}
 }

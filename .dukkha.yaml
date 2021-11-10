@@ -19,7 +19,7 @@ global:
         value: "10.10000"
         ops:
         - template: |-
-            {{- printf "str-%s" .Value -}}
+            {{- printf "str-%s" VALUE -}}
 
       render:
         # a: I'm a

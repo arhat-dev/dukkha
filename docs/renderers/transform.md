@@ -5,12 +5,12 @@ foo@transform:
   value: foo
   ops:
   - template: |-
-      {{ .Value }}-do-something
+      {{ VALUE }}-do-something
   - shell: |-
       echo ${VALUE}
 ```
 
-Use operations like [template](https://golang.org/pkg/text/template/) to transform string value into arbitrary valid yaml or just plain string, and use the result as the field value.
+Use operations to transform string value into arbitrary valid yaml or just plain string, and use the result as the field value.
 
 ## Config Options
 
@@ -30,13 +30,23 @@ foo@transform:
   value: String Only, seriously
   # operations you want to take on the value
   ops:
-  # Execute golang template over .Value
+  # Execute golang template over VALUE
   - template: |-
       add some {{- /* go */ -}} template
-      your value above is available as {{ .Value }}
+      your value above is available as {{ VALUE }}
   # Execute shell script with env ${VALUE}
   - shell: |-
       echo "${VALUE}"
+
+  # Checksum verify data integrity, input value is returned as result
+  - checksum:
+      path@template: "{{ VALUE }}"
+      # kind of the checksum, with
+      kind: sha256
+      # hex encoded sum value
+      sum: # ...
+      # key once set, verify hmac
+      key: # ...
 ```
 
 ## Suggested Use Cases
@@ -45,15 +55,23 @@ foo@transform:
 - Composite different renderers to achieve significantly more flexibility.
 
   ```yaml
-  # entrypoint is the transform renderer
-  # last step happens here: archivefile renders value generated from renderer `transform`
+  # step (0): entrypoint is the `transform` renderer
+  # step (4): `archivefile` renders value generated from renderer `transform`
   foo@transform|archivefile:
-    # first step happens here: fetch data.tar.gz from remote http endpoint
+    # (1) first step happens here: fetch data.tar.gz from remote http endpoint
     # notice the `#cached-file`, attribute `cached-file` will make renderer
     # `http` return local file path to the cached content.
     value@http#cached-file: https://example.com/data.tar.gz
     ops:
-    # second step happens here: format the resolved `value` for render `archivefile`
-    - template: |-
-        {{ .Value }}:/in-archive-target-file
+    # step (2): verify checksum of the downloaded archive
+    - checksum:
+        file@env: ${VALUE}
+        kind: sha256
+        sum: # sha256sum of the expected file
+    # step (3): format the resolved `value` for render `archivefile`
+    # we are using type hint `str` to convert map as string since
+    # template operation only accepts string value
+    - template@?str:
+        archive: {{ VALUE }}
+        path: in-archive-target-file
   ```
