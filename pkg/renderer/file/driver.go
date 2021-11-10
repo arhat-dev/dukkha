@@ -10,7 +10,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer"
 )
 
 // nolint:revive
@@ -24,8 +23,8 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{EnableCache: false},
+		name:   name,
+		Config: cache.Config{EnableCache: false},
 	}
 }
 
@@ -35,7 +34,7 @@ type Driver struct {
 	rs.BaseField `yaml:"-"`
 	name         string
 
-	renderer.CacheConfig `yaml:",inline"`
+	cache.Config `yaml:",inline"`
 
 	cache *cache.Cache
 }

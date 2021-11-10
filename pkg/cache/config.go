@@ -1,4 +1,4 @@
-package renderer
+package cache
 
 import (
 	"time"
@@ -8,8 +8,8 @@ import (
 	"arhat.dev/dukkha/pkg/utils"
 )
 
-// CacheConfig is the config for rendered data caching
-type CacheConfig struct {
+// Config is the config for rendered data caching
+type Config struct {
 	rs.BaseField `yaml:"-"`
 
 	// EnableCache activates rendered data caching

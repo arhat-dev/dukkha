@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/md5helper"
 	lru "github.com/die-net/lrucache"
 )
@@ -105,6 +106,19 @@ func (c *TwoTierCache) get(
 		return "", nil, false, err
 	}
 
+	// actively remove all but last expired cache
+	if len(expired) != 0 {
+		for _, v := range expired[:len(expired)-1] {
+			v = filepath.Join(c.cacheDirPath, v)
+			err = os.Remove(v)
+			if err != nil {
+				log.Log.I("failed to remove expired cache",
+					log.String("file", v), log.Error(err),
+				)
+			}
+		}
+	}
+
 	if len(active) != 0 {
 		file = active[len(active)-1]
 		isExpired = false
@@ -123,7 +137,6 @@ func (c *TwoTierCache) get(
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return
-
 		}
 
 		err = os.MkdirAll(c.cacheDirPath, 0755)
@@ -136,6 +149,7 @@ func (c *TwoTierCache) get(
 	if err != nil {
 		// failed fetching from remote, fallback to last expired
 		if len(expired) == 0 {
+			// no expired cache, fail
 			return
 		}
 

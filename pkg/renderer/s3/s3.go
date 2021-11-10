@@ -25,8 +25,8 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{EnableCache: false},
+		name:   name,
+		Config: cache.Config{EnableCache: false},
 	}
 }
 
@@ -36,7 +36,7 @@ type Driver struct {
 	rs.BaseField `yaml:"-"`
 	name         string
 
-	renderer.CacheConfig `yaml:",inline"`
+	cache.Config `yaml:",inline"`
 
 	DefaultConfig rendererS3Config `yaml:",inline"`
 
