@@ -17,9 +17,11 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"time"
 
 	"arhat.dev/dukkha/pkg/cmd"
@@ -37,7 +39,12 @@ func main() {
 	err := rootCmd.Execute()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err.Error())
-		// TODO: use last exec exist code
+
+		exitErr := new(exec.ExitError)
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.ExitCode())
+		}
+
 		os.Exit(1)
 	}
 }
