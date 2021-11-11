@@ -4,14 +4,14 @@ go 1.16
 
 require (
 	arhat.dev/pkg v0.8.0
-	arhat.dev/rs v0.8.2-0.20211111071416-fa412a2e9a45
+	arhat.dev/rs v0.8.2
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 	github.com/google/uuid v1.3.0
-	github.com/gosimple/slug v1.11.0
+	github.com/gosimple/slug v1.11.2
 	github.com/h2non/filetype v1.1.2-0.20210917125640-7fafb18134ff
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
@@ -30,8 +30,8 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
-	golang.org/x/net v0.0.0-20211104170005-ce137452f963
-	golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3
+	golang.org/x/net v0.0.0-20211111160137-58aab5ef257a
+	golang.org/x/sys v0.0.0-20211110154304-99a53858aa08
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/tools v0.1.7
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
