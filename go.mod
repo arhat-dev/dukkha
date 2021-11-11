@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
+	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 	github.com/google/uuid v1.3.0
 	github.com/gosimple/slug v1.11.0

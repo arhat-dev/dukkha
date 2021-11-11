@@ -27,6 +27,9 @@ github.com/Masterminds/sprig/v3
 # github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 ## explicit
 github.com/aoldershaw/ansi
+# github.com/bmatcuk/doublestar/v4 v4.0.2
+## explicit
+github.com/bmatcuk/doublestar/v4
 # github.com/creack/pty v1.1.17 => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1

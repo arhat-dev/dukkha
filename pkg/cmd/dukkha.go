@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/log"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/cmd/completion"
@@ -92,7 +93,7 @@ func NewRootCmd() *cobra.Command {
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
 			err = readConfigRecursively(
-				os.DirFS("."),
+				afero.NewIOFS(afero.NewOsFs()),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
 				&visitedPaths,

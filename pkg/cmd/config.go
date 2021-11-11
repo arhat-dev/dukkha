@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"path/filepath"
+	"path"
 
 	"arhat.dev/pkg/log"
+	ds "github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
@@ -19,8 +20,8 @@ func readConfigRecursively(
 	visitedPaths *map[string]struct{},
 	mergedConfig *conf.Config,
 ) error {
-	for _, path := range configPaths {
-		info, err := fs.Stat(rootfs, path)
+	for _, target := range configPaths {
+		info, err := fs.Stat(rootfs, target)
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
 				if ignoreFileNotExist {
@@ -33,7 +34,7 @@ func readConfigRecursively(
 
 		if !info.IsDir() {
 			err = readAndMergeConfigFile(
-				rootfs, visitedPaths, mergedConfig, path,
+				rootfs, visitedPaths, mergedConfig, target,
 			)
 			if err != nil {
 				return err
@@ -42,7 +43,7 @@ func readConfigRecursively(
 			continue
 		}
 
-		dirFS, err := fs.Sub(rootfs, path)
+		dirFS, err := fs.Sub(rootfs, target)
 		if err != nil {
 			return err
 		}
@@ -56,7 +57,7 @@ func readConfigRecursively(
 				return nil
 			}
 
-			switch filepath.Ext(pathInDir) {
+			switch path.Ext(pathInDir) {
 			case ".yaml":
 				// leave .yml for customization
 			default:
@@ -64,7 +65,7 @@ func readConfigRecursively(
 			}
 
 			return readAndMergeConfigFile(
-				rootfs, visitedPaths, mergedConfig, filepath.Join(path, pathInDir),
+				rootfs, visitedPaths, mergedConfig, path.Join(target, pathInDir),
 			)
 		})
 
@@ -110,13 +111,13 @@ func readAndMergeConfigFile(
 		log.Log.V("working on include entry", log.String("value", inc))
 
 		var toInclude string
-		if filepath.IsAbs(inc) {
+		if path.IsAbs(inc) {
 			toInclude = inc
 		} else {
-			toInclude = filepath.Join(filepath.Dir(file), inc)
+			toInclude = path.Join(path.Dir(file), inc)
 		}
 
-		matches, err2 := filepath.Glob(toInclude)
+		matches, err2 := ds.Glob(rootfs, toInclude)
 		if err2 != nil {
 			matches = []string{toInclude}
 		}
