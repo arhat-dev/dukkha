@@ -86,13 +86,13 @@ workflow:run:
 
       echo "- shell: printf 'Succeeded\n'"
 
-  jobs@template:
+  jobs:
   - name: test merged golang build using rendering suffix in matrix include
     task: |-
       golang:build(dukkha-local, {kernel: [windows], arch: [amd64]})
 
-  - name: test dukkha working with nested rendering suffix
-    shell:python: print({{- "\"test\"" -}})
+  - name: test dukkha working with rendering suffix
+    shell:python@template: print({{- "\"test\"" -}})
 
   - name: test template func call in embedded shell
     shell: template:printf \"Hello Template %s\\n\" \"test\"
@@ -121,7 +121,14 @@ workflow:run:
     shell: echo ${FOO} in embedded shell
 
   - name: test script from remote endpoint
-    shell@http:custom: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
+    shell@transform?str:
+      value@http:custom?str: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
+      ops:
+      - checksum:
+          data@template: |
+            {{- VALUE -}}
+          kind: sha256
+          sum@http: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/f36f55f83d2bb0d3d45e79e48360bb5c35826048/echo.sh.sha256
 
   - name: test golang build
     env:
