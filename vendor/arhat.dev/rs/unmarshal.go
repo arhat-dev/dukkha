@@ -147,9 +147,9 @@ func (f *BaseField) unmarshalRS(yamlKey, suffix string, kv []*yaml.Node) error {
 	return field.base.addUnresolvedField(yamlKey, suffix, nil, field, v)
 }
 
-// rc is used to resolve virtual key for rendered data (only happening during ResolveFileds)
-// so it can be nil when unmarhaling
 func unmarshal(
+	// rc is used to resolve virtual key for rendered data (only happening during ResolveFileds)
+	// so it can be nil when unmarhaling fields without rendering suffix
 	rc RenderingHandler,
 	yamlKey string,
 	in *yaml.Node,
@@ -227,6 +227,14 @@ func unmarshal(
 			)
 			if err != nil {
 				return err
+			}
+		}
+
+		if len(content) == 0 {
+			switch outKind {
+			case reflect.Map, reflect.Interface, reflect.Struct:
+			default:
+				return nil
 			}
 		}
 
