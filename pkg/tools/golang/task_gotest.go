@@ -267,7 +267,18 @@ func generateCompileSpecs(
 		UseShell:    useShell,
 		ShellName:   shellName,
 		IgnoreError: false,
-	})
+	},
+		dukkha.TaskExecSpec{
+			AlterExecFunc: func(
+				replace dukkha.ReplaceEntries,
+				stdin io.Reader,
+				stdout, stderr io.Writer,
+			) (dukkha.RunTaskOrRunCmd, error) {
+				return nil, os.Chmod(builtTestExecutable, 0750)
+			},
+			IgnoreError: true,
+		},
+	)
 
 	return builtTestExecutable, steps
 }
