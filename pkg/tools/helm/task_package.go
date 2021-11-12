@@ -6,8 +6,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -46,13 +46,13 @@ func (c *TaskPackage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
-		Command: sliceutils.NewStrings(options.ToolCmd(), "package"),
+		Command: []string{constant.DUKKHA_TOOL_CMD, "package"},
 
 		UseShell:  options.UseShell(),
 		ShellName: options.ShellName(),
 	}
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		matches, err := filepath.Glob(c.Chart)
 		if err != nil {
 			pkgStep.Command = append(pkgStep.Command, c.Chart)

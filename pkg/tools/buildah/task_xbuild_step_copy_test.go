@@ -6,15 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestStepCopy_genSpec(t *testing.T) {
-	const (
-		baseCmd = "buildah"
-	)
-
 	tests := []struct {
 		name     string
 		spec     *stepCopy
@@ -34,7 +31,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 			},
 			expected: []dukkha.TaskExecSpec{
 				{
-					Command: []string{baseCmd, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo"},
+					Command: []string{constant.DUKKHA_TOOL_CMD, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo"},
 				},
 			},
 		},
@@ -52,7 +49,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 			},
 			expected: []dukkha.TaskExecSpec{
 				{
-					Command: []string{baseCmd, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
+					Command: []string{constant.DUKKHA_TOOL_CMD, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
 				},
 			},
 		},
@@ -70,7 +67,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 			},
 			expected: []dukkha.TaskExecSpec{
 				{
-					Command: []string{baseCmd, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "https://example.com", "/bar"},
+					Command: []string{constant.DUKKHA_TOOL_CMD, "copy", replace_XBUILD_CURRENT_CONTAINER_ID, "https://example.com", "/bar"},
 				},
 			},
 		},
@@ -96,10 +93,10 @@ func TestStepCopy_genSpec(t *testing.T) {
 		// 					IgnoreError: false,
 		//
 		// 					ShowStdout: true,
-		// 					Command:    []string{baseCmd, "pull", "some-image"},
+		// 					Command:    []string{constant.DUKKHA_TOOL_CMD, "pull", "some-image"},
 		// 				},
 		// 				{
-		// 					Command: []string{baseCmd, "copy", "--from", "<XBUILD_COPY_FROM_IMAGE_ID>", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
+		// 					Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--from", "<XBUILD_COPY_FROM_IMAGE_ID>", replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
 		// 				},
 		// 			},
 		// 		},
@@ -118,7 +115,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 			},
 			expected: []dukkha.TaskExecSpec{
 				{
-					Command: []string{baseCmd, "copy", "--from", replace_XBUILD_STEP_CONTAINER_ID("some-step"), replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
+					Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--from", replace_XBUILD_STEP_CONTAINER_ID("some-step"), replace_XBUILD_CURRENT_CONTAINER_ID, "/foo", "/bar"},
 				},
 			},
 		},
@@ -129,7 +126,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(t, context.TODO())
 			ret, err := test.spec.genSpec(
 				ctx,
-				dukkha_test.CreateTaskMatrixExecOptions([]string{baseCmd}),
+				dukkha_test.CreateTaskMatrixExecOptions(),
 				false,
 			)
 			assert.NoError(t, err)

@@ -8,7 +8,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type mountSpec struct {
@@ -69,7 +68,7 @@ func (s *stepFrom) genSpec(
 		// flag option --platform can override it
 
 		// buildah pull [--policy always|never|missing] [--os OCI_OS] [--arch OCI_ARCH] [--variant OCI_VARIANT]
-		pullCmd := sliceutils.NewStrings(options.ToolCmd(), "pull")
+		pullCmd := []string{constant.DUKKHA_TOOL_CMD, "pull"}
 
 		pullCmd = append(pullCmd, platformArgs...)
 		pullCmd = append(pullCmd, s.ExtraPullArgs...)
@@ -87,7 +86,7 @@ func (s *stepFrom) genSpec(
 		})
 	}
 
-	fromCmd := sliceutils.NewStrings(options.ToolCmd(), "from")
+	fromCmd := []string{constant.DUKKHA_TOOL_CMD, "from"}
 	fromCmd = append(fromCmd, platformArgs...)
 	fromCmd = append(fromCmd, s.ExtraArgs...)
 	fromCmd = append(fromCmd, imageRef)
@@ -115,13 +114,12 @@ func (s *stepFrom) genSpec(
 
 		ShowStdout:  true,
 		IgnoreError: false,
-		Command: sliceutils.NewStrings(
-			options.ToolCmd(),
+		Command: []string{constant.DUKKHA_TOOL_CMD,
 			"inspect",
 			"--type", "container",
 			"--format", "{{ .ContainerID }}",
 			replace_XBUILD_CURRENT_CONTAINER_NAME,
-		),
+		},
 		UseShell:  options.UseShell(),
 		ShellName: options.ShellName(),
 	})

@@ -14,6 +14,7 @@ import (
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -59,7 +60,7 @@ func (c *TaskTest) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		// get package prefix to be trimed
 		const targetReplaceModuleName = "<MODULE_NAME>"
 		steps = append(steps, dukkha.TaskExecSpec{
@@ -67,7 +68,7 @@ func (c *TaskTest) GetExecSpecs(
 			FixStdoutValueForReplace: bytes.TrimSpace,
 
 			Chdir:       c.Chdir,
-			Command:     sliceutils.NewStrings(options.ToolCmd(), "list", "-m"),
+			Command:     []string{constant.DUKKHA_TOOL_CMD, "list", "-m"},
 			IgnoreError: false,
 		})
 
@@ -84,10 +85,8 @@ func (c *TaskTest) GetExecSpecs(
 			StdoutAsReplace: targetReplacePackages,
 			StderrAsReplace: targetReplaceGoListErrorResult,
 
-			Chdir: c.Chdir,
-			Command: sliceutils.NewStrings(
-				options.ToolCmd(), "list", "-f", listFormat, c.Path,
-			),
+			Chdir:       c.Chdir,
+			Command:     []string{constant.DUKKHA_TOOL_CMD, "list", "-f", listFormat, c.Path},
 			IgnoreError: true,
 		})
 
@@ -96,7 +95,7 @@ func (c *TaskTest) GetExecSpecs(
 		taskName := c.TaskName
 		dukkhaCacheDir := rc.CacheDir()
 		dukkhaWorkingDir := rc.WorkingDir()
-		toolCmd := sliceutils.NewStrings(options.ToolCmd())
+		toolCmd := []string{constant.DUKKHA_TOOL_CMD}
 		useShell := options.UseShell()
 		shellName := options.ShellName()
 		chdir := c.Chdir

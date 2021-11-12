@@ -11,8 +11,8 @@ import (
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type stepRun struct {
@@ -55,7 +55,7 @@ func (s *stepRun) genSpec(
 	options dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
-	runCmd := sliceutils.NewStrings(options.ToolCmd(), "run")
+	runCmd := []string{constant.DUKKHA_TOOL_CMD, "run"}
 	if record {
 		runCmd = append(runCmd, "--add-history")
 	}
@@ -110,11 +110,10 @@ func (s *stepRun) genSpec(
 			},
 			// copy executable to container
 			dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "copy", "--chmod", "0755",
+				Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--chmod", "0755",
 					replace_XBUILD_CURRENT_CONTAINER_ID,
 					localExecutablePath, execPathInContainer,
-				),
+				},
 			},
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
@@ -125,11 +124,10 @@ func (s *stepRun) genSpec(
 			// override that executable
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "copy", "--chmod", "0644",
+				Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--chmod", "0644",
 					replace_XBUILD_CURRENT_CONTAINER_ID,
 					replace_XBUILD_RUN_EXECUTABLE_SRC_REDACTED_PATH, execPathInContainer,
-				),
+				},
 			},
 		)
 	case len(s.Script) != 0:
@@ -200,11 +198,10 @@ func (s *stepRun) genSpec(
 			},
 			// copy script to container
 			dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "copy", "--chmod", "0755",
+				Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--chmod", "0755",
 					replace_XBUILD_CURRENT_CONTAINER_ID,
 					replace_XBUILD_RUN_SCRIPT_SRC_PATH, execPathInContainer,
-				),
+				},
 			},
 			// run the script
 			dukkha.TaskExecSpec{
@@ -216,11 +213,10 @@ func (s *stepRun) genSpec(
 			// override that script
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "copy", "--chmod", "0644",
+				Command: []string{constant.DUKKHA_TOOL_CMD, "copy", "--chmod", "0644",
 					replace_XBUILD_CURRENT_CONTAINER_ID,
 					replace_XBUILD_RUN_SCRIPT_SRC_REDACTED_PATH, execPathInContainer,
-				),
+				},
 			},
 		)
 	default:

@@ -12,6 +12,7 @@ import (
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/output"
 	"arhat.dev/dukkha/pkg/utils"
@@ -20,6 +21,7 @@ import (
 // nolint:gocyclo
 func doRun(
 	ctx dukkha.TaskExecContext,
+	getToolCmd func(ctx dukkha.RenderingContext) ([]string, error),
 	execSpecs []dukkha.TaskExecSpec,
 	_replaceEntries *dukkha.ReplaceEntries,
 ) (err error) {
@@ -206,7 +208,7 @@ func doRun(
 
 			switch t := subSpecs.(type) {
 			case []dukkha.TaskExecSpec:
-				err = doRun(ctx, t, &replace)
+				err = doRun(ctx, getToolCmd, t, &replace)
 			case *TaskExecRequest:
 				err = RunTask(t)
 			case nil:
@@ -265,11 +267,26 @@ func doRun(
 			ctx.AddEnv(false, es.EnvSuggest...)
 		}
 
-		var err error
+		toolCmd, err := getToolCmd(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get final tool cmd: %w", err)
+		}
+
+		var actualCmd []string
+		for _, p := range cmd {
+			if p != constant.DUKKHA_TOOL_CMD {
+				actualCmd = append(actualCmd, p)
+				continue
+			}
+
+			actualCmd = append(actualCmd, toolCmd...)
+		}
+		cmd = actualCmd
+
 		if es.UseShell {
 			var shellCmd []string
 			if es.ShellName != "" {
-				// using embedded shell
+				// not using embedded shell
 				sh, ok := ctx.GetShell(es.ShellName)
 				if !ok {
 					ctx.SetState(dukkha.TaskExecFailed)

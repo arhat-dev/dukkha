@@ -11,8 +11,8 @@ import (
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 // stepCopy is structured `buildah copy`
@@ -34,7 +34,7 @@ func (s *stepCopy) genSpec(
 	_ = rc
 	var steps []dukkha.TaskExecSpec
 
-	copyCmd := sliceutils.NewStrings(options.ToolCmd(), "copy")
+	copyCmd := []string{constant.DUKKHA_TOOL_CMD, "copy"}
 	if record {
 		copyCmd = append(copyCmd, "--add-history")
 	}
@@ -91,7 +91,7 @@ func (s *stepCopy) genSpec(
 			replace_XBUILD_COPY_FROM_IMAGE_ID = "<XBUILD_COPY_FROM_IMAGE_ID>"
 		)
 
-		pullCmd := sliceutils.NewStrings(options.ToolCmd(), "pull")
+		pullCmd := []string{constant.DUKKHA_TOOL_CMD, "pull"}
 		pullCmd = append(pullCmd, generatePlatformArgs(from.Kernel, from.Arch)...)
 		pullCmd = append(pullCmd, from.ExtraPullArgs...)
 		pullCmd = append(pullCmd, from.Ref)

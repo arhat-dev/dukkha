@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
@@ -18,7 +19,7 @@ func TestTaskPush_ManifestHandling(t *testing.T) {
 		manifestCache: make(map[manifestCacheKey]manifestCacheValue),
 	}
 
-	opts := dukkha_test.CreateTaskMatrixExecOptions([]string{"buildah"})
+	opts := dukkha_test.CreateTaskMatrixExecOptions()
 	task.cacheManifestPushSpec(0, opts, manifestName)
 
 	assert.Len(t, task.manifestCache, 1)
@@ -34,7 +35,7 @@ func TestTaskPush_ManifestHandling(t *testing.T) {
 
 	assert.EqualValues(t, []dukkha.TaskExecSpec{{
 		Command: []string{
-			"buildah", "manifest", "push", "--all",
+			constant.DUKKHA_TOOL_CMD, "manifest", "push", "--all",
 			getLocalManifestName(manifestName),
 			"docker://" + manifestName,
 		},

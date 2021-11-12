@@ -6,8 +6,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -37,9 +37,10 @@ type TaskIndex struct {
 func (c *TaskIndex) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	indexCmd := sliceutils.NewStrings(options.ToolCmd(), "repo", "index")
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	indexCmd := []string{constant.DUKKHA_TOOL_CMD, "repo", "index"}
+
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		if len(c.RepoURL) != 0 {
 			indexCmd = append(indexCmd, "--url", c.RepoURL)
 		}

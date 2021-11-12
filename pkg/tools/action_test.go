@@ -63,7 +63,7 @@ func TestActionFixtures(t *testing.T) {
 
 			switch rt := runReq.(type) {
 			case []dukkha.TaskExecSpec:
-				err = doRun(ctx, rt, nil)
+				err = doRun(ctx, nil, rt, nil)
 			case *TaskExecRequest:
 				err = RunTask(rt)
 			case nil:

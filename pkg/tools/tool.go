@@ -151,20 +151,23 @@ func (t *BaseTool) Run(ctx dukkha.TaskExecContext, key dukkha.TaskKey) error {
 func (t *BaseTool) DoAfterFieldsResolved(
 	ctx dukkha.RenderingContext,
 	depth int,
+	resolveEnv bool,
 	do func() error,
 	tagNames ...string,
 ) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	err := t.resolveEssentialFieldsAndAddEnv(ctx)
-	if err != nil {
-		return err
+	if resolveEnv {
+		err := dukkha.ResolveEnv(t, ctx, "Env", "env")
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(tagNames) == 0 {
 		// resolve all fields of the real task type
-		err = t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
+		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
 			return fmt.Errorf("failed to resolve tool fields: %w", err)
 		}
@@ -186,15 +189,6 @@ func (t *BaseTool) DoAfterFieldsResolved(
 	}
 
 	return do()
-}
-
-func (t *BaseTool) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := t.ResolveFields(mCtx, -1, "name")
-	if err != nil {
-		return fmt.Errorf("failed to resolve essential fields: %w", err)
-	}
-
-	return dukkha.ResolveEnv(t, mCtx, "Env", "env")
 }
 
 func separateBaseAndImpl(basePrefix string, names []string) (forBase, forImpl []string) {

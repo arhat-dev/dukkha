@@ -30,7 +30,7 @@ func (c *TaskPush) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		targets := c.ImageNames
 		if len(targets) == 0 {
 			targets = []buildah.ImageNameSpec{{
@@ -40,7 +40,7 @@ func (c *TaskPush) GetExecSpecs(
 		}
 
 		var (
-			manifestCmd = sliceutils.NewStrings(options.ToolCmd(), "manifest")
+			manifestCmd = []string{constant.DUKKHA_TOOL_CMD, "manifest"}
 		)
 
 		for _, spec := range targets {
@@ -54,9 +54,7 @@ func (c *TaskPush) GetExecSpecs(
 			// docker push <image-name>
 			if imageOrManifestHasFQDN(imageName) {
 				result = append(result, dukkha.TaskExecSpec{
-					Command: sliceutils.NewStrings(
-						options.ToolCmd(), "push", imageName,
-					),
+					Command:     []string{constant.DUKKHA_TOOL_CMD, "push", imageName},
 					IgnoreError: false,
 					UseShell:    options.UseShell(),
 					ShellName:   options.ShellName(),
@@ -119,7 +117,7 @@ func (c *TaskPush) GetExecSpecs(
 			// docker manifest push <manifest-list-name>
 			if imageOrManifestHasFQDN(manifestName) {
 				result = append(result, dukkha.TaskExecSpec{
-					Command:     sliceutils.NewStrings(options.ToolCmd(), "manifest", "push", spec.Manifest),
+					Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "push", spec.Manifest},
 					IgnoreError: false,
 					UseShell:    options.UseShell(),
 					ShellName:   options.ShellName(),

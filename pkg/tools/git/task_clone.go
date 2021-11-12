@@ -7,8 +7,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -44,7 +44,7 @@ func (c *TaskClone) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		if len(c.URL) == 0 {
 			return fmt.Errorf("remote url not set")
 		}
@@ -62,10 +62,9 @@ func (c *TaskClone) GetExecSpecs(
 			localBranch = remoteBranch
 		}
 
-		cloneCmd := sliceutils.NewStrings(
-			options.ToolCmd(),
+		cloneCmd := []string{constant.DUKKHA_TOOL_CMD,
 			"clone", "--no-checkout", "--origin", remoteName,
-		)
+		}
 
 		if len(remoteBranch) != 0 {
 			cloneCmd = append(cloneCmd, "--branch", remoteBranch)
@@ -102,11 +101,10 @@ func (c *TaskClone) GetExecSpecs(
 				StdoutAsReplace: replaceTargetDefaultBranch,
 
 				IgnoreError: false,
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(),
+				Command: []string{constant.DUKKHA_TOOL_CMD,
 					"symbolic-ref",
 					fmt.Sprintf("refs/remotes/%s/HEAD", remoteName),
-				),
+				},
 				UseShell:  options.UseShell(),
 				ShellName: options.ShellName(),
 			})
@@ -116,10 +114,9 @@ func (c *TaskClone) GetExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			IgnoreError: false,
 			Chdir:       localPath,
-			Command: sliceutils.NewStrings(
-				options.ToolCmd(), "checkout", "-b", localBranch,
+			Command: []string{constant.DUKKHA_TOOL_CMD, "checkout", "-b", localBranch,
 				fmt.Sprintf("%s/%s", remoteName, remoteBranch),
-			),
+			},
 			UseShell:  options.UseShell(),
 			ShellName: options.ShellName(),
 		})

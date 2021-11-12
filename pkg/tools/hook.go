@@ -95,7 +95,7 @@ func (h *TaskHooks) GenSpecs(
 }
 
 func (h *TaskHooks) DoAfterFieldsResolved(
-	ctx dukkha.RenderingContext, depth int, do func() error, names ...string,
+	ctx dukkha.RenderingContext, depth int, resolveEnv bool, do func() error, names ...string,
 ) error {
 	err := h.ResolveFields(ctx, depth, names...)
 	if err != nil {

@@ -43,27 +43,21 @@ type BaseTask struct {
 	mu sync.Mutex
 }
 
-func (t *BaseTask) resolveEssentialFieldsAndAddEnv(mCtx dukkha.RenderingContext) error {
-	err := t.ResolveFields(mCtx, -1, "name")
-	if err != nil {
-		return fmt.Errorf("failed to resolve task name: %w", err)
-	}
-
-	return dukkha.ResolveEnv(t, mCtx, "Env", "env")
-}
-
 func (t *BaseTask) DoAfterFieldsResolved(
 	ctx dukkha.RenderingContext,
 	depth int,
+	resolveEnv bool,
 	do func() error,
 	tagNames ...string,
 ) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	err := t.resolveEssentialFieldsAndAddEnv(ctx)
-	if err != nil {
-		return err
+	if resolveEnv {
+		err := dukkha.ResolveEnv(t, ctx, "Env", "env")
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(tagNames) == 0 {
@@ -132,7 +126,7 @@ func (t *BaseTask) GetHookExecSpecs(
 
 	// hooks may have reference to env defined in task scope
 
-	err := t.resolveEssentialFieldsAndAddEnv(taskCtx)
+	err := dukkha.ResolveEnv(t, taskCtx, "Env", "env")
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to prepare env for hook %q: %w",
@@ -153,7 +147,7 @@ func (t *BaseTask) GetHookExecSpecs(
 
 func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, error) {
 	var ret []matrix.Entry
-	err := t.DoAfterFieldsResolved(rc, -1, func() error {
+	err := t.DoAfterFieldsResolved(rc, -1, true, func() error {
 		ret = t.Matrix.GenerateEntries(
 			rc.MatrixFilter(),
 			rc.HostKernel(),

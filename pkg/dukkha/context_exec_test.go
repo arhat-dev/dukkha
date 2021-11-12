@@ -12,15 +12,13 @@ func TestTaskExecOptions(t *testing.T) {
 		useShell  = true
 	)
 
-	toolCmd := []string{"test-tool"}
-
 	opts := CreateTaskExecOptions(1, 10).(*taskExecOpts)
 	assert.Equal(t, opts.id, 1)
 	assert.Equal(t, opts.seq, -1)
 	assert.Equal(t, opts.total, 10)
 
 	for i := 0; i < opts.total; i++ {
-		mOpts := opts.NextMatrixExecOptions(useShell, shellName, toolCmd).(*taskMatrixExecOpts)
+		mOpts := opts.NextMatrixExecOptions(useShell, shellName).(*taskMatrixExecOpts)
 		assert.Equal(t, opts.id, 1)
 		assert.Equal(t, opts.seq, i)
 		assert.Equal(t, opts.total, 10)
@@ -39,9 +37,6 @@ func TestTaskExecOptions(t *testing.T) {
 
 		assert.Equal(t, mOpts.useShell, mOpts.UseShell())
 		assert.Equal(t, mOpts.UseShell(), useShell)
-
-		assert.EqualValues(t, mOpts.toolCmd, mOpts.ToolCmd())
-		assert.Equal(t, mOpts.ToolCmd(), toolCmd)
 
 		assert.Equal(t, i == opts.total-1, mOpts.IsLast())
 	}

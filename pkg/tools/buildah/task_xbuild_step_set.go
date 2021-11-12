@@ -7,8 +7,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 type stepSet struct {
@@ -89,7 +89,7 @@ func (s *stepSet) genSpec(
 		return nil, nil
 	}
 
-	configCmd := sliceutils.NewStrings(options.ToolCmd(), "config")
+	configCmd := []string{constant.DUKKHA_TOOL_CMD, "config"}
 	if record {
 		configCmd = append(configCmd, "--add-history")
 	}
