@@ -87,9 +87,7 @@ func (s *signingSpec) genSignAndVerifySpec(
 			passwordStdin = strings.NewReader(s.PrivateKeyPassword)
 		}
 
-		signCmd := sliceutils.NewStrings(
-			options.ToolCmd(), "sign", "-key", keyFile, "-slot", "signature",
-		)
+		signCmd := []string{constant.DUKKHA_TOOL_CMD, "sign", "-key", keyFile, "-slot", "signature"}
 
 		for _, a := range annotations {
 			signCmd = append(signCmd, "-a", a)
@@ -130,10 +128,9 @@ func (s *signingSpec) genSignAndVerifySpec(
 
 		steps = append(steps, dukkha.TaskExecSpec{
 			Stdin: passwordStdin,
-			Command: sliceutils.NewStrings(
-				options.ToolCmd(), "public-key", "-key", keyFile,
+			Command: []string{constant.DUKKHA_TOOL_CMD, "public-key", "-key", keyFile,
 				"-outfile", pubKeyFile,
-			),
+			},
 			UseShell:  options.UseShell(),
 			ShellName: options.ShellName(),
 		})
@@ -154,9 +151,7 @@ func (s *signingSpec) genSignAndVerifySpec(
 		})
 	}
 
-	verifyCmd := sliceutils.NewStrings(
-		options.ToolCmd(), "verify", "-key", pubKeyFile, "-slot", "signature",
-	)
+	verifyCmd := []string{constant.DUKKHA_TOOL_CMD, "verify", "-key", pubKeyFile, "-slot", "signature"}
 
 	for _, a := range annotations {
 		verifyCmd = append(verifyCmd, "-a", a)
@@ -219,7 +214,7 @@ func (c *TaskUpload) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		// ret, err := c.createExecSpecs(rc, options)
 		// steps = ret
 		// return err
@@ -262,7 +257,7 @@ func (c *TaskUpload) GetExecSpecs(
 
 		ociPlatform := strings.Join(ociPlatformParts, "/")
 
-		uploadCmd := sliceutils.NewStrings(options.ToolCmd(), "upload", kind)
+		uploadCmd := []string{constant.DUKKHA_TOOL_CMD, "upload", kind}
 		for _, fSpec := range c.Files {
 			path := fSpec.Path
 

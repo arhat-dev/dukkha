@@ -2,8 +2,6 @@ package dukkha
 
 import (
 	"github.com/muesli/termenv"
-
-	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 // RuntimeOptions for task execution
@@ -16,7 +14,7 @@ type RuntimeOptions struct {
 }
 
 type TaskExecOptions interface {
-	NextMatrixExecOptions(useShell bool, shellName string, toolCmd []string) TaskMatrixExecOptions
+	NextMatrixExecOptions(useShell bool, shellName string) TaskMatrixExecOptions
 }
 
 func CreateTaskExecOptions(id, totalMatrix int) TaskExecOptions {
@@ -34,7 +32,7 @@ type taskExecOpts struct {
 }
 
 func (opts *taskExecOpts) NextMatrixExecOptions(
-	useShell bool, shellName string, toolCmd []string,
+	useShell bool, shellName string,
 ) TaskMatrixExecOptions {
 	opts.seq++
 
@@ -45,7 +43,6 @@ func (opts *taskExecOpts) NextMatrixExecOptions(
 
 		useShell:  useShell,
 		shellName: shellName,
-		toolCmd:   sliceutils.NewStrings(toolCmd),
 	}
 
 	return ret
@@ -57,7 +54,6 @@ type TaskMatrixExecOptions interface {
 
 	UseShell() bool
 	ShellName() string
-	ToolCmd() []string
 
 	Seq() int
 
@@ -71,7 +67,6 @@ type taskMatrixExecOpts struct {
 
 	useShell  bool
 	shellName string
-	toolCmd   []string
 }
 
 func (opts *taskMatrixExecOpts) ID() int           { return opts.id }
@@ -79,7 +74,6 @@ func (opts *taskMatrixExecOpts) UseShell() bool    { return opts.useShell }
 func (opts *taskMatrixExecOpts) ShellName() string { return opts.shellName }
 func (opts *taskMatrixExecOpts) Seq() int          { return opts.seq }
 func (opts *taskMatrixExecOpts) Total() int        { return opts.total }
-func (opts *taskMatrixExecOpts) ToolCmd() []string { return opts.toolCmd }
 func (opts *taskMatrixExecOpts) IsLast() bool      { return opts.seq == opts.total-1 }
 
 type ExecValues interface {

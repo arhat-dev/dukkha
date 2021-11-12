@@ -63,7 +63,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context) *cobra.Command {
 							return fmt.Errorf("failed to create task matrix context: %w", err2)
 						}
 
-						err2 = task.DoAfterFieldsResolved(mCtx, -1, func() error {
+						err2 = task.DoAfterFieldsResolved(mCtx, -1, true, func() error {
 							return enc.Encode(task)
 						})
 						if err2 != nil {

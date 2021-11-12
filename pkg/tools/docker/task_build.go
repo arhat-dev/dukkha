@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
@@ -28,7 +28,7 @@ func (c *TaskBuild) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		targets := c.ImageNames
 		if len(targets) == 0 {
 			targets = []buildah.ImageNameSpec{{
@@ -37,7 +37,7 @@ func (c *TaskBuild) GetExecSpecs(
 			}}
 		}
 
-		buildCmd := sliceutils.NewStrings(options.ToolCmd(), "build")
+		buildCmd := []string{constant.DUKKHA_TOOL_CMD, "build"}
 		for _, spec := range targets {
 			if len(spec.Image) == 0 {
 				continue

@@ -5,6 +5,7 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
@@ -43,7 +44,7 @@ func (c *TaskBuild) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var buildSteps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
 			outputs = []string{c.BaseTask.TaskName}
@@ -56,7 +57,7 @@ func (c *TaskBuild) GetExecSpecs(
 
 				// put generated env first, so user can override them
 				EnvSuggest: buildEnv,
-				Command:    sliceutils.NewStrings(options.ToolCmd(), "build", "-o", output),
+				Command:    []string{constant.DUKKHA_TOOL_CMD, "build", "-o", output},
 				UseShell:   options.UseShell(),
 				ShellName:  options.ShellName(),
 			}

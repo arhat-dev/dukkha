@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/tools"
@@ -11,7 +12,6 @@ import (
 )
 
 func TestTaskBuild_GetExecSpecs(t *testing.T) {
-	toolCmd := []string{"go"}
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
 			Name: "Default Build Task",
@@ -20,7 +20,7 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 					TaskName: "foo",
 				},
 			},
-			Options: dukkha_test.CreateTaskMatrixExecOptions(toolCmd),
+			Options: dukkha_test.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					EnvSuggest: dukkha.Env{
@@ -29,7 +29,7 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 							Value: "0",
 						},
 					},
-					Command: []string{"go", "build", "-o", "foo", "./"},
+					Command: []string{constant.DUKKHA_TOOL_CMD, "build", "-o", "foo", "./"},
 				},
 			},
 		},

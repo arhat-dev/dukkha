@@ -20,7 +20,7 @@ func ResolveActions(
 ) ([]dukkha.TaskExecSpec, error) {
 	jobIndex := make(map[string]int)
 	mCtx := rc.DeriveNew()
-	err := x.DoAfterFieldsResolved(mCtx, 1, func() error {
+	err := x.DoAfterFieldsResolved(mCtx, 1, true, func() error {
 		xv := reflect.ValueOf(x)
 		for xv.Kind() == reflect.Ptr {
 			xv = xv.Elem()
@@ -72,7 +72,7 @@ func next(
 
 	var err error
 	// depth = 1 to get job list only, DO NOT render inner actions for now
-	err = x.DoAfterFieldsResolved(mCtx, 1, func() error {
+	err = x.DoAfterFieldsResolved(mCtx, 1, true, func() error {
 		xv := reflect.ValueOf(x)
 		for xv.Kind() == reflect.Ptr {
 			xv = xv.Elem()

@@ -251,6 +251,7 @@ type Resolvable interface {
 	DoAfterFieldsResolved(
 		rc RenderingContext,
 		depth int,
+		resolveEnv bool,
 		do func() error,
 		tagNames ...string,
 	) error

@@ -8,8 +8,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -35,7 +35,7 @@ func (c *TaskPush) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		targets := c.ImageNames
 		if len(targets) == 0 {
 			targets = []ImageNameSpec{
@@ -60,12 +60,11 @@ func (c *TaskPush) GetExecSpecs(
 				}
 
 				result = append(result, dukkha.TaskExecSpec{
-					Command: sliceutils.NewStrings(
-						opts.ToolCmd(), "push",
+					Command: []string{constant.DUKKHA_TOOL_CMD, "push",
 						string(bytes.TrimSpace(imageIDBytes)),
 						// TODO: support other destination
-						"docker://"+imageName,
-					),
+						"docker://" + imageName,
+					},
 					IgnoreError: false,
 					UseShell:    opts.UseShell(),
 					ShellName:   opts.ShellName(),
@@ -168,12 +167,11 @@ func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExe
 		// buildah manifest push --all \
 		//   <manifest-list-name> <transport>:<transport-details>
 		ret = append(ret, dukkha.TaskExecSpec{
-			Command: sliceutils.NewStrings(
-				v.opts.ToolCmd(), "manifest", "push", "--all",
+			Command: []string{constant.DUKKHA_TOOL_CMD, "manifest", "push", "--all",
 				getLocalManifestName(v.name),
 				// TODO: support other destination
-				"docker://"+v.name,
-			),
+				"docker://" + v.name,
+			},
 			IgnoreError: false,
 			UseShell:    v.opts.UseShell(),
 			ShellName:   v.opts.ShellName(),

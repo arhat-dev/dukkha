@@ -8,8 +8,8 @@ import (
 
 	"arhat.dev/rs"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -55,10 +55,8 @@ func (c *TaskRelease) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, func() error {
-		createCmd := sliceutils.NewStrings(
-			options.ToolCmd(), "release", "create", c.Tag,
-		)
+	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+		createCmd := []string{constant.DUKKHA_TOOL_CMD, "release", "create", c.Tag}
 
 		if c.Draft {
 			createCmd = append(createCmd, "--draft")

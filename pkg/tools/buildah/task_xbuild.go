@@ -62,7 +62,7 @@ func (w *TaskXBuild) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 
-	err := w.DoAfterFieldsResolved(rc, -1, func() error {
+	err := w.DoAfterFieldsResolved(rc, -1, true, func() error {
 		tmpImageIDFile, err := os.CreateTemp(rc.CacheDir(), "buildah-xbuild-image-id-*")
 		if err != nil {
 			return fmt.Errorf("failed to create a temp file for image id: %w", err)
@@ -205,7 +205,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			// commit this container as image
 			var imageName string
-			commitCmd := sliceutils.NewStrings(options.ToolCmd(), "commit")
+			commitCmd := []string{constant.DUKKHA_TOOL_CMD, "commit"}
 			if step.Compress != nil && !*step.Compress {
 				commitCmd = append(commitCmd, "--disable-compression")
 			} else {
@@ -275,7 +275,7 @@ func (w *TaskXBuild) GetExecSpecs(
 					visitedCtrIDs[ctrID] = struct{}{}
 					delActions = append(delActions, dukkha.TaskExecSpec{
 						IgnoreError: false,
-						Command:     sliceutils.NewStrings(options.ToolCmd(), "rm", ctrID),
+						Command:     []string{constant.DUKKHA_TOOL_CMD, "rm", ctrID},
 						UseShell:    options.UseShell(),
 						ShellName:   options.ShellName(),
 					})
@@ -320,7 +320,7 @@ func (w *TaskXBuild) GetExecSpecs(
 		for _, imageName := range realImageNames {
 			ret = append(ret, dukkha.TaskExecSpec{
 				IgnoreError: false,
-				Command:     sliceutils.NewStrings(options.ToolCmd(), "tag", replace_XBUILD_IMAGE_ID, imageName),
+				Command:     []string{constant.DUKKHA_TOOL_CMD, "tag", replace_XBUILD_IMAGE_ID, imageName},
 				UseShell:    options.UseShell(),
 				ShellName:   options.ShellName(),
 			})
@@ -350,9 +350,7 @@ func (w *TaskXBuild) GetExecSpecs(
 			localManifestName := getLocalManifestName(manifestName)
 			// ensure local manifest exists
 			ret = append(ret, dukkha.TaskExecSpec{
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "manifest", "create", localManifestName,
-				),
+				Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "create", localManifestName},
 				IgnoreError: true,
 				UseShell:    options.UseShell(),
 				ShellName:   options.ShellName(),
@@ -362,16 +360,15 @@ func (w *TaskXBuild) GetExecSpecs(
 			ret = append(ret, dukkha.TaskExecSpec{
 				StdoutAsReplace:          replaceTargetManifestSpec,
 				FixStdoutValueForReplace: nil,
-				Command: sliceutils.NewStrings(
-					options.ToolCmd(), "manifest", "inspect", localManifestName,
-				),
+
+				Command: []string{constant.DUKKHA_TOOL_CMD, "manifest", "inspect", localManifestName},
 				// manifest may not exist
 				IgnoreError: true,
 				UseShell:    options.UseShell(),
 				ShellName:   options.ShellName(),
 			})
 
-			manifestAddCmd := sliceutils.NewStrings(options.ToolCmd(), "manifest", "add")
+			manifestAddCmd := []string{constant.DUKKHA_TOOL_CMD, "manifest", "add"}
 			manifestAddCmd = append(manifestAddCmd, osArchVariantArgs...)
 			manifestAddCmd = append(manifestAddCmd, localManifestName, replace_XBUILD_IMAGE_ID)
 
@@ -388,9 +385,10 @@ func (w *TaskXBuild) GetExecSpecs(
 						return []dukkha.TaskExecSpec{
 							{
 								// do not ignore manifest create error this time
-								Command: sliceutils.NewStrings(
-									options.ToolCmd(), "manifest", "create", localManifestName,
-								),
+								Command: []string{
+									constant.DUKKHA_TOOL_CMD, "manifest", "create",
+									localManifestName,
+								},
 								IgnoreError: false,
 								UseShell:    options.UseShell(),
 								ShellName:   options.ShellName(),
@@ -433,9 +431,10 @@ func (w *TaskXBuild) GetExecSpecs(
 						}
 
 						subSteps = append(subSteps, dukkha.TaskExecSpec{
-							Command: sliceutils.NewStrings(
-								options.ToolCmd(), "manifest", "remove", localManifestName, digest,
-							),
+							Command: []string{
+								constant.DUKKHA_TOOL_CMD, "manifest", "remove",
+								localManifestName, digest,
+							},
 							IgnoreError: false,
 							UseShell:    options.UseShell(),
 							ShellName:   options.ShellName(),
@@ -457,9 +456,7 @@ func (w *TaskXBuild) GetExecSpecs(
 			// check manifests in last matrix execution
 			if options.IsLast() {
 				ret = append(ret, dukkha.TaskExecSpec{
-					Command: sliceutils.NewStrings(
-						options.ToolCmd(), "manifest", "inspect", localManifestName,
-					),
+					Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "inspect", localManifestName},
 					IgnoreError: false,
 					UseShell:    options.UseShell(),
 					ShellName:   options.ShellName(),

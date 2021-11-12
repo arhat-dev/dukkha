@@ -25,7 +25,7 @@ type TestResolvable struct {
 }
 
 func (r *TestResolvable) DoAfterFieldsResolved(
-	mCtx dukkha.RenderingContext, depth int, do func() error, tagNames ...string,
+	mCtx dukkha.RenderingContext, depth int, addEnv bool, do func() error, tagNames ...string,
 ) error {
 	return do()
 }

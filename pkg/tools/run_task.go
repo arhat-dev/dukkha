@@ -51,10 +51,23 @@ func RunTask(req *TaskExecRequest) (err error) {
 
 	// task may need tool specific env, resolve tool env first
 
-	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, func() error {
+	toolCmd := func(ctx dukkha.RenderingContext) ([]string, error) {
+		var ret []string
+		err2 := req.Tool.DoAfterFieldsResolved(ctx, -1, false, func() error {
+			ret = req.Tool.GetCmd()
+			return nil
+		}, "BaseTool.cmd")
+		if err2 != nil {
+			return nil, err2
+		}
+
+		return ret, nil
+	}
+
+	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, true, func() error {
 		req.Context.AddEnv(true, req.Tool.GetEnv()...)
 		return nil
-	}, "BaseTool.env")
+	}, "BaseTool.cmd")
 	if err != nil {
 		return fmt.Errorf("failed to resolve tool specific env: %w", err)
 	}
@@ -76,7 +89,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		if err2 != nil {
 			appendErrorResult(nil, err2)
 		} else {
-			err2 = doRun(unstoppableTaskCtx, hookAfter, nil)
+			err2 = doRun(unstoppableTaskCtx, toolCmd, hookAfter, nil)
 			if err2 != nil {
 				appendErrorResult(nil, err2)
 			}
@@ -101,7 +114,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		return err
 	}
 
-	err = doRun(unstoppableTaskCtx, hookBefore, nil)
+	err = doRun(unstoppableTaskCtx, toolCmd, hookBefore, nil)
 	if err != nil {
 		// cancel task execution
 		return err
@@ -154,7 +167,23 @@ matrixRun:
 
 		unstoppableMatrixCtx := mCtx.WithCustomParent(context.Background())
 		go func(ms matrix.Entry) {
-			var err3 error
+			var (
+				err3 error
+			)
+
+			toolMatrixCmd := func(ctx dukkha.RenderingContext) ([]string, error) {
+				var ret []string
+				err4 := req.Tool.DoAfterFieldsResolved(ctx, -1, false, func() error {
+					ret = req.Tool.GetCmd()
+					return nil
+				}, "BaseTool.cmd")
+				if err4 != nil {
+					return nil, err4
+				}
+
+				return ret, nil
+			}
+
 			defer func() {
 				defer func() {
 					wg.Done()
@@ -177,7 +206,7 @@ matrixRun:
 					appendErrorResult(ms, err4)
 				} else {
 					// TODO: handle hook error
-					err4 = doRun(unstoppableMatrixCtx, hookAfterMatrix, nil)
+					err4 = doRun(unstoppableMatrixCtx, toolCmd, hookAfterMatrix, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -192,7 +221,7 @@ matrixRun:
 				return
 			}
 
-			err3 = doRun(unstoppableMatrixCtx, hookBeofreMatrix, nil)
+			err3 = doRun(unstoppableMatrixCtx, toolCmd, hookBeofreMatrix, nil)
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 				return
@@ -208,7 +237,7 @@ matrixRun:
 				return
 			}
 
-			err3 = doRun(mCtx, execSpecs, nil)
+			err3 = doRun(mCtx, toolMatrixCmd, execSpecs, nil)
 
 			output.WriteExecResult(mCtx.PrefixColor(),
 				mCtx.CurrentTool(), mCtx.CurrentTask(),
@@ -229,7 +258,7 @@ matrixRun:
 				if err4 != nil {
 					appendErrorResult(ms, err4)
 				} else {
-					err4 = doRun(unstoppableMatrixCtx, hookAfterMatrixFailure, nil)
+					err4 = doRun(unstoppableMatrixCtx, toolMatrixCmd, hookAfterMatrixFailure, nil)
 					if err4 != nil {
 						appendErrorResult(ms, err4)
 					}
@@ -244,7 +273,7 @@ matrixRun:
 			if err3 != nil {
 				appendErrorResult(ms, err3)
 			} else {
-				err3 = doRun(unstoppableMatrixCtx, hookAfterMatrixSuccess, nil)
+				err3 = doRun(unstoppableMatrixCtx, toolMatrixCmd, hookAfterMatrixSuccess, nil)
 				if err3 != nil {
 					appendErrorResult(ms, err3)
 				}
@@ -263,7 +292,7 @@ matrixRun:
 			return
 		}
 
-		err2 = doRun(unstoppableTaskCtx, hookAfterFailure, nil)
+		err2 = doRun(unstoppableTaskCtx, toolCmd, hookAfterFailure, nil)
 		if err2 != nil {
 			appendErrorResult(nil, err2)
 		}
@@ -279,7 +308,7 @@ matrixRun:
 		return
 	}
 
-	err = doRun(unstoppableTaskCtx, hookAfterSuccess, nil)
+	err = doRun(unstoppableTaskCtx, toolCmd, hookAfterSuccess, nil)
 	if err != nil {
 		appendErrorResult(nil, err)
 		return
@@ -328,13 +357,12 @@ func CreateTaskMatrixContext(
 	// now everything prepared for the tool, resolve all of it
 
 	var options dukkha.TaskMatrixExecOptions
-	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, func() error {
+	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, true, func() error {
 		mCtx.AddEnv(true, req.Tool.GetEnv()...)
 
 		options = opts.NextMatrixExecOptions(
 			req.Tool.UseShell(),
 			req.Tool.ShellName(),
-			req.Tool.GetCmd(),
 		)
 
 		mCtx.SetTaskColors(output.PickColor(options.Seq()))
