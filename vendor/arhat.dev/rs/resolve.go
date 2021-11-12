@@ -25,7 +25,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 	if len(names) == 0 {
 		// resolve all
 
-		err := resolveOverlappedItems(rc, 1, "", f.unresolvedSelfItems, f._parentValue)
+		err := resolveOverlappedItems(rc, 1, "", f._parentValue, f.unresolvedSelfItems...)
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 		}
 
 		for k, list := range f.unresolvedInlineMapItems {
-			err := resolveOverlappedItems(rc, depth, k, list, f.inlineMap.fieldValue)
+			err := resolveOverlappedItems(rc, depth, k, f.inlineMap.fieldValue, list...)
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 			case len(name) == 0:
 				// resolve itself (added by virtual key `__`)
 
-				err := resolveOverlappedItems(rc, 1, "", f.unresolvedSelfItems, f._parentValue)
+				err := resolveOverlappedItems(rc, 1, "", f._parentValue, f.unresolvedSelfItems...)
 				if err != nil {
 					return err
 				}
@@ -72,7 +72,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 				continue
 			case f.inlineMap != nil && f.inlineMap.fieldName == name:
 				for k, list := range f.unresolvedInlineMapItems {
-					err := resolveOverlappedItems(rc, depth, k, list, f.inlineMap.fieldValue)
+					err := resolveOverlappedItems(rc, depth, k, f.inlineMap.fieldValue, list...)
 					if err != nil {
 						return err
 					}
@@ -103,8 +103,8 @@ func resolveOverlappedItems(
 	rc RenderingHandler,
 	depth int,
 	k string,
-	list []*unresolvedFieldSpec,
 	fVal reflect.Value,
+	list ...*unresolvedFieldSpec,
 ) error {
 	var (
 		itemCache *reflect.Value

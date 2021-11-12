@@ -1,0 +1,10 @@
+spec@:
+  cmd:
+  - foo
+  __@echo:
+    kernel:
+    - linux
+    arch:
+    - arm64
+---
+- { cmd: foo, kernel: linux, arch: arm64 }

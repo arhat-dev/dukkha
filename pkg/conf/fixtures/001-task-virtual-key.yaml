@@ -1,0 +1,13 @@
+tools:
+  workflow:
+  - name: local
+
+workflow:run@:
+- __@file: testdata/workflow-name.yml
+---
+tools:
+  workflow:
+  - name: local
+
+workflow:run:
+- name: test-workflow

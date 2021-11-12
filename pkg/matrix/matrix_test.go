@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"arhat.dev/pkg/testhelper"
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
@@ -191,7 +192,7 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 		Spec         Spec                `yaml:"spec"`
 	}
 
-	testhelper.TestFixtures(t, "./_fixtures/gen-entries",
+	testhelper.TestFixtures(t, "./fixtures/gen-entries",
 		func() interface{} { return rs.Init(&testInputSpec{}, nil).(*testInputSpec) },
 		func() interface{} {
 			var data []Entry
@@ -199,6 +200,17 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 		},
 		func(t *testing.T, in, exp interface{}) {
 			spec := in.(*testInputSpec)
+			spec.ResolveFields(rs.RenderingHandleFunc(
+				func(renderer string, rawData interface{}) (result []byte, err error) {
+					data, err := rs.NormalizeRawData(rawData)
+					if err != nil {
+						return nil, err
+					}
+
+					return yamlhelper.ToYamlBytes(data)
+				},
+			), -1)
+
 			actual := spec.Spec.GenerateEntries(&Filter{
 				match:  spec.MatchFilter,
 				ignore: spec.IgnoreFilter,

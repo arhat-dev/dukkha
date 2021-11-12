@@ -1,49 +1,46 @@
 package conf_test
 
 import (
-	"os"
-	"path/filepath"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/conf"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/pkg/testhelper"
+
+	_ "arhat.dev/dukkha/cmd/dukkha/addon"
 )
 
-func TestConfigUnmarshal(t *testing.T) {
-	type testSpec struct {
-		name       string
-		configData []byte
-	}
+func TestConfig(t *testing.T) {
+	testhelper.TestFixtures(t, "./fixtures",
+		func() interface{} { return conf.NewConfig() },
+		func() interface{} { return conf.NewConfig() },
+		func(t *testing.T, spec, exp interface{}) {
+			actual := conf.NewConfig()
+			actual.Merge(spec.(*conf.Config))
+			expected := exp.(*conf.Config)
 
-	const testDataDir = "testdata"
+			ctx := dukkha_test.NewTestContext(t, context.TODO())
+			ctx.AddRenderer("file", file.NewDefault("file"))
+			// ctx.AddRenderer("file", file.NewDefault("file"))
 
-	entries, err := os.ReadDir(testDataDir)
-	if !assert.NoError(t, err, "failed to read test config dir") {
-		return
-	}
+			assert.NoError(t, actual.Resolve(ctx, true))
+			assert.NoError(t, expected.Resolve(ctx, true))
 
-	var tests []*testSpec
-	for _, e := range entries {
-		data, err := os.ReadFile(filepath.Join(testDataDir, e.Name()))
-		if !assert.NoError(t, err, "failed to read test config") {
-			return
-		}
+			assert.Len(t, actual.Tasks, len(expected.Tasks))
+			for k, list := range expected.Tasks {
+				if !assert.Len(t, actual.Tasks[k], len(list)) {
+					continue
+				}
 
-		tests = append(tests, &testSpec{
-			name:       e.Name(),
-			configData: data,
-		})
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			config := conf.NewConfig()
-
-			err := yaml.Unmarshal(test.configData, config)
-
-			assert.NoError(t, err)
-		})
-	}
+				for i, v := range list {
+					// assert.EqualValues(t, v.Key(), actual.Tasks[k][i].Key())
+					assert.EqualValues(t, v.Key(), actual.Tasks[k][i].Key())
+				}
+			}
+		},
+	)
 }

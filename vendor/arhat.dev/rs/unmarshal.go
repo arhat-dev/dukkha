@@ -208,7 +208,10 @@ func unmarshal(
 		}
 
 		// TODO: merge multiple virtual values into one
-		var content []*yaml.Node
+		var (
+			content []*yaml.Node
+			// inlineMapItemCache *reflect.Value
+		)
 		for _, pair := range pairs {
 			suffix := strings.TrimPrefix(pair[0].Value, "__@")
 
@@ -217,14 +220,34 @@ func unmarshal(
 				continue
 			}
 
-			_, err := handleUnresolvedField(rc, 1, out.fieldName,
-				&unresolvedFieldSpec{
-					ref:       out,
-					rawData:   pair[1],
-					renderers: parseRenderingSuffix(suffix),
-				},
-				nil, false,
-			)
+			actualOut := out
+			if out.isInlineMap {
+				if rc == nil {
+					// rc == nil is the common error due to not having
+					// rendering suffix appended to inline map key
+					return fmt.Errorf(
+						"invalid nil rendering handler for virtual key in inline map, "+
+							"please add rendering suffix to your inline map key %q",
+						yamlKey,
+					)
+				}
+
+				// strip inline map info
+				//
+				// the out is actually the inline map item, not the whole
+				// inline map, so we need to treat it as normal field
+
+				actualOut = out.clone(out.fieldValue)
+				actualOut.isInlineMap = false
+			}
+
+			ufs := &unresolvedFieldSpec{
+				ref:       actualOut,
+				rawData:   pair[1],
+				renderers: parseRenderingSuffix(suffix),
+			}
+
+			_, err = handleUnresolvedField(rc, 1, yamlKey, ufs, nil, true)
 			if err != nil {
 				return err
 			}
@@ -328,23 +351,27 @@ func unmarshalInterface(
 		return false, nil
 	}
 
-	fVal, err := opts.InterfaceTypeHandler.Create(out.fieldValue.Type(), yamlKey)
-	if err != nil {
-		if errors.Is(err, ErrInterfaceTypeNotHandled) && out.fieldValue.Type() == rawInterfaceType {
-			// no type information provided, decode using go-yaml directly
-			return false, nil
+	val := out.fieldValue
+	if !out.fieldValue.IsValid() || out.fieldValue.IsNil() {
+		fVal, err := opts.InterfaceTypeHandler.Create(out.fieldValue.Type(), yamlKey)
+		if err != nil {
+			if errors.Is(err, ErrInterfaceTypeNotHandled) && out.fieldValue.Type() == rawInterfaceType {
+				// no type information provided, decode using go-yaml directly
+				return false, nil
+			}
+
+			return true, fmt.Errorf(
+				"failed to create interface field: %w",
+				err,
+			)
 		}
 
-		return true, fmt.Errorf(
-			"failed to create interface field: %w",
-			err,
-		)
-	}
-
-	val := reflect.ValueOf(fVal)
-
-	if err := checkAssignable(yamlKey, val, out.fieldValue); err != nil {
-		return true, err
+		val = reflect.ValueOf(fVal)
+		if err := checkAssignable(yamlKey, val, out.fieldValue); err != nil {
+			return true, err
+		}
+	} else {
+		val = val.Elem()
 	}
 
 	if out.fieldValue.CanSet() {

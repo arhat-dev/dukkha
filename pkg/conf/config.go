@@ -380,7 +380,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 	// step 6: resolve tools and tasks
 	logger.D("resolving top level config")
-	err := c.ResolveFields(appCtx, 1)
+	err := c.ResolveFields(appCtx, 1, "tools", "Tasks")
 	if err != nil {
 		return fmt.Errorf("failed to resolve top-level config: %w", err)
 	}

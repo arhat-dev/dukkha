@@ -150,12 +150,20 @@ func tryInit(fieldValue reflect.Value, opts *Options) bool {
 		}
 	}
 
-	if fieldValue.CanAddr() && fieldValue.Addr().CanInterface() {
-		fVal, canCallInit := fieldValue.Addr().Interface().(Field)
-		if canCallInit {
-			_ = Init(fVal, opts)
-			return true
-		}
+	if !fieldValue.CanAddr() {
+		return false
+	}
+
+	fieldValue = fieldValue.Addr()
+
+	if !fieldValue.CanInterface() {
+		return false
+	}
+
+	fVal, canCallInit := fieldValue.Interface().(Field)
+	if canCallInit {
+		_ = Init(fVal, opts)
+		return true
 	}
 
 	return false
