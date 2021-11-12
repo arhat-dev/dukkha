@@ -379,12 +379,19 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	}
 
 	// step 6: resolve tools and tasks
-	logger.D("resolving top level config")
-	err := c.ResolveFields(appCtx, 1, "tools", "Tasks")
+	logger.D("resolving tools overview")
+	err := c.ResolveFields(appCtx, 2, "tools")
 	if err != nil {
-		return fmt.Errorf("failed to resolve top-level config: %w", err)
+		return fmt.Errorf("failed to resolve tools overview: %w", err)
 	}
-	logger.V("resolved top-level config", log.Any("result", c))
+	logger.V("resolved tools overview", log.Any("result", c.Tools))
+
+	logger.D("resolving tasks overview")
+	err = c.ResolveFields(appCtx, 1, "Tasks")
+	if err != nil {
+		return fmt.Errorf("failed to resolve tasks overview: %w", err)
+	}
+	logger.V("resolved tasks overview", log.Any("result", c.Tasks))
 
 	logger.V("groupping tasks by tool")
 	for _, tasks := range c.Tasks {
