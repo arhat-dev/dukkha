@@ -85,7 +85,7 @@ func (n *Node) MarshalYAML() (interface{}, error) {
 }
 
 //go:linkname unmarshalMap arhat.dev/rs.unmarshalYamlMap
-func unmarshalMap(n *yaml.Node) ([][]*yaml.Node, error)
+func unmarshalMap(content []*yaml.Node) ([][]*yaml.Node, error)
 
 func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 	n.RawNode = yn
@@ -96,7 +96,7 @@ func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 			n.childIndex = make(map[string]int)
 		}
 
-		pairs, err := unmarshalMap(yn)
+		pairs, err := unmarshalMap(yn.Content)
 		if err != nil {
 			return err
 		}

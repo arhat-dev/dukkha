@@ -22,13 +22,14 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		)
 	}
 
-	oneLevelMap, err := unmarshalYamlMap(n)
+	oneLevelMap, err := unmarshalYamlMap(n.Content)
 	if err != nil {
 		return fmt.Errorf("rs: data unmarshal failed for %s: %w",
 			f._parentType.String(), err,
 		)
 	}
 
+	hasVirtualKey := false
 	// set values
 	for _, kv := range oneLevelMap {
 		rawYamlKey := kv[0].Value
@@ -53,6 +54,9 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 			kv[1].Tag = ""
 			yamlKey = rawYamlKey
+			if yamlKey == "__" {
+				hasVirtualKey = true
+			}
 			err = f.unmarshalRS(yamlKey, rsTag, kv)
 		case field != nil,
 			suffixStart == -1:
@@ -62,12 +66,25 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			// this field is definitely not using rendering suffix
 
 			yamlKey = rawYamlKey
-			err = f.unmarshalNoRS(yamlKey, kv, field)
+
+			// but when there is virtual key for this object
+			// we need to postpone the unmarshaling of this field
+			// so its value won't be overridden by value resolved from
+			// virtual key
+			if hasVirtualKey {
+				err = f.unmarshalRS(yamlKey, "", kv)
+			} else {
+				err = f.unmarshalNoRS(yamlKey, kv, field)
+			}
+
 		default:
 			// suffixStart != -1 (always true)
 			// has rendering suffix suffix, and no field tag with exact match
 
 			yamlKey = rawYamlKey[:suffixStart]
+			if yamlKey == "__" {
+				hasVirtualKey = true
+			}
 			err = f.unmarshalRS(yamlKey, rawYamlKey[suffixStart+1:], kv)
 		}
 
@@ -197,12 +214,17 @@ func unmarshal(
 		outKind = out.fieldValue.Kind()
 	}
 
-	// handle virtual key `__`
-	// resolved value will be treated as incoming node
+	// handle virtual key `__` for document node and sequence node
+	//
+	// mapping node should use rendering suffix directly and they can handle
+	// virtual key on their own
 	if (parent == nil || parent.Kind == yaml.SequenceNode) &&
-		in.Kind == yaml.MappingNode {
+		in.Kind == yaml.MappingNode &&
+		// resolving inline map item
+		// it should be able to handle virtual key on its own
+		!out.isInlineMap {
 
-		pairs, err := unmarshalYamlMap(in)
+		pairs, err := unmarshalYamlMap(in.Content)
 		if err != nil {
 			return fmt.Errorf("invalid mapping node: %w", err)
 		}
@@ -210,8 +232,8 @@ func unmarshal(
 		// TODO: merge multiple virtual values into one
 		var (
 			content []*yaml.Node
-			// inlineMapItemCache *reflect.Value
 		)
+
 		for _, pair := range pairs {
 			suffix := strings.TrimPrefix(pair[0].Value, "__@")
 
@@ -220,29 +242,14 @@ func unmarshal(
 				continue
 			}
 
-			actualOut := out
-			if out.isInlineMap {
-				if rc == nil {
-					// rc == nil is the common error due to not having
-					// rendering suffix appended to inline map key
-					return fmt.Errorf(
-						"invalid nil rendering handler for virtual key in inline map, "+
-							"please add rendering suffix to your inline map key %q",
-						yamlKey,
-					)
-				}
-
-				// strip inline map info
-				//
-				// the out is actually the inline map item, not the whole
-				// inline map, so we need to treat it as normal field
-
-				actualOut = out.clone(out.fieldValue)
-				actualOut.isInlineMap = false
+			if rc == nil {
+				return fmt.Errorf("invalid list item using virtual key, "+
+					"please add rendering suffix to your list field name %q", yamlKey,
+				)
 			}
 
 			ufs := &unresolvedFieldSpec{
-				ref:       actualOut,
+				ref:       out,
 				rawData:   pair[1],
 				renderers: parseRenderingSuffix(suffix),
 			}
@@ -260,6 +267,12 @@ func unmarshal(
 				return nil
 			}
 		}
+
+		// temporarily replace content
+		original := in.Content
+		defer func() {
+			in.Content = original
+		}()
 
 		in.Content = content
 	}
@@ -370,14 +383,14 @@ func unmarshalInterface(
 		if err := checkAssignable(yamlKey, val, out.fieldValue); err != nil {
 			return true, err
 		}
+
+		if out.fieldValue.CanSet() {
+			out.fieldValue.Set(val)
+		} else {
+			out.fieldValue.Elem().Set(val)
+		}
 	} else {
 		val = val.Elem()
-	}
-
-	if out.fieldValue.CanSet() {
-		out.fieldValue.Set(val)
-	} else {
-		out.fieldValue.Elem().Set(val)
 	}
 
 	// DO NOT use outVal directly, which will always match reflect.Interface
@@ -511,7 +524,7 @@ func unmarshalMap(
 		outVal.fieldValue.Set(reflect.MakeMap(outVal.fieldValue.Type()))
 	}
 
-	m, err := unmarshalYamlMap(in)
+	m, err := unmarshalYamlMap(in.Content)
 	if err != nil {
 		return nil, err
 	}

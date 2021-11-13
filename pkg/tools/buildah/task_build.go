@@ -50,9 +50,9 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	Context    string          `yaml:"context"`
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-	File       string          `yaml:"file"`
+	Context    string           `yaml:"context"`
+	ImageNames []*ImageNameSpec `yaml:"image_names"`
+	File       string           `yaml:"file"`
 
 	// --build-arg
 	BuildArgs []string `yaml:"build_args"`
@@ -105,7 +105,7 @@ func (c *TaskBuild) createExecSpecs(
 
 	targets := c.ImageNames
 	if len(targets) == 0 {
-		targets = []ImageNameSpec{{
+		targets = []*ImageNameSpec{{
 			Image:    c.TaskName,
 			Manifest: "",
 		}}

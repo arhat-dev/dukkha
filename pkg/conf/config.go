@@ -395,6 +395,13 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 	logger.V("groupping tasks by tool")
 	for _, tasks := range c.Tasks {
+		for _, tsk := range tasks {
+			err = tsk.ResolveFields(appCtx, -1, "name")
+			if err != nil {
+				return fmt.Errorf("failed to reoslve task name: %w", err)
+			}
+		}
+
 		if len(tasks) == 0 {
 			continue
 		}
@@ -413,36 +420,33 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		visited := make(map[dukkha.ToolName]struct{})
 
 		for i, t := range toolSet {
+			err = t.ResolveFields(appCtx, -1, "name")
+			if err != nil {
+				return fmt.Errorf("failed to resolve tool name: %w", err)
+			}
+
 			// do not allow empty name
-			if len(t.Name()) == 0 {
+			name := t.Name()
+			if len(name) == 0 {
 				return fmt.Errorf("invalid %q tool without name, index %d", toolKind, i)
 			}
 
 			// ensure tool names are unique
-			if _, ok := visited[t.Name()]; ok {
+			if _, ok := visited[name]; ok {
 				return fmt.Errorf("invalid duplicate %q tool name %q", toolKind, t.Name())
 			}
 
-			visited[t.Name()] = struct{}{}
+			visited[name] = struct{}{}
 
 			key := dukkha.ToolKey{
 				Kind: toolKind,
-				Name: t.Name(),
+				Name: name,
 			}
 
 			logger := logger.WithFields(
 				log.String("key", key.String()),
 				log.Int("index", i),
 			)
-
-			logger.D("resolving tool config fields")
-			err = t.ResolveFields(appCtx, 1)
-			if err != nil {
-				return fmt.Errorf(
-					"failed to resolve tool %q config: %w",
-					key, err,
-				)
-			}
 
 			logger.V("initializing tool")
 			err = t.Init(toolKind, appCtx.CacheDir())
@@ -459,8 +463,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				dukkha.ToolKey{Kind: toolKind, Name: ""},
 			)
 			appCtx.AddToolSpecificTasks(
-				toolKind, t.Name(),
-				noToolNameTasks,
+				toolKind, name, noToolNameTasks,
 			)
 
 			tasks, _ := appCtx.GetToolSpecificTasks(key)

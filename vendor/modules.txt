@@ -13,7 +13,7 @@ arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/rs v0.8.3
+# arhat.dev/rs v0.8.4-0.20211113095115-c107aceb0d05
 ## explicit
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1

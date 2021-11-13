@@ -52,7 +52,7 @@ type TaskXBuild struct {
 	// Context string  `yaml:"context"`
 	Steps []*step `yaml:"steps"`
 
-	ImageNames []ImageNameSpec `yaml:"image_names"`
+	ImageNames []*ImageNameSpec `yaml:"image_names"`
 }
 
 // nolint:gocyclo
@@ -163,7 +163,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			stepRet, err := step.genSpec(rc, options)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to generate #%d step spec: %w", i, err)
 			}
 
 			ret = append(ret, stepRet...)

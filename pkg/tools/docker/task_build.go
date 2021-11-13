@@ -31,7 +31,7 @@ func (c *TaskBuild) GetExecSpecs(
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		targets := c.ImageNames
 		if len(targets) == 0 {
-			targets = []buildah.ImageNameSpec{{
+			targets = []*buildah.ImageNameSpec{{
 				Image:    c.TaskName,
 				Manifest: "",
 			}}

@@ -22,13 +22,15 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 		return nil
 	}
 
-	if len(names) == 0 {
-		// resolve all
-
+	if len(f.unresolvedSelfItems) != 0 {
 		err := resolveOverlappedItems(rc, 1, "", f._parentValue, f.unresolvedSelfItems...)
 		if err != nil {
-			return err
+			return fmt.Errorf("rs: failed to resolve value from virtual key: %w", err)
 		}
+	}
+
+	if len(names) == 0 {
+		// resolve all
 
 		for name, v := range f.normalFields {
 			err := v.base.resolveNormalField(rc, depth, name, v)
@@ -48,7 +50,7 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 		}
 
 		if f.inlineMap != nil {
-			// the inline map haves been resolved above, so let's go to
+			// the inline map has been resolved above, so let's go to
 			// values of these inline map entries
 			return handleResolvedField(rc, depth, f.inlineMap.fieldValue)
 		}

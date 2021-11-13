@@ -74,7 +74,7 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 
 		return nil
 	case yaml.MappingNode:
-		pairs, err := unmarshalYamlMap(n)
+		pairs, err := unmarshalYamlMap(n.Content)
 		if err != nil {
 			return err
 		}
