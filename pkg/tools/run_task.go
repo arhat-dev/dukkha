@@ -67,7 +67,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, true, func() error {
 		req.Context.AddEnv(true, req.Tool.GetEnv()...)
 		return nil
-	}, "BaseTool.cmd")
+	}, "BaseTool.use_shell", "BaseTool.shell_name")
 	if err != nil {
 		return fmt.Errorf("failed to resolve tool specific env: %w", err)
 	}
@@ -137,6 +137,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		waitCh <- struct{}{}
 	}
 
+	// TODO: alloc real task exec id
 	opts := dukkha.CreateTaskExecOptions(0, len(matrixSpecs))
 matrixRun:
 	for _, ms := range matrixSpecs {

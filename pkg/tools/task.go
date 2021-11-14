@@ -134,6 +134,14 @@ func (t *BaseTask) GetHookExecSpecs(
 		)
 	}
 
+	err = t.ResolveFields(taskCtx, 1, "hooks")
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to resolve hooks overview for hook %q: %w",
+			stage.String(), err,
+		)
+	}
+
 	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
 	if err != nil {
 		return nil, fmt.Errorf(

@@ -90,8 +90,12 @@ func (h *TaskHooks) GenSpecs(
 	// TODO: this func is only called by BaseTask with lock for now
 	// 		 if we call it from other places, we need to use lock in
 	// 		 DoAfterFieldsResolved
-	ftNames := h.getTagNameByStage(stage)
-	return ResolveActions(taskCtx.DeriveNew(), h, ftNames[0], ftNames[1], nil)
+	fieldAndTagNames := h.getTagNameByStage(stage)
+	return ResolveActions(
+		taskCtx.DeriveNew(), h,
+		fieldAndTagNames[0], fieldAndTagNames[1],
+		nil,
+	)
 }
 
 func (h *TaskHooks) DoAfterFieldsResolved(
