@@ -14,7 +14,7 @@ import (
 func NewDebugTaskCmd(ctx *dukkha.Context) *cobra.Command {
 	debugTaskCmd := &cobra.Command{
 		Use:   "task",
-		Short: "Debug task related configuration",
+		Short: "Show task related configuration in json",
 
 		SilenceErrors: true,
 		SilenceUsage:  true,

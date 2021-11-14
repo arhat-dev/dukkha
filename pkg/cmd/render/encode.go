@@ -35,15 +35,14 @@ func (e *anyObjectEncoder) Encode(v *rs.AnyObject) error {
 			return err
 		}
 
-		if len(ret) == 0 {
-			return e.encode(nil)
+		switch len(ret) {
+		case 0:
+			toEncode = nil
+		case 1:
+			toEncode = ret[0]
+		default:
+			toEncode = ret
 		}
-
-		if len(ret) != 1 {
-			return e.encode(ret)
-		}
-
-		toEncode = ret[0]
 	} else {
 		toEncode = v.NormalizedValue()
 	}
