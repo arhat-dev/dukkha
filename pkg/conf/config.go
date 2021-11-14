@@ -143,7 +143,7 @@ type Config struct {
 	// Tools config options for registered tools
 	Tools Tools `yaml:"tools"`
 
-	Tasks map[string][]dukkha.Task `rs:"other"`
+	Tasks map[string][]dukkha.Task `yaml:",inline"`
 }
 
 var _ yaml.Unmarshaler = (*Tools)(nil)
@@ -151,7 +151,7 @@ var _ yaml.Unmarshaler = (*Tools)(nil)
 type Tools struct {
 	rs.BaseField `yaml:"-"`
 
-	Data map[string][]dukkha.Tool `rs:"other"`
+	Data map[string][]dukkha.Tool `yaml:",inline"`
 }
 
 func (m *Tools) Merge(a *Tools) error {

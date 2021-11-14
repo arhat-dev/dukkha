@@ -3,14 +3,12 @@ package tools
 import (
 	"encoding/hex"
 	"fmt"
-	"go/token"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 
 	"arhat.dev/pkg/sha256helper"
-	"arhat.dev/rs"
 )
 
 func GetScriptCache(cacheDir, script string) (string, error) {
@@ -34,43 +32,52 @@ func GetScriptCache(cacheDir, script string) (string, error) {
 
 func getTagNamesToResolve(typ reflect.Type) []string {
 	var ret []string
-	for i := 1; i < typ.NumField(); i++ {
+	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
-		if !token.IsExported(f.Name) {
-			// unexported, ignore
+		if len(f.PkgPath) != 0 {
 			continue
 		}
 
-		if f.Anonymous && f.Name == "BaseTask" {
-			// it's me
+		switch f.Name {
+		case "BaseField":
+			continue
+		case "BaseTask", "BaseTool":
+			if f.Anonymous {
+				continue
+			}
+		}
+
+		yTags := strings.Split(f.Tag.Get("yaml"), ",")
+		if yTags[0] == "-" {
+			// ignored explicitly
 			continue
 		}
 
-		dukkhaTags, hasDukkhaTags := f.Tag.Lookup(rs.TagName)
-		yamlTags, hasYamlTags := f.Tag.Lookup("yaml")
+		isInline := false
+		for _, tag := range yTags[1:] {
+			switch tag {
+			case "inline":
+				isInline = true
+				// inline field can only be struct or map
+				if f.Type.Kind() == reflect.Map {
+					ret = append(ret, f.Name)
+				} else {
+					ret = append(ret, getTagNamesToResolve(f.Type)...)
+				}
+			default:
+			}
+		}
 
-		switch {
-		case hasYamlTags:
-			if strings.Contains(yamlTags, "-") {
-				// ignored explicitly
-				continue
-			}
-
-			tagName := strings.Split(yamlTags, ",")[0]
-			if len(tagName) != 0 {
-				ret = append(ret, tagName)
-				continue
-			}
-		case hasDukkhaTags:
-			if !strings.Contains(dukkhaTags, "other") {
-				continue
-			}
-		default:
-			// no yaml tag, not a catch other field, ignore
+		if isInline {
 			continue
 		}
 
-		// ret = append(ret, f.Name)
+		tagName := yTags[0]
+		if len(tagName) == 0 {
+			tagName = strings.ToLower(f.Name)
+		}
+
+		ret = append(ret, tagName)
 	}
 
 	return ret

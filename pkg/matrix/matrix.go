@@ -9,7 +9,7 @@ import (
 type specItem struct {
 	rs.BaseField `yaml:"-"`
 
-	Data map[string][]string `rs:"other"`
+	Data map[string][]string `yaml:",inline"`
 }
 
 type Spec struct {
@@ -24,7 +24,7 @@ type Spec struct {
 	Arch   []string `yaml:"arch,omitempty"`
 
 	// catch other matrix fields
-	Custom map[string][]string `yaml:",omitempty" rs:"other"`
+	Custom map[string][]string `yaml:",inline,omitempty"`
 }
 
 func defaultSpecs(hostKernel, hostArch string) []Entry {

@@ -52,7 +52,7 @@ type Action struct {
 	// EmbeddedShell script for this action
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	ExternalShell map[string]string `yaml:",omitempty" rs:"other"`
+	ExternalShell map[string]string `yaml:",inline,omitempty"`
 
 	// Cmd execution, not in any shell
 	//
