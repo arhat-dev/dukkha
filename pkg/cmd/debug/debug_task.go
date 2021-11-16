@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	"arhat.dev/pkg/sorthelper"
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-func NewDebugTaskCmd(ctx *dukkha.Context) *cobra.Command {
+func NewDebugTaskCmd(ctx *dukkha.Context, options *Options) *cobra.Command {
 	debugTaskCmd := &cobra.Command{
 		Use:   "task",
 		Short: "Show task related configuration in json",
@@ -29,13 +31,43 @@ func NewDebugTaskCmd(ctx *dukkha.Context) *cobra.Command {
 	return debugTaskCmd
 }
 
+type TaskHeaderLineData struct {
+	dukkha.ToolKind
+	dukkha.ToolName
+	dukkha.TaskKind
+	dukkha.TaskName
+
+	Matrix map[string]string
+}
+
+func (s TaskHeaderLineData) json() string {
+	kind := string(s.ToolKind) + ":" + string(s.TaskKind)
+
+	var parts []string
+	parts = append(parts, `"kind": "`+kind+`"`)
+	parts = append(parts, `"tool_name": "`+string(s.ToolName)+`"`)
+	if len(s.TaskName) != 0 {
+		parts = append(parts, `"name": "`+string(s.TaskName)+`"`)
+	}
+
+	if len(s.Matrix) != 0 {
+		parts = append(parts, `"matrix": { "`+
+			strings.Join(sliceutils.FormatStringMap(s.Matrix, `": "`, false), `", "`)+`" }`,
+		)
+	}
+
+	return `{ ` + strings.Join(parts, `, `) + ` }`
+}
+
 type singleTaskDebugActionFunc func(
 	appCtx dukkha.Context,
 	tool dukkha.Tool,
 	task dukkha.Task,
+	idx int,
+	count int,
 ) error
 
-func debugTasks(
+func forEachTask(
 	appCtx dukkha.Context,
 	args []string,
 	debugSingleTask singleTaskDebugActionFunc,
@@ -203,7 +235,7 @@ func debugTasks(
 			return fmt.Errorf("unexpected tool %q not found", toolKey.String())
 		}
 
-		err := debugSingleTask(appCtx, tool, tsk)
+		err := debugSingleTask(appCtx, tool, tsk, i, len(tasks))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}

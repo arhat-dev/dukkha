@@ -1,0 +1,31 @@
+options:
+- -q
+- |-
+    .[0]
+args:
+- task
+- matrix
+- workflow
+---
+bad_flags: false
+stdout: |
+  --- # { "kind": "workflow:run", "tool_name": "local", "name": "wf-run-1" }
+  {
+    "vec-char": "a",
+    "vec-num": "1"
+  }
+  --- # { "kind": "workflow:run", "tool_name": "local", "name": "wf-run-2" }
+  {
+    "vec-char": "a",
+    "vec-num": "1"
+  }
+  --- # { "kind": "workflow:run", "tool_name": "remote", "name": "wf-run-1" }
+  {
+    "vec-char": "a",
+    "vec-num": "1"
+  }
+  --- # { "kind": "workflow:run", "tool_name": "remote", "name": "wf-run-2" }
+  {
+    "vec-char": "a",
+    "vec-num": "1"
+  }

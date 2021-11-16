@@ -1,0 +1,21 @@
+tools:
+  workflow:
+  - name: local
+  - name: remote
+  buildah:
+  - name: local
+
+workflow:run:
+- name: wf-run-1
+  matrix:
+    vec-char: [a, b]
+    vec-num: ["1", "2"]
+
+- name: wf-run-2
+  matrix:
+    vec-char: [a]
+    vec-num: ["1"]
+
+buildah:build:
+- name: bb-1
+- name: bb-2
