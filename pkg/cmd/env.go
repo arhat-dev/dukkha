@@ -100,15 +100,18 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 		{
 			name: constant.ENV_GIT_DEFAULT_BRANCH,
 			command: []string{
-				"git", "symbolic-ref", "refs/remotes/origin/HEAD",
+				"git", "remote", "show", "origin",
 			},
 			onError: func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
 			onSuccess: func(result string) string {
-				ret := strings.TrimSpace(
-					strings.TrimPrefix(result, "refs/remotes/origin/"),
-				)
-				if len(ret) != 0 {
-					return ret
+				s := bufio.NewScanner(strings.NewReader(result))
+				s.Split(bufio.ScanLines)
+				for s.Scan() {
+					line := s.Text()
+					const prefix = "HEAD branch: "
+					if idx := strings.Index(line, prefix); idx != -1 {
+						return line[idx+len(prefix):]
+					}
 				}
 
 				return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH)

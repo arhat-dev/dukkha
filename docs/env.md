@@ -51,9 +51,11 @@ For `template` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`
 
 - `GIT_DEFAULT_BRANCH`
   - Description: Default remote branch of this repo
-  - Default Value: `$(git symbolic-ref refs/remotes/origin/HEAD)` with prefix `refs/remotes/origin/` trimed
+  - Default Value: value of `HEAD branch` from output of `git remote show origin`
     - Example Values: `master`, `main`
-  - Customization: Set `GIT_DEFAULT_BRANCH` to override, or set `global.default_git_branch` to force override
+  - Customization:
+    - Set `GIT_DEFAULT_BRANCH` env before running dukkha to provide default value when `git remote show origin` doesn't work properly
+    - Set `global.default_git_branch` to force override.
 
 ## Time Information
 
