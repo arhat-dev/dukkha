@@ -1,0 +1,12 @@
+options: []
+args:
+- task
+- list
+- workflow
+- remote
+- run
+---
+bad_flags: false
+stdout: |
+  --- # { "kind": "workflow:run", "tool_name": "remote" }
+  ["wf-run-1", "wf-run-2"]

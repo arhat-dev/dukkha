@@ -1,0 +1,21 @@
+options: []
+args:
+- task
+- matrix
+- workflow
+- remote
+- -m
+- vec-char=a
+- -m
+- vec-num=1
+---
+bad_flags: false
+stdout: |
+  --- # { "kind": "workflow:run", "tool_name": "remote", "name": "wf-run-1" }
+  [
+    { "vec-char": "a", "vec-num": "1" }
+  ]
+  --- # { "kind": "workflow:run", "tool_name": "remote", "name": "wf-run-2" }
+  [
+    { "vec-char": "a", "vec-num": "1" }
+  ]

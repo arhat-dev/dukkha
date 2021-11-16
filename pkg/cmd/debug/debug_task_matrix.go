@@ -7,26 +7,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/itchyny/gojq"
-	"github.com/spf13/cobra"
-
 	"arhat.dev/pkg/textquery"
+	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-func NewDebugTaskMatrixCmd(ctx *dukkha.Context) *cobra.Command {
+func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 	var (
-		matrixFilter   []string
-		headerToStderr bool
-		queryStr       string
+		matrixFilter []string
 	)
 
 	debugTaskMatrixCmd := &cobra.Command{
 		Use:   "matrix",
-		Short: "Show task matrix at runtime",
+		Short: "List task matrix entries used at runtime",
 
 		Args:          cobra.RangeArgs(0, 4),
 		SilenceErrors: true,
@@ -43,38 +39,34 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context) *cobra.Command {
 			appCtx = appCtx.DeriveNew()
 			appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
 
-			buf := &bytes.Buffer{}
-			var (
-				query *gojq.Query
-				enc   *json.Encoder
-			)
+			query, err := opts.getQuery()
+			if err != nil {
+				return err
+			}
 
-			if len(queryStr) != 0 {
-				var err error
-				query, err = gojq.Parse(queryStr)
-				if err != nil {
-					return fmt.Errorf("invalid query %q: %w", queryStr, err)
-				}
-
+			var enc *json.Encoder
+			if query != nil {
 				enc = json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
 			}
 
-			return debugTasks(appCtx, args,
-				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task) error {
+			buf := &bytes.Buffer{}
+			return forEachTask(appCtx, args,
+				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task, _, _ int) error {
 					matrixSpecs, err := task.GetMatrixSpecs(appCtx)
 					if err != nil {
 						return fmt.Errorf("failed to get task matrix specs: %w", err)
 					}
 
-					headerOut := os.Stdout
-					if headerToStderr {
-						headerOut = os.Stderr
+					err = opts.writeHeader(TaskHeaderLineData{
+						ToolKind: tool.Kind(),
+						ToolName: tool.Name(),
+						TaskKind: task.Kind(),
+						TaskName: task.Name(),
+					}.json())
+					if err != nil {
+						return err
 					}
-
-					fmt.Fprintln(headerOut, `--- # { "task": "`+
-						tool.Key().String()+":"+task.Key().String()+`" }`,
-					)
 
 					if query != nil {
 						var ret []interface{}
@@ -131,15 +123,6 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context) *cobra.Command {
 
 	flags := debugTaskMatrixCmd.Flags()
 	utils.RegisterMatrixFilterFlag(flags, &matrixFilter)
-
-	flags.BoolVarP(&headerToStderr, "header-to-stderr", "H", false,
-		"write document header (`--- # { \"name\":...`) to stderr (helpful for json parsing)",
-	)
-
-	flags.StringVarP(&queryStr, "query", "q", "",
-		"use jq query to filter output",
-	)
-
 	err := utils.SetupTaskAndTaskMatrixCompletion(ctx, debugTaskMatrixCmd)
 	if err != nil {
 		panic(err)

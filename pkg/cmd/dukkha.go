@@ -92,7 +92,7 @@ func NewRootCmd() *cobra.Command {
 
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
-			err = readConfigRecursively(
+			err = conf.ReadConfigRecursively(
 				afero.NewIOFS(afero.NewOsFs()),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
@@ -160,13 +160,14 @@ func NewRootCmd() *cobra.Command {
 		"stderr", "file path to write log output, including `stdout` and `stderr`",
 	)
 
-	debugTaskCmd := debug.NewDebugTaskCmd(&appCtx)
+	debugCmd, debugCmdOpts := debug.NewDebugCmd(&appCtx)
+	debugTaskCmd := debug.NewDebugTaskCmd(&appCtx, debugCmdOpts)
 	debugTaskCmd.AddCommand(
-		debug.NewDebugTaskMatrixCmd(&appCtx),
-		debug.NewDebugTaskSpecCmd(&appCtx),
+		debug.NewDebugTaskListCmd(&appCtx, debugCmdOpts),
+		debug.NewDebugTaskMatrixCmd(&appCtx, debugCmdOpts),
+		debug.NewDebugTaskSpecCmd(&appCtx, debugCmdOpts),
 	)
 
-	debugCmd := debug.NewDebugCmd(&appCtx)
 	debugCmd.AddCommand(
 		debugTaskCmd,
 	)

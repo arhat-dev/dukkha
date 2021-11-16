@@ -1,0 +1,13 @@
+options:
+- -q
+- |-
+    .[0]
+args:
+- task
+- list
+- workflow
+---
+bad_flags: false
+stdout: |
+  --- # { "kind": "workflow:run", "tool_name": "" }
+  "wf-run-1"

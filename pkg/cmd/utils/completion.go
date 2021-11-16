@@ -17,15 +17,19 @@ func RegisterMatrixFilterFlag(flags *pflag.FlagSet, matrixFilter *[]string) {
 	)
 }
 
-func SetupTaskAndTaskMatrixCompletion(
-	ctx *dukkha.Context,
-	cmd *cobra.Command,
-) error {
+func SetupTaskCompletion(ctx *dukkha.Context, cmd *cobra.Command) {
 	cmd.ValidArgsFunction = func(
 		cmd *cobra.Command, args []string, toComplete string,
 	) ([]string, cobra.ShellCompDirective) {
 		return handleTaskCompletion(*ctx, args, toComplete)
 	}
+}
+
+func SetupTaskAndTaskMatrixCompletion(
+	ctx *dukkha.Context,
+	cmd *cobra.Command,
+) error {
+	SetupTaskCompletion(ctx, cmd)
 
 	err := cmd.RegisterFlagCompletionFunc(MatrixFilterFlagName,
 		func(

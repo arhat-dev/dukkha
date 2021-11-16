@@ -1,4 +1,4 @@
-package cmd
+package conf
 
 import (
 	"io/fs"
@@ -7,13 +7,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/conf"
 )
 
 func TestReadConfigRecursively(t *testing.T) {
 	var (
-		testIncludeEmptyConfig = newConfig(func(c *conf.Config) {
+		testIncludeEmptyConfig = newConfig(func(c *Config) {
 			c.Include = []string{
 				"empty.yaml",
 				"empty-dir",
@@ -27,12 +25,12 @@ func TestReadConfigRecursively(t *testing.T) {
 
 		configPaths        []string
 		ignoreFileNotExist bool
-		expected           *conf.Config
+		expected           *Config
 		expectErr          bool
 	}{
 		{
 			name:     "None",
-			expected: conf.NewConfig(),
+			expected: NewConfig(),
 		},
 
 		// missing ok (ignoreFileNotExist=true)
@@ -40,19 +38,19 @@ func TestReadConfigRecursively(t *testing.T) {
 			name:               "Single File Missing OK",
 			configPaths:        []string{"config-missing.yaml"},
 			ignoreFileNotExist: true,
-			expected:           conf.NewConfig(),
+			expected:           NewConfig(),
 		},
 		{
 			name:               "Single Dir Missing OK",
 			configPaths:        []string{"dir-missing"},
 			ignoreFileNotExist: true,
-			expected:           conf.NewConfig(),
+			expected:           NewConfig(),
 		},
 		{
 			name:               "Multiple Missing OK",
 			configPaths:        []string{"dir-missing", "config-missing.yaml"},
 			ignoreFileNotExist: true,
-			expected:           conf.NewConfig(),
+			expected:           NewConfig(),
 		},
 
 		// missing not ok (ignoreFileNotExist=false)
@@ -80,13 +78,13 @@ func TestReadConfigRecursively(t *testing.T) {
 			name:               "Empty Single File",
 			configPaths:        []string{"empty.yaml"},
 			ignoreFileNotExist: false,
-			expected:           conf.NewConfig(),
+			expected:           NewConfig(),
 		},
 		{
 			name:               "Empty Single Dir",
 			configPaths:        []string{"empty-dir"},
 			ignoreFileNotExist: false,
-			expected:           conf.NewConfig(),
+			expected:           NewConfig(),
 		},
 		{
 			name:               "Empty Multiple Source",
@@ -112,9 +110,9 @@ func TestReadConfigRecursively(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			visitedPaths := make(map[string]struct{})
-			mergedConfig := conf.NewConfig()
+			mergedConfig := NewConfig()
 
-			err := readConfigRecursively(
+			err := ReadConfigRecursively(
 				testFS,
 				test.configPaths,
 				test.ignoreFileNotExist,
@@ -141,8 +139,8 @@ func TestReadConfigRecursively(t *testing.T) {
 	}
 }
 
-func newConfig(update func(c *conf.Config)) *conf.Config {
-	ret := conf.NewConfig()
+func newConfig(update func(c *Config)) *Config {
+	ret := NewConfig()
 	if update != nil {
 		update(ret)
 	}
@@ -150,7 +148,7 @@ func newConfig(update func(c *conf.Config)) *conf.Config {
 	return ret
 }
 
-func configBytes(t *testing.T, c *conf.Config) []byte {
+func configBytes(t *testing.T, c *Config) []byte {
 	data, err := yaml.Marshal(c)
 	assert.NoError(t, err, "")
 	return data

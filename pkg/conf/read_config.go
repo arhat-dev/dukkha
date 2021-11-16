@@ -1,4 +1,4 @@
-package cmd
+package conf
 
 import (
 	"errors"
@@ -9,16 +9,14 @@ import (
 	"arhat.dev/pkg/log"
 	ds "github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/pkg/conf"
 )
 
-func readConfigRecursively(
+func ReadConfigRecursively(
 	rootfs fs.FS,
 	configPaths []string,
 	ignoreFileNotExist bool,
 	visitedPaths *map[string]struct{},
-	mergedConfig *conf.Config,
+	mergedConfig *Config,
 ) error {
 	for _, target := range configPaths {
 		info, err := fs.Stat(rootfs, target)
@@ -80,7 +78,7 @@ func readConfigRecursively(
 func readAndMergeConfigFile(
 	rootfs fs.FS,
 	visitedPaths *map[string]struct{},
-	mergedConfig *conf.Config,
+	mergedConfig *Config,
 	file string,
 ) error {
 	if _, ok := (*visitedPaths)[file]; ok {
@@ -94,7 +92,7 @@ func readAndMergeConfigFile(
 		return fmt.Errorf("failed to read config file %q: %w", file, err)
 	}
 
-	current := conf.NewConfig()
+	current := NewConfig()
 	err = yaml.Unmarshal(configBytes, &current)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal config file %q: %w", file, err)
@@ -122,7 +120,7 @@ func readAndMergeConfigFile(
 			matches = []string{toInclude}
 		}
 
-		err2 = readConfigRecursively(
+		err2 = ReadConfigRecursively(
 			rootfs, matches, false, visitedPaths, mergedConfig,
 		)
 		if err2 != nil {
