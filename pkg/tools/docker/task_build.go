@@ -63,9 +63,7 @@ func (c *TaskBuild) GetExecSpecs(
 		}
 
 		steps = append(steps, dukkha.TaskExecSpec{
-			Command:   buildCmd,
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
+			Command: buildCmd,
 		})
 
 		return nil

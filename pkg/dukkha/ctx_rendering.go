@@ -17,10 +17,9 @@ import (
 
 type RenderingContext interface {
 	context.Context
-
 	expand.Environ
-
-	GlobalValues
+	rs.InterfaceTypeHandler
+	rs.RenderingHandler
 	EnvValues
 
 	// AddValues will merge provided values into existing values
@@ -29,9 +28,6 @@ type RenderingContext interface {
 	Env() map[string]string
 
 	Values() map[string]interface{}
-
-	rs.InterfaceTypeHandler
-	rs.RenderingHandler
 }
 
 type RendererAttribute string
@@ -163,10 +159,7 @@ func (c *contextRendering) SetVALUE(value string) { c._transform_value = value }
 // VALUE for transform renderer
 func (c *contextRendering) VALUE() string { return c._transform_value }
 
-// Get retrieves a variable by its name. To check if the variable is
-// set, use Variable.IsSet.
-//
-// for expand.Environ
+// Get implements expand.Environ
 func (c *contextRendering) Get(name string) expand.Variable {
 	v, exists := c.Env()[name]
 	if exists {
@@ -220,18 +213,7 @@ func (c *contextRendering) Get(name string) expand.Variable {
 	return createVariable(v)
 }
 
-// Each iterates over all the currently set variables, calling the
-// supplied function on each variable. Iteration is stopped if the
-// function returns false.
-//
-// The names used in the calls aren't required to be unique or sorted.
-// If a variable name appears twice, the latest occurrence takes
-// priority.
-//
-// Each is required to forward exported variables when executing
-// programs.
-//
-// for expand.Environ
+// Each implements expand.Environ
 func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	for k, v := range c.Env() {
 		if !do(k, createVariable(v)) {

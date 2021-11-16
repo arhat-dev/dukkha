@@ -14,7 +14,7 @@ type RuntimeOptions struct {
 }
 
 type TaskExecOptions interface {
-	NextMatrixExecOptions(useShell bool, shellName string) TaskMatrixExecOptions
+	NextMatrixExecOptions() TaskMatrixExecOptions
 }
 
 func CreateTaskExecOptions(id, totalMatrix int) TaskExecOptions {
@@ -31,18 +31,13 @@ type taskExecOpts struct {
 	total int
 }
 
-func (opts *taskExecOpts) NextMatrixExecOptions(
-	useShell bool, shellName string,
-) TaskMatrixExecOptions {
+func (opts *taskExecOpts) NextMatrixExecOptions() TaskMatrixExecOptions {
 	opts.seq++
 
 	ret := &taskMatrixExecOpts{
 		id:    opts.id,
 		seq:   opts.seq,
 		total: opts.total,
-
-		useShell:  useShell,
-		shellName: shellName,
 	}
 
 	return ret
@@ -50,10 +45,8 @@ func (opts *taskExecOpts) NextMatrixExecOptions(
 
 type TaskMatrixExecOptions interface {
 	ID() int
-	Total() int
 
-	UseShell() bool
-	ShellName() string
+	Total() int
 
 	Seq() int
 
@@ -64,17 +57,12 @@ type taskMatrixExecOpts struct {
 	id    int
 	seq   int
 	total int
-
-	useShell  bool
-	shellName string
 }
 
-func (opts *taskMatrixExecOpts) ID() int           { return opts.id }
-func (opts *taskMatrixExecOpts) UseShell() bool    { return opts.useShell }
-func (opts *taskMatrixExecOpts) ShellName() string { return opts.shellName }
-func (opts *taskMatrixExecOpts) Seq() int          { return opts.seq }
-func (opts *taskMatrixExecOpts) Total() int        { return opts.total }
-func (opts *taskMatrixExecOpts) IsLast() bool      { return opts.seq == opts.total-1 }
+func (opts *taskMatrixExecOpts) ID() int      { return opts.id }
+func (opts *taskMatrixExecOpts) Seq() int     { return opts.seq }
+func (opts *taskMatrixExecOpts) Total() int   { return opts.total }
+func (opts *taskMatrixExecOpts) IsLast() bool { return opts.seq == opts.total-1 }
 
 type ExecValues interface {
 	SetOutputPrefix(s string)

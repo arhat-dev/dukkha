@@ -66,8 +66,6 @@ func (c *TaskPush) GetExecSpecs(
 						"docker://" + imageName,
 					},
 					IgnoreError: false,
-					UseShell:    opts.UseShell(),
-					ShellName:   opts.ShellName(),
 				})
 			}
 
@@ -173,8 +171,6 @@ func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExe
 				"docker://" + v.name,
 			},
 			IgnoreError: false,
-			UseShell:    v.opts.UseShell(),
-			ShellName:   v.opts.ShellName(),
 		})
 	}
 

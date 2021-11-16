@@ -3,35 +3,30 @@ package dukkha
 type (
 	ToolKind string
 	ToolName string
-
-	ToolKey struct {
-		Kind ToolKind
-		Name ToolName
-	}
 )
 
-func (k ToolKey) String() string {
-	return string(k.Kind) + ":" + string(k.Name)
+type ToolKey struct {
+	Kind ToolKind
+	Name ToolName
 }
 
-// nolint:revive
+func (k ToolKey) String() string { return string(k.Kind) + ":" + string(k.Name) }
+
+// Tool implementation requirements
 type Tool interface {
 	Resolvable
 
 	// Kind of the tool, e.g. golang, docker
 	Kind() ToolKind
 
+	// Name of the tool, e.g. my-tool
 	Name() ToolName
 
+	// Key
 	Key() ToolKey
 
+	// GetCmd get cli command to run this tool
 	GetCmd() []string
-
-	GetEnv() Env
-
-	UseShell() bool
-
-	ShellName() string
 
 	GetTask(TaskKey) (Task, bool)
 
@@ -39,8 +34,9 @@ type Tool interface {
 
 	Init(kind ToolKind, cachdDir string) error
 
-	ResolveTasks(tasks []Task) error
+	AddTasks(tasks []Task) error
 
+	// Run task
 	Run(taskCtx TaskExecContext, tsk TaskKey) error
 }
 

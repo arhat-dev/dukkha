@@ -101,7 +101,7 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 }
 
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(g, rc, "Env", "env")
+	err := dukkha.ResolveEnv(rc, g, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve global env: %w", err)
 	}
@@ -474,7 +474,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				logger.D("resolving tool tasks")
 			}
 
-			err = t.ResolveTasks(tasks)
+			err = t.AddTasks(tasks)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tasks for tool %q: %w",

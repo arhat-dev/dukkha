@@ -101,8 +101,6 @@ func (s *stepSet) genSpec(
 	steps = append(steps, dukkha.TaskExecSpec{
 		IgnoreError: false,
 		Command:     append(configCmd, replace_XBUILD_CURRENT_CONTAINER_ID),
-		UseShell:    options.UseShell(),
-		ShellName:   options.ShellName(),
 	})
 
 	return steps, nil

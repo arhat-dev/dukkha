@@ -47,9 +47,6 @@ func (c *TaskPackage) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Command: []string{constant.DUKKHA_TOOL_CMD, "package"},
-
-		UseShell:  options.UseShell(),
-		ShellName: options.ShellName(),
 	}
 
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {

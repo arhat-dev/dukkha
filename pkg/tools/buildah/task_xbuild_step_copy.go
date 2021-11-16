@@ -103,8 +103,6 @@ func (s *stepCopy) genSpec(
 			ShowStdout:  true,
 			IgnoreError: true,
 			Command:     pullCmd,
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
 		})
 
 		copyCmd = append(
@@ -134,8 +132,6 @@ func (s *stepCopy) genSpec(
 	steps = append(steps, dukkha.TaskExecSpec{
 		IgnoreError: false,
 		Command:     copyCmd,
-		UseShell:    options.UseShell(),
-		ShellName:   options.ShellName(),
 	})
 
 	return steps, nil

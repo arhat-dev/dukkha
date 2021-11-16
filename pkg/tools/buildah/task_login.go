@@ -59,8 +59,6 @@ func (c *TaskLogin) GetExecSpecs(
 			Stdin:       strings.NewReader(c.Password),
 			Command:     append(loginCmd, c.Registry),
 			IgnoreError: false,
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
 		})
 
 		return nil

@@ -61,6 +61,7 @@ func (ns *_archconvNS) OciOS(mKernel string) string {
 	v, _ := constant.GetOciOS(mKernel)
 	return v
 }
+
 func (ns *_archconvNS) OciArch(mArch string) string {
 	v, _ := constant.GetOciArch(mArch)
 	return v

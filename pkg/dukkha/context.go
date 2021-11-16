@@ -19,7 +19,10 @@ type ConfigResolvingContext interface {
 	TaskManager
 	RendererManager
 
+	// values
 	RendererCacheDir(name string) string
+	SetCacheDir(dir string)
+	OverrideDefaultGitBranch(branch string)
 }
 
 type TaskExecContext interface {

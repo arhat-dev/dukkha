@@ -56,8 +56,6 @@ func (c *TaskPush) GetExecSpecs(
 				result = append(result, dukkha.TaskExecSpec{
 					Command:     []string{constant.DUKKHA_TOOL_CMD, "push", imageName},
 					IgnoreError: false,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
 				})
 			}
 
@@ -76,8 +74,6 @@ func (c *TaskPush) GetExecSpecs(
 					),
 					// may already exists
 					IgnoreError: true,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
 				},
 				// link manifest and image
 				dukkha.TaskExecSpec{
@@ -86,8 +82,6 @@ func (c *TaskPush) GetExecSpecs(
 						"--amend", imageName,
 					),
 					IgnoreError: false,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
 				},
 			)
 
@@ -110,8 +104,6 @@ func (c *TaskPush) GetExecSpecs(
 			result = append(result, dukkha.TaskExecSpec{
 				Command:     annotateCmd,
 				IgnoreError: false,
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			})
 
 			// docker manifest push <manifest-list-name>
@@ -119,8 +111,6 @@ func (c *TaskPush) GetExecSpecs(
 				result = append(result, dukkha.TaskExecSpec{
 					Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "push", spec.Manifest},
 					IgnoreError: false,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
 				})
 			}
 		}

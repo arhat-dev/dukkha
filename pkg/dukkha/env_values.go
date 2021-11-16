@@ -8,10 +8,9 @@ import (
 	"arhat.dev/dukkha/pkg/matrix"
 )
 
-type GlobalValues interface {
-	SetCacheDir(dir string)
-	OverrideDefaultGitBranch(branch string)
+// This file describes runtime values derived from env
 
+type GlobalEnvValues interface {
 	WorkingDir() string
 	CacheDir() string
 
@@ -29,7 +28,7 @@ type GlobalValues interface {
 }
 
 type EnvValues interface {
-	GlobalValues
+	GlobalEnvValues
 
 	SetMatrixFilter(*matrix.Filter)
 	MatrixFilter() *matrix.Filter

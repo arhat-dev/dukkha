@@ -82,7 +82,7 @@ func (act *Action) DoAfterFieldResolved(
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
-	err := dukkha.ResolveEnv(act, mCtx, "Env", "env")
+	err := dukkha.ResolveEnv(mCtx, act, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve action specific env: %w", err)
 	}

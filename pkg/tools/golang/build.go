@@ -93,16 +93,14 @@ type buildOptions struct {
 	Tags    []string `yaml:"tags"`
 }
 
-func (opts buildOptions) generateArgs(useShell bool) []string {
+func (opts buildOptions) generateArgs() []string {
 	var args []string
 	if opts.Race {
 		args = append(args, "-race")
 	}
 
 	if len(opts.LDFlags) != 0 {
-		args = append(args, "-ldflags",
-			formatArgs(opts.LDFlags, useShell),
-		)
+		args = append(args, "-ldflags", strings.Join(opts.LDFlags, " "))
 	}
 
 	if len(opts.Tags) != 0 {

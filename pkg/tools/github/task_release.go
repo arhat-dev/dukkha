@@ -67,14 +67,7 @@ func (c *TaskRelease) GetExecSpecs(
 		}
 
 		if len(c.Title) != 0 {
-			title := c.Title
-			if options.UseShell() {
-				title = fmt.Sprintf("%q", c.Title)
-			}
-
-			createCmd = append(createCmd,
-				"--title", title,
-			)
+			createCmd = append(createCmd, "--title", c.Title)
 		}
 
 		if len(c.Notes) != 0 {
@@ -102,10 +95,6 @@ func (c *TaskRelease) GetExecSpecs(
 
 			for i, file := range matches {
 				var arg string
-				if options.UseShell() {
-					arg = `'`
-				}
-
 				if len(spec.Label) != 0 {
 					arg += file + `#` + spec.Label
 					if i != 0 {
@@ -115,18 +104,12 @@ func (c *TaskRelease) GetExecSpecs(
 					arg += file + `#` + filepath.Base(file)
 				}
 
-				if options.UseShell() {
-					arg += `'`
-				}
-
 				createCmd = append(createCmd, arg)
 			}
 		}
 
 		steps = append(steps, dukkha.TaskExecSpec{
-			Command:   createCmd,
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
+			Command: createCmd,
 		})
 
 		return nil
