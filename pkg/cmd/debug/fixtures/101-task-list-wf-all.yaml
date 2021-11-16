@@ -1,5 +1,4 @@
-options: []
-args:
+flags:
 - task
 - list
 - workflow

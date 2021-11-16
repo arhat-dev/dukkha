@@ -61,10 +61,12 @@ func TestCmd(t *testing.T) {
 				}
 			})
 
-			ctx := dukkha_test.NewTestContextWithGlobalEnv(t, context.TODO(), map[string]string{
+			ctx := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), map[string]string{
 				constant.ENV_DUKKHA_WORKING_DIR: cwd,
 				constant.ENV_DUKKHA_CACHE_DIR:   filepath.Join(t.TempDir(), ".dukkha/cache"),
 			})
+			ctx.SetCacheDir(t.TempDir())
+
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))

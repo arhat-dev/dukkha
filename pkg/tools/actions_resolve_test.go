@@ -50,7 +50,8 @@ func TestResolveActions_steps(t *testing.T) {
 			in := spec.(*TestResolvable)
 			cs := exp.(*CheckSpec)
 
-			mCtx := dukkha_test.NewTestContext(t, context.TODO())
+			mCtx := dukkha_test.NewTestContext(context.TODO())
+			mCtx.SetCacheDir(t.TempDir())
 			mCtx.AddRenderer("template", template.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))

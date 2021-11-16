@@ -23,7 +23,8 @@ func TestConfig(t *testing.T) {
 			actual.Merge(spec.(*conf.Config))
 			expected := exp.(*conf.Config)
 
-			ctx := dukkha_test.NewTestContext(t, context.TODO())
+			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx.SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			// ctx.AddRenderer("file", file.NewDefault("file"))
 

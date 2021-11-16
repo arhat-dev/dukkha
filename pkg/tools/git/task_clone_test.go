@@ -60,9 +60,10 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 	}
 
+	ctx := dukkha_test.NewTestContext(context.TODO())
+	ctx.SetCacheDir(t.TempDir())
+
 	tests.RunTaskExecSpecGenerationTests(
-		t,
-		dukkha_test.NewTestContext(t, context.TODO()),
-		testCases,
+		t, ctx, testCases,
 	)
 }

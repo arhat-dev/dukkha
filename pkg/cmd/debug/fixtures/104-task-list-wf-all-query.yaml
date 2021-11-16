@@ -1,11 +1,10 @@
-options:
-- -q
-- |-
-    .[0]
-args:
+flags:
 - task
 - list
 - workflow
+- -q
+- |-
+    .[0]
 ---
 bad_flags: false
 stdout: |

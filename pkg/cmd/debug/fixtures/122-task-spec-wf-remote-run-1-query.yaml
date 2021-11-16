@@ -1,8 +1,4 @@
-options:
-- -q
-- |-
-    [.name]
-args:
+flags:
 - task
 - spec
 - workflow
@@ -13,6 +9,9 @@ args:
 - vec-char=a
 - -m
 - vec-num!=2
+- -q
+- |-
+    [.name]
 ---
 bad_flags: false
 stdout: |

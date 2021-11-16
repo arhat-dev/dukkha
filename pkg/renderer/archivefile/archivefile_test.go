@@ -64,7 +64,8 @@ func TestDriver(t *testing.T) {
 			in := src.(*rs.AnyObject)
 			check := exp.(*rs.AnyObject)
 
-			ctx := dukkha_test.NewTestContext(t, context.TODO())
+			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx.SetCacheDir(t.TempDir())
 			ctx.SetCacheDir(t.TempDir())
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
