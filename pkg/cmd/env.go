@@ -98,7 +98,7 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 			onSuccess: func(result string) string { return "true" },
 		},
 		{
-			// TODO: this command involves netwrok operation, can be very slow
+			// TODO: this command involves network operation, can be very slow
 			name: constant.ENV_GIT_DEFAULT_BRANCH,
 			command: []string{
 				"git", "remote", "show", "origin",

@@ -123,7 +123,7 @@ func TestHandleTaskCompletion(t *testing.T) {
 			},
 		},
 		{
-			name:       "Non Exisitng Task Kind",
+			name:       "Non Existing Task Kind",
 			args:       []string{"workflow", "local"},
 			toComplete: "FOO",
 			expected: Result{

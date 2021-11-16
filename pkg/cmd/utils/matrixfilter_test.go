@@ -4,8 +4,9 @@ import (
 	"testing"
 	"unsafe"
 
-	"arhat.dev/dukkha/pkg/matrix"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func TestParseMatrixFilter(t *testing.T) {
