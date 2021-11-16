@@ -14,54 +14,33 @@ func handleTaskCompletion(
 	args []string,
 	toComplete string,
 ) ([]string, cobra.ShellCompDirective) {
-	alreadyFallthrough := false
-	var alreadyComplete bool
-	var ret []string
+	var (
+		ret []string
+	)
+
 	switch len(args) {
 	case 0:
-		ret, alreadyComplete = tryFindToolKinds(
+		ret = tryFindToolKinds(
 			appCtx.AllTools(), toComplete,
 		)
-		if !alreadyComplete {
-			break
-		}
-
-		args = append(args, toComplete)
-		alreadyFallthrough = true
-		fallthrough
 	case 1:
 		toolKind := args[0]
 		// case 1: trying to use default tool, expecting task kind
-		ret, alreadyComplete = tryFindToolNames(
+		ret = tryFindToolNames(
 			appCtx.AllTools(),
 			dukkha.ToolKind(toolKind),
 			toComplete,
 		)
-		if alreadyFallthrough || !alreadyComplete {
-			break
-		}
-
-		args = append(args, toComplete)
-		alreadyFallthrough = true
-		fallthrough
 	case 2:
 		toolKind := args[0]
 
 		// arg1 is tool name, expecting task kind
-		ret, alreadyComplete = tryFindTaskKindsWithToolName(
+		ret = tryFindTaskKindsWithToolName(
 			appCtx.AllToolSpecificTasks(),
 			dukkha.ToolKind(toolKind),
 			dukkha.ToolName(args[1]),
 			toComplete,
 		)
-
-		if alreadyFallthrough || !alreadyComplete {
-			break
-		}
-
-		ret = []string{}
-		args = append(args, toComplete)
-		fallthrough
 	case 3:
 		// missing task name
 		targetTaskKind := dukkha.TaskKind(args[2])
@@ -118,7 +97,7 @@ func handleTaskCompletion(
 func tryFindToolKinds(
 	allTools map[dukkha.ToolKey]dukkha.Tool,
 	toComplete string,
-) (ret []string, alreadyComplete bool) {
+) (ret []string) {
 	hasLongerCanditates := false
 	visited := make(map[dukkha.ToolKind]struct{})
 	for k := range allTools {
@@ -139,17 +118,17 @@ func tryFindToolKinds(
 	}
 
 	if _, ok := visited[dukkha.ToolKind(toComplete)]; !ok {
-		return ret, false
+		return ret
 	}
 
-	return nil, true
+	return []string{toComplete}
 }
 
 func tryFindToolNames(
 	allTools map[dukkha.ToolKey]dukkha.Tool,
 	toolKind dukkha.ToolKind,
 	toComplete string,
-) (ret []string, alreadyComplete bool) {
+) (ret []string) {
 	hasLongerCanditates := false
 	visited := make(map[dukkha.ToolName]struct{})
 	for k := range allTools {
@@ -178,10 +157,10 @@ func tryFindToolNames(
 	}
 
 	if _, ok := visited[dukkha.ToolName(toComplete)]; !ok {
-		return ret, false
+		return ret
 	}
 
-	return nil, true
+	return []string{toComplete}
 }
 
 func tryFindTaskKindsWithToolName(
@@ -189,11 +168,11 @@ func tryFindTaskKindsWithToolName(
 	toolKind dukkha.ToolKind,
 	toolName dukkha.ToolName,
 	toComplete string,
-) (ret []string, alreadyComplete bool) {
+) (ret []string) {
 	key := dukkha.ToolKey{Kind: toolKind, Name: toolName}
 	tasks, ok := toolSpecificTasks[key]
 	if !ok {
-		return nil, false
+		return nil
 	}
 
 	hasLongerCanditates := false
@@ -216,8 +195,8 @@ func tryFindTaskKindsWithToolName(
 	}
 
 	if _, ok := visited[dukkha.TaskKind(toComplete)]; !ok || hasLongerCanditates {
-		return ret, false
+		return ret
 	}
 
-	return nil, true
+	return []string{toComplete}
 }
