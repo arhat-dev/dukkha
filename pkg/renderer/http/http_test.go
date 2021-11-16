@@ -51,7 +51,8 @@ func TestDriver_RenderYaml(t *testing.T) {
 			},
 		}
 
-		rc := dukkha_test.NewTestContext(t, context.TODO())
+		rc := dukkha_test.NewTestContext(context.TODO())
+		rc.SetCacheDir(t.TempDir())
 		assert.NoError(t, d.Init(rc))
 
 		result, err := d.RenderYaml(rc, srv.URL+"/with-password", nil)

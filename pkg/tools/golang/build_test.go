@@ -28,7 +28,9 @@ func TestCreateBuildEnv(t *testing.T) {
 				{Name: "CGO_ENABLED", Value: "0"},
 			}
 
-			rc := dukkha_test.NewTestContext(t, context.TODO())
+			rc := dukkha_test.NewTestContext(context.TODO())
+			rc.SetCacheDir(t.TempDir())
+
 			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
 				Value: test.mKernel,
@@ -118,7 +120,8 @@ func TestCreateBuildEnv(t *testing.T) {
 				Value: "0",
 			})
 
-			rc := dukkha_test.NewTestContext(t, context.TODO())
+			rc := dukkha_test.NewTestContext(context.TODO())
+			rc.SetCacheDir(t.TempDir())
 			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
 				Value: constant.KERNEL_LINUX,

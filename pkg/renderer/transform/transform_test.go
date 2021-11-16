@@ -33,7 +33,9 @@ func TestDriver_RenderYaml(t *testing.T) {
 			actual := spec.(*TestSpec)
 			expected := exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(t, context.TODO())
+			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx.SetCacheDir(t.TempDir())
+
 			ctx.AddRenderer("transform", NewDefault("transform"))
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("template", template.NewDefault("template"))
