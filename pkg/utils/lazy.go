@@ -46,7 +46,7 @@ type LazyValueImpl struct {
 	value  string
 }
 
-func (s *LazyValueImpl) _private() {}
+func (v *LazyValueImpl) _private() {}
 func (v *LazyValueImpl) Get() string {
 	_ = atomic.AddInt32(&v.writing, 1)
 

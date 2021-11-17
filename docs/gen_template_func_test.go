@@ -8,14 +8,10 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
-	"unsafe"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/templateutils"
-	"arhat.dev/dukkha/third_party/golang/text/template"
-	"arhat.dev/dukkha/third_party/golang/text/template/parse"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,36 +33,6 @@ func TestGenerateTemplateFuncDocs(t *testing.T) {
 	assert.NoError(t, os.WriteFile("./generated/template_funcs.md", buf.Bytes(), 0644))
 }
 
-//go:linkname _Template text/template.Template
-type _Template struct {
-	name string
-	*parse.Tree
-	*_common
-	leftDelim  string
-	rightDelim string
-}
-
-//go:linkname _common text/template.common
-type _common struct {
-	tmpl   map[string]*_Template // Map from name to defined templates.
-	muTmpl sync.RWMutex          // protects tmpl
-	option _option
-	// We use two maps, one for parsing and one for execution.
-	// This separation makes the API cleaner since it doesn't
-	// expose reflection to the client.
-	muFuncs    sync.RWMutex // protects parseFuncs and execFuncs
-	parseFuncs template.FuncMap
-	execFuncs  map[string]reflect.Value
-}
-
-//go:linkname _missingKeyAction text/template.missingKeyAction
-type _missingKeyAction int
-
-//go:linkname _option text/template.option
-type _option struct {
-	missingKey _missingKeyAction
-}
-
 type templateFunc struct {
 	Name string
 	Func string
@@ -76,11 +42,10 @@ func collectTemplateFuncs(t *testing.T) []*templateFunc {
 	ctx := dukkha_test.NewTestContext(context.TODO())
 	ctx.SetCacheDir(t.TempDir())
 
-	stdTpl := templateutils.CreateTemplate(ctx)
-	tpl := (*_Template)(unsafe.Pointer(stdTpl))
+	tpl := templateutils.CreateTemplate(ctx)
 
 	var ret []*templateFunc
-	for k, v := range tpl.execFuncs {
+	for k, v := range tpl.GetExecFuncs() {
 		vt := v.Type()
 
 		if vt.NumIn() != 0 {

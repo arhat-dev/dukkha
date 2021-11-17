@@ -896,8 +896,8 @@
       "properties": {
         "cache_dir": {
           "type": "string",
-          "description": "set DUKKHA_CACHE_DIR to store script file and intermediate task execution data",
-          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script file and intermediate task execution data"
+          "description": "set DUKKHA_CACHE_DIR to store script files, renderer cache and intermediate task execution data",
+          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script files, renderer cache and intermediate task execution data"
         },
         "default_git_branch": {
           "type": "string",
@@ -925,8 +925,8 @@
       "patternProperties": {
         "^cache_dir@.*": {
           "type": "string",
-          "description": "set DUKKHA_CACHE_DIR to store script file and intermediate task execution data",
-          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script file and intermediate task execution data"
+          "description": "set DUKKHA_CACHE_DIR to store script files, renderer cache and intermediate task execution data",
+          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script files, renderer cache and intermediate task execution data"
         },
         "^cache_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

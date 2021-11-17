@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"arhat.dev/dukkha/pkg/utils"
 	"arhat.dev/rs"
 	"github.com/huandu/xstrings"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)

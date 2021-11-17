@@ -27,8 +27,8 @@ lint.shell:
 			| xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
 lint.go:
-	${RUN_CTR_APP} ghcr.io/arhat-dev/golangci-lint:1.41 \
-		golangci-lint run --fix ./pkg/... ./cmd/...
+	${RUN_CTR_APP} ghcr.io/arhat-dev/golangci-lint:1.43 \
+		/golangci-lint run --fix ./pkg/... ./cmd/...
 
 lint.yaml:
 	${RUN_CTR_APP} ghcr.io/arhat-dev/yamllint:1.26 \

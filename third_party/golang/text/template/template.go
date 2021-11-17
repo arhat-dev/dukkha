@@ -49,6 +49,14 @@ func (t *Template) Name() string {
 	return t.name
 }
 
+// GetExecFuncs returns all template funcs accessible when executing
+// the template
+//
+// *ATTENTION: THIS METHOD IS NOT PART OF STD IMPLEMENTATION*
+func (t *Template) GetExecFuncs() map[string]reflect.Value {
+	return t.execFuncs
+}
+
 // New allocates a new, undefined template associated with the given one and with the same
 // delimiters. The association, which is transitive, allows one template to
 // invoke another with a {{template}} action.
