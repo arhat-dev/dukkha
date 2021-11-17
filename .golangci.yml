@@ -20,7 +20,7 @@ linters:
   - misspell
   - deadcode
   - govet
-  - typecheck
+  # - typecheck
   - lll
   - megacheck
   - varcheck
@@ -36,6 +36,7 @@ linters:
   - structcheck
   - staticcheck
   - gocritic
+  - nolintlint
 
 linters-settings:
   govet:
@@ -82,6 +83,9 @@ linters-settings:
 
 issues:
   exclude-rules:
+  - path: ./
+    linters:
+    - typecheck
   # - path: docs/
   #   linters:
   #   - unused

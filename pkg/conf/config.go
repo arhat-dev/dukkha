@@ -46,8 +46,8 @@ func NewConfig() *Config {
 type GlobalConfig struct {
 	rs.BaseField `yaml:"-"`
 
-	// CacheDir set DUKKHA_CACHE_DIR to store script file and intermediate
-	// task execution data
+	// CacheDir set DUKKHA_CACHE_DIR to store script files, renderer cache
+	// and intermediate task execution data
 	CacheDir string `yaml:"cache_dir"`
 
 	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not
@@ -101,7 +101,7 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 }
 
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(g, rc, "Env", "env")
+	err := dukkha.ResolveEnv(rc, g, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve global env: %w", err)
 	}
@@ -474,7 +474,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				logger.D("resolving tool tasks")
 			}
 
-			err = t.ResolveTasks(tasks)
+			err = t.AddTasks(tasks)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to resolve tasks for tool %q: %w",

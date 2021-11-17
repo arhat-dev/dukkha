@@ -9,57 +9,20 @@ import (
 	"arhat.dev/rs"
 )
 
-func ResolveEnv(t rs.Field, mCtx RenderingContext, envFieldName, envTagName string) error {
-	err := t.ResolveFields(mCtx, 1, envTagName)
-	if err != nil {
-		return fmt.Errorf("failed to get env overview: %w", err)
-	}
+// Resolvable represents a kind of struct that can be resolved at runtime
+type Resolvable interface {
+	rs.Field
 
-	fv := reflect.ValueOf(t)
-	for fv.Kind() == reflect.Ptr {
-		fv = fv.Elem()
-	}
-
-	// avoid panic
-	if fv.Kind() != reflect.Struct {
-		return fmt.Errorf("unexpected non struct target: %T", t)
-	}
-
-	env := fv.FieldByName(envFieldName).Interface().(Env)
-	for i := range env {
-		err = env[i].ResolveFields(mCtx, -1)
-		if err != nil {
-			return fmt.Errorf("failed to resolve env %q: %w", env[i].Name, err)
-		}
-
-		mCtx.AddEnv(true, env[i])
-	}
-
-	return nil
-}
-
-type Env []*EnvEntry
-
-func (orig Env) Clone() Env {
-	ret := make(Env, 0, len(orig))
-	for _, entry := range orig {
-		ret = append(ret, &EnvEntry{
-			Name:  entry.Name,
-			Value: entry.Value,
-		})
-	}
-
-	return ret
-}
-
-type EnvEntry struct {
-	rs.BaseField `yaml:"-"`
-
-	// Name of the entry (in other words, key)
-	Name string `yaml:"name"`
-
-	// Value associated to the name
-	Value string `yaml:"value"`
+	// DoAfterFieldsResolved is a helper function to ensure no data race
+	//
+	// The implementation MUST be safe to be used concurrently
+	DoAfterFieldsResolved(
+		rc RenderingContext,
+		depth int,
+		resolveEnv bool,
+		do func() error,
+		tagNames ...string,
+	) error
 }
 
 type (
@@ -82,6 +45,7 @@ var (
 	taskType     = reflect.TypeOf((*Task)(nil)).Elem()
 )
 
+// RegisterRenderer associates a renderer factory with name
 func RegisterRenderer(name string, create RendererCreateFunc) {
 	if strings.Contains(name, ":") || strings.Contains(name, "#") {
 		panic(fmt.Sprintf("invalid renderer name %q containing `:` or `#`", name))
@@ -101,6 +65,7 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 	)
 }
 
+// RegisterTool associates a tool factory with tool kind
 func RegisterTool(k ToolKind, create ToolCreateFunc) {
 	if strings.Contains(string(k), ":") {
 		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
@@ -114,6 +79,7 @@ func RegisterTool(k ToolKind, create ToolCreateFunc) {
 	)
 }
 
+// RegisterTask associates a task factory with task kind
 func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 	if strings.Contains(string(k), ":") {
 		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
@@ -171,6 +137,7 @@ func (h *TypeManager) Types() map[IfaceTypeKey]*IfaceFactory {
 	return h.types
 }
 
+// Create implements rs.InterfaceTypeHandler
 func (h *TypeManager) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
 	key := IfaceTypeKey{
 		Typ: typ,

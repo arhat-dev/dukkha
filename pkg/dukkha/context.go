@@ -7,6 +7,8 @@ import (
 
 	"arhat.dev/rs"
 	"github.com/huandu/xstrings"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
@@ -19,7 +21,10 @@ type ConfigResolvingContext interface {
 	TaskManager
 	RendererManager
 
+	// values
 	RendererCacheDir(name string) string
+	SetCacheDir(dir string)
+	OverrideDefaultGitBranch(branch string)
 }
 
 type TaskExecContext interface {
@@ -77,7 +82,7 @@ type dukkhaContext struct {
 func NewConfigResolvingContext(
 	parent context.Context,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]string,
+	globalEnv map[string]utils.LazyValue,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{

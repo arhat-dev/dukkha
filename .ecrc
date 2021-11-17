@@ -8,7 +8,8 @@
     "\\.git/.*", "private/.*",
     "vendor/.*", "generated/.*",
     "build/.*", "scripts/dukkha/cache/.*",
-    ".*.tar.*", ".*.zip.*", ".*.rar.*"
+    ".*.tar.*", ".*.zip.*", ".*.rar.*",
+    "third_party/golang/.*doc.go"
   ],
   "AllowedContentTypes": [],
   "Disable": {

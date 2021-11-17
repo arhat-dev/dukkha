@@ -52,7 +52,7 @@ const (
 
 func (s *stepRun) genSpec(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	runCmd := []string{constant.DUKKHA_TOOL_CMD, "run"}
@@ -69,8 +69,6 @@ func (s *stepRun) genSpec(
 		steps = append(steps, dukkha.TaskExecSpec{
 			IgnoreError: false,
 			Command:     append(runCmd, s.Cmd...),
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
 		})
 	case len(s.ExecutableFile) != 0:
 		localExecutablePath := s.ExecutableFile
@@ -118,8 +116,6 @@ func (s *stepRun) genSpec(
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
 				Command:     append(append(runCmd, execPathInContainer), s.ExecutableArgs...),
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			},
 			// override that executable
 			dukkha.TaskExecSpec{
@@ -207,8 +203,6 @@ func (s *stepRun) genSpec(
 			dukkha.TaskExecSpec{
 				IgnoreError: false,
 				Command:     append(append(runCmd, execPathInContainer), s.ScriptArgs...),
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			},
 			// override that script
 			dukkha.TaskExecSpec{

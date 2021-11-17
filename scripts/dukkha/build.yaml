@@ -12,8 +12,6 @@ tools:
   - name: in-docker
     # when using shell, you can leave environment variables unexpanded
     # and do extra scripting before actually run the tool
-    use_shell: true
-    shell_name: bootstrap
     cmd@template|env:
     - docker run -it --rm -v $(pwd):$(pwd) -w $(pwd)
     - ghcr.io/arhat-dev/builder-golang:1.17-alpine-{{ matrix.arch | default env.HOST_ARCH | trimSuffix "hf" }}

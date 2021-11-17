@@ -57,10 +57,6 @@ type BaseTool struct {
 	Env      dukkha.Env      `yaml:"env"`
 	Cmd      []string        `yaml:"cmd"`
 
-	// Whether to run this tool in shell and which shell to use
-	UsingShell     bool   `yaml:"use_shell"`
-	UsingShellName string `yaml:"shell_name"`
-
 	kind dukkha.ToolKind
 
 	cacheDir          string
@@ -76,8 +72,6 @@ type BaseTool struct {
 
 func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
 func (t *BaseTool) Name() dukkha.ToolName { return t.ToolName }
-func (t *BaseTool) UseShell() bool        { return t.UsingShell }
-func (t *BaseTool) ShellName() string     { return t.UsingShellName }
 
 func (t *BaseTool) GetCmd() []string {
 	toolCmd := sliceutils.NewStrings(t.Cmd)
@@ -124,9 +118,9 @@ func (t *BaseTool) InitBaseTool(
 	return nil
 }
 
-// ResolveTasks accepts all tasks, override this function if your tool need
+// AddTasks accepts all tasks, override this function if your tool need
 // different handling of tasks
-func (t *BaseTool) ResolveTasks(tasks []dukkha.Task) error {
+func (t *BaseTool) AddTasks(tasks []dukkha.Task) error {
 	for i, tsk := range tasks {
 		t.tasks[dukkha.TaskKey{Kind: tsk.Kind(), Name: tsk.Name()}] = tasks[i]
 	}
@@ -159,7 +153,7 @@ func (t *BaseTool) DoAfterFieldsResolved(
 	defer t.mu.Unlock()
 
 	if resolveEnv {
-		err := dukkha.ResolveEnv(t, ctx, "Env", "env")
+		err := dukkha.ResolveEnv(ctx, t, "Env", "env")
 		if err != nil {
 			return err
 		}

@@ -79,8 +79,6 @@ func (c *TaskClone) GetExecSpecs(
 		steps = append(steps, dukkha.TaskExecSpec{
 			Command:     cloneCmd,
 			IgnoreError: false,
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
 		})
 
 		localPath := c.Path
@@ -105,8 +103,6 @@ func (c *TaskClone) GetExecSpecs(
 					"symbolic-ref",
 					fmt.Sprintf("refs/remotes/%s/HEAD", remoteName),
 				},
-				UseShell:  options.UseShell(),
-				ShellName: options.ShellName(),
 			})
 		}
 
@@ -117,8 +113,6 @@ func (c *TaskClone) GetExecSpecs(
 			Command: []string{constant.DUKKHA_TOOL_CMD, "checkout", "-b", localBranch,
 				fmt.Sprintf("%s/%s", remoteName, remoteBranch),
 			},
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
 		})
 
 		return nil

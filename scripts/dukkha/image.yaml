@@ -11,8 +11,6 @@ tools:
   # $ docker volume create buildah-dukkha
   - name: in-docker
     # when not using shell, the cmd must be set as an array of args
-    use_shell: false
-    shell_name: ""
     cmd@env:
     - docker
     - run

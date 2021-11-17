@@ -34,10 +34,8 @@ func (c *TaskLogin) GetExecSpecs(
 		}
 
 		steps = append(steps, dukkha.TaskExecSpec{
-			Stdin:     strings.NewReader(c.Password),
-			Command:   append(loginCmd, c.Registry),
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
+			Stdin:   strings.NewReader(c.Password),
+			Command: append(loginCmd, c.Registry),
 		})
 
 		return nil

@@ -70,7 +70,7 @@ type signingSpec struct {
 func (s *signingSpec) genSignAndVerifySpec(
 	keyFile string,
 	imageName string,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 ) []dukkha.TaskExecSpec {
 	if !s.Enabled {
 		return nil
@@ -107,8 +107,6 @@ func (s *signingSpec) genSignAndVerifySpec(
 			EnvSuggest: env,
 			Stdin:      passwordStdin,
 			Command:    signCmd,
-			UseShell:   options.UseShell(),
-			ShellName:  options.ShellName(),
 		})
 	}
 
@@ -131,8 +129,6 @@ func (s *signingSpec) genSignAndVerifySpec(
 			Command: []string{constant.DUKKHA_TOOL_CMD, "public-key", "-key", keyFile,
 				"-outfile", pubKeyFile,
 			},
-			UseShell:  options.UseShell(),
-			ShellName: options.ShellName(),
 		})
 	} else {
 		pubKey := s.PublicKey
@@ -159,9 +155,7 @@ func (s *signingSpec) genSignAndVerifySpec(
 
 	verifyCmd = append(verifyCmd, imageName)
 	steps = append(steps, dukkha.TaskExecSpec{
-		Command:   verifyCmd,
-		UseShell:  options.UseShell(),
-		ShellName: options.ShellName(),
+		Command: verifyCmd,
 	})
 
 	return steps
@@ -287,9 +281,7 @@ func (c *TaskUpload) GetExecSpecs(
 			)
 
 			steps = append(steps, dukkha.TaskExecSpec{
-				Command:   sliceutils.NewStrings(uploadCmd, imageName),
-				UseShell:  options.UseShell(),
-				ShellName: options.ShellName(),
+				Command: sliceutils.NewStrings(uploadCmd, imageName),
 			})
 
 			steps = append(steps,

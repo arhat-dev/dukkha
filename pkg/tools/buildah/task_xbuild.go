@@ -245,8 +245,6 @@ func (w *TaskXBuild) GetExecSpecs(
 			ret = append(ret, dukkha.TaskExecSpec{
 				IgnoreError: false,
 				Command:     commitCmd,
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			})
 		}
 
@@ -276,8 +274,6 @@ func (w *TaskXBuild) GetExecSpecs(
 					delActions = append(delActions, dukkha.TaskExecSpec{
 						IgnoreError: false,
 						Command:     []string{constant.DUKKHA_TOOL_CMD, "rm", ctrID},
-						UseShell:    options.UseShell(),
-						ShellName:   options.ShellName(),
 					})
 				}
 
@@ -321,8 +317,6 @@ func (w *TaskXBuild) GetExecSpecs(
 			ret = append(ret, dukkha.TaskExecSpec{
 				IgnoreError: false,
 				Command:     []string{constant.DUKKHA_TOOL_CMD, "tag", replace_XBUILD_IMAGE_ID, imageName},
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			})
 		}
 
@@ -352,8 +346,6 @@ func (w *TaskXBuild) GetExecSpecs(
 			ret = append(ret, dukkha.TaskExecSpec{
 				Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "create", localManifestName},
 				IgnoreError: true,
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			})
 
 			const replaceTargetManifestSpec = "<MANIFEST_SPEC>"
@@ -364,8 +356,6 @@ func (w *TaskXBuild) GetExecSpecs(
 				Command: []string{constant.DUKKHA_TOOL_CMD, "manifest", "inspect", localManifestName},
 				// manifest may not exist
 				IgnoreError: true,
-				UseShell:    options.UseShell(),
-				ShellName:   options.ShellName(),
 			})
 
 			manifestAddCmd := []string{constant.DUKKHA_TOOL_CMD, "manifest", "add"}
@@ -390,14 +380,10 @@ func (w *TaskXBuild) GetExecSpecs(
 									localManifestName,
 								},
 								IgnoreError: false,
-								UseShell:    options.UseShell(),
-								ShellName:   options.ShellName(),
 							},
 							{
 								Command:     sliceutils.NewStrings(manifestAddCmd),
 								IgnoreError: false,
-								UseShell:    options.UseShell(),
-								ShellName:   options.ShellName(),
 							},
 						}, nil
 					}
@@ -411,8 +397,6 @@ func (w *TaskXBuild) GetExecSpecs(
 						return []dukkha.TaskExecSpec{{
 							Command:     sliceutils.NewStrings(manifestAddCmd),
 							IgnoreError: false,
-							UseShell:    options.UseShell(),
-							ShellName:   options.ShellName(),
 						}}, nil
 					}
 
@@ -436,8 +420,6 @@ func (w *TaskXBuild) GetExecSpecs(
 								localManifestName, digest,
 							},
 							IgnoreError: false,
-							UseShell:    options.UseShell(),
-							ShellName:   options.ShellName(),
 						})
 					}
 
@@ -445,8 +427,6 @@ func (w *TaskXBuild) GetExecSpecs(
 					subSteps = append(subSteps, dukkha.TaskExecSpec{
 						Command:     sliceutils.NewStrings(manifestAddCmd),
 						IgnoreError: false,
-						UseShell:    options.UseShell(),
-						ShellName:   options.ShellName(),
 					})
 
 					return subSteps, nil
@@ -458,8 +438,6 @@ func (w *TaskXBuild) GetExecSpecs(
 				ret = append(ret, dukkha.TaskExecSpec{
 					Command:     []string{constant.DUKKHA_TOOL_CMD, "manifest", "inspect", localManifestName},
 					IgnoreError: false,
-					UseShell:    options.UseShell(),
-					ShellName:   options.ShellName(),
 				})
 			}
 		}

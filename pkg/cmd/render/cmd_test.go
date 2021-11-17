@@ -21,6 +21,7 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 func TestCmd(t *testing.T) {
@@ -61,9 +62,8 @@ func TestCmd(t *testing.T) {
 				}
 			})
 
-			ctx := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), map[string]string{
-				constant.ENV_DUKKHA_WORKING_DIR: cwd,
-				constant.ENV_DUKKHA_CACHE_DIR:   filepath.Join(t.TempDir(), ".dukkha/cache"),
+			ctx := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), map[string]utils.LazyValue{
+				constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(cwd),
 			})
 			ctx.SetCacheDir(t.TempDir())
 

@@ -54,7 +54,7 @@ func (t *BaseTask) DoAfterFieldsResolved(
 	defer t.mu.Unlock()
 
 	if resolveEnv {
-		err := dukkha.ResolveEnv(t, ctx, "Env", "env")
+		err := dukkha.ResolveEnv(ctx, t, "Env", "env")
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func (t *BaseTask) GetHookExecSpecs(
 
 	// hooks may have reference to env defined in task scope
 
-	err := dukkha.ResolveEnv(t, taskCtx, "Env", "env")
+	err := dukkha.ResolveEnv(taskCtx, t, "Env", "env")
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to prepare env for hook %q: %w",

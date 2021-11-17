@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"text/template"
 
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/pkg/textquery"
@@ -12,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/third_party/golang/text/template"
 	"arhat.dev/dukkha/third_party/gomplate/funcs"
 )
 
@@ -39,7 +39,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 
 	return template.New("template").
 		// template func from sprig
-		Funcs(sprig.TxtFuncMap()).
+		Funcs(template.FuncMap(sprig.TxtFuncMap())).
 		// template func from gomplate
 		Funcs(funcs.CreateNetFuncs(rc)).
 		Funcs(funcs.CreateReFuncs(rc)).
@@ -72,12 +72,8 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"eval": func() *_evalNS {
 				return createEvalNS(rc)
 			},
-			"env": func() map[string]string {
-				return rc.Env()
-			},
-			"values": func() map[string]interface{} {
-				return rc.Values()
-			},
+			"env":    rc.Env,
+			"values": rc.Values,
 			"matrix": func() map[string]string {
 				return rc.MatrixFilter().AsEntry()
 			},

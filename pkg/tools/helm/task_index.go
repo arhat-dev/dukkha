@@ -37,7 +37,6 @@ type TaskIndex struct {
 func (c *TaskIndex) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-
 	indexCmd := []string{constant.DUKKHA_TOOL_CMD, "repo", "index"}
 
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
@@ -68,8 +67,6 @@ func (c *TaskIndex) GetExecSpecs(
 	})
 
 	return []dukkha.TaskExecSpec{{
-		Command:   indexCmd,
-		UseShell:  options.UseShell(),
-		ShellName: options.ShellName(),
+		Command: indexCmd,
 	}}, err
 }

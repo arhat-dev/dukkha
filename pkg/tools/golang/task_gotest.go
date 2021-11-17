@@ -73,11 +73,8 @@ func (c *TaskTest) GetExecSpecs(
 		})
 
 		// get a list of packages to be tested
-		listFormat := `{{ .ImportPath }}`
-		if options.UseShell() {
-			listFormat = `'` + listFormat + `'`
-		}
 		const (
+			listFormat                     = `{{ .ImportPath }}`
 			targetReplacePackages          = "<GO_PACKAGES>"
 			targetReplaceGoListErrorResult = "<GO_LIST_ERROR_RESULT>"
 		)
@@ -96,14 +93,12 @@ func (c *TaskTest) GetExecSpecs(
 		dukkhaCacheDir := rc.CacheDir()
 		dukkhaWorkingDir := rc.WorkingDir()
 		toolCmd := []string{constant.DUKKHA_TOOL_CMD}
-		useShell := options.UseShell()
-		shellName := options.ShellName()
 		chdir := c.Chdir
 		workDir := c.Test.WorkDir
 		jsonOutputFile := c.Test.JSONOutputFile
 
 		var compileArgs []string
-		compileArgs = append(compileArgs, c.Build.generateArgs(useShell)...)
+		compileArgs = append(compileArgs, c.Build.generateArgs()...)
 		compileArgs = append(compileArgs, c.Test.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Profile.generateArgs(dukkhaWorkingDir, true)...)
@@ -156,7 +151,7 @@ func (c *TaskTest) GetExecSpecs(
 							dukkhaCacheDir,
 							chdir,
 							buildEnv, compileArgs, pkgRelPath,
-							toolCmd, useShell, shellName,
+							toolCmd,
 						)
 
 						compileSteps = append(compileSteps, subCompileSteps...)
@@ -172,8 +167,6 @@ func (c *TaskTest) GetExecSpecs(
 							runArgs,
 							pkgRelPath,
 							jsonOutputFile,
-
-							useShell, shellName,
 						)
 
 						runSteps = append(runSteps, subRunSpecs...)
@@ -226,8 +219,6 @@ func generateCompileSpecs(
 
 	// options
 	toolCmd []string,
-	useShell bool,
-	shellName string,
 ) (string, []dukkha.TaskExecSpec) {
 	var steps []dukkha.TaskExecSpec
 
@@ -264,8 +255,6 @@ func generateCompileSpecs(
 		EnvSuggest:  buildEnv,
 		Chdir:       chdir,
 		Command:     append(compileCmd, pkgRelPath),
-		UseShell:    useShell,
-		ShellName:   shellName,
 		IgnoreError: false,
 	},
 		dukkha.TaskExecSpec{
@@ -303,10 +292,6 @@ func generateRunSpecs(
 	args []string,
 	pkgRelPath string,
 	jsonOutputFile string,
-
-	// options
-	useShell bool,
-	shellName string,
 ) []dukkha.TaskExecSpec {
 	var steps []dukkha.TaskExecSpec
 
@@ -365,10 +350,8 @@ func generateRunSpecs(
 					StdoutAsReplace: stdoutReplaceKey,
 					ShowStdout:      true,
 
-					Chdir:     workdir,
-					Command:   runCmd,
-					UseShell:  useShell,
-					ShellName: shellName,
+					Chdir:   workdir,
+					Command: runCmd,
 				},
 			}
 
@@ -393,8 +376,6 @@ func generateRunSpecs(
 							StdoutAsReplace: resultKey,
 							Stdin:           bytes.NewReader(testOutput.Data),
 							Command:         sliceutils.NewStrings(toolCmd, "tool", "test2json"),
-							UseShell:        useShell,
-							ShellName:       shellName,
 						},
 						{
 							AlterExecFunc: func(

@@ -1,8 +1,6 @@
 package golang
 
 import (
-	"strings"
-
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -58,11 +56,9 @@ func (c *TaskBuild) GetExecSpecs(
 				// put generated env first, so user can override them
 				EnvSuggest: buildEnv,
 				Command:    []string{constant.DUKKHA_TOOL_CMD, "build", "-o", output},
-				UseShell:   options.UseShell(),
-				ShellName:  options.ShellName(),
 			}
 
-			spec.Command = append(spec.Command, c.BuildOptions.generateArgs(options.UseShell())...)
+			spec.Command = append(spec.Command, c.BuildOptions.generateArgs()...)
 			spec.Command = append(spec.Command, c.ExtraArgs...)
 
 			if len(c.Path) != 0 {
@@ -77,13 +73,4 @@ func (c *TaskBuild) GetExecSpecs(
 	})
 
 	return buildSteps, err
-}
-
-func formatArgs(args []string, useShell bool) string {
-	ret := strings.Join(args, " ")
-	if useShell {
-		ret = `"` + ret + `"`
-	}
-
-	return ret
 }

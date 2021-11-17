@@ -64,10 +64,10 @@ func RunTask(req *TaskExecRequest) (err error) {
 		return ret, nil
 	}
 
+	// resolve tool to set tool specific context env
 	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, true, func() error {
-		req.Context.AddEnv(true, req.Tool.GetEnv()...)
 		return nil
-	}, "BaseTool.use_shell", "BaseTool.shell_name")
+	}, "BaseTool.env")
 	if err != nil {
 		return fmt.Errorf("failed to resolve tool specific env: %w", err)
 	}
@@ -359,12 +359,7 @@ func CreateTaskMatrixContext(
 
 	var options dukkha.TaskMatrixExecOptions
 	err := req.Tool.DoAfterFieldsResolved(mCtx, -1, true, func() error {
-		mCtx.AddEnv(true, req.Tool.GetEnv()...)
-
-		options = opts.NextMatrixExecOptions(
-			req.Tool.UseShell(),
-			req.Tool.ShellName(),
-		)
+		options = opts.NextMatrixExecOptions()
 
 		mCtx.SetTaskColors(output.PickColor(options.Seq()))
 

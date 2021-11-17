@@ -46,7 +46,7 @@ type stepFrom struct {
 
 func (s *stepFrom) genSpec(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc
 
@@ -81,8 +81,6 @@ func (s *stepFrom) genSpec(
 			ShowStdout:  true,
 			IgnoreError: false,
 			Command:     pullCmd,
-			UseShell:    options.UseShell(),
-			ShellName:   options.ShellName(),
 		})
 	}
 
@@ -103,8 +101,6 @@ func (s *stepFrom) genSpec(
 		ShowStdout:  true,
 		IgnoreError: false,
 		Command:     fromCmd,
-		UseShell:    options.UseShell(),
-		ShellName:   options.ShellName(),
 	})
 
 	// retrieve container id
@@ -120,8 +116,6 @@ func (s *stepFrom) genSpec(
 			"--format", "{{ .ContainerID }}",
 			replace_XBUILD_CURRENT_CONTAINER_NAME,
 		},
-		UseShell:  options.UseShell(),
-		ShellName: options.ShellName(),
 	})
 
 	return steps, nil

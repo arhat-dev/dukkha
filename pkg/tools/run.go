@@ -25,11 +25,6 @@ func doRun(
 	execSpecs []dukkha.TaskExecSpec,
 	_replaceEntries *dukkha.ReplaceEntries,
 ) (err error) {
-	timer := time.NewTimer(0)
-	if !timer.Stop() {
-		<-timer.C
-	}
-
 	var replace dukkha.ReplaceEntries
 	if _replaceEntries != nil {
 		replace = *_replaceEntries
@@ -55,21 +50,6 @@ func doRun(
 
 	for _, es := range execSpecs {
 		notifyLastANSITranslationExit()
-
-		if es.Delay > 0 {
-			_ = timer.Reset(es.Delay)
-
-			select {
-			case <-timer.C:
-			case <-ctx.Done():
-				if !timer.Stop() {
-					<-timer.C
-				}
-
-				ctx.SetState(dukkha.TaskExecCanceled)
-				return ctx.Err()
-			}
-		}
 
 		var (
 			stdin          io.Reader
@@ -311,11 +291,16 @@ func doRun(
 			output.WriteExecStart(ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
 		}
 
+		env := make(map[string]string, len(ctx.Env()))
+		for k, v := range ctx.Env() {
+			env[k] = v.Get()
+		}
+
 		ctx.SetState(dukkha.TaskExecWorking)
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx,
 			Command: cmd,
-			Env:     ctx.Env(),
+			Env:     env,
 			Dir:     es.Chdir,
 
 			Stdin: stdin,

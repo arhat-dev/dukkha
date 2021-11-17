@@ -47,10 +47,10 @@ func TestCreateGlobalEnv(t *testing.T) {
 			assert.True(t, ok)
 
 			if len(expectedValue) != 0 {
-				assert.Equal(t, expectedValue, val)
+				assert.Equal(t, expectedValue, val.Get())
 			}
 
-			t.Log(name, fmt.Sprintf("%q", val))
+			t.Log(name, fmt.Sprintf("%q", val.Get()))
 		})
 	}
 }

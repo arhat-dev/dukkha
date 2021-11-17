@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"text/template"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -14,6 +13,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/templateutils"
+	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
 const DefaultName = "transform"
