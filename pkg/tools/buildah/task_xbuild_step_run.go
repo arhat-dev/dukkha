@@ -52,7 +52,7 @@ const (
 
 func (s *stepRun) genSpec(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	runCmd := []string{constant.DUKKHA_TOOL_CMD, "run"}

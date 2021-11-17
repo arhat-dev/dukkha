@@ -13,6 +13,8 @@ import (
 	"arhat.dev/rs"
 	"github.com/itchyny/gojq"
 	"mvdan.cc/sh/v3/expand"
+
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 type RenderingContext interface {
@@ -25,7 +27,7 @@ type RenderingContext interface {
 	// AddValues will merge provided values into existing values
 	AddValues(values map[string]interface{}) error
 
-	Env() map[string]string
+	Env() map[string]utils.LazyValue
 
 	Values() map[string]interface{}
 }
@@ -51,7 +53,7 @@ type RendererManager interface {
 func newContextRendering(
 	ctx *contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]string,
+	globalEnv map[string]utils.LazyValue,
 ) *contextRendering {
 	return &contextRendering{
 		contextStd: ctx,
@@ -100,7 +102,7 @@ func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRend
 	}
 }
 
-func (c *contextRendering) Env() map[string]string {
+func (c *contextRendering) Env() map[string]utils.LazyValue {
 	for k, v := range c.envValues.globalEnv {
 		c.envValues.env[k] = v
 	}
@@ -163,20 +165,20 @@ func (c *contextRendering) VALUE() string { return c._transform_value }
 func (c *contextRendering) Get(name string) expand.Variable {
 	v, exists := c.Env()[name]
 	if exists {
-		return createVariable(v)
+		return createVariable(v.Get())
 	}
 
 	switch name {
 	case "IFS":
-		v = " \t\n"
+		v = utils.ImmediateString(" \t\n")
 	case "OPTIND":
-		v = "1"
+		v = utils.ImmediateString("1")
 	case "PWD":
-		v = c.WorkingDir()
+		v = utils.ImmediateString(c.WorkingDir())
 	case "UID":
 		// os.Getenv("UID") usually retruns empty value
 		// so we have to call os.Getuid
-		v = strconv.FormatInt(int64(os.Getuid()), 10)
+		v = utils.ImmediateString(strconv.FormatInt(int64(os.Getuid()), 10))
 	default:
 		kind := expand.Unset
 		if strings.HasPrefix(name, valuesEnvPrefix) {
@@ -197,26 +199,30 @@ func (c *contextRendering) Get(name string) expand.Variable {
 			}
 
 			kind = expand.String
-			v = textquery.HandleQueryResult(result, json.Marshal)
+			v = utils.ImmediateString(textquery.HandleQueryResult(result, json.Marshal))
 		}
 
 	ret:
+		str := ""
+		if v != nil {
+			str = v.Get()
+		}
 		return expand.Variable{
 			Local:    false,
 			Exported: true,
 			ReadOnly: false,
 			Kind:     kind,
-			Str:      v,
+			Str:      str,
 		}
 	}
 
-	return createVariable(v)
+	return createVariable(v.Get())
 }
 
 // Each implements expand.Environ
 func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	for k, v := range c.Env() {
-		if !do(k, createVariable(v)) {
+		if !do(k, createVariable(v.Get())) {
 			return
 		}
 	}

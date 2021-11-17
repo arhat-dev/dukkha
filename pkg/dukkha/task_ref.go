@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"gopkg.in/yaml.v3"
+
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/utils"
-	"gopkg.in/yaml.v3"
 )
 
 // ParseTaskReference parse task ref

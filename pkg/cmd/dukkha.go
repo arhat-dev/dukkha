@@ -37,9 +37,7 @@ import (
 )
 
 // NewRootCmd creates the dukkha command with all sub commands added
-// it will load and resolve your dukkha configs
 func NewRootCmd() *cobra.Command {
-	// cli options
 	var (
 		logConfig = new(log.Config)
 

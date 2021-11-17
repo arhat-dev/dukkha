@@ -17,15 +17,28 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sysinfo"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(ctx context.Context) map[string]string {
+func createGlobalEnv(ctx context.Context) map[string]utils.LazyValue {
 	now := time.Now().Local()
 	zone, offset := now.Zone()
-	result := map[string]string{
-		constant.ENV_DUKKHA_WORKING_DIR: func() string {
+
+	// ref: https://docs.github.com/en/actions/reference/environment-variables
+	isGithubActions := os.Getenv("GITHUB_ACTIONS") == "true"
+
+	// ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+	isGitlabCI := os.Getenv("GITLAB_CI") == "true"
+
+	osNameAndVersion := utils.NewLazyValue(func() string {
+		name, version := getOSNameAndVersion()
+		return name + "," + version
+	})
+
+	return map[string]utils.LazyValue{
+		constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(func() string {
 			pwd, err2 := os.Getwd()
 			if err2 != nil {
 				return ""
@@ -37,74 +50,122 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 			}
 
 			return pwd
-		}(),
+		}()),
 
-		constant.ENV_TIME_ZONE:        zone,
-		constant.ENV_TIME_ZONE_OFFSET: strconv.FormatInt(int64(offset), 10),
-		constant.ENV_TIME_YEAR:        strconv.FormatInt(int64(now.Year()), 10),
-		constant.ENV_TIME_MONTH:       strconv.FormatInt(int64(now.Month()), 10),
-		constant.ENV_TIME_DAY:         strconv.FormatInt(int64(now.Day()), 10),
-		constant.ENV_TIME_HOUR:        strconv.FormatInt(int64(now.Hour()), 10),
-		constant.ENV_TIME_MINUTE:      strconv.FormatInt(int64(now.Minute()), 10),
-		constant.ENV_TIME_SECOND:      strconv.FormatInt(int64(now.Second()), 10),
+		constant.ENV_TIME_ZONE:        utils.ImmediateString(zone),
+		constant.ENV_TIME_ZONE_OFFSET: utils.ImmediateString(strconv.FormatInt(int64(offset), 10)),
+		constant.ENV_TIME_YEAR:        utils.ImmediateString(strconv.FormatInt(int64(now.Year()), 10)),
+		constant.ENV_TIME_MONTH:       utils.ImmediateString(strconv.FormatInt(int64(now.Month()), 10)),
+		constant.ENV_TIME_DAY:         utils.ImmediateString(strconv.FormatInt(int64(now.Day()), 10)),
+		constant.ENV_TIME_HOUR:        utils.ImmediateString(strconv.FormatInt(int64(now.Hour()), 10)),
+		constant.ENV_TIME_MINUTE:      utils.ImmediateString(strconv.FormatInt(int64(now.Minute()), 10)),
+		constant.ENV_TIME_SECOND:      utils.ImmediateString(strconv.FormatInt(int64(now.Second()), 10)),
 
-		constant.ENV_HOST_KERNEL:         runtime.GOOS,
-		constant.ENV_HOST_KERNEL_VERSION: sysinfo.KernelVersion(),
+		constant.ENV_HOST_KERNEL:         utils.ImmediateString(runtime.GOOS),
+		constant.ENV_HOST_KERNEL_VERSION: utils.NewLazyValue(sysinfo.KernelVersion),
 
-		constant.ENV_HOST_OS:         "",
-		constant.ENV_HOST_OS_VERSION: "",
+		constant.ENV_HOST_OS: utils.NewLazyValue(func() string {
+			nameAndVer := osNameAndVersion.Get()
+			return nameAndVer[:strings.IndexByte(nameAndVer, ',')]
+		}),
 
-		constant.ENV_HOST_ARCH: sysinfo.Arch(),
-	}
+		constant.ENV_HOST_OS_VERSION: utils.NewLazyValue(func() string {
+			nameAndVer := osNameAndVersion.Get()
+			return nameAndVer[strings.IndexByte(nameAndVer, ',')+1:]
+		}),
 
-	envs := []struct {
-		name      string
-		command   []string
-		onError   func() string
-		onSuccess func(result string) string
-	}{
-		{
-			name: constant.ENV_GIT_BRANCH,
-			command: []string{
+		constant.ENV_HOST_ARCH: utils.NewLazyValue(sysinfo.Arch),
+		constant.ENV_GIT_BRANCH: newLazyExecVal(
+			ctx,
+			[]string{
 				"git", "symbolic-ref", "--short", "-q", "HEAD",
 			},
-			onError:   func() string { return "" },
-			onSuccess: strings.TrimSpace,
-		},
-		{
-			name: constant.ENV_GIT_COMMIT,
-			command: []string{
+			func() string {
+				switch {
+				case isGithubActions:
+					ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
+					if len(ghRef) == 0 {
+						ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
+					}
+
+					switch {
+					case strings.HasPrefix(ghRef, "refs/heads/"):
+						return strings.TrimPrefix(ghRef, "refs/heads/")
+					default:
+						return ""
+					}
+				case isGitlabCI:
+					return strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
+				default:
+					return ""
+				}
+			},
+			strings.TrimSpace,
+		),
+		constant.ENV_GIT_COMMIT: newLazyExecVal(
+			ctx,
+			[]string{
 				"git", "rev-parse", "HEAD",
 			},
-			onError:   func() string { return "" },
-			onSuccess: strings.TrimSpace,
-		},
-		{
-			name: constant.ENV_GIT_TAG,
-			command: []string{
+			func() string {
+				switch {
+				case isGithubActions:
+					return strings.TrimSpace(os.Getenv("GITHUB_SHA"))
+				case isGitlabCI:
+					return strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
+				default:
+					return ""
+				}
+			},
+			strings.TrimSpace,
+		),
+
+		constant.ENV_GIT_TAG: newLazyExecVal(
+			ctx,
+			[]string{
 				"git", "describe", "--tags",
 			},
-			onError: func() string { return "" },
-			onSuccess: func(result string) string {
+			func() string {
+				switch {
+				case isGithubActions:
+					ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
+					if len(ghRef) == 0 {
+						ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
+					}
+
+					switch {
+					case strings.HasPrefix(ghRef, "refs/tags/"):
+						return strings.TrimPrefix(ghRef, "refs/tags/")
+					default:
+						return ""
+					}
+				case isGitlabCI:
+					return strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
+				default:
+					return ""
+				}
+			},
+			func(result string) string {
 				return strings.TrimSpace(strings.SplitN(result, " ", 2)[0])
 			},
-		},
-		{
-			name: constant.ENV_GIT_WORKTREE_CLEAN,
-			command: []string{
+		),
+
+		constant.ENV_GIT_WORKTREE_CLEAN: newLazyExecVal(
+			ctx,
+			[]string{
 				"git", "diff-index", "--quiet", "HEAD",
 			},
-			onError:   func() string { return "false" },
-			onSuccess: func(result string) string { return "true" },
-		},
-		{
-			// TODO: this command involves network operation, can be very slow
-			name: constant.ENV_GIT_DEFAULT_BRANCH,
-			command: []string{
+			func() string { return "false" },
+			func(_ string) string { return "true" },
+		),
+
+		constant.ENV_GIT_DEFAULT_BRANCH: newLazyExecVal(
+			ctx,
+			[]string{
 				"git", "remote", "show", "origin",
 			},
-			onError: func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
-			onSuccess: func(result string) string {
+			func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
+			func(result string) string {
 				s := bufio.NewScanner(strings.NewReader(result))
 				s.Split(bufio.ScanLines)
 				for s.Scan() {
@@ -117,33 +178,11 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 
 				return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH)
 			},
-		},
+		),
 	}
+}
 
-	buf := &bytes.Buffer{}
-	for _, e := range envs {
-		buf.Reset()
-		cmd, err2 := exechelper.Do(exechelper.Spec{
-			Context: ctx,
-			Command: e.command,
-			Stdout:  buf,
-			Stderr:  io.Discard,
-		})
-		if err2 != nil {
-			result[e.name] = e.onError()
-			continue
-		}
-
-		_, err2 = cmd.Wait()
-		if err2 != nil {
-			result[e.name] = e.onError()
-			continue
-		}
-
-		result[e.name] = e.onSuccess(buf.String())
-	}
-
-	// set host os name and version
+func getOSNameAndVersion() (osName, osVersion string) {
 	switch runtime.GOOS {
 	case constant.KERNEL_LINUX:
 		data, err2 := os.ReadFile("/etc/os-release")
@@ -158,80 +197,44 @@ func createGlobalEnv(ctx context.Context) map[string]string {
 			line := s.Text()
 			switch {
 			case strings.HasPrefix(line, "ID="):
-				osName := strings.TrimPrefix(line, "ID=")
-				osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
-
 				// TODO: ubuntu has ID_LIKE=debian, check other platforms
-				result[constant.ENV_HOST_OS] = osName
+
+				osName = strings.TrimPrefix(line, "ID=")
+				osName = strings.TrimRight(strings.TrimLeft(osName, `"`), `"`)
 			case strings.HasPrefix(line, "VERSION_ID="):
-				osVersion := strings.TrimPrefix(line, "VERSION_ID=")
+				osVersion = strings.TrimPrefix(line, "VERSION_ID=")
 				osVersion = strings.TrimRight(strings.TrimLeft(osVersion, `"`), `"`)
-
-				result[constant.ENV_HOST_OS_VERSION] = osVersion
 			}
 		}
 	default:
 	}
 
-	// check ci platform specific settings
+	return
+}
 
-	switch {
-	case os.Getenv("GITHUB_ACTIONS") == "true":
-		// github actions
-
-		// https://docs.github.com/en/actions/reference/environment-variables
-
-		if len(result[constant.ENV_GIT_COMMIT]) == 0 {
-			// not set by local git exec
-			commit := strings.TrimSpace(os.Getenv("GITHUB_SHA"))
-			if len(commit) != 0 {
-				result[constant.ENV_GIT_COMMIT] = commit
-			}
+func newLazyExecVal(
+	ctx context.Context,
+	command []string,
+	onError func() string,
+	onSuccess func(string) string,
+) utils.LazyValue {
+	buf := &bytes.Buffer{}
+	return utils.NewLazyValue(func() string {
+		cmd, err2 := exechelper.Do(exechelper.Spec{
+			Context: ctx,
+			Command: command,
+			Stdout:  buf,
+			Stderr:  io.Discard,
+		})
+		if err2 != nil {
+			return onError()
 		}
 
-		ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
-		if len(ghRef) == 0 {
-			ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
+		_, err2 = cmd.Wait()
+		if err2 != nil {
+			return onError()
 		}
 
-		switch {
-		case strings.HasPrefix(ghRef, "refs/heads/"):
-			if len(result[constant.ENV_GIT_BRANCH]) != 0 {
-				break
-			}
-
-			result[constant.ENV_GIT_BRANCH] = strings.TrimPrefix(ghRef, "refs/heads/")
-		case strings.HasPrefix(ghRef, "refs/tags/"):
-			if len(result[constant.ENV_GIT_TAG]) == 0 {
-				break
-			}
-
-			result[constant.ENV_GIT_TAG] = strings.TrimPrefix(ghRef, "refs/tags/")
-		}
-	case os.Getenv("GITLAB_CI") == "true":
-		// gitlab-ci
-
-		// https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
-
-		if len(result[constant.ENV_GIT_COMMIT]) == 0 {
-			result[constant.ENV_GIT_COMMIT] = strings.TrimSpace(
-				os.Getenv("CI_COMMIT_SHA"),
-			)
-		}
-
-		if len(result[constant.ENV_GIT_BRANCH]) == 0 {
-			result[constant.ENV_GIT_BRANCH] = strings.TrimSpace(
-				os.Getenv("CI_COMMIT_BRANCH"),
-			)
-		}
-
-		if len(result[constant.ENV_GIT_TAG]) == 0 {
-			result[constant.ENV_GIT_TAG] = strings.TrimSpace(
-				os.Getenv("CI_COMMIT_TAG"),
-			)
-		}
-	default:
-	}
-
-	return result
+		return onSuccess(string(buf.Next(buf.Len())))
+	})
 }

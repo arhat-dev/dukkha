@@ -7,10 +7,6 @@ import (
 )
 
 func TestTaskExecOptions(t *testing.T) {
-	const (
-		shellName = "test-shell"
-	)
-
 	opts := CreateTaskExecOptions(1, 10).(*taskExecOpts)
 	assert.Equal(t, opts.id, 1)
 	assert.Equal(t, opts.seq, -1)

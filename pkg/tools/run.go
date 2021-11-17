@@ -291,11 +291,16 @@ func doRun(
 			output.WriteExecStart(ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
 		}
 
+		env := make(map[string]string, len(ctx.Env()))
+		for k, v := range ctx.Env() {
+			env[k] = v.Get()
+		}
+
 		ctx.SetState(dukkha.TaskExecWorking)
 		p, err := exechelper.Do(exechelper.Spec{
 			Context: ctx,
 			Command: cmd,
-			Env:     ctx.Env(),
+			Env:     env,
 			Dir:     es.Chdir,
 
 			Stdin: stdin,

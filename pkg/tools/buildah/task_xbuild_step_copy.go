@@ -28,7 +28,7 @@ type stepCopy struct {
 
 func (s *stepCopy) genSpec(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc

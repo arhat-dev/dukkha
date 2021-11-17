@@ -70,7 +70,7 @@ type signingSpec struct {
 func (s *signingSpec) genSignAndVerifySpec(
 	keyFile string,
 	imageName string,
-	options dukkha.TaskMatrixExecOptions,
+	_ dukkha.TaskMatrixExecOptions,
 ) []dukkha.TaskExecSpec {
 	if !s.Enabled {
 		return nil

@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"text/template"
-	"text/template/parse"
 	"unsafe"
 
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/templateutils"
+	"arhat.dev/dukkha/third_party/golang/text/template"
+	"arhat.dev/dukkha/third_party/golang/text/template/parse"
 	"github.com/stretchr/testify/assert"
 )
 

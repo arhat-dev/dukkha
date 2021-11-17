@@ -46,8 +46,8 @@ func NewConfig() *Config {
 type GlobalConfig struct {
 	rs.BaseField `yaml:"-"`
 
-	// CacheDir set DUKKHA_CACHE_DIR to store script file and intermediate
-	// task execution data
+	// CacheDir set DUKKHA_CACHE_DIR to store script files, renderer cache
+	// and intermediate task execution data
 	CacheDir string `yaml:"cache_dir"`
 
 	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not

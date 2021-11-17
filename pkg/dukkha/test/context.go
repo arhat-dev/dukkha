@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 var _ dukkha.Renderer = (*echoRenderer)(nil)
@@ -29,13 +30,13 @@ func (*echoRenderer) RenderYaml(
 
 // nolint:revive
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
-	return NewTestContextWithGlobalEnv(ctx, make(map[string]string))
+	return NewTestContextWithGlobalEnv(ctx, make(map[string]utils.LazyValue))
 }
 
 // nolint:revive
 func NewTestContextWithGlobalEnv(
 	ctx context.Context,
-	globalEnv map[string]string,
+	globalEnv map[string]utils.LazyValue,
 ) dukkha.ConfigResolvingContext {
 	d := dukkha.NewConfigResolvingContext(
 		ctx,

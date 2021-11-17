@@ -1,8 +1,6 @@
 package golang
 
 import (
-	"strings"
-
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -75,8 +73,4 @@ func (c *TaskBuild) GetExecSpecs(
 	})
 
 	return buildSteps, err
-}
-
-func formatArgs(args []string) string {
-	return strings.Join(args, " ")
 }

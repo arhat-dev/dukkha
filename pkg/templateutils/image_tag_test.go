@@ -10,6 +10,7 @@ import (
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 func TestSetDefaultImageTag(t *testing.T) {
@@ -47,7 +48,12 @@ func TestSetDefaultImageTag(t *testing.T) {
 	for _, mat := range tests {
 		spec := matrix.Entry(mat)
 
-		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), mat)
+		genv := make(map[string]utils.LazyValue, len(mat))
+		for k, v := range mat {
+			genv[k] = utils.ImmediateString(v)
+		}
+
+		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), genv)
 		rc.SetCacheDir(t.TempDir())
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 

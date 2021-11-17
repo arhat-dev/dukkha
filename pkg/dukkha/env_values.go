@@ -6,6 +6,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/matrix"
+	"arhat.dev/dukkha/pkg/utils"
 )
 
 // This file describes runtime values derived from env
@@ -41,13 +42,13 @@ type EnvValues interface {
 	AddListEnv(env ...string)
 }
 
-func newEnvValues(globalEnv map[string]string) *envValues {
+func newEnvValues(globalEnv map[string]utils.LazyValue) *envValues {
 	ret := &envValues{
 		matrixFilter: nil,
 
 		globalEnv: globalEnv,
 
-		env: make(map[string]string),
+		env: make(map[string]utils.LazyValue),
 		mu:  new(sync.RWMutex),
 	}
 
@@ -59,9 +60,9 @@ var _ EnvValues = (*envValues)(nil)
 type envValues struct {
 	matrixFilter *matrix.Filter
 
-	globalEnv map[string]string
+	globalEnv map[string]utils.LazyValue
 
-	env map[string]string
+	env map[string]utils.LazyValue
 	mu  *sync.RWMutex
 }
 
@@ -69,7 +70,7 @@ func (c *envValues) clone() *envValues {
 	newValues := &envValues{
 		matrixFilter: nil,
 		globalEnv:    c.globalEnv,
-		env:          make(map[string]string),
+		env:          make(map[string]utils.LazyValue),
 		mu:           new(sync.RWMutex),
 	}
 
@@ -96,15 +97,15 @@ func (c *envValues) MatrixFilter() *matrix.Filter {
 }
 
 func (c *envValues) MatrixArch() string {
-	return c.env[constant.ENV_MATRIX_ARCH]
+	return getValueOrDefault(c.env[constant.ENV_MATRIX_ARCH])
 }
 
 func (c *envValues) MatrixKernel() string {
-	return c.env[constant.ENV_MATRIX_KERNEL]
+	return getValueOrDefault(c.env[constant.ENV_MATRIX_KERNEL])
 }
 
 func (c *envValues) MatrixLibc() string {
-	return c.env[constant.ENV_MATRIX_LIBC]
+	return getValueOrDefault(c.env[constant.ENV_MATRIX_LIBC])
 }
 
 func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
@@ -113,7 +114,7 @@ func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
 			continue
 		}
 
-		c.env[e.Name] = e.Value
+		c.env[e.Name] = utils.ImmediateString(e.Value)
 	}
 }
 
@@ -125,68 +126,76 @@ func (c *envValues) AddListEnv(env ...string) {
 			value = parts[1]
 		}
 
-		c.env[key] = value
+		c.env[key] = utils.ImmediateString(value)
 	}
 }
 
 func (c *envValues) SetCacheDir(dir string) {
-	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = dir
+	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = utils.ImmediateString(dir)
 }
 
 func (c *envValues) OverrideDefaultGitBranch(branch string) {
-	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = branch
+	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = utils.ImmediateString(branch)
 }
 
 // OverrideWorkingDir set DUKKHA_WORKING_DIR to cwd
 // should not be exposed by any interface type in this package
 func (c *envValues) OverrideWorkingDir(cwd string) {
-	c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR] = cwd
+	c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR] = utils.ImmediateString(cwd)
 }
 
 func (c *envValues) WorkingDir() string {
-	return c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR]
+	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR])
 }
 
 func (c *envValues) CacheDir() string {
-	return c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR]
+	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
 }
 
 func (c *envValues) GitBranch() string {
-	return c.globalEnv[constant.ENV_GIT_BRANCH]
+	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_BRANCH])
 }
 
 func (c *envValues) GitWorkTreeClean() bool {
-	return c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN] == "true"
+	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN]) == "true"
 }
 
 func (c *envValues) GitTag() string {
-	return c.globalEnv[constant.ENV_GIT_TAG]
+	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_TAG])
 }
 
 func (c *envValues) GitDefaultBranch() string {
-	return c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH]
+	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH])
 }
 
 func (c *envValues) GitCommit() string {
-	return c.globalEnv[constant.ENV_GIT_COMMIT]
+	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_COMMIT])
 }
 
 func (c *envValues) HostArch() string {
-	return c.globalEnv[constant.ENV_HOST_ARCH]
+	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_ARCH])
 }
 
 func (c *envValues) HostKernel() string {
-	return c.globalEnv[constant.ENV_HOST_KERNEL]
+	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL])
 }
 
 func (c *envValues) HostKernelVersion() string {
-	return c.globalEnv[constant.ENV_HOST_KERNEL_VERSION]
+	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL_VERSION])
 }
 
 func (c *envValues) HostOS() string {
-	return c.globalEnv[constant.ENV_HOST_OS]
+	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS])
 }
 
 func (c *envValues) HostOSVersion() string {
-	return c.globalEnv[constant.ENV_HOST_OS_VERSION]
+	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS_VERSION])
+}
+
+func getValueOrDefault(v utils.LazyValue) string {
+	if v == nil {
+		return ""
+	}
+
+	return v.Get()
 }
