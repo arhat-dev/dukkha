@@ -49,38 +49,24 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateMathFuncs(rc)).
 		Funcs(funcs.CreateCryptoFuncs(rc)).
 		Funcs(funcs.CreateFileFuncs(rc)).
-		Funcs(funcs.CreateFilePathFuncs(rc)).
 		Funcs(funcs.CreatePathFuncs(rc)).
 		Funcs(funcs.CreateSockaddrFuncs(rc)).
 		Funcs(funcs.CreateCollFuncs(rc)).
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
 		Funcs(map[string]interface{}{
-			"strconv": func() *_strconvNS {
-				return strconvNS
-			},
-			"dukkha": func() *dukkhaNS {
-				return createDukkhaNS(rc)
-			},
-			"os": func() *_osNS {
-				return osNS
-			},
-			"archconv": func() *_archconvNS {
-				return archconvNS
-			},
+			"filepath": func() *_filepathNS { return filepathNS },
+			"strconv":  func() *_strconvNS { return strconvNS },
+			"dukkha":   func() *_dukkhaNS { return createDukkhaNS(rc) },
+			"os":       func() *_osNS { return osNS },
+			"archconv": func() *_archconvNS { return archconvNS },
 			// eval shell and template
-			"eval": func() *_evalNS {
-				return createEvalNS(rc)
-			},
+			"eval":   func() *_evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,
 			"values": rc.Values,
-			"matrix": func() map[string]string {
-				return rc.MatrixFilter().AsEntry()
-			},
+			"matrix": func() map[string]string { return rc.MatrixFilter().AsEntry() },
 			// state task execution
-			"state": func() *_stateNS {
-				return createStateNS(rc)
-			},
+			"state": func() *_stateNS { return createStateNS(rc) },
 			// for transform renderer
 			"VALUE": func() string {
 				transformContext, ok := rc.(interface {
@@ -95,10 +81,11 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		}).
 		// text processing
 		Funcs(map[string]interface{}{
-			"jq":      textquery.JQ,
-			"jqBytes": textquery.JQBytes,
-			"yq":      textquery.YQ,
-			"yqBytes": textquery.YQBytes,
+			"jq":       textquery.JQ,
+			"jqBytes":  textquery.JQBytes,
+			"jqObject": jqObject,
+			"yq":       textquery.YQ,
+			"yqBytes":  textquery.YQBytes,
 
 			"fromYaml": func(v string) interface{} {
 				ret, err := fromYaml(rc, v)

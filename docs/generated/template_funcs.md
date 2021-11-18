@@ -89,6 +89,7 @@
 - `join(interface {}, string) (string, error)`
 - `jq(string, string) (string, error)`
 - `jqBytes(string, []uint8) (string, error)`
+- `jqObject(interface {}, interface {}) (interface {}, error)`
 - `kebabcase(string) string`
 - `keys(...map[string]interface {}) ([]string, error)`
 - `kindIs(string, interface {}) bool`
@@ -320,6 +321,7 @@
 - `filepath.Dir(interface {}) string`
 - `filepath.Ext(interface {}) string`
 - `filepath.FromSlash(interface {}) string`
+- `filepath.Glob(interface {}) ([]string, error)`
 - `filepath.IsAbs(interface {}) bool`
 - `filepath.Join(...interface {}) string`
 - `filepath.Match(interface {}, interface {}) (bool, error)`
