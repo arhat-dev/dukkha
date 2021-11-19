@@ -1,0 +1,10 @@
+golang:build:
+- name: dukkha
+  __@template|http: |-
+    https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+    {{- /* line sep */ -}}
+    golang/build/cmd.yml
+  matrix@file: cicd/artifacts/matrix.yml
+  env:
+  - name: MODULE_NAME
+    value: arhat.dev/dukkha

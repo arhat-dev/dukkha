@@ -1,0 +1,20 @@
+workflow:run:
+# build container images
+# required by ci job
+- name: build-images
+  jobs:
+  - task: buildah:xbuild(dukkha, {})
+
+# sign container images
+# required by ci job
+- name: sign-images
+  jobs:
+  - idle: TODO
+  # - task: cosign:sign-image(dukkha, {})
+
+# push built container images
+# required by ci job
+- name: push-images
+  jobs:
+  - task: buildah:login(ghcr, {})
+  - task: buildah:push(dukkha, {})

@@ -1,0 +1,67 @@
+buildah:login:
+- name: ghcr
+  registry: ghcr.io
+  username@template: |-
+    {{- env.GHCR_USER -}}
+  password@template: |-
+    {{- env.GHCR_PASS -}}
+
+buildah:push:
+- name: dukkha
+  matrix: &matrix
+    kernel:
+    - linux
+    arch@template|http: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line sep */ -}}
+      matrix/container/linux/all.yml
+  image_names: &image_names
+  - image: ghcr.io/arhat-dev/dukkha
+    manifest: ghcr.io/arhat-dev/dukkha
+
+buildah:xbuild:
+- name: dukkha
+  matrix: *matrix
+  image_names: *image_names
+  steps:
+  - id: builder
+    from:
+      ref: ghcr.io/arhat-dev/builder-golang:1.17-alpine
+  - copy:
+      from:
+        local:
+          # yamllint disable-line rule:quoted-strings
+          path: "."
+      to:
+        path: /app
+  - run:
+      script@env: |-
+        #!/bin/sh
+
+        set -ex
+        make dukkha
+        ./build/dukkha run golang local build dukkha -m kernel=linux -m arch=${MATRIX_ARCH}
+
+      extra_args:
+      - --tty
+
+  - from:
+      ref: scratch
+
+  - copy:
+      from:
+        step:
+          id: builder
+          path@env: /app/build/dukkha.linux.${MATRIX_ARCH}
+      to:
+        path: /dukkha
+
+  - set:
+      labels:
+      - name: org.opencontainers.image.source
+        value: https://github.com/arhat-dev/dukkha
+      entrypoint:
+      - /dukkha
+      env:
+      - name: PATH
+        value: /

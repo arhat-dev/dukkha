@@ -1,0 +1,19 @@
+golang:test:
+- name: dukkha
+  __@template|http: |-
+    https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+    {{- /* line sep */ -}}
+    golang/test/pkg.yml
+  env:
+  - name: PROFILE_DIR
+    value: build/test-profile
+  matrix:
+    pkg@template: |-
+      {{-
+        eval.Shell "go list ./pkg/..."
+        | removePrefix (eval.Shell "go list -m" | trimSuffix "\n")
+        | addPrefix "- "
+      -}}
+  hooks:
+    before:
+    - shell: mkdir -p ${PROFILE_DIR}

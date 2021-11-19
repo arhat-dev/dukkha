@@ -7,7 +7,7 @@
   "Exclude": [
     "\\.git/.*", "private/.*",
     "vendor/.*", "generated/.*",
-    "build/.*", "scripts/dukkha/cache/.*",
+    "build/.*", ".dukkha/.*",
     ".*.tar.*", ".*.zip.*", ".*.rar.*",
     "third_party/golang/.*doc.go"
   ],

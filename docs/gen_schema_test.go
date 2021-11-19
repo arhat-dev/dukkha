@@ -169,6 +169,7 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 			}
 
 			topLevelStruct.PatternProperties[taskPattern] = def
+		default:
 		}
 	}
 

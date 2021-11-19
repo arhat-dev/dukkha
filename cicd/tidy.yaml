@@ -1,0 +1,30 @@
+workflow:run:
+# required by ci job
+- name: tidy
+  jobs:
+  - task: workflow:run(tidy-go-mod, {})
+  - task: workflow:run(docs, {})
+
+# ensure tidy go mod
+- name: tidy-go-mod
+  env:
+  - name: GOPROXY
+    value: direct
+  - name: GOSUMDB
+    value: "off"
+  jobs:
+  - shell: |-
+      go mod tidy
+      go mod vendor
+
+  - shell: |-
+      patch -u -p1 --verbose -i scripts/patches/vendor.patch
+
+# generate docs
+- name: docs
+  jobs:
+  # TODO: schemer can panic when there is no build cache, fix it and remove while do
+  - shell: |-
+      while ! go test -v -mod=readonly -tags="docs" ./docs ; do
+        :
+      done
