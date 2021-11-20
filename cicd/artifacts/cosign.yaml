@@ -1,0 +1,32 @@
+docker:login:
+- name: ghcr
+  registry: ghcr.io
+  username@template: |-
+    {{- env.GHCR_USER -}}
+  password@template: |-
+    {{- env.GHCR_PASS -}}
+
+cosign:upload:
+- name: dukkha
+  matrix@file: cicd/artifacts/matrix.yml
+  hooks:
+    before:
+    - task: docker:login(ghcr)
+  signing:
+    enabled: true
+    annotations:
+      org.opencontainers.image.source: https://github.com/arhat-dev/dukkha
+    private_key@env: ${COSIGN_PRIVATE_KEY}
+    private_key_password@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
+    verify: true
+    public_key@http: https://arhat.dev/.well-known/cosign.pub
+  files:
+  - path@template: |-
+      {{- $blob_file := printf "build/dukkha.%s.%s" matrix.kernel matrix.arch -}}
+      {{- if eq matrix.kernel "windows" -}}
+        {{- $blob_file = printf "%s.exe" $blob_file -}}
+      {{- end -}}
+      {{- $blob_file -}}
+    content_type: ""
+  image_names:
+  - image: ghcr.io/arhat-dev/dist/dukkha

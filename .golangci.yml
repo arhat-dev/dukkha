@@ -102,6 +102,10 @@ issues:
     - lll
     - scopelint
 
+  - path: docs/generated
+    linters:
+    - revive
+
   - text: string `true`
     linters:
     - goconst

@@ -1,0 +1,15 @@
+workflow:run:
+# required by ci job
+- name: test
+  jobs:
+  - task: golang:test(dukkha, {})
+  # only run sonar scan on linux and darwin during CI
+  - shell@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- if eq env.HOST_KERNEL "linux" "darwin" -}}
+        linter/sonar-scanner.tpl
+      {{- else -}}
+        empty.yml
+      {{- end -}}
+    # allow fail
+    continue_on_error: true

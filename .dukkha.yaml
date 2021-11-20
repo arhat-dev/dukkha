@@ -1,44 +1,54 @@
 include:
-- scripts/dukkha/entrypoint.yaml
-
-global:
-  default_git_branch: master
-  cache_dir: scripts/dukkha/cache
-  env:
-  - name: GLOBAL_ENV_FOO
-    value: foo
-  - name: GLOBAL_ENV_BAR
-    value: ${GLOBAL_ENV_FOO}-bar
-
-  values:
-    testdata:
-      __just_call_template@template: |-
-        {{- dukkha.SetValue "testdata.render.a" "I'm a" -}}
-
-      str_not_number@transform:
-        value: "10.10000"
-        ops:
-        - template: |-
-            {{- printf "str-%s" VALUE -}}
-
-      render:
-        # a: I'm a
-        b:
-          c@echo:
-            d@template:
-              e@http: |-
-                https://gist.githubusercontent.com/arhatbot/{{- /* join */ -}}
-                d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* join */ -}}
-                1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* join */ -}}
-                echo.sh
+- cicd
 
 renderers:
   http:
     enable_cache: true
-    cache_max_age: 10s
+    cache_max_age: 5h
   env:
     enable_exec: true
 
-shells:
-- name: bash
-- name: python
+global:
+  default_git_branch: master
+  env:
+  - name: GO_VERSION
+    value: "1.17"
+  values:
+    cmd:
+      run_container@http|template: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/templates/cmd-run-container.yml
+
+tools:
+  workflow:
+  - name: local
+  - name: in-ctr
+
+  golang:
+  - name: local
+  - name: in-ctr
+    cmd@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line sep */ -}}
+      golang/cmd-in-ctr.yml
+
+  cosign:
+  - name: local
+  # TODO: support in container cosign
+  - name: in-ctr
+
+  # docker is required by cosign upload (login to docker registry)
+  docker:
+  - name: local
+  # TODO: support docker in docker
+  - name: in-ctr
+
+  github:
+  - name: local
+  - name: in-ctr
+
+  buildah:
+  - name: local
+  - name: in-ctr
+    cmd@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line sep */ -}}
+      buildah/cmd-in-ctr.yml

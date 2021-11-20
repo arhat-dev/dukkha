@@ -1,0 +1,20 @@
+workflow:run:
+# required by ci job
+- name: lint
+  matrix:
+    linter:
+    - editorconfig-checker
+    - shellcheck
+    - yamllint
+    - golangci-lint
+
+  jobs:
+  - shell@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line join*/ -}}
+      linter/{{- matrix.linter -}}.tpl
+    env:
+    - name@template: |-
+        {{- matrix.linter | strings.SnakeCase | strings.ToUpper -}}
+      value@template: |-
+        {{- matrix.version | default "" -}}

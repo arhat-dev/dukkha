@@ -1,0 +1,17 @@
+workflow:run:
+- name: build-artifacts
+  jobs:
+  - task: golang:build(dukkha, {})
+
+- name: sign-artifacts
+  jobs:
+  - idle: TODO
+
+- name: upload-artifacts
+  jobs:
+  - task: docker:login(ghcr, {})
+  - task: cosign:upload(dukkha, {})
+
+- name: create-release
+  jobs:
+  - task: github:release(dukkha, {})

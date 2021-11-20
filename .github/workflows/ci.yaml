@@ -8,6 +8,7 @@ on:
         description: reason to run this workflow
         required: false
         default: test
+
   pull_request:
     paths-ignore:
     - docs/**
@@ -23,109 +24,57 @@ on:
     - README.md
     branches:
     - master
+    - "!deps/**"
     tags:
     - v*
 
-env:
-  GO111MODULE: "on"
-
-defaults:
-  run:
-    shell: bash
-
 jobs:
   stylecheck:
-    if: contains(github.head_ref, 'deps/') == false
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        # disable shallow-clone
-        fetch-depth: 0
+    uses: arhat-dev/dukkha-presets/.github/workflows/stylecheck.yml@master
+    with:
+      # replace installed dukkha
+      prepare: |-
+        make dukkha
+        mv build/dukkha "$(command -v dukkha)"
 
-    - uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
+  test:
+    uses: arhat-dev/dukkha-presets/.github/workflows/test.yml@master
+    with:
+      # replace installed dukkha
+      prepare: |-
+        make dukkha
+        mv build/dukkha "$(command -v dukkha)"
+    secrets:
+      sonarqube-server-url: ${{ secrets.SONAR_HOST_URL }}
+      sonarqube-token: ${{ secrets.SONAR_TOKEN }}
 
-    - name: Ensure docs up to date
-      run: |
-        while ! make docs ; do
-          :
-        done
-
-        if ! git diff --exit-code ; then
-          echo "docs not up to date"
-          exit 1
-        fi
-
-    - name: Ensure tidy gomod
-      run: |
-        make vendor
-        if ! git diff --exit-code ; then
-          echo "go mod not tidy"
-          exit 1
-        fi
-
-    - name: Lint
-      run: |
-        make lint.all
-
-  unit-tests:
-    if: contains(github.head_ref, 'deps/') == false
+  artifacts:
     needs:
     - stylecheck
-    strategy:
-      matrix:
-        include:
-        - name: Test Packages
-          target: test.pkg
-          prepare: ""
+    - test
+    uses: arhat-dev/dukkha-presets/.github/workflows/artifacts.yml@master
+    with:
+      release: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+      # replace installed dukkha
+      prepare: |-
+        make dukkha
+        mv build/dukkha "$(command -v dukkha)"
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      cosign-private-key-password: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
 
-        - name: Test Command And Upload Images
-          target: test.cmd
-          prepare: export PUSH_DUKKHA_IMAGE_IN_CMD_TEST="true"
-
-        - name: Test Command And Upload blobs
-          target: test.cmd
-          prepare: export PUSH_DUKKHA_BLOB_IN_CMD_TEST="true"
-
-      fail-fast: false
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - uses: sigstore/cosign-installer@v1.2.1
-      with:
-        cosign-release: v1.2.1
-
-    - name: Install qemu-static
-      run: |
-        sudo podman run --rm --privileged docker.io/aptman/qus -s -- -p
-
-        sudo apt update
-        sudo apt install -y qemu-user-static
-
-    - name: ${{ matrix.name }}
-      env:
-        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        COSIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}
-        GHCR_USER: ${{ github.actor }}
-        GHCR_PASS: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ${{ matrix.prepare }}
-
-        make ${{ matrix.target }}
-
-    - name: Remove dukkha cache
-      if: always()
-      run: |
-        rm -rf scripts/dukkha/cache
-
-    - uses: sonarsource/sonarqube-scan-action@v1.0.0
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # TODO: fix sonarqube server intermittent error
-      continue-on-error: true
+  images:
+    needs:
+    - stylecheck
+    - test
+    uses: arhat-dev/dukkha-presets/.github/workflows/images.yml@master
+    with:
+      # replace installed dukkha
+      prepare: |-
+        make dukkha
+        mv build/dukkha "$(command -v dukkha)"
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      cosign-private-key-password: ${{ secrets.COSIGN_PRIVATE_KEY_PASSWORD }}

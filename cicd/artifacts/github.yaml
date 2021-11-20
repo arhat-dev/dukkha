@@ -1,10 +1,5 @@
-tools:
-  github:
-  - name: local
-
 github:release:
-- &std_release
-  name: dukkha
+- name: dukkha
   hooks:
     before:
     - shell: |-
@@ -16,17 +11,8 @@ github:release:
   tag@env: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
-  notes@file|template: scripts/dukkha/release-notes.md
+  notes@file?str|template?str: cicd/artifacts/release-notes.md
   files:
   - path: build/dukkha.*
   # checksums
   - path: build/*.txt
-
-- name: testing
-  tag: testing
-  draft: true
-  title: testing-release-title
-  notes@file: scripts/dukkha/release-notes.md
-  files:
-  - path: build/duk*
-    label: testing.dukkha

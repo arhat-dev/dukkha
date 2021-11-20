@@ -12,15 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include scripts/lint.mk
-
-GOMOD := GOPROXY=direct GOSUMDB=off go mod
-.PHONY: vendor
-vendor:
-	${GOMOD} tidy
-	${GOMOD} vendor
-	patch -u -p1 --verbose -i scripts/patches/vendor.patch
-
 GOOS ?= $(shell go env GOHOSTOS)
 GOARCH ?= $(shell go env GOHOSTARCH)
 .PHONY: dukkha
@@ -28,12 +19,16 @@ dukkha:
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
 		go build -o build/dukkha -mod vendor ./cmd/dukkha
 
-.PHONY: docs
-docs:
-	go test -v -mod=readonly -tags="docs" ./docs
+# lint.shell:
+# 	${RUN_CTR_APP} koalaman/shellcheck-alpine:stable \
+# 		sh -c "find . \
+# 			| grep -E -e '\.sh\$$' \
+# 			| grep -v vendor | grep -v \.git \
+# 			| xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
-# testing
-include scripts/test/unit.mk
+.PHONY: lint
+lint:
+	dukkha run workflow local run lint
 
 # packaging
 include scripts/package/dukkha.mk
