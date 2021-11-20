@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
@@ -15,21 +16,21 @@ import (
 
 func createCompressionStream(w io.Writer, method, level string) (io.WriteCloser, error) {
 	switch method {
-	case "deflate":
+	case constant.CompressionMethod_DEFLATE:
 		l, err := parseFlateCompressionLevel(level)
 		if err != nil {
 			return nil, err
 		}
 
 		return flate.NewWriter(w, l)
-	case "gzip":
+	case constant.CompressionMethod_Gzip:
 		l, err := parseGzipCompressionLevel(level)
 		if err != nil {
 			return nil, err
 		}
 
 		return gzip.NewWriterLevel(w, l)
-	case "bzip2":
+	case constant.CompressionMethod_Bzip2:
 		l, err := parseBzip2CompresssionLevel(level)
 		if err != nil {
 			return nil, err
@@ -38,11 +39,11 @@ func createCompressionStream(w io.Writer, method, level string) (io.WriteCloser,
 		return bzip2.NewWriter(w, &bzip2.WriterConfig{
 			Level: l,
 		})
-	case "xz":
+	case constant.CompressionMethod_XZ:
 		return xz.WriterConfig{}.NewWriter(w)
-	case "lzma":
+	case constant.CompressionMethod_LZMA:
 		return lzma.WriterConfig{}.NewWriter(w)
-	case "zstd":
+	case constant.CompressionMethod_ZSTD:
 		l, err := parseZstdCompressionLevel(level)
 		if err != nil {
 			return nil, err

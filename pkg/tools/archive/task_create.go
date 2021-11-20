@@ -100,9 +100,9 @@ func (c *TaskCreate) GetExecSpecs(
 		if len(format) == 0 {
 			switch rc.MatrixKernel() {
 			case constant.KERNEL_WINDOWS:
-				format = "zip"
+				format = constant.ArchiveFormat_Zip
 			default:
-				format = "tar"
+				format = constant.ArchiveFormat_Tar
 			}
 		}
 
@@ -111,11 +111,11 @@ func (c *TaskCreate) GetExecSpecs(
 			level = c.Compression.Level
 			if len(cmethod) == 0 {
 				switch format {
-				case "zip":
+				case constant.ArchiveFormat_Zip:
 					cmethod = constant.ZipCompressionMethod_Deflate.String()
 					level = "5"
-				case "tar":
-					cmethod = "gzip"
+				case constant.ArchiveFormat_Tar:
+					cmethod = constant.CompressionMethod_Gzip
 					level = "5"
 				}
 			}
@@ -137,7 +137,7 @@ func (c *TaskCreate) GetExecSpecs(
 				defer func() { _ = out.Close() }()
 
 				switch format {
-				case "tar":
+				case constant.ArchiveFormat_Tar:
 					var tarball io.WriteCloser = out
 
 					if method != nil {
@@ -151,7 +151,7 @@ func (c *TaskCreate) GetExecSpecs(
 					_ = tarball.Close()
 
 					return nil, err
-				case "zip":
+				case constant.ArchiveFormat_Zip:
 					return nil, createZip(out, files, method, level)
 				default:
 					return nil, fmt.Errorf("unsupported format: %q", format)

@@ -2,9 +2,16 @@ package constant
 
 import "fmt"
 
+// nolint:revive
+const (
+	ArchiveFormat_Zip = "zip"
+	ArchiveFormat_Tar = "tar"
+)
+
 // https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT#4.4.5
 type ZipCompressionMethod uint16
 
+// nolint:revive
 const (
 	ZipCompressionMethod_Store   ZipCompressionMethod = 0
 	ZipCompressionMethod_Deflate ZipCompressionMethod = 8
@@ -19,15 +26,15 @@ func (m ZipCompressionMethod) String() string {
 	case ZipCompressionMethod_Store:
 		return "store"
 	case ZipCompressionMethod_Deflate:
-		return "deflate"
+		return CompressionMethod_DEFLATE
 	case ZipCompressionMethod_BZIP2:
-		return "bzip2"
+		return CompressionMethod_Bzip2
 	case ZipCompressionMethod_LZMA:
-		return "lzma"
+		return CompressionMethod_LZMA
 	case ZipCompressionMethod_ZSTD:
-		return "zstd"
+		return CompressionMethod_ZSTD
 	case ZipCompressionMethod_XZ:
-		return "xz"
+		return CompressionMethod_XZ
 	default:
 		return fmt.Sprintf("<unknown %d>", m)
 	}

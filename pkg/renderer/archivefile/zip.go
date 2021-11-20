@@ -13,6 +13,7 @@ import (
 	"github.com/klauspost/compress/zip"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
+	"github.com/ulikunitz/xz/lzma"
 )
 
 type SizedReaderAt interface {
@@ -21,15 +22,6 @@ type SizedReaderAt interface {
 }
 
 func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
-	const (
-		Store   uint16 = 0
-		Deflate uint16 = 8
-		BZIP2   uint16 = 12
-		LZMA    uint16 = 14
-		ZSTD    uint16 = 93
-		XZ      uint16 = 95
-	)
-
 	// TODO: support encrypted zip file
 	_ = password
 	r, err := zip.NewReader(src, src.Size())
@@ -37,16 +29,25 @@ func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
 		return nil, err
 	}
 
+	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_BZIP2), func(r io.Reader) io.ReadCloser {
+		return iohelper.CustomReadCloser(bzip2.NewReader(r), func() error { return nil })
+	})
+
+	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_LZMA), func(r io.Reader) io.ReadCloser {
+		rd, err := lzma.ReaderConfig{}.NewReader(r)
+		if err != nil {
+			return nil
+		}
+
+		return iohelper.CustomReadCloser(rd, func() error { return nil })
+	})
+
 	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_ZSTD), func(r io.Reader) io.ReadCloser {
 		zr, err := zstd.NewReader(r)
 		if err != nil {
 			return nil
 		}
 		return zr.IOReadCloser()
-	})
-
-	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_BZIP2), func(r io.Reader) io.ReadCloser {
-		return iohelper.CustomReadCloser(bzip2.NewReader(r), func() error { return nil })
 	})
 
 	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_XZ), func(r io.Reader) io.ReadCloser {

@@ -9,7 +9,7 @@
     "vendor/.*", "generated/.*",
     "build/.*", ".dukkha/.*",
     ".*.tar.*", ".*.zip.*", ".*.rar.*",
-    "third_party/golang/.*doc.go"
+    "third_party/golang/.*doc.go", "testdata.*"
   ],
   "AllowedContentTypes": [],
   "Disable": {

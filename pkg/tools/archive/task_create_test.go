@@ -3,7 +3,6 @@ package archive
 import (
 	"testing"
 
-	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 )
 
@@ -20,11 +19,12 @@ func TestTaskCreate(t *testing.T) {
 		Link string `yaml:"link"`
 	}
 
-	testhelper.TestFixtures(t, "./fixtures/create",
-		func() interface{} { return rs.Init(&TestCase{}, nil) },
-		func() interface{} { return &ExpectedEntry{} },
-		func(t *testing.T, spec, exp interface{}) {
-
-		},
-	)
+	// 	testhelper.TestFixtures(t, "./fixtures/create",
+	// 		func() interface{} { return rs.Init(&TestCase{}, nil) },
+	// 		func() interface{} { return &ExpectedEntry{} },
+	// 		func(t *testing.T, spec, exp interface{}) {
+	//
+	// 		},
+	// 	)
+	_, _ = &TestCase{}, &ExpectedEntry{}
 }

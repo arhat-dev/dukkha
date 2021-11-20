@@ -26,7 +26,7 @@ func createZip(
 	var cm uint16
 	if compressionMethod != nil {
 		switch method := *compressionMethod; method {
-		case "deflate":
+		case constant.CompressionMethod_DEFLATE:
 			level, err := parseFlateCompressionLevel(compressionLevel)
 			if err != nil {
 				return err
@@ -36,7 +36,7 @@ func createZip(
 			zw.RegisterCompressor(cm, func(w io.Writer) (io.WriteCloser, error) {
 				return flate.NewWriter(w, level)
 			})
-		case "bzip2":
+		case constant.CompressionMethod_Bzip2:
 			level, err := parseBzip2CompresssionLevel(compressionLevel)
 			if err != nil {
 				return err
@@ -48,12 +48,12 @@ func createZip(
 					Level: level,
 				})
 			})
-		case "lzma":
+		case constant.CompressionMethod_LZMA:
 			cm = uint16(constant.ZipCompressionMethod_LZMA)
 			zw.RegisterCompressor(cm, func(w io.Writer) (io.WriteCloser, error) {
 				return lzma.WriterConfig{}.NewWriter(w)
 			})
-		case "zstd":
+		case constant.CompressionMethod_ZSTD:
 			level, err := parseZstdCompressionLevel(compressionLevel)
 			if err != nil {
 				return err
@@ -63,7 +63,7 @@ func createZip(
 			zw.RegisterCompressor(cm, func(w io.Writer) (io.WriteCloser, error) {
 				return zstd.NewWriter(w, zstd.WithEncoderLevel(level))
 			})
-		case "xz":
+		case constant.CompressionMethod_XZ:
 			cm = uint16(constant.ZipCompressionMethod_XZ)
 			zw.RegisterCompressor(cm, func(w io.Writer) (io.WriteCloser, error) {
 				return xz.WriterConfig{}.NewWriter(w)
