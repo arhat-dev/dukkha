@@ -18,6 +18,10 @@ global:
       run_container@http|template: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/templates/cmd-run-container.yml
 
 tools:
+  archive:
+  - name: local
+  - name: in-ctr
+
   workflow:
   - name: local
   - name: in-ctr

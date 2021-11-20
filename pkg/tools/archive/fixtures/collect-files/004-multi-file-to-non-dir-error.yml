@@ -1,0 +1,6 @@
+expect_err: true
+task:
+  files:
+  - from: testdata/*
+    to: a/a.txt
+---

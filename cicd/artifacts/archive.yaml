@@ -1,0 +1,32 @@
+archive:create:
+- name: dukkha
+  matrix@file: cicd/artifacts/matrix.yml
+  compression:
+    enabled: true
+  output@template: |-
+    build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
+    {{- if eq matrix.kernel "windows" -}}
+      .zip
+    {{- else -}}
+      .tar.gz
+    {{- end -}}
+
+  files:
+  - from@template: |-
+      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
+      {{- if eq matrix.kernel "windows" -}}
+        .exe
+      {{- end -}}
+
+    to@template: |-
+      dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha
+
+      {{- if eq matrix.kernel "windows" -}}
+        .exe
+      {{- end -}}
+
+  - from: LICENSE.txt
+    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/LICENSE
+
+  # - from@template: build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
+  #   to: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sig

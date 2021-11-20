@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/pkg/iohelper"
 	"github.com/klauspost/compress/zip"
 	"github.com/klauspost/compress/zstd"
@@ -36,7 +37,7 @@ func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
 		return nil, err
 	}
 
-	r.RegisterDecompressor(ZSTD, func(r io.Reader) io.ReadCloser {
+	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_ZSTD), func(r io.Reader) io.ReadCloser {
 		zr, err := zstd.NewReader(r)
 		if err != nil {
 			return nil
@@ -44,11 +45,11 @@ func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
 		return zr.IOReadCloser()
 	})
 
-	r.RegisterDecompressor(BZIP2, func(r io.Reader) io.ReadCloser {
+	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_BZIP2), func(r io.Reader) io.ReadCloser {
 		return iohelper.CustomReadCloser(bzip2.NewReader(r), func() error { return nil })
 	})
 
-	r.RegisterDecompressor(XZ, func(r io.Reader) io.ReadCloser {
+	r.RegisterDecompressor(uint16(constant.ZipCompressionMethod_XZ), func(r io.Reader) io.ReadCloser {
 		xr, err := xz.NewReader(r)
 		if err != nil {
 			return nil

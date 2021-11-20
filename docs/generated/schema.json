@@ -264,6 +264,12 @@
     },
     "Schema": {
       "properties": {
+        "archive:create": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
         "buildah:build": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
@@ -416,6 +422,12 @@
         },
         "tools": {
           "properties": {
+            "archive": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.Tool"
+              },
+              "type": "array"
+            },
             "buildah": {
               "items": {
                 "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.Tool"
@@ -466,6 +478,7 @@
             }
           },
           "preferredOrder": [
+            "archive",
             "buildah",
             "cosign",
             "docker",
@@ -496,6 +509,7 @@
         "shells",
         "renderers",
         "tools",
+        "archive:create",
         "buildah:build",
         "buildah:login",
         "buildah:push",
@@ -515,6 +529,21 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^archive(:.+){0,1}:create$": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
+        "^archive:create@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
+        "^archive:create@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^buildah(:.+){0,1}:build$": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
@@ -796,6 +825,12 @@
         },
         "^tools@.*": {
           "properties": {
+            "archive": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.Tool"
+              },
+              "type": "array"
+            },
             "buildah": {
               "items": {
                 "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.Tool"
@@ -846,6 +881,7 @@
             }
           },
           "preferredOrder": [
+            "archive",
             "buildah",
             "cosign",
             "docker",
@@ -2091,6 +2127,257 @@
           "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
         },
         "^before@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.TaskCreate": {
+      "properties": {
+        "compression": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.compressionSpec",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+          },
+          "type": "array",
+          "description": "to include into archive",
+          "x-intellij-html-description": "to include into archive"
+        },
+        "format": {
+          "type": "string",
+          "description": "of the archive, one of [tar, zip]",
+          "x-intellij-html-description": "of the archive, one of [tar, zip]",
+          "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string",
+          "description": "archive file",
+          "x-intellij-html-description": "archive file"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "format",
+        "compression",
+        "output",
+        "files"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^compression@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.compressionSpec",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "^compression@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^files@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+          },
+          "type": "array",
+          "description": "to include into archive",
+          "x-intellij-html-description": "to include into archive"
+        },
+        "^files@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^format@.*": {
+          "type": "string",
+          "description": "of the archive, one of [tar, zip]",
+          "x-intellij-html-description": "of the archive, one of [tar, zip]",
+          "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
+        },
+        "^format@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^output@.*": {
+          "type": "string",
+          "description": "archive file",
+          "x-intellij-html-description": "archive file"
+        },
+        "^output@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.Tool": {
+      "properties": {
+        "cmd": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "cmd"
+      ],
+      "patternProperties": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec": {
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "to": {
+          "type": "string",
+          "description": "in archive path those files will go",
+          "x-intellij-html-description": "in archive path those files will go"
+        }
+      },
+      "preferredOrder": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^from@.*": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "^from@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^to@.*": {
+          "type": "string",
+          "description": "in archive path those files will go",
+          "x-intellij-html-description": "in archive path those files will go"
+        },
+        "^to@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.compressionSpec": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable compression",
+          "x-intellij-html-description": "Enable compression",
+          "default": false
+        },
+        "level": {
+          "type": "string",
+          "description": "of compression, value is method dependent, usually 1 - 9",
+          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
+          "default": 5
+        },
+        "method": {
+          "type": "string",
+          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
+          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
+          "default": "gzip"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "method",
+        "level"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Enable compression",
+          "x-intellij-html-description": "Enable compression",
+          "default": false
+        },
+        "^enabled@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^level@.*": {
+          "type": "string",
+          "description": "of compression, value is method dependent, usually 1 - 9",
+          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
+          "default": 5
+        },
+        "^level@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^method@.*": {
+          "type": "string",
+          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
+          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
+          "default": "gzip"
+        },
+        "^method@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

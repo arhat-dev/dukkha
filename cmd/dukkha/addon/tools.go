@@ -2,6 +2,7 @@ package addon
 
 import (
 	// Add default tools and tasks
+	_ "arhat.dev/dukkha/pkg/tools/archive"
 	_ "arhat.dev/dukkha/pkg/tools/buildah"
 	_ "arhat.dev/dukkha/pkg/tools/cosign"
 	_ "arhat.dev/dukkha/pkg/tools/docker"

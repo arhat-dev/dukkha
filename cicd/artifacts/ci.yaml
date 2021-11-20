@@ -5,7 +5,8 @@ workflow:run:
 
 - name: sign-artifacts
   jobs:
-  - idle: TODO
+  # TODO
+  # - task: cosign:sign(dukkha, {})
 
 - name: upload-artifacts
   jobs:
@@ -14,4 +15,11 @@ workflow:run:
 
 - name: create-release
   jobs:
-  - task: github:release(dukkha, {})
+  - task: workflow:run:(gen-artifacts-checksum, {})
+  - task: archive:create(dukkha, {})
+  - chdir: build
+    shell: |-
+      openssl dgst -sha256 *.tar* *.zip > sha256.txt
+      openssl dgst -sha512 *.tar* *.zip > sha512.txt
+      openssl dgst -md5 *.tar* *.zip > md5.txt
+  # - task: github:release(dukkha, {})
