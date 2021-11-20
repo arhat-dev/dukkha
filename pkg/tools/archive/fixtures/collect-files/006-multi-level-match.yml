@@ -4,6 +4,9 @@ task:
   - from: testdata/**
     to: a/
 ---
+a:
+  from: testdata
+
 a/top-level-link:
   from: testdata/top-level-link
   link: top-level.txt

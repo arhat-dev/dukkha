@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"github.com/dsnet/compress/bzip2"
@@ -81,12 +82,17 @@ func createZip(
 		hdr.Name = f.to
 		hdr.Method = cm
 
+		mode := f.info.Mode()
+		if mode.IsDir() && !strings.HasSuffix(hdr.Name, "/") {
+			hdr.Name += "/"
+		}
+
 		wr, err := zw.CreateHeader(hdr)
 		if err != nil {
 			return err
 		}
 
-		switch mode := f.info.Mode(); {
+		switch {
 		case mode&fs.ModeSymlink != 0:
 			_, err = wr.Write([]byte(f.link))
 			if err != nil {

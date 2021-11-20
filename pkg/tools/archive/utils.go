@@ -7,8 +7,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
+	"arhat.dev/pkg/sorthelper"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/spf13/afero"
 )
@@ -24,7 +26,9 @@ type entry struct {
 // collectFiles to be archived
 func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 	var (
-		candidates []*entry
+		swap []*entry
+
+		inArchiveFiles = make(map[string]int)
 
 		ret []*entry
 	)
@@ -32,14 +36,14 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 	_fs := afero.NewIOFS(afero.NewOsFs())
 	for _, f := range files {
 		from := filepath.Clean(f.From)
-		actualPaths, err := doublestar.Glob(_fs, from)
+		srcPaths, err := doublestar.Glob(_fs, from)
 		if err != nil {
-			actualPaths = []string{from}
+			srcPaths = []string{from}
 		}
 
 		// normalize matched paths
-		slashMatches := make([]string, len(actualPaths))
-		for i, v := range actualPaths {
+		slashMatches := make([]string, len(srcPaths))
+		for i, v := range srcPaths {
 			if len(v) == 0 {
 				v = "."
 			}
@@ -57,7 +61,7 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 				}
 			}
 
-			candidates = append(candidates, &entry{
+			swap = append(swap, &entry{
 				info: info,
 				from: v,
 				link: link,
@@ -69,14 +73,14 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 			}
 		}
 
-		size := len(candidates)
+		size := len(swap)
 
 		dstIsDir := strings.HasSuffix(f.To, "/") || len(f.To) == 0
 		switch len(slashMatches) {
 		case 0:
 			return nil, fmt.Errorf("no file matches pattern %q", f.From)
 		case 1:
-			toAdd := candidates[size-1]
+			toAdd := swap[size-1]
 			// only one file match
 			if dstIsDir {
 				toAdd.to = path.Join(f.To, filepath.Base(toAdd.from))
@@ -84,6 +88,7 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 				toAdd.to = f.To
 			}
 
+			inArchiveFiles[toAdd.to] = len(ret)
 			ret = append(ret, toAdd)
 			continue
 		default:
@@ -100,12 +105,62 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 				continue
 			}
 
-			toAdd := candidates[size-len(slashMatches)+i]
+			toAdd := swap[size-len(slashMatches)+i]
 			toAdd.to = path.Join(f.To, strings.TrimPrefix(slashPath, prefix))
 
+			inArchiveFiles[toAdd.to] = len(ret)
 			ret = append(ret, toAdd)
 		}
 	}
+
+	// add missing directories
+	good := make(map[string]struct{})
+	lastKnownGood := -1
+	for lastKnownGood != len(good) {
+		lastKnownGood = len(good)
+		for k, idx := range inArchiveFiles {
+			dir := path.Dir(k)
+			if dir == "." {
+				good[k] = struct{}{}
+				continue
+			}
+
+			_, ok1 := inArchiveFiles[dir]
+			_, ok2 := inArchiveFiles[dir+"/"]
+			if ok1 || ok2 {
+				good[k] = struct{}{}
+				continue
+			}
+
+			// no parent dir, add a fake one based on
+			// actual parent of the file
+			from := filepath.Dir(ret[idx].from)
+			info, err := os.Lstat(from)
+			if err != nil {
+				return nil, err
+			}
+
+			ent := &entry{
+				from: from,
+				info: info,
+				to:   dir,
+				link: "",
+			}
+
+			inArchiveFiles[dir] = len(ret)
+			ret = append(ret, ent)
+		}
+	}
+
+	sort.Sort(sorthelper.NewCustomSortable(
+		func(i, j int) {
+			ret[i], ret[j] = ret[j], ret[i]
+		}, func(i, j int) bool {
+			return ret[i].to < ret[j].to
+		}, func() int {
+			return len(ret)
+		},
+	))
 
 	return ret, nil
 }

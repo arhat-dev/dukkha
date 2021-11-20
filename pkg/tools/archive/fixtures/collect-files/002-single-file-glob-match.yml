@@ -13,7 +13,8 @@ task:
   - from: testdata/*-link
     to: ""
 ---
-# expected in archive files
+a:
+  from: testdata
 a/a.txt:
   from: testdata/top-level.txt
 a/top-level.txt:
