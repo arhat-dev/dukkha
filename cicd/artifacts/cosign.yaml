@@ -8,25 +8,45 @@ docker:login:
 
 cosign:upload:
 - name: dukkha
-  matrix@file: cicd/artifacts/matrix.yml
-  hooks:
-    before:
-    - task: docker:login(ghcr)
+  matrix@file: &matrix cicd/artifacts/matrix.yml
   signing:
     enabled: true
     annotations:
       org.opencontainers.image.source: https://github.com/arhat-dev/dukkha
-    private_key@env: ${COSIGN_PRIVATE_KEY}
-    private_key_password@env: ${COSIGN_PRIVATE_KEY_PASSWORD}
+    private_key@env: &cosign_private_key ${COSIGN_PRIVATE_KEY}
+    private_key_password@env: &cosign_private_key_password ${COSIGN_PRIVATE_KEY_PASSWORD}
     verify: true
-    public_key@http: https://arhat.dev/.well-known/cosign.pub
+    public_key@http: &cosign_pub_key https://arhat.dev/.well-known/cosign.pub
   files:
-  - path@template: |-
-      {{- $blob_file := printf "build/dukkha.%s.%s" matrix.kernel matrix.arch -}}
+  - path@template: &blob_path |-
+      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch -}}
       {{- if eq matrix.kernel "windows" -}}
-        {{- $blob_file = printf "%s.exe" $blob_file -}}
+        .exe
       {{- end -}}
-      {{- $blob_file -}}
+
     content_type: ""
   image_names:
   - image: ghcr.io/arhat-dev/dist/dukkha
+
+cosign:sign:
+- name: dukkha
+  matrix@file: *matrix
+  private_key@env: *cosign_private_key
+  private_key_password@env: *cosign_private_key_password
+  verify: true
+  public_key@http: *cosign_pub_key
+  files:
+  - path@template: *blob_path
+    output@template: |-
+      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
+
+- name: fake
+  matrix@file: *matrix
+  private_key@file: pkg/tools/cosign/testdata/cosign.key
+  private_key_password: testdata
+  verify: true
+  public_key@file: pkg/tools/cosign/testdata/cosign.pub
+  files:
+  - path@template: *blob_path
+    output@template: |-
+      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig

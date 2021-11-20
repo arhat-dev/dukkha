@@ -5,9 +5,15 @@ workflow:run:
 
 - name: sign-artifacts
   jobs:
-  # TODO
-  # - task: cosign:sign(dukkha, {})
+  # generate dukkha.*.sig
+  - task@template: |-
+      {{- if eq env.GITHUB_ACTIONS "true" -}}
+        cosign:sign(dukkha, {})
+      {{- else -}}
+        cosign:sign(fake, {})
+      {{- end -}}
 
+# upload signed artifacts to ghcr.io
 - name: upload-artifacts
   jobs:
   - task: docker:login(ghcr, {})
@@ -15,11 +21,38 @@ workflow:run:
 
 - name: create-release
   jobs:
-  - task: workflow:run:(gen-artifacts-checksum, {})
+  # generate dukkha.*.{sha256,sha512,md5}
+  - task: workflow:run(gen-artifacts-checksum, {})
+  # generate dukkha.*.{tar.gz,zip}
+  # using dukkha.*.{sha256,sha512,md5,sig} and license.txt
   - task: archive:create(dukkha, {})
+
+  # generate checksums for archives
   - chdir: build
     shell: |-
       openssl dgst -sha256 *.tar* *.zip > sha256.txt
       openssl dgst -sha512 *.tar* *.zip > sha512.txt
       openssl dgst -md5 *.tar* *.zip > md5.txt
+
   # - task: github:release(dukkha, {})
+
+#
+#
+#
+
+- name: gen-artifacts-checksum
+  matrix@file: cicd/artifacts/matrix.yml
+  jobs:
+  - chdir: build
+    shell@template: |-
+      {{- $suffix := "" -}}
+      {{- if eq matrix.kernel "windows" -}}
+        {{- $suffix = ".exe" -}}
+      {{- end -}}
+
+      openssl dgst -sha256 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
+      openssl dgst -sha512 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
+      openssl dgst -md5 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5

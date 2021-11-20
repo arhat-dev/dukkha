@@ -1,21 +1,3 @@
-workflow:run:
-- name: gen-artifacts-checksum
-  matrix@file: cicd/artifacts/matrix.yml
-  jobs:
-  - chdir: build
-    shell@template: |-
-      {{- $suffix := "" -}}
-      {{- if eq matrix.kernel "windows" -}}
-        {{- $suffix = ".exe" -}}
-      {{- end -}}
-
-      openssl dgst -sha256 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }}.sha256
-      openssl dgst -sha512 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }}.sha512
-      openssl dgst -md5 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }}.md5
-
 github:release:
 - name: dukkha
   draft: true
