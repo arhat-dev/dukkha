@@ -38,6 +38,14 @@ github.com/davecgh/go-spew/spew
 # github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 ## explicit
 github.com/die-net/lrucache
+# github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5
+## explicit
+github.com/dsnet/compress
+github.com/dsnet/compress/bzip2
+github.com/dsnet/compress/bzip2/internal/sais
+github.com/dsnet/compress/internal
+github.com/dsnet/compress/internal/errors
+github.com/dsnet/compress/internal/prefix
 # github.com/dustin/go-humanize v1.0.0
 github.com/dustin/go-humanize
 # github.com/evanphx/json-patch/v5 v5.6.0
