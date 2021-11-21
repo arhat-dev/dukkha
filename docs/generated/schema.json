@@ -408,7 +408,7 @@
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
             "tpl": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
             }
           },
           "preferredOrder": [
@@ -837,7 +837,7 @@
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
             "tpl": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
             }
           },
           "preferredOrder": [
@@ -1886,7 +1886,7 @@
       }
     },
     "arhat.dev.dukkha.pkg.renderer.shell.Driver": {},
-    "arhat.dev.dukkha.pkg.renderer.template.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.tpl.Driver": {},
     "arhat.dev.dukkha.pkg.renderer.transform.Driver": {},
     "arhat.dev.dukkha.pkg.tools.Action": {
       "properties": {
@@ -1915,8 +1915,8 @@
           "x-intellij-html-description": "specific to this action"
         },
         "idle": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "name": {
           "type": "string",
@@ -1992,8 +1992,8 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^idle@.*": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "^idle@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
