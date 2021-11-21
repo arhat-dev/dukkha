@@ -1,0 +1,4 @@
+result@tpl?str: |-
+  {{ printf "foo" }}
+---
+result: foo

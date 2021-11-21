@@ -85,40 +85,6 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	assert.Equal(t, test.Expected, specs)
 }
 
-func TestFixturesUsingRenderingSuffix(
-	t *testing.T,
-	dir string,
-	rc rs.RenderingHandler,
-	newTestSpec func() rs.Field,
-	newCheckSpec func() rs.Field,
-	check func(t *testing.T, ts, cs rs.Field),
-) {
-	testhelper.TestFixtures(t, dir,
-		func() interface{} { return rs.Init(newTestSpec(), nil) },
-		func() interface{} { return rs.Init(newCheckSpec(), nil) },
-		func(t *testing.T, spec, exp interface{}) {
-			defer t.Cleanup(func() {})
-			s, e := spec.(rs.Field), exp.(rs.Field)
-
-			ctx := dt.NewTestContext(context.TODO())
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
-			ctx.AddRenderer("file", file.NewDefault("file"))
-			ctx.AddRenderer("env", env.NewDefault("env"))
-			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
-			ctx.AddRenderer("shell", shell.NewDefault("shell"))
-
-			afr := af.NewDefault("af")
-			assert.NoError(t, afr.Init(ctx))
-			ctx.AddRenderer("af", afr)
-
-			assert.NoError(t, s.ResolveFields(rc, -1))
-			assert.NoError(t, e.ResolveFields(rc, -1))
-
-			check(t, s, e)
-		},
-	)
-}
-
 func TestTask(
 	t *testing.T,
 	dir string,

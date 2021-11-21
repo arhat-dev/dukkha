@@ -1886,7 +1886,48 @@
       }
     },
     "arhat.dev.dukkha.pkg.renderer.shell.Driver": {},
-    "arhat.dev.dukkha.pkg.renderer.tpl.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.tpl.Driver": {
+      "properties": {
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "templates from local files/dirs",
+          "x-intellij-html-description": "templates from local files/dirs"
+        },
+        "variables": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "a map of any data  available as `var.some_value`",
+          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+        }
+      },
+      "preferredOrder": [
+        "include",
+        "variables"
+      ],
+      "patternProperties": {
+        "^include@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "templates from local files/dirs",
+          "x-intellij-html-description": "templates from local files/dirs"
+        },
+        "^include@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^variables@.*": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "a map of any data  available as `var.some_value`",
+          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+        },
+        "^variables@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.renderer.transform.Driver": {},
     "arhat.dev.dukkha.pkg.tools.Action": {
       "properties": {
