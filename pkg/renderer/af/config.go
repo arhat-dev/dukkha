@@ -1,10 +1,10 @@
-package archivefile
+package af
 
 import (
 	"arhat.dev/rs"
 )
 
-// InputSpec is the alternative yaml input schema to archivefile renderer
+// InputSpec is the alternative yaml input schema to af renderer
 type inputSpec struct {
 	rs.BaseField
 

@@ -1,4 +1,4 @@
-package archivefile
+package af
 
 import (
 	"io"

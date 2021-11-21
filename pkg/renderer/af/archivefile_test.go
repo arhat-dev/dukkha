@@ -1,4 +1,4 @@
-package archivefile
+package af
 
 import (
 	"context"
@@ -70,9 +70,9 @@ func TestDriver(t *testing.T) {
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("template", template.NewDefault("template"))
-			rdr := NewDefault("archivefile")
+			rdr := NewDefault("af")
 			rdr.Init(ctx)
-			ctx.AddRenderer("archivefile", rdr)
+			ctx.AddRenderer("af", rdr)
 			ctx.AddEnv(true, &dukkha.EnvEntry{
 				Name: "test_archives",
 				Value: strings.Join([]string{

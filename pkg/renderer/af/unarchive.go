@@ -1,4 +1,4 @@
-package archivefile
+package af
 
 import (
 	"compress/bzip2"

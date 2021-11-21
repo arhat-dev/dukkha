@@ -56,8 +56,8 @@ foo@transform:
 
   ```yaml
   # step (0): entrypoint is the `transform` renderer
-  # step (4): `archivefile` renders value generated from renderer `transform`
-  foo@transform|archivefile:
+  # step (4): `af` renders value generated from renderer `transform`
+  foo@transform|af:
     # (1) first step happens here: fetch data.tar.gz from remote http endpoint
     # notice the `#cached-file`, attribute `cached-file` will make renderer
     # `http` return local file path to the cached content.
@@ -68,7 +68,7 @@ foo@transform:
         file@env: ${VALUE}
         kind: sha256
         sum: # sha256sum of the expected file
-    # step (3): format the resolved `value` for render `archivefile`
+    # step (3): format the resolved `value` for render `af`
     # we are using type hint `str` to convert map as string since
     # template operation only accepts string value
     - template@?str:

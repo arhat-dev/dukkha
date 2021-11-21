@@ -12,7 +12,7 @@ import (
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
-	"arhat.dev/dukkha/pkg/renderer/archivefile"
+	"arhat.dev/dukkha/pkg/renderer/af"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
@@ -107,9 +107,9 @@ func TestFixturesUsingRenderingSuffix(
 			ctx.AddRenderer("template", template.NewDefault("template"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
-			afr := archivefile.NewDefault("archivefile")
+			afr := af.NewDefault("af")
 			assert.NoError(t, afr.Init(ctx))
-			ctx.AddRenderer("archivefile", afr)
+			ctx.AddRenderer("af", afr)
 
 			assert.NoError(t, s.ResolveFields(rc, -1))
 			assert.NoError(t, e.ResolveFields(rc, -1))
@@ -177,9 +177,9 @@ func TestTask(
 			ctx.AddRenderer("template", template.NewDefault("template"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
-			afr := archivefile.NewDefault("archivefile")
+			afr := af.NewDefault("af")
 			assert.NoError(t, afr.Init(ctx))
-			ctx.AddRenderer("archivefile", afr)
+			ctx.AddRenderer("af", afr)
 
 			if !assert.NoError(t, dukkha.ResolveEnv(ctx, spec, "Env", "env")) {
 				return

@@ -1,10 +1,10 @@
 # Archive File Renderer
 
 ```yaml
-foo@archivefile: path/to/your/archive:in/archive/path
+foo@af: path/to/your/archive:in/archive/path
 ```
 
-Extract file content from archive as field value.
+Extract file content from archive.
 
 ## Config Options
 
@@ -12,7 +12,7 @@ __NOTE:__ Configuration is required to activate this renderer.
 
 ```yaml
 renderers:
-  archivefile:
+  af:
     # enable local file caching for extracted files
     # disable to always extract from archive at runtime
     enable_cache: true
@@ -27,16 +27,16 @@ renderers:
 
   ```yaml
   # example 1: without in archive path
-  foo@archivefile: path/to/archive.tar.gz
+  foo@af: path/to/archive.tar.gz
 
   # example 2: with in archive path
-  bar@archivefile: path/to/archive.zip.gz:foo.yaml
+  bar@af: path/to/archive.zip.gz:foo.yaml
   ```
 
 - Valid archive file extraction spec in yaml
 
   ```yaml
-  foo@archivefile:
+  foo@af:
     # path to the target archive
     archive: path/to/the/archive
     path: in/archive/path
@@ -54,11 +54,19 @@ renderers:
 
 - Plain archive files:
   - `tar`
-  - `zip`: with internal compression using zstd/bzip2/xz
+  - `zip`: with internal compression using
+    - `deflate`
+    - `zstd`
+    - `bzip2`
+    - `xz`
+    - `lzma`
 - Compressed files (including compressed archive files) using following compression methods:
   - `gzip`
   - `bzip2`
   - `xz`
+  - `lzma`
+  - `lz4`
+  - `deflate`
 
 ## Suggested Use Cases
 

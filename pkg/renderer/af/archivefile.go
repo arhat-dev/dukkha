@@ -1,6 +1,6 @@
-// Package archivefile provides a renderer generating value by extracting
+// Package af (archivefile) provides a renderer generating value by extracting
 // file content from archive directly
-package archivefile
+package af
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 
 // nolint:revive
 const (
-	DefaultName = "archivefile"
+	DefaultName = "af"
 )
 
 func init() {

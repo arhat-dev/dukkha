@@ -20,9 +20,9 @@ task:
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.gz" -}}
 ---
 actual:
-  top-level@template?str|archivefile?str: |-
+  top-level@template?str|af?str: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.gz" -}}:top-level.txt
-  root-top-level@template?str|archivefile?str: |-
+  root-top-level@template?str|af?str: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.gz" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt

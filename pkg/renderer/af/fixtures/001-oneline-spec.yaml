@@ -1,7 +1,7 @@
 __@template: |-
   {{- range $_, $name := split env.test_archives " " }}
-  {{ $name }}-top@archivefile: testdata/{{ $name }}:top-level-data.yaml
-  {{ $name }}-internal-symlink-evaluated@archivefile: testdata/{{ $name -}}
+  {{ $name }}-top@af: testdata/{{ $name }}:top-level-data.yaml
+  {{ $name }}-internal-symlink-evaluated@af: testdata/{{ $name -}}
     :level-1/level-2/top-level-data-symlink
   {{ end }}
 ---
