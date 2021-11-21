@@ -5,16 +5,20 @@ workflow:run:
   jobs:
   - task: buildah:xbuild(dukkha, {})
 
-# sign container images
-# required by ci job
-- name: sign-images
-  jobs:
-  - idle: TODO
-  # - task: cosign:sign-image(dukkha, {})
-
 # push built container images
 # required by ci job
 - name: push-images
   jobs:
   - task: buildah:login(ghcr, {})
   - task: buildah:push(dukkha, {})
+
+# sign container images
+# required by ci job
+- name: sign-images
+  jobs@template: |-
+    {{- if and (eq env.GITHUB_ACTIONS "true") env.GIT_TAG -}}
+    - task: docker:login(ghcr, {})
+    - task: cosign:sign-image(dukkha, {})
+    {{- else -}}
+    - idle: "skip non release job"
+    {{- end -}}

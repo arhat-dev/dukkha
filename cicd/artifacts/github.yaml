@@ -1,5 +1,6 @@
 github:release:
-- name: dukkha
+- &release
+  name: dukkha
   draft: true
   tag@env: ${GIT_TAG}
   pre_release: false
@@ -10,3 +11,10 @@ github:release:
   - path: build/*.zip
   # checksums
   - path: build/*.txt
+
+- __@: *release
+  __@:
+    title@echo: ci-test-release
+  name: fake
+  draft: true
+  pre_release: true
