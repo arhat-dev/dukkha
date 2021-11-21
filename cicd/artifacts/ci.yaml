@@ -1,17 +1,74 @@
 workflow:run:
+# required by ci
 - name: build-artifacts
   jobs:
   - task: golang:build(dukkha, {})
 
+# required by ci
 - name: sign-artifacts
   jobs:
-  - idle: TODO
+  # generate dukkha.*.sig
+  - task@template: |-
+      {{- if eq env.GITHUB_ACTIONS "true" -}}
+        cosign:sign(dukkha, {})
+      {{- else -}}
+        cosign:sign(fake, {})
+      {{- end -}}
 
+# upload signed artifacts to ghcr.io
+# required by ci
 - name: upload-artifacts
   jobs:
   - task: docker:login(ghcr, {})
   - task: cosign:upload(dukkha, {})
 
+# required by ci
 - name: create-release
   jobs:
-  - task: github:release(dukkha, {})
+  # generate dukkha.*.{sha256,sha512,md5}
+  - task: workflow:run(gen-artifacts-checksum, {})
+  # generate dukkha.*.{tar.gz,zip}
+  # using dukkha.*.{,.exe,sha256,sha512,md5,sig} and license.txt
+  - task: archive:create(dukkha, {})
+
+  # generate checksums for archives
+  - chdir: build
+    shell: |-
+      openssl dgst -sha256 *.tar* *.zip > sha256.txt
+      openssl dgst -sha512 *.tar* *.zip > sha512.txt
+      openssl dgst -md5 *.tar* *.zip > md5.txt
+
+  # create github release
+  - task@template: |-
+      {{- if eq env.GITHUB_ACTIONS "true" -}}
+        github:release(dukkha, {})
+      {{- else -}}
+        github:release(fake, {})
+      {{- end -}}
+    continue_on_error@template: |-
+      {{- if eq env.GITHUB_ACTIONS "true" -}}
+        false
+      {{- else -}}
+        true
+      {{- end -}}
+
+#
+#
+#
+
+- name: gen-artifacts-checksum
+  matrix@file: cicd/artifacts/matrix.yml
+  jobs:
+  - chdir: build
+    shell@template: |-
+      {{- $suffix := "" -}}
+      {{- if eq matrix.kernel "windows" -}}
+        {{- $suffix = ".exe" -}}
+      {{- end -}}
+
+      openssl dgst -sha256 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
+      openssl dgst -sha512 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
+      openssl dgst -md5 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5

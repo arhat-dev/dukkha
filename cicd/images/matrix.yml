@@ -1,0 +1,6 @@
+kernel:
+- linux
+arch@template|http: |-
+  https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+  {{- /* line sep */ -}}
+  matrix/container/linux/all.yml

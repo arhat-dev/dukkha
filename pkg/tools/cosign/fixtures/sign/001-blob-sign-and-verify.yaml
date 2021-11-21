@@ -1,0 +1,17 @@
+task:
+  private_key@file: testdata/cosign.key
+  private_key_password: testdata
+  verify: true
+  public_key@file: testdata/cosign.pub
+  files:
+  - path: testdata/blob.txt
+    output@template: |-
+      {{- filepath.Join env.DUKKHA_CACHE_DIR "signature" -}}
+---
+expect_err: false
+actual:
+  signature@template|file: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "signature" -}}
+
+expected:
+  signature@file: testdata/blob.txt.sig

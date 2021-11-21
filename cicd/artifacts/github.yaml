@@ -1,18 +1,21 @@
 github:release:
-- name: dukkha
-  hooks:
-    before:
-    - shell: |-
-        cd build
-        openssl dgst -sha256 dukkha.* > sha256.txt
-        openssl dgst -sha512 dukkha.* > sha512.txt
-        openssl dgst -md5 dukkha.* > md5.txt
+- &release
+  name: dukkha
   draft: true
   tag@env: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
   notes@file?str|template?str: cicd/artifacts/release-notes.md
   files:
-  - path: build/dukkha.*
+  - path: build/*.tar.gz
+  - path: build/*.zip
   # checksums
   - path: build/*.txt
+
+- __@: *release
+  # yamllint disable-line rule:key-duplicates
+  __@:
+    title@echo: ci-test-release
+  name: fake
+  draft: true
+  pre_release: true

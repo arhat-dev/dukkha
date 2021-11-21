@@ -264,6 +264,12 @@
     },
     "Schema": {
       "properties": {
+        "archive:create": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
         "buildah:build": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
@@ -285,6 +291,18 @@
         "buildah:xbuild": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskXBuild"
+          },
+          "type": "array"
+        },
+        "cosign:sign": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSign"
+          },
+          "type": "array"
+        },
+        "cosign:sign-image": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSignImage"
           },
           "type": "array"
         },
@@ -416,6 +434,12 @@
         },
         "tools": {
           "properties": {
+            "archive": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.Tool"
+              },
+              "type": "array"
+            },
             "buildah": {
               "items": {
                 "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.Tool"
@@ -466,6 +490,7 @@
             }
           },
           "preferredOrder": [
+            "archive",
             "buildah",
             "cosign",
             "docker",
@@ -496,10 +521,13 @@
         "shells",
         "renderers",
         "tools",
+        "archive:create",
         "buildah:build",
         "buildah:login",
         "buildah:push",
         "buildah:xbuild",
+        "cosign:sign",
+        "cosign:sign-image",
         "cosign:upload",
         "docker:build",
         "docker:login",
@@ -515,6 +543,21 @@
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^archive(:.+){0,1}:create$": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
+        "^archive:create@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.TaskCreate"
+          },
+          "type": "array"
+        },
+        "^archive:create@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^buildah(:.+){0,1}:build$": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
@@ -575,11 +618,41 @@
         "^buildah:xbuild@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^cosign(:.+){0,1}:sign$": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSign"
+          },
+          "type": "array"
+        },
+        "^cosign(:.+){0,1}:sign-image$": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSignImage"
+          },
+          "type": "array"
+        },
         "^cosign(:.+){0,1}:upload$": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskUpload"
           },
           "type": "array"
+        },
+        "^cosign:sign-image@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSignImage"
+          },
+          "type": "array"
+        },
+        "^cosign:sign-image@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^cosign:sign@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.TaskSign"
+          },
+          "type": "array"
+        },
+        "^cosign:sign@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
         },
         "^cosign:upload@.*": {
           "items": {
@@ -796,6 +869,12 @@
         },
         "^tools@.*": {
           "properties": {
+            "archive": {
+              "items": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.Tool"
+              },
+              "type": "array"
+            },
             "buildah": {
               "items": {
                 "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.Tool"
@@ -846,6 +925,7 @@
             }
           },
           "preferredOrder": [
+            "archive",
             "buildah",
             "cosign",
             "docker",
@@ -2091,6 +2171,257 @@
           "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
         },
         "^before@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.TaskCreate": {
+      "properties": {
+        "compression": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.compressionSpec",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+          },
+          "type": "array",
+          "description": "to include into archive",
+          "x-intellij-html-description": "to include into archive"
+        },
+        "format": {
+          "type": "string",
+          "description": "of the archive, one of [tar, zip]",
+          "x-intellij-html-description": "of the archive, one of [tar, zip]",
+          "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string",
+          "description": "archive file",
+          "x-intellij-html-description": "archive file"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "format",
+        "compression",
+        "output",
+        "files"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^compression@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.compressionSpec",
+          "description": "configuration",
+          "x-intellij-html-description": "configuration"
+        },
+        "^compression@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^files@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+          },
+          "type": "array",
+          "description": "to include into archive",
+          "x-intellij-html-description": "to include into archive"
+        },
+        "^files@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^format@.*": {
+          "type": "string",
+          "description": "of the archive, one of [tar, zip]",
+          "x-intellij-html-description": "of the archive, one of [tar, zip]",
+          "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
+        },
+        "^format@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^output@.*": {
+          "type": "string",
+          "description": "archive file",
+          "x-intellij-html-description": "archive file"
+        },
+        "^output@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.Tool": {
+      "properties": {
+        "cmd": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "cmd"
+      ],
+      "patternProperties": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec": {
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "to": {
+          "type": "string",
+          "description": "in archive path those files will go",
+          "x-intellij-html-description": "in archive path those files will go"
+        }
+      },
+      "preferredOrder": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^from@.*": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "^from@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^to@.*": {
+          "type": "string",
+          "description": "in archive path those files will go",
+          "x-intellij-html-description": "in archive path those files will go"
+        },
+        "^to@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.compressionSpec": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable compression",
+          "x-intellij-html-description": "Enable compression",
+          "default": false
+        },
+        "level": {
+          "type": "string",
+          "description": "of compression, value is method dependent, usually 1 - 9",
+          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
+          "default": 5
+        },
+        "method": {
+          "type": "string",
+          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
+          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
+          "default": "gzip"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "method",
+        "level"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^enabled@.*": {
+          "type": "boolean",
+          "description": "Enable compression",
+          "x-intellij-html-description": "Enable compression",
+          "default": false
+        },
+        "^enabled@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^level@.*": {
+          "type": "string",
+          "description": "of compression, value is method dependent, usually 1 - 9",
+          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
+          "default": 5
+        },
+        "^level@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^method@.*": {
+          "type": "string",
+          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
+          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
+          "default": "gzip"
+        },
+        "^method@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3438,10 +3769,14 @@
     "arhat.dev.dukkha.pkg.tools.cosign.FileSpec": {
       "properties": {
         "content_type": {
-          "type": "string"
+          "type": "string",
+          "description": "of the local file",
+          "x-intellij-html-description": "of the local file"
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "description": "to local blob/wasm file",
+          "x-intellij-html-description": "to local blob/wasm file"
         }
       },
       "preferredOrder": [
@@ -3451,15 +3786,323 @@
       "additionalProperties": false,
       "patternProperties": {
         "^content_type@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "of the local file",
+          "x-intellij-html-description": "of the local file"
         },
         "^content_type@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^path@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "to local blob/wasm file",
+          "x-intellij-html-description": "to local blob/wasm file"
         },
         "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.cosign.TaskSign": {
+      "properties": {
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.blobSigningFileSpec"
+          },
+          "type": "array",
+          "description": "to sign",
+          "x-intellij-html-description": "to sign"
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "type": "string"
+        },
+        "private_key": {
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
+        },
+        "private_key_password": {
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
+        },
+        "public_key": {
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+        },
+        "verify": {
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "private_key",
+        "private_key_password",
+        "verify",
+        "public_key",
+        "files"
+      ],
+      "additionalProperties": false,
+      "description": "signs blob",
+      "x-intellij-html-description": "signs blob",
+      "patternProperties": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^files@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.blobSigningFileSpec"
+          },
+          "type": "array",
+          "description": "to sign",
+          "x-intellij-html-description": "to sign"
+        },
+        "^files@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^private_key@.*": {
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
+        },
+        "^private_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^private_key_password@.*": {
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
+        },
+        "^private_key_password@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^public_key@.*": {
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+        },
+        "^public_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^verify@.*": {
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
+        },
+        "^verify@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.cosign.TaskSignImage": {
+      "properties": {
+        "annotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "additional key-value data pairs added when signing",
+          "x-intellij-html-description": "additional key-value data pairs added when signing",
+          "default": "{}"
+        },
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "image_names": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array",
+          "description": "ImageNames",
+          "x-intellij-html-description": "ImageNames"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "type": "string"
+        },
+        "private_key": {
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
+        },
+        "private_key_password": {
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
+        },
+        "public_key": {
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+        },
+        "repo": {
+          "type": "string",
+          "description": "signature storage repo, defaults to the same repo as image name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+        },
+        "verify": {
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "private_key",
+        "private_key_password",
+        "verify",
+        "public_key",
+        "repo",
+        "annotations",
+        "image_names"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^annotations@.*": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "additional key-value data pairs added when signing",
+          "x-intellij-html-description": "additional key-value data pairs added when signing",
+          "default": "{}"
+        },
+        "^annotations@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array",
+          "description": "ImageNames",
+          "x-intellij-html-description": "ImageNames"
+        },
+        "^image_names@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^private_key@.*": {
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
+        },
+        "^private_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^private_key_password@.*": {
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
+        },
+        "^private_key_password@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^public_key@.*": {
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+        },
+        "^public_key@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^repo@.*": {
+          "type": "string",
+          "description": "signature storage repo, defaults to the same repo as image name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+        },
+        "^repo@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^verify@.*": {
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
+        },
+        "^verify@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -3477,7 +4120,9 @@
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.FileSpec"
           },
-          "type": "array"
+          "type": "array",
+          "description": "to upload at one batch",
+          "x-intellij-html-description": "to upload at one batch"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -3486,10 +4131,15 @@
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
           },
-          "type": "array"
+          "type": "array",
+          "description": "ImageNames",
+          "x-intellij-html-description": "ImageNames"
         },
         "kind": {
-          "type": "string"
+          "type": "string",
+          "description": "Kind is either blob or wasm",
+          "x-intellij-html-description": "Kind is either blob or wasm",
+          "default": "blob"
         },
         "matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
@@ -3498,7 +4148,9 @@
           "type": "string"
         },
         "signing": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec",
+          "description": "sign uploaded images",
+          "x-intellij-html-description": "sign uploaded images"
         }
       },
       "preferredOrder": [
@@ -3531,7 +4183,9 @@
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.FileSpec"
           },
-          "type": "array"
+          "type": "array",
+          "description": "to upload at one batch",
+          "x-intellij-html-description": "to upload at one batch"
         },
         "^files@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3546,13 +4200,18 @@
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
           },
-          "type": "array"
+          "type": "array",
+          "description": "ImageNames",
+          "x-intellij-html-description": "ImageNames"
         },
         "^image_names@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^kind@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "Kind is either blob or wasm",
+          "x-intellij-html-description": "Kind is either blob or wasm",
+          "default": "blob"
         },
         "^kind@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3564,7 +4223,9 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^signing@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec",
+          "description": "sign uploaded images",
+          "x-intellij-html-description": "sign uploaded images"
         },
         "^signing@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3609,6 +4270,43 @@
         }
       }
     },
+    "arhat.dev.dukkha.pkg.tools.cosign.blobSigningFileSpec": {
+      "properties": {
+        "output": {
+          "type": "string",
+          "description": "destination path of signature output",
+          "x-intellij-html-description": "destination path of signature output"
+        },
+        "path": {
+          "type": "string",
+          "description": "local file path to the blob",
+          "x-intellij-html-description": "local file path to the blob"
+        }
+      },
+      "preferredOrder": [
+        "path",
+        "output"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^output@.*": {
+          "type": "string",
+          "description": "destination path of signature output",
+          "x-intellij-html-description": "destination path of signature output"
+        },
+        "^output@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^path@.*": {
+          "type": "string",
+          "description": "local file path to the blob",
+          "x-intellij-html-description": "local file path to the blob"
+        },
+        "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.tools.cosign.signingSpec": {
       "properties": {
         "annotations": {
@@ -3616,35 +4314,50 @@
             "type": "string"
           },
           "type": "object",
+          "description": "additional key-value data pairs added when signing",
+          "x-intellij-html-description": "additional key-value data pairs added when signing",
           "default": "{}"
         },
         "enabled": {
           "type": "boolean",
+          "description": "Enable signing",
+          "x-intellij-html-description": "Enable signing",
           "default": "false"
         },
         "private_key": {
-          "type": "string"
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
         },
         "private_key_password": {
-          "type": "string"
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
         },
         "public_key": {
-          "type": "string"
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
         },
         "repo": {
-          "type": "string"
+          "type": "string",
+          "description": "signature storage repo, defaults to the same repo as image name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
         },
         "verify": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
         }
       },
       "preferredOrder": [
         "enabled",
         "private_key",
         "private_key_password",
-        "repo",
         "verify",
         "public_key",
+        "repo",
         "annotations"
       ],
       "additionalProperties": false,
@@ -3654,6 +4367,8 @@
             "type": "string"
           },
           "type": "object",
+          "description": "additional key-value data pairs added when signing",
+          "x-intellij-html-description": "additional key-value data pairs added when signing",
           "default": "{}"
         },
         "^annotations@[^\\|]*!": {
@@ -3661,37 +4376,50 @@
         },
         "^enabled@.*": {
           "type": "boolean",
+          "description": "Enable signing",
+          "x-intellij-html-description": "Enable signing",
           "default": "false"
         },
         "^enabled@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^private_key@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "content of private key to sign content",
+          "x-intellij-html-description": "content of private key to sign content"
         },
         "^private_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^private_key_password@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "password to the private key",
+          "x-intellij-html-description": "password to the private key"
         },
         "^private_key_password@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^public_key@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "content of public key to verify signed content  if not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
         },
         "^public_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^repo@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "signature storage repo, defaults to the same repo as image name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
         },
         "^repo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^verify@.*": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "signature of signed content",
+          "x-intellij-html-description": "signature of signed content",
+          "default": true
         },
         "^verify@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

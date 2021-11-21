@@ -1,0 +1,26 @@
+expect_err: false
+task:
+  files:
+  - from: testdata/top-level.txt
+    to: a/a.txt
+
+  - from: testdata/top-level.txt
+    to: a/
+
+  - from: testdata/top-level.txt
+    to: ""
+
+  - from: testdata/top-level-link
+    to: ""
+---
+a:
+  from: testdata
+a/a.txt:
+  from: testdata/top-level.txt
+a/top-level.txt:
+  from: testdata/top-level.txt
+top-level.txt:
+  from: testdata/top-level.txt
+top-level-link:
+  from: testdata/top-level-link
+  link: top-level.txt

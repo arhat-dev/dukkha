@@ -10,6 +10,7 @@ require (
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
+	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5
 	github.com/google/uuid v1.3.0
 	github.com/gosimple/slug v1.11.2
 	github.com/h2non/filetype v1.1.2-0.20210917125640-7fafb18134ff
