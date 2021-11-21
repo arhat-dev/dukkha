@@ -11,7 +11,7 @@ buildah:push:
   matrix: &matrix
     kernel:
     - linux
-    arch@template|http:presets: matrix/container/linux/all.yml
+    arch@http:presets: matrix/container/linux/all.yml
   image_names: &image_names
   - image: ghcr.io/arhat-dev/dukkha
     manifest: ghcr.io/arhat-dev/dukkha

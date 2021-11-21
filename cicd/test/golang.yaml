@@ -1,6 +1,6 @@
 golang:test:
 - name: dukkha
-  __@template|http:presets: golang/test/pkg.yml
+  __@http:presets: golang/test/pkg.yml
   env:
   - name: PROFILE_DIR
     value: build/test-profile

@@ -34,7 +34,7 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@template|http:presets|template: golang/cmd-in-ctr.yml
+    cmd@http:presets|template: golang/cmd-in-ctr.yml
 
   cosign:
   - name: local
@@ -59,4 +59,4 @@ tools:
       value: "true"
     - name: RUN_CTR
       value@http:presets?str|template?str: templates/cmd-run-container.yml
-    cmd@template|http:presets|template: buildah/cmd-in-ctr.yml
+    cmd@http:presets|template: buildah/cmd-in-ctr.yml

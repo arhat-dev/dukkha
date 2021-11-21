@@ -1,6 +1,6 @@
 golang:build:
 - name: dukkha
-  __@template|http:presets: golang/build/cmd.yml
+  __@http:presets: golang/build/cmd.yml
   matrix@file: cicd/artifacts/matrix.yml
   env:
   - name: MODULE_NAME
