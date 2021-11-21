@@ -3,7 +3,7 @@ archive:create:
   matrix@file: cicd/artifacts/matrix.yml
   compression:
     enabled: true
-  output@template: |-
+  output@tpl: |-
     build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
     {{- if eq matrix.kernel "windows" -}}
       .zip
@@ -13,13 +13,13 @@ archive:create:
 
   files:
   # executable dukkha
-  - from@template: |-
+  - from@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
       {{- if eq matrix.kernel "windows" -}}
         .exe
       {{- end -}}
 
-    to@template: |-
+    to@tpl: |-
       dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha
 
       {{- if eq matrix.kernel "windows" -}}
@@ -28,22 +28,22 @@ archive:create:
 
   # license
   - from: LICENSE.txt
-    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/LICENSE
+    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/LICENSE
 
   # signature
-  - from@template: |-
+  - from@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
-    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sig
+    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sig
 
   # checksum
-  - from@template: |-
+  - from@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
-    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha256
+    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha256
 
-  - from@template: |-
+  - from@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
-    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha512
+    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha512
 
-  - from@template: |-
+  - from@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5
-    to@template: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.md5
+    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.md5

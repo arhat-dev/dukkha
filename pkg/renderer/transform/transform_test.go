@@ -11,7 +11,7 @@ import (
 	di "arhat.dev/dukkha/internal"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
-	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/tpl"
 )
 
 func TestDriver_RenderYaml(t *testing.T) {
@@ -39,7 +39,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 
 			ctx.AddRenderer("T", NewDefault("T"))
 			ctx.AddRenderer("file", file.NewDefault("file"))
-			ctx.AddRenderer("template", template.NewDefault("template"))
+			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
 
 			assert.NoError(t, actual.ResolveFields(ctx, -1))
 			assert.NoError(t, expected.ResolveFields(ctx, -1))

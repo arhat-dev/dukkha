@@ -20,7 +20,7 @@ global:
     value: "1.17"
   values:
     cmd:
-      run_container@http:presets|template: templates/cmd-run-container.yml
+      run_container@http:presets|tpl: templates/cmd-run-container.yml
 
 tools:
   archive:
@@ -34,7 +34,7 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@http:presets|template: golang/cmd-in-ctr.yml
+    cmd@http:presets|tpl: golang/cmd-in-ctr.yml
 
   cosign:
   - name: local
@@ -58,5 +58,5 @@ tools:
     - name: RUN_CTR_PRIVILEGED
       value: "true"
     - name: RUN_CTR
-      value@http:presets?str|template?str: templates/cmd-run-container.yml
-    cmd@http:presets|template: buildah/cmd-in-ctr.yml
+      value@http:presets?str|tpl?str: templates/cmd-run-container.yml
+    cmd@http:presets|tpl: buildah/cmd-in-ctr.yml

@@ -1,9 +1,9 @@
 docker:login:
 - name: ghcr
   registry: ghcr.io
-  username@template: |-
+  username@tpl: |-
     {{- env.GHCR_USER -}}
-  password@template: |-
+  password@tpl: |-
     {{- env.GHCR_PASS -}}
 
 cosign:upload:
@@ -18,7 +18,7 @@ cosign:upload:
     verify: true
     public_key@http: &cosign_pub_key https://arhat.dev/.well-known/cosign.pub
   files:
-  - path@template: &blob_path |-
+  - path@tpl: &blob_path |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch -}}
       {{- if eq matrix.kernel "windows" -}}
         .exe
@@ -36,8 +36,8 @@ cosign:sign:
   verify: true
   public_key@http: *cosign_pub_key
   files:
-  - path@template: *blob_path
-    output@template: |-
+  - path@tpl: *blob_path
+    output@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
 
 - name: fake
@@ -47,6 +47,6 @@ cosign:sign:
   verify: true
   public_key@file: pkg/tools/cosign/testdata/cosign.pub
   files:
-  - path@template: *blob_path
-    output@template: |-
+  - path@tpl: *blob_path
+    output@tpl: |-
       build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig

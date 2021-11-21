@@ -38,7 +38,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		fm[k] = createTemplateFunc(rc)
 	}
 
-	return template.New("template").
+	return template.New("tpl").
 		// template func from sprig
 		Funcs(template.FuncMap(sprig.TxtFuncMap())).
 		// template func from gomplate

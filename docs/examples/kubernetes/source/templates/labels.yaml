@@ -1,2 +1,2 @@
 app: nginx
-instance@template: "{{ .Values.name }}"
+instance@tpl: "{{ .Values.name }}"

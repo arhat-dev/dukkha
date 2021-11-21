@@ -2,27 +2,27 @@ data@T:
   value: testdata/data.txt
   ops:
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: md5
       key@file: testdata/hmac-key.txt
       sum: 9f589127f0513648a00b113736887b89
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: sha1
       key@file: testdata/hmac-key.txt
       sum: a17cc324559bd879c4cfbe977a13c1c1b22f0105
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: sha224
       key@file: testdata/hmac-key.txt
       sum: f81bddf2cbe78f76a83e64596650ffdd2a3011a4a7f9eac90152de5e
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: sha256
       key@file: testdata/hmac-key.txt
       sum: 4856b15dd51395c94ab47a6aba601db3ba535c0c1d398eb5b9dbed4b1bd2f442
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: sha512
       key@file: testdata/hmac-key.txt
       sum: 48e0d8378774e8d023047b69efc85feb17d75ca9461cf2290f229b761f6e78d943d8ef0267bbc8de634ee5e70f2374cc99ebe7a2b2d92518b69c4504ce50153c

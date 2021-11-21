@@ -407,7 +407,7 @@
             "shell": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
-            "template": {
+            "tpl": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
             }
           },
@@ -422,7 +422,7 @@
             "input",
             "s3",
             "shell",
-            "template"
+            "tpl"
           ],
           "additionalProperties": false
         },
@@ -836,7 +836,7 @@
             "shell": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
-            "template": {
+            "tpl": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
             }
           },
@@ -851,7 +851,7 @@
             "input",
             "s3",
             "shell",
-            "template"
+            "tpl"
           ],
           "additionalProperties": false
         },

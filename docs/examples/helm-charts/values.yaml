@@ -5,7 +5,7 @@ __@T|af:
       .entries.renovate[0].urls[0]
   ops:
   - checksum:
-      file@template: "{{ VALUE }}"
+      file@tpl: "{{ VALUE }}"
       kind: sha256
       sum@!:
         value@http: *index_url

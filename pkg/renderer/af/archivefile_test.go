@@ -13,7 +13,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
-	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/tpl"
 )
 
 func TestParseOneLineSpec(t *testing.T) {
@@ -69,7 +69,7 @@ func TestDriver(t *testing.T) {
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
-			ctx.AddRenderer("template", template.NewDefault("template"))
+			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
 			rdr := NewDefault("af")
 			rdr.Init(ctx)
 			ctx.AddRenderer("af", rdr)

@@ -7,7 +7,7 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go), [p
 ## Usage
 
 For `env` renderer: Use like unix shell env (e.g. `${SOME_ENV}`)
-For `template` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
+For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
 

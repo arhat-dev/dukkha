@@ -24,17 +24,17 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 	}{
 		{
 			name:     "Simple md5sum",
-			script:   `template:md5sum \"test\"`,
+			script:   `tpl:md5sum \"test\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Piped md5sum",
-			script:   `printf "test" | template:md5sum`,
+			script:   `printf "test" | tpl:md5sum`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Subcmd md5sum",
-			script:   `template:md5sum \"$(printf "test")\"`,
+			script:   `tpl:md5sum \"$(printf "test")\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}

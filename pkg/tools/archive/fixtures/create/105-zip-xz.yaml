@@ -9,7 +9,7 @@ task:
     enabled: true
     # TODO: fix zip xz compression
     # method: xz
-    level@template: |-
+    level@tpl: |-
       {{ matrix.level }}
   files:
   - from: testdata/top-level.txt
@@ -17,13 +17,13 @@ task:
   - from: testdata/top-level.txt
     to: /
 
-  output@template: |-
+  output@tpl: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}
 ---
 actual:
-  top-level@template?str|af?str: |-
+  top-level@tpl?str|af?str: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:top-level.txt
-  root-top-level@template?str|af?str: |-
+  root-top-level@tpl?str|af?str: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt

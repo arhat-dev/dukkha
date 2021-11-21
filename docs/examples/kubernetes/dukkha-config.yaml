@@ -9,12 +9,12 @@ global:
       kubectl version --output json | template:jq '".serverVersion.gitVersion"'
 
   values@!:
-    value@file|template: values.yaml
+    value@file|tpl: values.yaml
     merge:
     - value:
         versions:
           kubernetes@env: ${kubernetes_version}
-          ingress@template: |-
+          ingress@tpl: |-
             {{- if semverCompare ">=1.19-0" env.kubernetes_version -}}
               networking.k8s.io/v1
             {{- else if semverCompare ">=1.14-0" -}}

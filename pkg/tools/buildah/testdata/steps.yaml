@@ -8,7 +8,7 @@ buildah:xbuild:
   - # id: "#1"
     from:
       ref: ghcr.io/arhat-dev/alpine:3.14
-      arch@template: |-
+      arch@tpl: |-
         {{ matrix.arch | default "amd64" }}
       kernel: linux
 

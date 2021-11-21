@@ -5,12 +5,12 @@ task:
   public_key@file: testdata/cosign.pub
   files:
   - path: testdata/blob.txt
-    output@template: |-
+    output@tpl: |-
       {{- filepath.Join env.DUKKHA_CACHE_DIR "signature" -}}
 ---
 expect_err: false
 actual:
-  signature@template|file: |-
+  signature@tpl|file: |-
     {{- filepath.Join env.DUKKHA_CACHE_DIR "signature" -}}
 
 expected:

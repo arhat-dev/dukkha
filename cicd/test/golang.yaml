@@ -5,7 +5,7 @@ golang:test:
   - name: PROFILE_DIR
     value: build/test-profile
   matrix:
-    pkg@template: |-
+    pkg@tpl: |-
       {{-
         eval.Shell "go list ./pkg/... ./cmd/... ./internal/..."
         | removePrefix (eval.Shell "go list -m" | trimSpace)
@@ -22,7 +22,7 @@ golang:test:
         enabled: true
         packages@:
         - ./...
-        output@template: |-
+        output@tpl: |-
           {{- if matrix.pkg -}}
             coverage.{{ matrix.pkg | strings.KebabCase }}.txt
           {{- else -}}

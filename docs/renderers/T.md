@@ -40,7 +40,7 @@ foo@T:
 
   # Checksum verify data integrity, input value is returned as result
   - checksum:
-      path@template: "{{ VALUE }}"
+      path@tpl: "{{ VALUE }}"
       # kind of the checksum, with
       kind: sha256
       # hex encoded sum value

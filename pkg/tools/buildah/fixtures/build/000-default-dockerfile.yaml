@@ -1,6 +1,6 @@
 env:
 - name: PATH
-  value@template: |-
+  value@tpl: |-
     testdata/bin
 
 task:
@@ -13,7 +13,7 @@ task:
   image_names:
   - image: default-dockerfile
     manifest: default-dockerfile
-  - image@template: |-
+  - image@tpl: |-
       default-dockerfile:with-tag-{{ matrix.arch }}
     manifest: default-dockerfile:with-tag
 ---

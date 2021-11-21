@@ -24,7 +24,7 @@ A typical build automation tool only takes one or two from the above at the same
 
 - Rendering suffix
   - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix.
-  - Renderers like `http`, `env`, `file`, `template` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
+  - Renderers like `http`, `env`, `file`, `tpl` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
   - In addition to basic renderer support, we have renderer attributes (`@<renderer>#<attr>`) to produce different kind of result
     - A common use case of this feature is to reuse renderer `http`: by default it returns the content fetched from remote endpoint, but when applied with attribute `cached-file` as `http#cached-file`, it will produce local file path to the cached content.
 
@@ -86,12 +86,12 @@ workflow:run:
   matrix:
     kernel: [linux]
     arch: [amd64]
-  jobs@template:
+  jobs@tpl:
   # render environment variables before shell evaluation
   - shell@env: |-
       echo ${MATRIX_KERNEL}/{{ matrix.arch }}
   # run shell script from http server
-  - shell@template|http: |-
+  - shell@tpl|http: |-
       https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
       d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
       1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}

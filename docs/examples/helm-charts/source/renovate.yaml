@@ -1,1 +1,1 @@
-__@template?str: "{{ values.renovate_values.cronjob.schedule }}"
+__@tpl?str: "{{ values.renovate_values.cronjob.schedule }}"

@@ -15,7 +15,7 @@ workflow:run:
 # sign container images
 # required by ci job
 - name: sign-images
-  jobs@template: |-
+  jobs@tpl: |-
     {{- if and (eq env.GITHUB_ACTIONS "true") env.GIT_TAG -}}
     - task: docker:login(ghcr, {})
     - task: cosign:sign-image(dukkha, {})

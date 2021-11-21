@@ -160,7 +160,7 @@ func CreateEmbeddedShellRunner(
 		interp.ExecHandler(func(ctx context.Context, args []string) error {
 			hc := interp.HandlerCtx(ctx)
 
-			if !strings.HasPrefix(args[0], "template:") {
+			if !strings.HasPrefix(args[0], "tpl:") {
 				return cmdExecHandler(ctx, args)
 			}
 
@@ -175,7 +175,7 @@ func CreateEmbeddedShellRunner(
 				pipeReader,
 				hc.Stdout,
 				append(
-					[]string{strings.TrimPrefix(args[0], "template:")},
+					[]string{strings.TrimPrefix(args[0], "tpl:")},
 					args[1:]...,
 				),
 			)

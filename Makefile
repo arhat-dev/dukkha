@@ -27,17 +27,16 @@ dukkha:
 # 			| xargs -I'{}' shellcheck -S warning -e SC1090 -e SC1091 {} ;"
 
 .PHONY: lint
-lint:
-	dukkha run workflow local run lint
+lint: dukkha
+	./build/dukkha run workflow local run lint
 
-tidy:
-	dukkha run workflow local run tidy
+.PHONY: tidy
+tidy: dukkha
+	./build/dukkha run workflow local run tidy
 
-test:
-	dukkha run golang local test dukkha
-
-# packaging
-include scripts/package/dukkha.mk
+.PHONY: test
+test: dukkha
+	./build/dukkha run golang local test dukkha
 
 # optional private scripts
 -include private/scripts.mk

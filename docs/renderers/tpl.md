@@ -1,7 +1,7 @@
-# Template Renderer
+# Template Renderer `tpl`
 
 ```yaml
-foo@template: |-
+foo@tpl: |-
   {{ matrix.arch }}
 ```
 
@@ -23,14 +23,14 @@ renderers:
 
 ## Supported value types
 
-Any valid yaml value
+Any valid yaml value.
 
 ## Interoperation with `shell` renderer
 
-There is a template func `eval.Shell` for running shell commands in template
+There is a template func `eval.Shell` for running shell commands in template.
 
 ```yaml
-foo@template: |-
+foo@tpl: |-
   {{- eval.Shell "echo 'Called From Template'" -}}
 ```
 

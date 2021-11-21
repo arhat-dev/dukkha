@@ -8,7 +8,7 @@ workflow:run:
 - name: sign-artifacts
   jobs:
   # generate dukkha.*.sig
-  - task@template: |-
+  - task@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         cosign:sign(dukkha, {})
       {{- else -}}
@@ -39,13 +39,13 @@ workflow:run:
       openssl dgst -md5 *.tar* *.zip > md5.txt
 
   # create github release
-  - task@template: |-
+  - task@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         github:release(dukkha, {})
       {{- else -}}
         github:release(fake, {})
       {{- end -}}
-    continue_on_error@template: |-
+    continue_on_error@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         false
       {{- else -}}
@@ -60,7 +60,7 @@ workflow:run:
   matrix@file: cicd/artifacts/matrix.yml
   jobs:
   - chdir: build
-    shell@template: |-
+    shell@tpl: |-
       {{- $suffix := "" -}}
       {{- if eq matrix.kernel "windows" -}}
         {{- $suffix = ".exe" -}}

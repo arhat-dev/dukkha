@@ -9,9 +9,9 @@ workflow:run:
     - golangci-lint
 
   jobs:
-  - shell@template|http:presets|template: linter/{{- matrix.linter -}}.tpl
+  - shell@tpl|http:presets|tpl: linter/{{- matrix.linter -}}.tpl
     env:
-    - name@template: |-
+    - name@tpl: |-
         {{- matrix.linter | strings.SnakeCase | strings.ToUpper -}}
-      value@template: |-
+      value@tpl: |-
         {{- matrix.version | default "" -}}

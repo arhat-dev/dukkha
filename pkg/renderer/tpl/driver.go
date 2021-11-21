@@ -1,4 +1,4 @@
-package template
+package tpl
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
-const DefaultName = "template"
+const DefaultName = "tpl"
 
 func init() {
 	dukkha.RegisterRenderer(

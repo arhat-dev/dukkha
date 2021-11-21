@@ -1,6 +1,6 @@
 data@T:
   value: "10.10000"
   ops:
-  - shell: 'template:fromYaml "\"${VALUE}\""'
+  - shell: 'tpl:fromYaml "\"${VALUE}\""'
 ---
 data: "10.1"
