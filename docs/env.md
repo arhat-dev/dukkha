@@ -26,36 +26,38 @@ For `template` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`
 ## `git` Repo Information
 
 - `GIT_BRANCH`
-  - Description: Active branch name when invoking `dukkha`
-  - Default Value: `$(git symbolic-ref --short -q HEAD)`
+  - Description: Current working branch name
+  - Default Value: `$(git symbolic-ref --short -q HEAD)`, fallback to value from CI system env (github: `GITHUB_REF`, `GITHUB_HEAD_REF`, gitlab: `CI_COMMIT_BRANCH`)
     - Example Values: `master`, `test/foo`
   - Customization: Not Supported
 
 - `GIT_COMMIT`
-  - Description: Current commit sha when invoking `dukkha`
-  - Default Value: `$(git rev-parse HEAD)`
+  - Description: Current commit sha
+  - Default Value: `$(git rev-parse HEAD)`, fallback to value from CI system env (github: `GITHUB_SHA`, gitlab: `CI_COMMIT_SHA`)
     - Example Values: `46a0cbe436971d66e79f4d03745ce9f61acb282f`
   - Customization: Not Supported
 
 - `GIT_TAG`
-  - Description: Current git tag value when invoking `dukkha`
-  - Default Value: first value in `$(git describe --tags)`
+  - Description: Current git tag
+  - Default Value: First value in `$(git describe --tags)`, if it's not listed in `$(git tag --list --sort -version:refname)`, fallback to value provided by CI systems (github: `GITHUB_REF`, `GITHUB_HEAD_REF`, gitlab: `CI_COMMIT_TAG`)
     - Example Values: `v0.0.1`, `1.0.2`
   - Customization: Not Supported
 
 - `GIT_WORKTREE_CLEAN`
-  - Description: Indicate whether there is file not committed when invoking `dukkha`
-  - Default Value: `true` if `git diff-index --quiet HEAD` exited with 0, otherwise `false`
+  - Description: Indicate whether there is file not committed in current working tree
+  - Default Value: `true` if `git clean --dry-run` writes no output, otherwise `false`
     - Example Values: `true` or `false`
   - Customization: Not Supported
 
 - `GIT_DEFAULT_BRANCH`
-  - Description: Default remote branch of this repo
-  - Default Value: value of `HEAD branch` from output of `git remote show origin`
+  - Description: Default remote branch of current repo
+  - Default Value: Value of `HEAD branch` from output of `git remote show origin`
     - Example Values: `master`, `main`
   - Customization:
     - Set `GIT_DEFAULT_BRANCH` env before running dukkha to provide default value when `git remote show origin` doesn't work properly
     - Set `global.default_git_branch` to force override.
+
+__NOTE:__ These git related values are evaluated at the first time when used.
 
 ## Time Information
 

@@ -13,6 +13,7 @@ github:release:
   - path: build/*.txt
 
 - __@: *release
+  # yamllint disable-line rule:key-duplicates
   __@:
     title@echo: ci-test-release
   name: fake
