@@ -153,10 +153,15 @@ func createGlobalEnv(ctx context.Context) map[string]utils.LazyValue {
 		constant.ENV_GIT_WORKTREE_CLEAN: newLazyExecVal(
 			ctx,
 			[]string{
-				"git", "diff-index", "--quiet", "HEAD",
+				"git", "clean", "--dry-run",
 			},
 			func() string { return "false" },
-			func(_ string) string { return "true" },
+			func(s string) string {
+				return strconv.FormatBool(
+					// no output means clean
+					len(strings.TrimSpace(s)) == 0,
+				)
+			},
 		),
 
 		constant.ENV_GIT_DEFAULT_BRANCH: newLazyExecVal(
