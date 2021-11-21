@@ -17,14 +17,13 @@ import (
 
 func TestGenerateTemplateFuncDocs(t *testing.T) {
 	ctx := dukkha_test.NewTestContext(context.TODO())
-	ctx.SetCacheDir(t.TempDir())
 	tpl, err := templateutils.CreateTemplate(ctx).ParseFiles("template_funcs.tpl")
 
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	tfs := collectTemplateFuncs(t)
+	tfs := collectTemplateFuncs()
 	buf := &bytes.Buffer{}
 	if !assert.NoError(t, tpl.ExecuteTemplate(buf, "template_funcs.tpl", tfs)) {
 		return
@@ -38,9 +37,8 @@ type templateFunc struct {
 	Func string
 }
 
-func collectTemplateFuncs(t *testing.T) []*templateFunc {
+func collectTemplateFuncs() []*templateFunc {
 	ctx := dukkha_test.NewTestContext(context.TODO())
-	ctx.SetCacheDir(t.TempDir())
 
 	tpl := templateutils.CreateTemplate(ctx)
 

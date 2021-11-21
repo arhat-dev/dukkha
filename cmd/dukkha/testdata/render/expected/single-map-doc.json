@@ -1,7 +1,0 @@
-{
-  "bar": "amd64",
-  "foo": "GLOBAL_ENV_FOO=foo",
-  "woo": [
-    "hello aarch64"
-  ]
-}

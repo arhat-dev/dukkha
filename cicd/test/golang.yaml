@@ -7,10 +7,24 @@ golang:test:
   matrix:
     pkg@template: |-
       {{-
-        eval.Shell "go list ./pkg/..."
-        | removePrefix (eval.Shell "go list -m" | trimSuffix "\n")
+        eval.Shell "go list ./pkg/... ./cmd/... ./internal/..."
+        | removePrefix (eval.Shell "go list -m" | trimSpace)
+        | removePrefix "/"
         | addPrefix "- "
       -}}
   hooks:
     before:
     - shell: mkdir -p ${PROFILE_DIR}
+
+  __@:
+    profile:
+      coverage:
+        enabled: true
+        packages@:
+        - ./...
+        output@template: |-
+          {{- if matrix.pkg -}}
+            coverage.{{ matrix.pkg | strings.KebabCase }}.txt
+          {{- else -}}
+            coverage.txt
+          {{- end -}}

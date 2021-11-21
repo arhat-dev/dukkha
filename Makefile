@@ -30,6 +30,12 @@ dukkha:
 lint:
 	dukkha run workflow local run lint
 
+tidy:
+	dukkha run workflow local run tidy
+
+test:
+	dukkha run golang local test dukkha
+
 # packaging
 include scripts/package/dukkha.mk
 

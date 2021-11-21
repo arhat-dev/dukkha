@@ -17,6 +17,65 @@ tools:
 
 ## Supported Tasks
 
+### Task `cosign:sign`
+
+Sign local files
+
+```yaml
+cosign:sign:
+- name: foo
+
+  # siging key
+  private_key@env: ${MY_COSIGN_PRIVATE_KEY}
+
+  # password of the siging key
+  private_key_password@env: ${MY_COSIGN_PASSWORD}
+
+  # Verify signature just created using public key
+  #
+  # defaults to true
+  verify: true
+
+  # End user accessible public key, only used when verify is set to true
+  #
+  # if not set and `verify` is true, derive from the signing key (.private_key)
+  public_key@http: https://example.com/cosign.pub
+
+  files:
+  - # path to your file
+    path: path/to/local/file
+    # signature output file
+    # if not set, add ".sig" suffix to .path
+    #output: file.sig
+```
+
+### Task `cosign:sign-image`
+
+Sign container image already pushed to OCI registry
+
+```yaml
+cosign:sign-image:
+- name: foo
+
+  # same options in cosign:sign are not shown
+  # also, there is no `files` option in cosign:sign-image
+
+  # use a different repository for signature storage
+  #
+  # actually set COSIGN_REPOSITORY
+  repo: sig.example.com/dist/foo
+
+  # additional string key value pairs added when sign
+  annotations:
+    foo: bar
+
+  # image_names to sign
+  image_names:
+  - image: example.com/dist/foo:latest-amd64
+    # manifest is not supported
+    # manifest: example.com/dist/foo:latest
+```
+
 ### Task `cosign:upload`
 
 Upload blob/wasm to OCI registry
@@ -35,26 +94,22 @@ cosign:upload:
     arch:
     - amd64
     - armv7
+
   files:
   - # path to your blob file
     path: path/to/your/upload/target
     # custom content type of the blob file
     content_type: ""
-  signing:
-    # enable siging
-    enabled: true
-    # siging key
-    private_key@env: ${MY_COSIGN_PRIVATE_KEY}
-    # password of the siging key
-    private_key_password@env: ${MY_COSIGN_PASSWORD}
-    # use a different repository for signature storage (set COSIGN_REPOSITORY)
-    repo: sig.example.com/dist/foo
 
-    # verify signature after signing
-    verify: true
-    # user accessible public key, if not defined, will derive from the signing `key`
-    public_key@http: https://example.com/cosign.pub
-  # image_names is the same with docker/buildah build task's
+  # signing config
+  signing:
+    # sign the uploaded blob
+    enabled: true
+
+    # other options are the same as signing options in cosign:sign-image (without image_names)
+
+  # image_names for uploaded files
+  #
   # omit image tag to let dukkha generate tag for you
   image_names:
   - image: example.com/dist/foo:latest-amd64
