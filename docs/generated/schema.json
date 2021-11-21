@@ -377,6 +377,9 @@
         },
         "renderers": {
           "properties": {
+            "T": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            },
             "af": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
             },
@@ -406,12 +409,10 @@
             },
             "template": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
-            },
-            "transform": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
             }
           },
           "preferredOrder": [
+            "T",
             "af",
             "echo",
             "env",
@@ -421,8 +422,7 @@
             "input",
             "s3",
             "shell",
-            "template",
-            "transform"
+            "template"
           ],
           "additionalProperties": false
         },
@@ -806,6 +806,9 @@
         },
         "^renderers@.*": {
           "properties": {
+            "T": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            },
             "af": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
             },
@@ -835,12 +838,10 @@
             },
             "template": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
-            },
-            "transform": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
             }
           },
           "preferredOrder": [
+            "T",
             "af",
             "echo",
             "env",
@@ -850,8 +851,7 @@
             "input",
             "s3",
             "shell",
-            "template",
-            "transform"
+            "template"
           ],
           "additionalProperties": false
         },

@@ -1,4 +1,4 @@
-data@transform?str:
+data@T?str:
   value: foo
   ops:
   - template@?str:

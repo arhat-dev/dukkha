@@ -37,7 +37,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 			ctx := dt.NewTestContext(context.TODO())
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
-			ctx.AddRenderer("transform", NewDefault("transform"))
+			ctx.AddRenderer("T", NewDefault("T"))
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("template", template.NewDefault("template"))
 

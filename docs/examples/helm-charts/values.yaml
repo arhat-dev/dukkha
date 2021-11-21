@@ -1,4 +1,4 @@
-__@transform|af:
+__@T|af:
   value@http#cached-file!:
     value@http: &index_url https://docs.renovatebot.com/helm-charts/index.yaml
     select: |-

@@ -17,7 +17,7 @@ import (
 	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
-const DefaultName = "transform"
+const DefaultName = "T"
 
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 

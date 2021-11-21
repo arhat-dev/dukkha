@@ -1,4 +1,4 @@
-data@transform:
+data@T:
   value: "10.10000"
   ops:
   - template: '{{- fromYaml (printf "%q" VALUE) -}}'

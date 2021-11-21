@@ -1,4 +1,4 @@
-data@transform:
+data@T:
   value@file: testdata/data.txt
   ops:
   - checksum:
