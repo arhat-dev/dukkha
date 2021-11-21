@@ -42,6 +42,9 @@ type rendererHTTPConfig struct {
 	TLS tlshelper.TLSConfig `yaml:"tls"`
 
 	Body *string `yaml:"body"`
+
+	// BaseURL
+	BaseURL string `yaml:"base_url"`
 }
 
 // inputHTTPSpec for renderer value

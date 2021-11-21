@@ -1486,6 +1486,11 @@
     },
     "arhat.dev.dukkha.pkg.renderer.http.Driver": {
       "properties": {
+        "base_url": {
+          "type": "string",
+          "description": "BaseURL",
+          "x-intellij-html-description": "BaseURL"
+        },
         "body": {
           "type": "string"
         },
@@ -1543,9 +1548,18 @@
         "method",
         "proxy",
         "tls",
-        "body"
+        "body",
+        "base_url"
       ],
       "patternProperties": {
+        "^base_url@.*": {
+          "type": "string",
+          "description": "BaseURL",
+          "x-intellij-html-description": "BaseURL"
+        },
+        "^base_url@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^body@.*": {
           "type": "string"
         },

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 
 	"arhat.dev/pkg/rshelper"
@@ -151,7 +153,7 @@ func (d *Driver) RenderYaml(
 
 func (d *Driver) fetchRemote(
 	client *http.Client,
-	url string,
+	targetURL string,
 	config *rendererHTTPConfig,
 ) (io.ReadCloser, error) {
 	var (
@@ -169,7 +171,18 @@ func (d *Driver) fetchRemote(
 		method = http.MethodGet
 	}
 
-	req, err = http.NewRequest(method, url, body)
+	if len(config.BaseURL) != 0 {
+		var baseURL *url.URL
+		baseURL, err = url.Parse(config.BaseURL)
+		if err != nil {
+			return nil, err
+		}
+
+		baseURL.Path = path.Join(baseURL.Path, targetURL)
+		targetURL = baseURL.String()
+	}
+
+	req, err = http.NewRequest(method, targetURL, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}

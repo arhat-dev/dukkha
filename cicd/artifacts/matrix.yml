@@ -1,7 +1,4 @@
 __@!:
-  value@template|http: |-
-    https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
-    {{- /* line sep */ -}}
-    matrix/golang/1.17/common.yml
+  value@http:presets: matrix/golang/1.17/common.yml
   select: |-
     .include.[].cmd = ["dukkha"] | .cmd = ["dukkha"]
