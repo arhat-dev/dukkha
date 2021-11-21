@@ -4,15 +4,34 @@ import (
 	"context"
 	"testing"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	di "arhat.dev/dukkha/internal"
+	"arhat.dev/dukkha/pkg/dukkha"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/tools/tests"
 	"arhat.dev/pkg/testhelper"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
-
-	_ "embed"
 )
+
+func TestTaskBuild(t *testing.T) {
+	type Check struct {
+		rs.BaseField
+
+		Data map[string]string `yaml:",inline"`
+	}
+
+	t.Skip()
+
+	tests.TestTask(t, "./fixtures/build", &Tool{},
+		func() dukkha.Task { return newTaskBuild("") },
+		func() rs.Field { return &Check{} },
+		func(t *testing.T, expected, actual rs.Field) {
+			// TODO: check images
+		},
+	)
+}
 
 func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 	type TestCase struct {
@@ -38,8 +57,8 @@ func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 		func(t *testing.T, spec, exp interface{}) {
 			test, check := spec.(*TestCase), exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 
 			assert.NoError(t, test.ResolveFields(ctx, -1))

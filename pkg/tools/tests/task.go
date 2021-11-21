@@ -9,8 +9,9 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/archivefile"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -99,8 +100,8 @@ func TestFixturesUsingRenderingSuffix(
 			defer t.Cleanup(func() {})
 			s, e := spec.(rs.Field), exp.(rs.Field)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("template", template.NewDefault("template"))
@@ -128,6 +129,8 @@ func TestTask(
 ) {
 	type TestCase struct {
 		rs.BaseField
+
+		Env dukkha.Env `yaml:"env"`
 
 		// Tool dukkha.Tool `yaml:"tool"`
 		Task dukkha.Task `yaml:"task"`
@@ -167,8 +170,8 @@ func TestTask(
 			spec := in.(*TestCase)
 			e := exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("template", template.NewDefault("template"))
@@ -177,6 +180,10 @@ func TestTask(
 			afr := archivefile.NewDefault("archivefile")
 			assert.NoError(t, afr.Init(ctx))
 			ctx.AddRenderer("archivefile", afr)
+
+			if !assert.NoError(t, dukkha.ResolveEnv(ctx, spec, "Env", "env")) {
+				return
+			}
 
 			if !assert.NoError(t, spec.ResolveFields(ctx, -1)) {
 				return

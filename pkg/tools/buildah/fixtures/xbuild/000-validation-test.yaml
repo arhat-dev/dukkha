@@ -1,0 +1,19 @@
+env:
+- name: PATH
+  value: ./testdata/bin
+
+task:
+  matrix:
+    kernel:
+    - linux
+    arch@file: testdata/arch.yml
+  image_names:
+  - image: xbuild-validation
+    manifest: xbuild-validation
+  - image@template: |-
+      xbuild-validation:with-tag-{{ matrix.arch }}
+    manifest: xbuild-validation:with-tag
+  steps@file: testdata/steps.yaml
+---
+actual:
+expected:

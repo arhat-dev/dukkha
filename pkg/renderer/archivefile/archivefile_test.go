@@ -9,6 +9,7 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -65,8 +66,7 @@ func TestDriver(t *testing.T) {
 			check := exp.(*rs.AnyObject)
 
 			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
-			ctx.SetCacheDir(t.TempDir())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("template", template.NewDefault("template"))

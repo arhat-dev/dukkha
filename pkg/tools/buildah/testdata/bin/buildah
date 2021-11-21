@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+echo "Hello"
+
+case "$1" in
+build | bud)
+  echo "Test"
+  ;;
+images)
+  echo "Test"
+  ;;
+esac

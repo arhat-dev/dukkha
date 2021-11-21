@@ -11,6 +11,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/third_party/golang/text/template"
@@ -103,20 +104,20 @@ type Operation struct {
 func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte, error) {
 	rc2 := _rc.(interface {
 		dukkha.RenderingContext
-		SetVALUE(s string)
-		VALUE() string
+		di.VALUEGetter
+		di.VALUESetter
 	})
 
 	rc2.SetVALUE(string(valueBytes))
 	rc2.AddEnv(true, &dukkha.EnvEntry{
 		Name:  "VALUE",
-		Value: rc2.VALUE(),
+		Value: rc2.VALUE().(string),
 	})
 
 	// do not expose SetVALUE to template operation
 	rc := rc2.(interface {
 		dukkha.RenderingContext
-		VALUE() string
+		di.VALUEGetter
 	})
 
 	err := op.ResolveFields(rc, -1)

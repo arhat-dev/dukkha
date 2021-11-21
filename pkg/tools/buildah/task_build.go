@@ -24,14 +24,7 @@ import (
 const TaskKindBuild = "build"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindBuild,
-		func(toolName string) dukkha.Task {
-			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindBuild, newTaskBuild)
 
 	templateutils.RegisterTemplateFuncs(map[string]templateutils.TemplateFuncFactory{
 		"getBuildahImageIDFile": func(rc dukkha.RenderingContext) interface{} {
@@ -43,6 +36,12 @@ func init() {
 			}
 		},
 	})
+}
+
+func newTaskBuild(toolName string) dukkha.Task {
+	t := &TaskBuild{}
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
+	return t
 }
 
 type TaskBuild struct {

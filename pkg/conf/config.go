@@ -26,6 +26,7 @@ import (
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer/echo"
@@ -278,10 +279,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 
 		if len(c.Global.DefaultGitBranch) != 0 {
-			appCtx.OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
+			appCtx.(di.DefaultGitBranchOverrider).OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
 		}
 
-		appCtx.SetCacheDir(cacheDir)
+		appCtx.(di.CacheDirSetter).SetCacheDir(cacheDir)
 	}
 
 	// NOTE: resolving renderers requires dukkha cache dir to been set

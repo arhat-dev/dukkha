@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
@@ -29,7 +30,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			}
 
 			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.SetCacheDir(t.TempDir())
+			rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
@@ -121,7 +122,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			})
 
 			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.SetCacheDir(t.TempDir())
+			rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
 				Value: constant.KERNEL_LINUX,

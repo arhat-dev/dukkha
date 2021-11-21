@@ -14,9 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
@@ -62,10 +63,10 @@ func TestCmd(t *testing.T) {
 				}
 			})
 
-			ctx := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), map[string]utils.LazyValue{
+			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), map[string]utils.LazyValue{
 				constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(cwd),
 			})
-			ctx.SetCacheDir(t.TempDir())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
@@ -106,9 +107,7 @@ func TestCmd(t *testing.T) {
 				return
 			}
 
-			ctx.(interface {
-				OverrideWorkingDir(cwd string)
-			}).OverrideWorkingDir(cwd)
+			ctx.(di.WorkingDirOverrider).OverrideWorkingDir(cwd)
 
 			// have a look at the output dir
 			entries, err := os.ReadDir(outputDir)

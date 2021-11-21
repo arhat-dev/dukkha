@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"mvdan.cc/sh/v3/syntax"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	di "arhat.dev/dukkha/internal"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestEmbeddedShellForTemplateFunc(t *testing.T) {
@@ -40,8 +41,8 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			stdin, _ := io.Pipe()
 			stdout := &bytes.Buffer{}
@@ -96,8 +97,8 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			var input io.Reader
 			if len(test.input) != 0 {

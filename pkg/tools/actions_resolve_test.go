@@ -9,8 +9,9 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/template"
@@ -50,8 +51,8 @@ func TestResolveActions_steps(t *testing.T) {
 			in := spec.(*TestResolvable)
 			cs := exp.(*CheckSpec)
 
-			mCtx := dukkha_test.NewTestContext(context.TODO())
-			mCtx.SetCacheDir(t.TempDir())
+			mCtx := dt.NewTestContext(context.TODO())
+			mCtx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			mCtx.AddRenderer("template", template.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))

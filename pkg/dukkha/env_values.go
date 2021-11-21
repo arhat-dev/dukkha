@@ -130,20 +130,6 @@ func (c *envValues) AddListEnv(env ...string) {
 	}
 }
 
-func (c *envValues) SetCacheDir(dir string) {
-	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = utils.ImmediateString(dir)
-}
-
-func (c *envValues) OverrideDefaultGitBranch(branch string) {
-	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = utils.ImmediateString(branch)
-}
-
-// OverrideWorkingDir set DUKKHA_WORKING_DIR to cwd
-// should not be exposed by any interface type in this package
-func (c *envValues) OverrideWorkingDir(cwd string) {
-	c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR] = utils.ImmediateString(cwd)
-}
-
 func (c *envValues) WorkingDir() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR])
 }

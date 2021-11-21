@@ -1,0 +1,57 @@
+buildah:xbuild:
+-
+  steps:
+  - id: step-1
+    from:
+      ref: scratch
+
+  - # id: "#1"
+    from:
+      ref: ghcr.io/arhat-dev/alpine:3.14
+      arch@template: |-
+        {{ matrix.arch | default "amd64" }}
+      kernel: linux
+
+  - from:
+      ref: ghcr.io/arhat-dev/alpine:3.14
+      extra_pull_args:
+      - --policy
+      - always
+
+  - copy:
+      from:
+        local:
+          path: testdata/arch.yml
+      to:
+        path: /arch.yml
+
+  - run:
+      script: |-
+        #!/bin/sh
+
+        mkdir -p /final-workdir
+        adduser test-user
+
+  - set:
+      annotations:
+      - name: test-anno-1
+        value: test-anno-1
+      - name: test-anno-remove-
+        value: ""
+      labels:
+      - name: test-label-1
+        value: test-label-1
+      - name: test-label-remove-
+        value: ""
+      workdir: /final-workdir
+      user: test-user
+      ports:
+      - "8080"
+      env:
+      - name: TEST_ENV
+        value: test-env
+      entrypoint:
+      - /bin/sh
+      cmd:
+      - echo
+      - cmd

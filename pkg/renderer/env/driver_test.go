@@ -6,8 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestNewDriver(t *testing.T) {
@@ -20,8 +21,8 @@ func TestDriver_Render(t *testing.T) {
 	vFalse := false
 	vTrue := true
 
-	rc := dukkha_test.NewTestContext(context.TODO())
-	rc.SetCacheDir(t.TempDir())
+	rc := dt.NewTestContext(context.TODO())
+	rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 	rc.AddEnv(true, &dukkha.EnvEntry{
 		Name:  "FOO",
 		Value: "bar",

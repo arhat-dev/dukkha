@@ -1,0 +1,9 @@
+- amd64
+- arm64
+- armv5
+- armv6
+- armv7
+- arm64
+- mips64le
+- ppc64le
+- s390x

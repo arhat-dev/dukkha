@@ -8,8 +8,9 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/env"
 
 	_ "embed"
@@ -47,8 +48,8 @@ func TestActionFixtures(t *testing.T) {
 			actual := in.(*Action)
 			expected := exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("env", env.NewDefault(""))
 
 			assert.NoError(t, actual.DoAfterFieldResolved(ctx, func() error { return nil }))
