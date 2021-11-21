@@ -20,6 +20,9 @@ type TaskExecRequest struct {
 	Task dukkha.Task
 
 	IgnoreError bool
+
+	// DryRun do not actually run any thing, just evaluate values
+	DryRun bool
 }
 
 // nolint:gocyclo

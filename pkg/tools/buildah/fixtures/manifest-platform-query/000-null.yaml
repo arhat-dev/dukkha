@@ -1,0 +1,13 @@
+query:
+  kernel: linux
+  arch: amd64
+
+manifest: |-
+  {
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.docker.distribution.manifest.list.v2+json",
+    "manifests": null
+  }
+---
+expect_err: true
+digests: []

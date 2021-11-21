@@ -3,28 +3,26 @@ package archive
 import (
 	"testing"
 
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/tools/tests"
 	"arhat.dev/rs"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTaskCreate(t *testing.T) {
-	type TestCase struct {
+	type Check struct {
 		rs.BaseField
 
-		Task      *TaskCreate `yaml:"task"`
-		ExpectErr bool        `yaml:"expect_err"`
+		Files map[string]string `yaml:",inline"`
 	}
 
-	type ExpectedEntry struct {
-		From string `yaml:"from"`
-		Link string `yaml:"link"`
-	}
-
-	// 	testhelper.TestFixtures(t, "./fixtures/create",
-	// 		func() interface{} { return rs.Init(&TestCase{}, nil) },
-	// 		func() interface{} { return &ExpectedEntry{} },
-	// 		func(t *testing.T, spec, exp interface{}) {
-	//
-	// 		},
-	// 	)
-	_, _ = &TestCase{}, &ExpectedEntry{}
+	tests.TestTask(t, "./fixtures/create",
+		&Tool{},
+		func() dukkha.Task { return newCreateTask("") },
+		func() rs.Field { return &Check{} },
+		func(t *testing.T, e, a rs.Field) {
+			expected, actual := e.(*Check), a.(*Check)
+			assert.EqualValues(t, expected.Files, actual.Files)
+		},
+	)
 }

@@ -2,6 +2,7 @@ package archivefile
 
 import (
 	"compress/bzip2"
+	"compress/flate"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -13,7 +14,26 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v4"
 	"github.com/ulikunitz/xz"
+	"github.com/ulikunitz/xz/lzma"
 )
+
+var (
+	lzmaType = filetype.NewType("lzma", "application/vnd.lzma")
+	lz4Type  = filetype.NewType("lz4", "application/vnd.lz4")
+)
+
+// magic number ref: https://www.kernel.org/doc/html/latest/x86/boot.html
+func init() {
+	filetype.AddMatcher(lzmaType, func(b []byte) bool {
+		return len(b) >= 2 &&
+			b[0] == 0x5d && b[1] == 0x00
+	})
+
+	filetype.AddMatcher(lz4Type, func(b []byte) bool {
+		return len(b) >= 2 &&
+			b[0] == 0x02 && b[1] == 0x21
+	})
+}
 
 func unarchive(src archiveSource, typ types.Type, inArchivePath, password string) (io.ReadCloser, error) {
 	switch typ {
@@ -61,10 +81,8 @@ func unarchive(src archiveSource, typ types.Type, inArchivePath, password string
 		}
 
 		return unarchiveNext(src, r, inArchivePath, password)
-	case matchers.Type7z:
-		// TODO
 	case matchers.TypeXz:
-		r, err := xz.NewReader(src)
+		r, err := xz.ReaderConfig{}.NewReader(src)
 		if err != nil {
 			return nil, err
 		}
@@ -84,19 +102,13 @@ func unarchive(src archiveSource, typ types.Type, inArchivePath, password string
 
 		if len(inArchivePath) == 0 {
 			return iohelper.CustomReadCloser(r, func() error {
+				r.Close()
 				return src.Close()
 			}), nil
 		}
 
 		return unarchiveNext(src, r, inArchivePath, password)
-	case matchers.TypePdf:
-		// TODO
-	case matchers.TypeDeb:
-		// TODO
-	case matchers.TypeAr:
-		// unix archive
-		// TODO
-	case matchers.TypeLz:
+	case lz4Type:
 		r := lz4.NewReader(src)
 		if len(inArchivePath) == 0 {
 			return iohelper.CustomReadCloser(r, func() error {
@@ -105,8 +117,42 @@ func unarchive(src archiveSource, typ types.Type, inArchivePath, password string
 		}
 
 		return unarchiveNext(src, r, inArchivePath, password)
+	case lzmaType:
+		r, err := lzma.ReaderConfig{}.NewReader(src)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(inArchivePath) == 0 {
+			return iohelper.CustomReadCloser(r, func() error {
+				return src.Close()
+			}), nil
+		}
+
+		return unarchiveNext(src, r, inArchivePath, password)
+	case matchers.Type7z:
+		// TODO
+	case matchers.TypePdf:
+		// TODO
+	case matchers.TypeDeb:
+		// TODO
+	case matchers.TypeAr:
+		// unix archive
+		// TODO
 	case matchers.TypeRpm:
 		// TODO
+	default:
+		// assume deflate
+		r := flate.NewReader(src)
+
+		if len(inArchivePath) == 0 {
+			return iohelper.CustomReadCloser(r, func() error {
+				_ = r.Close()
+				return src.Close()
+			}), nil
+		}
+
+		return unarchiveNext(src, r, inArchivePath, password)
 	}
 
 	return nil, fmt.Errorf("no implementation")

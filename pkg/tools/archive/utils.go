@@ -120,7 +120,7 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 		lastKnownGood = len(good)
 		for k, idx := range inArchiveFiles {
 			dir := path.Dir(k)
-			if dir == "." {
+			if dir == "." || dir == "/" {
 				good[k] = struct{}{}
 				continue
 			}

@@ -11,6 +11,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/renderer/archivefile"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
@@ -83,13 +84,47 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	assert.Equal(t, test.Expected, specs)
 }
 
+func TestFixturesUsingRenderingSuffix(
+	t *testing.T,
+	dir string,
+	rc rs.RenderingHandler,
+	newTestSpec func() rs.Field,
+	newCheckSpec func() rs.Field,
+	check func(t *testing.T, ts, cs rs.Field),
+) {
+	testhelper.TestFixtures(t, dir,
+		func() interface{} { return rs.Init(newTestSpec(), nil) },
+		func() interface{} { return rs.Init(newCheckSpec(), nil) },
+		func(t *testing.T, spec, exp interface{}) {
+			defer t.Cleanup(func() {})
+			s, e := spec.(rs.Field), exp.(rs.Field)
+
+			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx.SetCacheDir(t.TempDir())
+			ctx.AddRenderer("file", file.NewDefault("file"))
+			ctx.AddRenderer("env", env.NewDefault("env"))
+			ctx.AddRenderer("template", template.NewDefault("template"))
+			ctx.AddRenderer("shell", shell.NewDefault("shell"))
+
+			afr := archivefile.NewDefault("archivefile")
+			afr.Init(ctx)
+			ctx.AddRenderer("archivefile", afr)
+
+			assert.NoError(t, s.ResolveFields(rc, -1))
+			assert.NoError(t, e.ResolveFields(rc, -1))
+
+			check(t, s, e)
+		},
+	)
+}
+
 func TestTask(
 	t *testing.T,
 	dir string,
 	tool dukkha.Tool,
 	newTask func() dukkha.Task,
 	newExpected func() rs.Field,
-	check func(expected, actual rs.Field),
+	check func(t *testing.T, expected, actual rs.Field),
 ) {
 	type TestCase struct {
 		rs.BaseField
@@ -139,6 +174,10 @@ func TestTask(
 			ctx.AddRenderer("template", template.NewDefault("template"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
+			afr := archivefile.NewDefault("archivefile")
+			afr.Init(ctx)
+			ctx.AddRenderer("archivefile", afr)
+
 			if !assert.NoError(t, spec.ResolveFields(ctx, -1)) {
 				return
 			}
@@ -170,7 +209,7 @@ func TestTask(
 				return
 			}
 
-			check(e.Expected, e.Actual)
+			check(t, e.Expected, e.Actual)
 		},
 	)
 }

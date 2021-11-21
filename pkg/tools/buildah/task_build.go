@@ -203,7 +203,7 @@ func (c *TaskBuild) createExecSpecs(
 		osArchVariantArgs = append(osArchVariantArgs, "--variant", variant)
 	}
 
-	manifestOsArchVariantQueryForDigest := createManifestOsArchVariantQueryForDigest(
+	manifestOsArchVariantQueryForDigest := createManifestPlatformQueryForDigest(
 		rc.MatrixKernel(), mArch,
 	)
 
@@ -339,7 +339,7 @@ func parseManifestOsArchVariantQueryResult(result string) ([]string, error) {
 	}
 }
 
-func createManifestOsArchVariantQueryForDigest(mKernel, mArch string) string {
+func createManifestPlatformQueryForDigest(mKernel, mArch string) string {
 	os, _ := constant.GetOciOS(mKernel)
 	arch, _ := constant.GetOciArch(mArch)
 	variant, _ := constant.GetOciArchVariant(mArch)

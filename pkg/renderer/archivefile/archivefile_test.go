@@ -80,14 +80,14 @@ func TestDriver(t *testing.T) {
 					"001.tar",
 					"002.tar.gz",
 					"003.tar.bz2",
-					// "004.tar.lzma",
+					"004.tar.lzma",
 					"005.tar.xz",
 
 					// zip
 					"101.zip",
 					"102.zip.gz",
 					"103.zip.bz2",
-					// "004.zip.lzma",
+					"104.zip.lzma",
 					"105.zip.xz",
 				}, " "),
 			})

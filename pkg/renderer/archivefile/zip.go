@@ -1,6 +1,7 @@
 package archivefile
 
 import (
+	"archive/zip"
 	"compress/bzip2"
 	"fmt"
 	"io"
@@ -10,7 +11,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/pkg/iohelper"
-	"github.com/klauspost/compress/zip"
+
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
@@ -24,6 +25,7 @@ type SizedReaderAt interface {
 func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
 	// TODO: support encrypted zip file
 	_ = password
+
 	r, err := zip.NewReader(src, src.Size())
 	if err != nil {
 		return nil, err

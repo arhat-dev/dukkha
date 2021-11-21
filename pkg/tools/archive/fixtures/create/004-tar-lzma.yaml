@@ -1,0 +1,29 @@
+task:
+  matrix:
+    level:
+    - "3"
+    - "7"
+    - "9"
+  format: tar
+  compression:
+    enabled: true
+    method: lzma
+    level@template: |-
+      {{ matrix.level }}
+  files:
+  - from: testdata/top-level.txt
+    to: ""
+  - from: testdata/top-level.txt
+    to: /
+
+  output@template: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.lzma" -}}
+---
+actual:
+  top-level@template?str|archivefile?str: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.lzma" -}}:top-level.txt
+  root-top-level@template?str|archivefile?str: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.lzma" -}}:/top-level.txt
+expected:
+  top-level@file?str: testdata/top-level.txt
+  root-top-level@file?str: testdata/top-level.txt
