@@ -49,7 +49,7 @@ func (c *TaskPush) GetExecSpecs(
 			}
 
 			imageName := templateutils.SetDefaultImageTagIfNoTagSet(
-				rc, spec.Image, false,
+				rc, spec.Image, true,
 			)
 			// docker push <image-name>
 			if imageOrManifestHasFQDN(imageName) {

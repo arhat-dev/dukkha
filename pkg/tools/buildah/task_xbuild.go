@@ -84,7 +84,7 @@ func (w *TaskXBuild) GetExecSpecs(
 			}
 
 			imageName := templateutils.SetDefaultImageTagIfNoTagSet(
-				rc, spec.Image, false,
+				rc, spec.Image, true,
 			)
 
 			_, err := nameSum.Write([]byte(imageName))

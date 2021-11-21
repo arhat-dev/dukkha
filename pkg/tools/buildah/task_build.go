@@ -38,7 +38,7 @@ func init() {
 			return func(imageName string) string {
 				return GetImageIDFileForImageName(
 					rc.CacheDir(),
-					templateutils.SetDefaultImageTagIfNoTagSet(rc, imageName, false),
+					templateutils.SetDefaultImageTagIfNoTagSet(rc, imageName, true),
 				)
 			}
 		},
@@ -119,7 +119,7 @@ func (c *TaskBuild) createExecSpecs(
 		}
 
 		imageName := templateutils.SetDefaultImageTagIfNoTagSet(
-			rc, spec.Image, false,
+			rc, spec.Image, true,
 		)
 
 		// local image name is to handle bud regression bugs related to
