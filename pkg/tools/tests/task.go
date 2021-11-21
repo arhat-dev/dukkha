@@ -107,7 +107,7 @@ func TestFixturesUsingRenderingSuffix(
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
 			afr := archivefile.NewDefault("archivefile")
-			afr.Init(ctx)
+			assert.NoError(t, afr.Init(ctx))
 			ctx.AddRenderer("archivefile", afr)
 
 			assert.NoError(t, s.ResolveFields(rc, -1))
@@ -175,7 +175,7 @@ func TestTask(
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
 			afr := archivefile.NewDefault("archivefile")
-			afr.Init(ctx)
+			assert.NoError(t, afr.Init(ctx))
 			ctx.AddRenderer("archivefile", afr)
 
 			if !assert.NoError(t, spec.ResolveFields(ctx, -1)) {
