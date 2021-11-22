@@ -17,7 +17,7 @@ func TestFixturesUsingRenderingSuffix(
 	renderers map[string]dukkha.Renderer,
 	newTestSpec func() rs.Field,
 	newCheckSpec func() rs.Field,
-	check func(t *testing.T, ts, cs rs.Field),
+	check func(t *testing.T, ctx dukkha.Context, ts, cs rs.Field),
 ) {
 	testhelper.TestFixtures(t, dir,
 		func() interface{} { return rs.Init(newTestSpec(), nil) },
@@ -38,7 +38,7 @@ func TestFixturesUsingRenderingSuffix(
 			assert.NoError(t, s.ResolveFields(ctx, -1))
 			assert.NoError(t, e.ResolveFields(ctx, -1))
 
-			check(t, s, e)
+			check(t, ctx, s, e)
 		},
 	)
 }

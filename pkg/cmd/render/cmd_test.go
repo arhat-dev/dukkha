@@ -156,3 +156,23 @@ func TestCmd(t *testing.T) {
 		},
 	)
 }
+
+// func testCmd(t *testing.T) {
+// 	testhelper.TestCmdFixtures(t, "./fixtures",
+// 		map[string][]string{},
+// 		generateNewSpec,
+// 		prepareCmd,
+// 	)
+// }
+//
+// func generateNewSpec(
+// 	flagSets [][]string,
+// 	baseSpec *testhelper.CmdTestCase,
+// 	baseCheck *testhelper.CmdTestCheckSpec,
+// ) (*testhelper.CmdTestCase, *testhelper.CmdTestCheckSpec) {
+// 	return nil, nil
+// }
+//
+// func prepareCmd(flags []string) (checkFlags func() error, runCmd func() error, _ error) {
+// 	return func() error { return nil }, func() error { return nil }, nil
+// }

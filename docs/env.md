@@ -45,7 +45,7 @@ For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 - `GIT_WORKTREE_CLEAN`
   - Description: Indicate whether there is file not committed in current working tree
-  - Default Value: `true` if `git clean --dry-run` writes no output, otherwise `false`
+  - Default Value: `true` if `git clean --dry-run` writes no output and `git diff-index --quiet HEAD` exited with no error, otherwise `false`
     - Example Values: `true` or `false`
   - Customization: Not Supported
 

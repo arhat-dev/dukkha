@@ -19,7 +19,7 @@ func TestDiff(t *testing.T) {
 		DivertKey string   `yaml:"divert_key"`
 	}
 
-	testhelper.TestFixtures(t, "./testdata/diff",
+	testhelper.TestFixtures(t, "./fixtures/diff",
 		func() interface{} { return new(TestCase) },
 		func() interface{} {
 			var keys []*Expected

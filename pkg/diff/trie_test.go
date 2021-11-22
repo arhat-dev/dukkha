@@ -24,7 +24,7 @@ func TestNode_Unmarshal(t *testing.T) {
 		TailKey []string `yaml:"tail_key"`
 	}
 
-	testhelper.TestFixtures(t, "./testdata/trie",
+	testhelper.TestFixtures(t, "./fixtures/trie",
 		func() interface{} { return new(Node) },
 		func() interface{} {
 			var specs []CheckSpec

@@ -61,10 +61,3 @@ spec:
         effect: "NoExecute"
       - key: "CriticalAddonsOnly"
         operator: "Exists"
----
-a: b
----
-c: d
----
-- e: f
-- g: h

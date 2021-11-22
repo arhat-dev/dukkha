@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateGlobalEnv(t *testing.T) {
-	globalEnv := createGlobalEnv(context.TODO())
+	globalEnv := createGlobalEnv(context.TODO(), ".")
 
 	now := time.Now().Local()
 	zone, offset := now.Zone()
