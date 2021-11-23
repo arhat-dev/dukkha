@@ -18,7 +18,6 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/ssh"
 )
 
-// nolint:revive
 const (
 	DefaultName = "git"
 )

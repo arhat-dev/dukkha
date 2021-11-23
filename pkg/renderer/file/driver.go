@@ -12,7 +12,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-// nolint:revive
 const (
 	DefaultName = "file"
 )

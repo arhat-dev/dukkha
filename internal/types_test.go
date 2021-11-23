@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func TestInternalTypes(t *testing.T) {

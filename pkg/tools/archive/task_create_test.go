@@ -3,10 +3,11 @@ package archive
 import (
 	"testing"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/tools/tests"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
 func TestTaskCreate(t *testing.T) {

@@ -4,15 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"arhat.dev/pkg/testhelper"
+	"arhat.dev/pkg/textquery"
+	"arhat.dev/rs"
+	"github.com/stretchr/testify/assert"
+
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/tools/tests"
-	"arhat.dev/pkg/testhelper"
-	"arhat.dev/pkg/textquery"
-	"arhat.dev/rs"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTaskBuild(t *testing.T) {

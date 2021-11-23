@@ -10,9 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/templateutils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateTemplateFuncDocs(t *testing.T) {

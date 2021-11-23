@@ -6,13 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/buildah"
-	"arhat.dev/rs"
 )
 
 const TaskKindSignImage = "sign-image"

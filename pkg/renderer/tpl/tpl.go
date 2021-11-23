@@ -15,19 +15,16 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
 const (
 	DefaultName = "tpl"
-
-	AttrUseSpec = "use-spec"
 )
 
-func init() {
-	dukkha.RegisterRenderer(DefaultName, NewDefault)
-}
+func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
@@ -74,7 +71,7 @@ func (d *Driver) RenderYaml(
 	)
 	for _, attr := range attributes {
 		switch attr {
-		case AttrUseSpec:
+		case renderer.AttrUseSpec:
 			useSpec = true
 		default:
 		}
@@ -190,7 +187,7 @@ func renderTemplate(
 		definedTemplates[v.Name()] = struct{}{}
 	}
 
-	// prevent infinit loop in template include
+	// prevent infinite loop in template include
 	const maxIncludeCount = 1000
 	includedCount := make(map[string]int)
 
@@ -263,7 +260,7 @@ func renderTemplate(
 	err = tpl.Execute(&buf, rc)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"%w: \n\n%s\n\n",
+			"%w: %s",
 			err, tplStr,
 		)
 	}

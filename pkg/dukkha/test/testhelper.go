@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	di "arhat.dev/dukkha/internal"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
+
+	di "arhat.dev/dukkha/internal"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func TestFixturesUsingRenderingSuffix(

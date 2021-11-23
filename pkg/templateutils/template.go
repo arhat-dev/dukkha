@@ -190,7 +190,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			},
 		}).
 		Funcs(fm).
-		// placeholder functions to be overriden before Execute
+		// placeholder functions to be overridden before Execute
 		Funcs(map[string]interface{}{
 			"var": func() map[string]interface{} { return nil },
 			// include like helm include

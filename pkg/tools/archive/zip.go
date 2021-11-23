@@ -8,11 +8,12 @@ import (
 	"io/fs"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 func createZip(

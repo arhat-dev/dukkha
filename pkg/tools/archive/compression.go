@@ -7,11 +7,12 @@ import (
 	"io"
 	"strconv"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 func createCompressionStream(w io.Writer, method, level string) (io.WriteCloser, error) {

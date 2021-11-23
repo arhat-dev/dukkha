@@ -18,7 +18,6 @@ import (
 	"arhat.dev/dukkha/pkg/renderer"
 )
 
-// nolint:revive
 const (
 	DefaultName = "http"
 )

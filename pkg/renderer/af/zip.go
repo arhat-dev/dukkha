@@ -9,8 +9,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/pkg/iohelper"
+
+	"arhat.dev/dukkha/pkg/constant"
 
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"

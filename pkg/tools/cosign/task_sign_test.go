@@ -3,9 +3,10 @@ package cosign
 import (
 	"testing"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools/tests"
-	"arhat.dev/rs"
 )
 
 func TestTaskSign(t *testing.T) {

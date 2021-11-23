@@ -105,7 +105,6 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 	)
 }
 
-// nolint:revive
 type (
 	IfaceTypeKey struct {
 		Typ reflect.Type
