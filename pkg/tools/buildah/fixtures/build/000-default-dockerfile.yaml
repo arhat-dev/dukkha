@@ -1,0 +1,21 @@
+env:
+- name: PATH
+  value@tpl: |-
+    testdata/bin
+
+task:
+  matrix:
+    kernel:
+    - linux
+    arch@file: testdata/arch.yml
+  context: testdata
+  # file: Dockerfile
+  image_names:
+  - image: default-dockerfile
+    manifest: default-dockerfile
+  - image@tpl: |-
+      default-dockerfile:with-tag-{{ matrix.arch }}
+    manifest: default-dockerfile:with-tag
+---
+actual:
+expected:

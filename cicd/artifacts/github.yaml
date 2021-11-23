@@ -5,7 +5,7 @@ github:release:
   tag@env: ${GIT_TAG}
   pre_release: false
   title@env: ${GIT_TAG}
-  notes@file?str|template?str: cicd/artifacts/release-notes.md
+  notes@file?str|tpl?str: cicd/artifacts/release-notes.md
   files:
   - path: build/*.tar.gz
   - path: build/*.zip
@@ -15,6 +15,7 @@ github:release:
 - __@: *release
   # yamllint disable-line rule:key-duplicates
   __@:
+    # to override title in virtual key style
     title@echo: ci-test-release
   name: fake
   draft: true

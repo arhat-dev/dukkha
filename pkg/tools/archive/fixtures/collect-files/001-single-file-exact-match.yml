@@ -12,6 +12,9 @@ task:
 
   - from: testdata/top-level-link
     to: ""
+
+  - from: testdata/top-level.txt
+    to: /
 ---
 a:
   from: testdata
@@ -24,3 +27,5 @@ top-level.txt:
 top-level-link:
   from: testdata/top-level-link
   link: top-level.txt
+/top-level.txt:
+  from: testdata/top-level.txt

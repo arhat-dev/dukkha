@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
@@ -113,9 +114,7 @@ func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) 
 
 				// change DUKKHA_WORKING_DIR to make renderers like
 				// `file`, `shell` and `env` work properly
-				appCtx.(interface {
-					OverrideWorkingDir(cwd string)
-				}).OverrideWorkingDir(chdir)
+				appCtx.(di.WorkingDirOverrider).OverrideWorkingDir(chdir)
 
 				lastWorkDir = chdir
 			}

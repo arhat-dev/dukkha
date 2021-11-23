@@ -3,9 +3,10 @@ package cosign
 import (
 	"testing"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools/tests"
-	"arhat.dev/rs"
 )
 
 func TestTaskSign(t *testing.T) {
@@ -20,7 +21,7 @@ func TestTaskSign(t *testing.T) {
 	tests.TestTask(t, "./fixtures/sign", &Tool{},
 		func() dukkha.Task { return newTaskSign("test") },
 		func() rs.Field { return &Expected{} },
-		func(e, a rs.Field) {
+		func(t *testing.T, e, a rs.Field) {
 			exp, actual := e.(*Expected), a.(*Expected)
 			_, _ = exp, actual
 			// assert.EqualValues(t, exp.Signature, actual.Signature)

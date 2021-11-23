@@ -10,7 +10,6 @@ import (
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
-// nolint:revive
 const (
 	DefaultName = "env"
 )

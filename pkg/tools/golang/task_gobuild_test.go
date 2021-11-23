@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
@@ -36,7 +37,7 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 	}
 
 	ctx := dukkha_test.NewTestContext(context.TODO())
-	ctx.SetCacheDir(t.TempDir())
+	ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 	tests.RunTaskExecSpecGenerationTests(t, ctx, testCases)
 }

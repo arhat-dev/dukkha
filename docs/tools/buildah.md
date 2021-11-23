@@ -91,7 +91,7 @@ buildah:push:
 
 ### Task `buildah:xbuild`
 
-Build OCI images in yaml without dockerfile
+Build OCI images in rendering suffix enabled yaml without dockerfile
 
 ```yaml
 buildah:xbuild:

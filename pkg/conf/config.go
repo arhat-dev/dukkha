@@ -26,13 +26,14 @@ import (
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/tpl"
 	"arhat.dev/dukkha/pkg/renderer/transform"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -225,12 +226,14 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		// TODO: let user decide what renderers to use
 		// 		 resolve renderers first?
-		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(""))
-		appCtx.AddRenderer(env.DefaultName, env.NewDefault(""))
-		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(""))
-		appCtx.AddRenderer(template.DefaultName, template.NewDefault(""))
-		appCtx.AddRenderer(file.DefaultName, file.NewDefault(""))
-		appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(""))
+		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
+		appCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
+		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
+		appCtx.AddRenderer(tpl.DefaultName, tpl.NewDefault(tpl.DefaultName))
+		appCtx.AddRenderer("template", tpl.NewDefault(tpl.DefaultName))
+		appCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
+		appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))
+		appCtx.AddRenderer("transform", transform.NewDefault(transform.DefaultName))
 
 		essentialRenderers := appCtx.AllRenderers()
 		logger.D("initializing essential renderers",
@@ -278,10 +281,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 
 		if len(c.Global.DefaultGitBranch) != 0 {
-			appCtx.OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
+			appCtx.(di.DefaultGitBranchOverrider).OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
 		}
 
-		appCtx.SetCacheDir(cacheDir)
+		appCtx.(di.CacheDirSetter).SetCacheDir(cacheDir)
 	}
 
 	// NOTE: resolving renderers requires dukkha cache dir to been set

@@ -1,0 +1,8 @@
+query:
+  kernel: linux
+  arch: amd64
+
+manifest@file?str: testdata/manifest.json
+---
+expect_err: false
+digests: [""]

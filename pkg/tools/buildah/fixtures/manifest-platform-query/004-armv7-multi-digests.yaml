@@ -1,0 +1,10 @@
+query:
+  kernel: linux
+  arch: armv7
+
+manifest@file?str: testdata/manifest.json
+---
+expect_err: false
+digests:
+- sha256:0c61e926eed09cee59238c85f8f85c05297657e490addf1a6675668fff3f0727
+- sha256:0c61e926eed09cee59238c85f8f85c05297657e490addf1a6675668fff3f0727

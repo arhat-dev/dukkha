@@ -2,16 +2,10 @@ workflow:run:
 # required by ci job
 - name: lint
   matrix:
-    linter:
+    tool:
     - editorconfig-checker
     - shellcheck
     - yamllint
     - golangci-lint
-
   jobs:
-  - shell@template|http:presets|template: linter/{{- matrix.linter -}}.tpl
-    env:
-    - name@template: |-
-        {{- matrix.linter | strings.SnakeCase | strings.ToUpper -}}
-      value@template: |-
-        {{- matrix.version | default "" -}}
+  - cmd@http:presets?str|tpl#use-spec: tools/http.tpl

@@ -1,0 +1,14 @@
+result@tpl#use-spec?str:
+  include:
+  - testdata/*.tpl
+  - testdata/**/*.tpl
+  template: |-
+    {{ template "foo" }}
+    {{ template "bar" }}
+  variables:
+    foo: "foo"
+    bar: "bar"
+---
+result: |-
+  foo: foo
+  bar: bar

@@ -103,9 +103,14 @@ func NewRootCmd() *cobra.Command {
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
 
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("failed to get working dir: %w", err)
+			}
+
 			_appCtx := dukkha.NewConfigResolvingContext(
 				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
-				createGlobalEnv(appBaseCtx),
+				createGlobalEnv(appBaseCtx, cwd),
 			)
 
 			_appCtx.AddListEnv(os.Environ()...)

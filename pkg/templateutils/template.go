@@ -10,6 +10,7 @@ import (
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/golang/text/template"
 	"arhat.dev/dukkha/third_party/gomplate/funcs"
@@ -37,7 +38,7 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		fm[k] = createTemplateFunc(rc)
 	}
 
-	return template.New("template").
+	return template.New("tpl").
 		// template func from sprig
 		Funcs(template.FuncMap(sprig.TxtFuncMap())).
 		// template func from gomplate
@@ -68,15 +69,13 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			// state task execution
 			"state": func() *_stateNS { return createStateNS(rc) },
 			// for transform renderer
-			"VALUE": func() string {
-				transformContext, ok := rc.(interface {
-					VALUE() string
-				})
+			"VALUE": func() interface{} {
+				vg, ok := rc.(di.VALUEGetter)
 				if ok {
-					return transformContext.VALUE()
+					return vg.VALUE()
 				}
 
-				return ""
+				return nil
 			},
 		}).
 		// text processing
@@ -190,5 +189,13 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return GetDefaultManifestTag(rc, imageName)
 			},
 		}).
-		Funcs(fm)
+		Funcs(fm).
+		// placeholder functions to be overridden before Execute
+		Funcs(map[string]interface{}{
+			"var": func() map[string]interface{} { return nil },
+			// include like helm include
+			"include": func(name string, data interface{}) (string, error) {
+				return "", fmt.Errorf("no implementation")
+			},
+		})
 }

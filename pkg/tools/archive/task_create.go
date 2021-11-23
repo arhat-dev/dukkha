@@ -15,14 +15,13 @@ import (
 const TaskKindCreate = "create"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindCreate,
-		func(toolName string) dukkha.Task {
-			t := &TaskCreate{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindCreate, t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindCreate, newCreateTask)
+}
+
+func newCreateTask(toolName string) dukkha.Task {
+	t := &TaskCreate{}
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindCreate, t)
+	return t
 }
 
 type TaskCreate struct {

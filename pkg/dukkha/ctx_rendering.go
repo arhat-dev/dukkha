@@ -81,7 +81,7 @@ type contextRendering struct {
 	values map[string]interface{}
 
 	// nolint:revive
-	_transform_value string
+	_VALUE interface{}
 }
 
 func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
@@ -154,12 +154,6 @@ func (c *contextRendering) AddRenderer(name string, r Renderer) {
 func (c *contextRendering) AllRenderers() map[string]Renderer {
 	return c.renderers
 }
-
-// SetVALUE for transform renderer
-func (c *contextRendering) SetVALUE(value string) { c._transform_value = value }
-
-// VALUE for transform renderer
-func (c *contextRendering) VALUE() string { return c._transform_value }
 
 // Get implements expand.Environ
 func (c *contextRendering) Get(name string) expand.Variable {

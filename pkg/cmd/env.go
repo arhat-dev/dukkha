@@ -22,7 +22,7 @@ import (
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(ctx context.Context) map[string]utils.LazyValue {
+func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue {
 	now := time.Now().Local()
 	zone, offset := now.Zone()
 
@@ -31,30 +31,13 @@ func createGlobalEnv(ctx context.Context) map[string]utils.LazyValue {
 		return name + "," + version
 	})
 
-	gitTagList := newLazyExecVal(
-		ctx,
-		[]string{
-			// get git tags in latest first order
-			"git", "tag", "--list", "--sort", "-version:refname",
-		},
-		func() string { return "" },
-		func(s string) string { return s },
-	)
+	cwd, err := filepath.Abs(cwd)
+	if err != nil {
+		panic(fmt.Errorf("failed to get dukkha working dir: %w", err))
+	}
 
 	return map[string]utils.LazyValue{
-		constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(func() string {
-			pwd, err2 := os.Getwd()
-			if err2 != nil {
-				return ""
-			}
-
-			pwd, err2 = filepath.Abs(pwd)
-			if err2 != nil {
-				panic(fmt.Errorf("failed to get dukkha working dir: %w", err2))
-			}
-
-			return pwd
-		}()),
+		constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(cwd),
 
 		constant.ENV_TIME_ZONE:        utils.ImmediateString(zone),
 		constant.ENV_TIME_ZONE_OFFSET: utils.ImmediateString(strconv.FormatInt(int64(offset), 10)),
@@ -78,96 +61,13 @@ func createGlobalEnv(ctx context.Context) map[string]utils.LazyValue {
 			return nameAndVer[strings.IndexByte(nameAndVer, ',')+1:]
 		}),
 
-		constant.ENV_HOST_ARCH: utils.NewLazyValue(sysinfo.Arch),
-		constant.ENV_GIT_BRANCH: newLazyExecVal(
-			ctx,
-			[]string{
-				"git", "symbolic-ref", "--short", "-q", "HEAD",
-			},
-			getGitBranchFromCI,
-			func(s string) string {
-				s = strings.TrimSpace(s)
-				if len(s) == 0 {
-					return getGitBranchFromCI()
-				}
+		constant.ENV_HOST_ARCH:  utils.NewLazyValue(sysinfo.Arch),
+		constant.ENV_GIT_BRANCH: GitBranch(ctx, cwd),
+		constant.ENV_GIT_COMMIT: GitCommit(ctx, cwd),
+		constant.ENV_GIT_TAG:    GitTag(ctx, cwd),
 
-				return s
-			},
-		),
-		constant.ENV_GIT_COMMIT: newLazyExecVal(
-			ctx,
-			[]string{
-				"git", "rev-parse", "HEAD",
-			},
-			getGitCommitFromCI,
-			func(s string) string {
-				s = strings.TrimSpace(s)
-				if len(s) == 0 {
-					return getGitCommitFromCI()
-				}
-
-				return s
-			},
-		),
-
-		constant.ENV_GIT_TAG: newLazyExecVal(
-			ctx,
-			[]string{
-				"git", "describe", "--tags",
-			},
-			getGitTagFromCI,
-			func(result string) string {
-				result = strings.TrimSpace(strings.SplitN(result, " ", 2)[0])
-				if len(result) == 0 {
-					return getGitTagFromCI()
-				}
-
-				s := bufio.NewScanner(strings.NewReader(gitTagList.Get()))
-				s.Split(bufio.ScanLines)
-				for s.Scan() {
-					if strings.Contains(s.Text(), result) {
-						return result
-					}
-				}
-
-				return ""
-			},
-		),
-
-		constant.ENV_GIT_WORKTREE_CLEAN: newLazyExecVal(
-			ctx,
-			[]string{
-				"git", "clean", "--dry-run",
-			},
-			func() string { return "false" },
-			func(s string) string {
-				return strconv.FormatBool(
-					// no output means clean
-					len(strings.TrimSpace(s)) == 0,
-				)
-			},
-		),
-
-		constant.ENV_GIT_DEFAULT_BRANCH: newLazyExecVal(
-			ctx,
-			[]string{
-				"git", "remote", "show", "origin",
-			},
-			func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
-			func(result string) string {
-				s := bufio.NewScanner(strings.NewReader(result))
-				s.Split(bufio.ScanLines)
-				for s.Scan() {
-					line := s.Text()
-					const prefix = "HEAD branch: "
-					if idx := strings.Index(line, prefix); idx != -1 {
-						return line[idx+len(prefix):]
-					}
-				}
-
-				return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH)
-			},
-		),
+		constant.ENV_GIT_WORKTREE_CLEAN: GitWorkTreeClean(ctx, cwd),
+		constant.ENV_GIT_DEFAULT_BRANCH: GitDefaultBranch(ctx, cwd),
 	}
 }
 
@@ -196,6 +96,7 @@ func getOSNameAndVersion() (osName, osVersion string) {
 			}
 		}
 	default:
+		// TODO: support other os
 	}
 
 	return
@@ -203,6 +104,7 @@ func getOSNameAndVersion() (osName, osVersion string) {
 
 func newLazyExecVal(
 	ctx context.Context,
+	dir string,
 	command []string,
 	onError func() string,
 	onSuccess func(string) string,
@@ -211,6 +113,7 @@ func newLazyExecVal(
 	return utils.NewLazyValue(func() string {
 		cmd, err2 := exechelper.Do(exechelper.Spec{
 			Context: ctx,
+			Dir:     dir,
 			Command: command,
 			Stdout:  buf,
 			Stderr:  io.Discard,
@@ -226,70 +129,4 @@ func newLazyExecVal(
 
 		return onSuccess(string(buf.Next(buf.Len())))
 	})
-}
-
-// CI environment variables
-// Refs:
-// 		github: https://docs.github.com/en/actions/reference/environment-variables
-// 		gitlab: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
-
-func getGitCommitFromCI() string {
-	switch {
-	case isGithubActions():
-		return strings.TrimSpace(os.Getenv("GITHUB_SHA"))
-	case isGitlabCI():
-		return strings.TrimSpace(os.Getenv("CI_COMMIT_SHA"))
-	default:
-		return ""
-	}
-}
-
-func getGitBranchFromCI() string {
-	switch {
-	case isGithubActions():
-		ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
-		if len(ghRef) == 0 {
-			ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
-		}
-
-		switch {
-		case strings.HasPrefix(ghRef, "refs/heads/"):
-			return strings.TrimPrefix(ghRef, "refs/heads/")
-		default:
-			return ""
-		}
-	case isGitlabCI():
-		return strings.TrimSpace(os.Getenv("CI_COMMIT_BRANCH"))
-	default:
-		return ""
-	}
-}
-
-func getGitTagFromCI() string {
-	switch {
-	case isGithubActions():
-		ghRef := strings.TrimSpace(os.Getenv("GITHUB_REF"))
-		if len(ghRef) == 0 {
-			ghRef = strings.TrimSpace(os.Getenv("GITHUB_HEAD_REF"))
-		}
-
-		switch {
-		case strings.HasPrefix(ghRef, "refs/tags/"):
-			return strings.TrimPrefix(ghRef, "refs/tags/")
-		default:
-			return ""
-		}
-	case isGitlabCI():
-		return strings.TrimSpace(os.Getenv("CI_COMMIT_TAG"))
-	default:
-		return ""
-	}
-}
-
-func isGithubActions() bool {
-	return os.Getenv("GITHUB_ACTIONS") == "true"
-}
-
-func isGitlabCI() bool {
-	return os.Getenv("GITLAB_CI") == "true"
 }

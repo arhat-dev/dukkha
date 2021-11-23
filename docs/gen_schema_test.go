@@ -10,13 +10,14 @@ import (
 	"testing"
 	_ "unsafe" // for go:linkname
 
-	"arhat.dev/dukkha/pkg/conf"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/huandu/xstrings"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/schemer/definition"
 	"github.com/weaveworks/schemer/schema"
 	"golang.org/x/tools/imports"
+
+	"arhat.dev/dukkha/pkg/conf"
+	"arhat.dev/dukkha/pkg/dukkha"
 
 	_ "arhat.dev/dukkha/cmd/dukkha/addon" // add types disabled by default
 	_ "arhat.dev/dukkha/pkg/conf"         // add types enabled by default

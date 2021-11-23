@@ -3,9 +3,10 @@ package templateutils
 import (
 	"path/filepath"
 
-	"arhat.dev/dukkha/third_party/gomplate/conv"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/spf13/afero"
+
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 type _filepathNS struct{}

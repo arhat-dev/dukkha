@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	tool_git "arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
@@ -18,12 +19,12 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			Name:      "Invalid Empty",
 			Task:      &tool_git.TaskClone{},
 			ExpectErr: true,
-			Options:   dukkha_test.CreateTaskMatrixExecOptions(),
+			Options:   dt.CreateTaskMatrixExecOptions(),
 		},
 		{
 			Name:    "Valid Clone Using Default Branch",
 			Task:    &tool_git.TaskClone{URL: "example/foo.git"},
-			Options: dukkha_test.CreateTaskMatrixExecOptions(),
+			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split(constant.DUKKHA_TOOL_CMD+" clone --no-checkout --origin origin example/foo.git", " "),
@@ -42,7 +43,7 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		{
 			Name:    "Valid Clone Changing Remote Name",
 			Task:    &tool_git.TaskClone{URL: "example/foo", RemoteName: "bar"},
-			Options: dukkha_test.CreateTaskMatrixExecOptions(),
+			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
 					Command: strings.Split(constant.DUKKHA_TOOL_CMD+" clone --no-checkout --origin bar example/foo", " "),
@@ -60,8 +61,8 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 	}
 
-	ctx := dukkha_test.NewTestContext(context.TODO())
-	ctx.SetCacheDir(t.TempDir())
+	ctx := dt.NewTestContext(context.TODO())
+	ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 	tests.RunTaskExecSpecGenerationTests(
 		t, ctx, testCases,

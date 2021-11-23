@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
+
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestLcpp(t *testing.T) {

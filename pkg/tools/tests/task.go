@@ -9,12 +9,14 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/renderer/af"
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/template"
+	"arhat.dev/dukkha/pkg/renderer/tpl"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -89,10 +91,12 @@ func TestTask(
 	tool dukkha.Tool,
 	newTask func() dukkha.Task,
 	newExpected func() rs.Field,
-	check func(expected, actual rs.Field),
+	check func(t *testing.T, expected, actual rs.Field),
 ) {
 	type TestCase struct {
 		rs.BaseField
+
+		Env dukkha.Env `yaml:"env"`
 
 		// Tool dukkha.Tool `yaml:"tool"`
 		Task dukkha.Task `yaml:"task"`
@@ -132,12 +136,20 @@ func TestTask(
 			spec := in.(*TestCase)
 			e := exp.(*CheckSpec)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
-			ctx.AddRenderer("template", template.NewDefault("template"))
+			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
+
+			afr := af.NewDefault("af")
+			assert.NoError(t, afr.Init(ctx))
+			ctx.AddRenderer("af", afr)
+
+			if !assert.NoError(t, dukkha.ResolveEnv(ctx, spec, "Env", "env")) {
+				return
+			}
 
 			if !assert.NoError(t, spec.ResolveFields(ctx, -1)) {
 				return
@@ -170,7 +182,7 @@ func TestTask(
 				return
 			}
 
-			check(e.Expected, e.Actual)
+			check(t, e.Expected, e.Actual)
 		},
 	)
 }

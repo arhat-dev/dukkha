@@ -8,7 +8,7 @@ workflow:run:
 - name: sign-artifacts
   jobs:
   # generate dukkha.*.sig
-  - task@template: |-
+  - task@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         cosign:sign(dukkha, {})
       {{- else -}}
@@ -39,13 +39,13 @@ workflow:run:
       openssl dgst -md5 *.tar* *.zip > md5.txt
 
   # create github release
-  - task@template: |-
+  - task@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         github:release(dukkha, {})
       {{- else -}}
         github:release(fake, {})
       {{- end -}}
-    continue_on_error@template: |-
+    continue_on_error@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         false
       {{- else -}}
@@ -60,15 +60,10 @@ workflow:run:
   matrix@file: cicd/artifacts/matrix.yml
   jobs:
   - chdir: build
-    shell@template: |-
-      {{- $suffix := "" -}}
-      {{- if eq matrix.kernel "windows" -}}
-        {{- $suffix = ".exe" -}}
-      {{- end -}}
-
-      openssl dgst -sha256 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+    shell@tpl: |-
+      openssl dgst -sha256 {{ include "artifacts.bin-name" . }} \
         > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
-      openssl dgst -sha512 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+      openssl dgst -sha512 {{ include "artifacts.bin-name" . }} \
         > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
-      openssl dgst -md5 dukkha.{{ matrix.kernel }}.{{ matrix.arch }}{{ $suffix }} \
+      openssl dgst -md5 {{ include "artifacts.bin-name" . }} \
         > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5

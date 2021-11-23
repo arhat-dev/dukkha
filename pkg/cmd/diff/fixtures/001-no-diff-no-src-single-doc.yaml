@@ -1,0 +1,4 @@
+src: ""
+base@file?str: testdata/single-doc.yaml
+new@file?str: testdata/single-doc.yaml
+---

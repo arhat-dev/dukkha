@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"arhat.dev/dukkha/third_party/gomplate/conv"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 	"github.com/itchyny/gojq"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 func jqObject(query, in interface{}) (interface{}, error) {

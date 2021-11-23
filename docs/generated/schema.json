@@ -377,8 +377,11 @@
         },
         "renderers": {
           "properties": {
-            "archivefile": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.archivefile.Driver"
+            "T": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            },
+            "af": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
             },
             "echo": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
@@ -404,15 +407,13 @@
             "shell": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
-            "template": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
-            },
-            "transform": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            "tpl": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
             }
           },
           "preferredOrder": [
-            "archivefile",
+            "T",
+            "af",
             "echo",
             "env",
             "file",
@@ -421,8 +422,7 @@
             "input",
             "s3",
             "shell",
-            "template",
-            "transform"
+            "tpl"
           ],
           "additionalProperties": false
         },
@@ -806,8 +806,11 @@
         },
         "^renderers@.*": {
           "properties": {
-            "archivefile": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.archivefile.Driver"
+            "T": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            },
+            "af": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
             },
             "echo": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
@@ -833,15 +836,13 @@
             "shell": {
               "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
             },
-            "template": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.template.Driver"
-            },
-            "transform": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+            "tpl": {
+              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
             }
           },
           "preferredOrder": [
-            "archivefile",
+            "T",
+            "af",
             "echo",
             "env",
             "file",
@@ -850,8 +851,7 @@
             "input",
             "s3",
             "shell",
-            "template",
-            "transform"
+            "tpl"
           ],
           "additionalProperties": false
         },
@@ -1160,7 +1160,7 @@
       "description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude",
       "x-intellij-html-description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude"
     },
-    "arhat.dev.dukkha.pkg.renderer.archivefile.Driver": {
+    "arhat.dev.dukkha.pkg.renderer.af.Driver": {
       "properties": {
         "cache_item_size_limit": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
@@ -1182,8 +1182,8 @@
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         }
       },
@@ -1223,8 +1223,8 @@
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enable_cache@[^\\|]*!": {
@@ -1280,8 +1280,8 @@
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         }
       },
@@ -1321,8 +1321,8 @@
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enable_cache@[^\\|]*!": {
@@ -1352,8 +1352,8 @@
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "host": {
@@ -1429,8 +1429,8 @@
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enable_cache@[^\\|]*!": {
@@ -1514,8 +1514,8 @@
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "headers": {
@@ -1595,8 +1595,8 @@
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enable_cache@[^\\|]*!": {
@@ -1734,21 +1734,38 @@
     },
     "arhat.dev.dukkha.pkg.renderer.input.Driver": {
       "properties": {
-        "hide": {
+        "hide_input": {
           "type": "boolean",
-          "default": "false"
+          "description": "do not echo input",
+          "x-intellij-html-description": "do not echo input",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "description": "for user input  Defaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
         }
       },
       "preferredOrder": [
-        "hide"
+        "hide_input",
+        "prompt"
       ],
-      "additionalProperties": false,
       "patternProperties": {
-        "^hide@.*": {
+        "^hide_input@.*": {
           "type": "boolean",
-          "default": "false"
+          "description": "do not echo input",
+          "x-intellij-html-description": "do not echo input",
+          "default": false
         },
-        "^hide@[^\\|]*!": {
+        "^hide_input@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^prompt@.*": {
+          "type": "string",
+          "description": "for user input  Defaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
+        },
+        "^prompt@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1787,8 +1804,8 @@
         },
         "enable_cache": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "endpoint_url": {
@@ -1864,8 +1881,8 @@
         },
         "^enable_cache@.*": {
           "type": "boolean",
-          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file, archivefile):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
+          "x-intellij-html-description": "activates rendered data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enable_cache@[^\\|]*!": {
@@ -1886,7 +1903,48 @@
       }
     },
     "arhat.dev.dukkha.pkg.renderer.shell.Driver": {},
-    "arhat.dev.dukkha.pkg.renderer.template.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.tpl.Driver": {
+      "properties": {
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "templates from local files/dirs",
+          "x-intellij-html-description": "templates from local files/dirs"
+        },
+        "variables": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "a map of any data  available as `var.some_value`",
+          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+        }
+      },
+      "preferredOrder": [
+        "include",
+        "variables"
+      ],
+      "patternProperties": {
+        "^include@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "templates from local files/dirs",
+          "x-intellij-html-description": "templates from local files/dirs"
+        },
+        "^include@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^variables@.*": {
+          "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
+          "description": "a map of any data  available as `var.some_value`",
+          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+        },
+        "^variables@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.renderer.transform.Driver": {},
     "arhat.dev.dukkha.pkg.tools.Action": {
       "properties": {
@@ -1915,8 +1973,8 @@
           "x-intellij-html-description": "specific to this action"
         },
         "idle": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "name": {
           "type": "string",
@@ -1992,8 +2050,8 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^idle@.*": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `template` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>template</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "^idle@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

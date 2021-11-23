@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"mvdan.cc/sh/v3/syntax"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	di "arhat.dev/dukkha/internal"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestEmbeddedShellForTemplateFunc(t *testing.T) {
@@ -23,25 +24,25 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 	}{
 		{
 			name:     "Simple md5sum",
-			script:   `template:md5sum \"test\"`,
+			script:   `tpl:md5sum \"test\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Piped md5sum",
-			script:   `printf "test" | template:md5sum`,
+			script:   `printf "test" | tpl:md5sum`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Subcmd md5sum",
-			script:   `template:md5sum \"$(printf "test")\"`,
+			script:   `tpl:md5sum \"$(printf "test")\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			stdin, _ := io.Pipe()
 			stdout := &bytes.Buffer{}
@@ -96,8 +97,8 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO())
+			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			var input io.Reader
 			if len(test.input) != 0 {

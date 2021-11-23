@@ -6,8 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/utils"
@@ -53,8 +54,8 @@ func TestSetDefaultImageTag(t *testing.T) {
 			genv[k] = utils.ImmediateString(v)
 		}
 
-		rc := dukkha_test.NewTestContextWithGlobalEnv(context.TODO(), genv)
-		rc.SetCacheDir(t.TempDir())
+		rc := dt.NewTestContextWithGlobalEnv(context.TODO(), genv)
+		rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 
 		t.Run(spec.BriefString()+"_image_no_kernel_info", func(t *testing.T) {

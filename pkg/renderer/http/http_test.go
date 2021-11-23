@@ -10,7 +10,8 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	di "arhat.dev/dukkha/internal"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 func TestDriver_RenderYaml(t *testing.T) {
@@ -51,8 +52,8 @@ func TestDriver_RenderYaml(t *testing.T) {
 			},
 		}
 
-		rc := dukkha_test.NewTestContext(context.TODO())
-		rc.SetCacheDir(t.TempDir())
+		rc := dt.NewTestContext(context.TODO())
+		rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 		assert.NoError(t, d.Init(rc))
 
 		result, err := d.RenderYaml(rc, srv.URL+"/with-password", nil)

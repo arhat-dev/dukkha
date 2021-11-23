@@ -9,7 +9,7 @@ renderers:
     cache_max_age: 1h
     cache_size_limit: 1G
 
-  archivefile:
+  af:
     enable_cache: true
     cache_item_size_limit: 1M
     cache_max_age: 1h

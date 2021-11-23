@@ -331,7 +331,7 @@ func (w *TaskXBuild) GetExecSpecs(
 			osArchVariantArgs = append(osArchVariantArgs, "--variant", variant)
 		}
 
-		manifestOsArchVariantQueryForDigest := createManifestOsArchVariantQueryForDigest(
+		manifestOsArchVariantQueryForDigest := createManifestPlatformQueryForDigest(
 			rc.MatrixKernel(), mArch,
 		)
 

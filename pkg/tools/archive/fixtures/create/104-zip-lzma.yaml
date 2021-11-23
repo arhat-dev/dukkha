@@ -1,0 +1,29 @@
+task:
+  matrix:
+    level:
+    - "3"
+    - "7"
+    - "9"
+  format: zip
+  compression:
+    enabled: true
+    method: lzma
+    level@tpl: |-
+      {{ matrix.level }}
+  files:
+  - from: testdata/top-level.txt
+    to: ""
+  - from: testdata/top-level.txt
+    to: /
+
+  output@tpl: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}
+---
+actual:
+  top-level@tpl?str|af?str: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:top-level.txt
+  root-top-level@tpl?str|af?str: |-
+    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:/top-level.txt
+expected:
+  top-level@file?str: testdata/top-level.txt
+  root-top-level@file?str: testdata/top-level.txt

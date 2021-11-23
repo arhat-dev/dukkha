@@ -7,11 +7,6 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-const (
-	attrAllowExpired = "allow-expired"
-	attrCachedFile   = "cached-file"
-)
-
 func HandleRenderingRequestWithRemoteFetch(
 	cache *cache.TwoTierCache,
 	obj cache.IdentifiableObject,
@@ -22,11 +17,12 @@ func HandleRenderingRequestWithRemoteFetch(
 		allowExpired         = false
 		returnCachedFilePath = false
 	)
+
 	for _, attr := range attributes {
 		switch attr {
-		case attrAllowExpired:
+		case AttrAllowExpired:
 			allowExpired = true
-		case attrCachedFile:
+		case AttrCachedFile:
 			returnCachedFilePath = true
 		}
 	}

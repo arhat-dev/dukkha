@@ -1,0 +1,4 @@
+src@file?str: testdata/multi-doc.yaml
+base@file?str: testdata/multi-doc.yaml
+new@file?str: testdata/multi-doc.yaml
+---

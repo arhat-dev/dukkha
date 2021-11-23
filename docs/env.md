@@ -7,7 +7,7 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go), [p
 ## Usage
 
 For `env` renderer: Use like unix shell env (e.g. `${SOME_ENV}`)
-For `template` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
+For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
 
@@ -45,7 +45,7 @@ For `template` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`
 
 - `GIT_WORKTREE_CLEAN`
   - Description: Indicate whether there is file not committed in current working tree
-  - Default Value: `true` if `git clean --dry-run` writes no output, otherwise `false`
+  - Default Value: `true` if `git clean --dry-run` writes no output and `git diff-index --quiet HEAD` exited with no error, otherwise `false`
     - Example Values: `true` or `false`
   - Customization: Not Supported
 

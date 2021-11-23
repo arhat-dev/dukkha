@@ -18,7 +18,7 @@ workflow:run:
       go mod vendor
 
   - shell: |-
-      patch -u -p1 --verbose -i scripts/patches/vendor.patch
+      patch -u -p1 --verbose -i cicd/vendor.patch
 
 # generate docs
 - name: docs

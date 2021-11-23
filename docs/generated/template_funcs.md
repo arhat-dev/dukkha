@@ -80,6 +80,7 @@
 - `htmlDate(interface {}) string`
 - `htmlDateInZone(interface {}, string) string`
 - `htpasswd(string, string) string`
+- `include(string, interface {}) (string, error)`
 - `indent(...interface {}) (string, error)`
 - `initial(interface {}) []interface {}`
 - `initials(string) string`

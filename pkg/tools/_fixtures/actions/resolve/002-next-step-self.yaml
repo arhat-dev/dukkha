@@ -2,7 +2,7 @@ actions:
 # explicit step
 - name: step-1
   idle@: step-1
-  next@template: |-
+  next@tpl: |-
     {{- if not values.done_step_1 -}}
     {{- $_ := dukkha.SetValue "done_step_1" "true" -}} step-1
     {{- end -}}

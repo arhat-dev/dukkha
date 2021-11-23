@@ -1,0 +1,11 @@
+src: |-
+  a@file: testdata/obj-b-c.yaml
+
+base: |-
+  a:
+    b: c
+
+new: |-
+  a:
+    b: d
+---

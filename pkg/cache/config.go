@@ -14,9 +14,9 @@ type Config struct {
 
 	// EnableCache activates rendered data caching
 	//
-	// * for renderers reading data directly from local disk (e.g. file, archivefile):
+	// * for renderers reading data directly from local disk (e.g. file):
 	//     will cache content in memory with size limit applied
-	// * for renderers doing remote fetch (e.g. http, git):
+	// * for renderers doing remote fetch (e.g. http, git, af):
 	//     will cache data on local disk first (cache size limiting is not effective at this time)
 	// 	   then cache data in memory with size limit applied
 	//

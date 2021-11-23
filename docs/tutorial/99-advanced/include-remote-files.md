@@ -39,11 +39,11 @@ include:
 ## Tips: Always Verify Checksum of remote config
 
 ```yaml
-__@transform?str:
+__@T?str:
    value@http?str: https://gist.githubusercontent.com/arhatbot/d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/1e014333a3d78ac1139bc4cab9a68685e5080685/echo.sh
    ops:
    - checksum:
-      data@template?str: |-
+      data@tpl?str: |-
          {{- VALUE -}}
       kind: sha256
       # yes, you can host dynamic checksum if your file is dynamic
