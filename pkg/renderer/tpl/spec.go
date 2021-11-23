@@ -3,6 +3,8 @@ package tpl
 import "arhat.dev/rs"
 
 type configSpec struct {
+	rs.BaseField
+
 	// Include templates from local files/dirs
 	Include []string `yaml:"include"`
 
