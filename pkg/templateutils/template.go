@@ -189,5 +189,13 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return GetDefaultManifestTag(rc, imageName)
 			},
 		}).
-		Funcs(fm)
+		Funcs(fm).
+		// placeholder functions to be overriden before Execute
+		Funcs(map[string]interface{}{
+			"var": func() map[string]interface{} { return nil },
+			// include like helm include
+			"include": func(name string, data interface{}) (string, error) {
+				return "", fmt.Errorf("no implementation")
+			},
+		})
 }

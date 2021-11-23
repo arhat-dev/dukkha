@@ -3,6 +3,7 @@ archive:create:
   matrix@file: cicd/artifacts/matrix.yml
   compression:
     enabled: true
+    level: "9"
   output@tpl: |-
     build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
     {{- if eq matrix.kernel "windows" -}}
@@ -14,17 +15,10 @@ archive:create:
   files:
   # executable dukkha
   - from@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
-      {{- if eq matrix.kernel "windows" -}}
-        .exe
-      {{- end -}}
+      build/{{- include "artifacts.bin-name" . -}}
 
     to@tpl: |-
-      dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha
-
-      {{- if eq matrix.kernel "windows" -}}
-        .exe
-      {{- end -}}
+      {{- include "artifacts.bin-name" . -}}
 
   # license
   - from: LICENSE.txt

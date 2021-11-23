@@ -19,10 +19,7 @@ cosign:upload:
     public_key@http: &cosign_pub_key https://arhat.dev/.well-known/cosign.pub
   files:
   - path@tpl: &blob_path |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch -}}
-      {{- if eq matrix.kernel "windows" -}}
-        .exe
-      {{- end -}}
+      build/{{- include "artifacts.bin-name" . -}}
 
     content_type: ""
   image_names:

@@ -3,12 +3,12 @@ workflow:run:
 - name: test
   jobs:
   - task: golang:test(dukkha, {})
+
+- name: report
+  matrix:
+    tool:
+    - sonar-scanner
+  jobs:
   # only run sonar scan on linux and darwin during CI
-  - shell@tpl|http:presets|tpl: |-
-      {{- if eq env.HOST_KERNEL "linux" "darwin" -}}
-        linter/sonar-scanner.tpl
-      {{- else -}}
-        empty.yml
-      {{- end -}}
-    # allow fail
+  - cmd@http:presets?str|tpl#use-spec: tools/http.tpl
     continue_on_error: true

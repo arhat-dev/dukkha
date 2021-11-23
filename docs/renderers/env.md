@@ -14,11 +14,10 @@ __NOTE:__ Backquoted string (e.g. <code>\`do something\`</code>) is not treated 
 renderers:
   # no options
   env:
-    # disable arbitrary command execution when expanding env if it is
-    # set to ture (e.g. `$(do something)` will error)
+    # enable arbitrary command execution (e.g. `$(do something)`) when expanding env
     #
-    # Defaults to `true`
-    disable_exec: true
+    # Defaults to `false`
+    enable_exec: true
 ```
 
 ## Supported value types

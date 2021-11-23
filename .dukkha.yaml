@@ -8,10 +8,14 @@ renderers:
   env:
     enable_exec: true
 
+  tpl:
+    include:
+    - cicd/artifacts/bin-name.tpl
+
   http:presets:
     enable_cache: true
     cache_max_age: 2h
-    base_url: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+    base_url: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/dev/
 
 global:
   default_git_branch: master
@@ -20,7 +24,7 @@ global:
     value: "1.17"
   values:
     cmd:
-      run_container@http:presets|tpl: templates/cmd-run-container.yml
+      run_ctr@http:presets?str|tpl: templates/run-ctr.yml
 
 tools:
   archive:
@@ -34,12 +38,25 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@http:presets|tpl: golang/cmd-in-ctr.yml
+    cmd@tpl#use-spec:
+      template: |-
+        {{- include "golang.cmd.ctr" . -}}
+      include@:
+      - __@http:presets#cached-file: templates/image/flavored-tag.tpl
+      - __@http:presets#cached-file: golang/cmd/ctr.yml
+
+      variables:
+        version@env?str: ${GO_VERSION}
+        # run_ctr:
 
   cosign:
   - name: local
-  # TODO: support in container cosign
   - name: in-ctr
+    cmd@tpl#use-spec:
+      template: |-
+        {{- include "cosign.cmd.ctr" . -}}
+      include@:
+      - __@http:presets#cached-file?str: cosign/cmd/ctr.yml
 
   # docker is required by cosign upload (login to docker registry)
   docker:
@@ -54,9 +71,16 @@ tools:
   buildah:
   - name: local
   - name: in-ctr
-    env:
-    - name: RUN_CTR_PRIVILEGED
-      value: "true"
-    - name: RUN_CTR
-      value@http:presets?str|tpl?str: templates/cmd-run-container.yml
-    cmd@http:presets|tpl: buildah/cmd-in-ctr.yml
+    cmd@tpl#use-spec:
+      template: |-
+        {{- include "buildah.cmd.ctr" . -}}
+
+      include@:
+      - __@http:presets#cached-file?str: buildah/cmd/ctr.yml
+
+      variables:
+        run_ctr@tpl#use-spec:
+          template@http:presets?str: templates/run-ctr.yml
+          variables:
+            privileged: true
+        # version: latest
