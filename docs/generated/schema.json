@@ -1734,21 +1734,38 @@
     },
     "arhat.dev.dukkha.pkg.renderer.input.Driver": {
       "properties": {
-        "hide": {
+        "hide_input": {
           "type": "boolean",
-          "default": "false"
+          "description": "do not echo input",
+          "x-intellij-html-description": "do not echo input",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "description": "for user input  Defaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
         }
       },
       "preferredOrder": [
-        "hide"
+        "hide_input",
+        "prompt"
       ],
-      "additionalProperties": false,
       "patternProperties": {
-        "^hide@.*": {
+        "^hide_input@.*": {
           "type": "boolean",
-          "default": "false"
+          "description": "do not echo input",
+          "x-intellij-html-description": "do not echo input",
+          "default": false
         },
-        "^hide@[^\\|]*!": {
+        "^hide_input@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^prompt@.*": {
+          "type": "string",
+          "description": "for user input  Defaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
+        },
+        "^prompt@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
