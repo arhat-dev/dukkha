@@ -22,7 +22,7 @@ A typical build automation tool only takes one or two from the above at the same
 
 ### Content Rendering Features
 
-- Rendering suffix
+- Rendering suffix: extremely extensible & dynamic but type checked config wherever you want.
   - This is the way we make YAML files Makefiles, have a look at [arhat-dev/rs][rs] to familiar yourself with rendering suffix.
   - Renderers like `http`, `env`, `file`, `tpl` ... are available in dukkha as built-in renderers, see [docs/renderers](./docs/renderers) for more details.
   - In addition to basic renderer support, we have renderer attributes (`@<renderer>#<attr>`) to produce different kind of result
@@ -43,32 +43,31 @@ A typical build automation tool only takes one or two from the above at the same
   - Predictable command execution made esay, no more worries about when will the environment variables get set, you gain total control.
 
 - Customizable task matrix execution everywhere
-  - While matrix values are still limited to strings in order to make them available as environment variables.
-  - Command line option `--matrix` (`-m`) for `dukkha run` controls which matrix set is chosen.
+  - Use command line option `--matrix` (`-m`) controls which vectors are chosen.
 
     ```yaml
-    workflow:run:
-    - name: matrix-example
-      matrix:
-        # add your matrix spec
-        kernel: [linux, windows]
-        arch: [amd64, arm64]
-        my-mat-entry: [foo, bar]
+    matrix:
+      # add your matrix spec
+      kernel: [linux, windows]
+      arch: [amd64, arm64]
+      my-mat-entry: [foo, bar]
 
-        # and exclude some
-        exclude: # `exclude` is reserved
-        # match certain matrix entry
-        - { kernel: [windows], arch: [amd64] }
-        # partial matching is supported as well
-        - arch: arm64
+      # and exclude some
+      exclude: # `exclude` is reserved
+      # match certain matrix entry
+      - { kernel: [windows], arch: [amd64] }
+      # partial matching is supported as well
+      - arch: arm64
 
-        # and include extra matrix, regardless of what `exclude` says
-        include: # `include` is reserved field
-        - { kernel: [linux], arch: [x86, riscv64] }
-        - { kernel: [darwin], arch: [arm64] }
+      # and include extra matrix, regardless of what `exclude` says
+      include: # `include` is reserved field
+      - { kernel: [linux], arch: [x86, riscv64] }
+      - { kernel: [darwin], arch: [arm64] }
     ```
 
-- Shell completion for tools, tasks and task matrix
+  __NOTE:__ matrix values are currently limited to strings.
+
+- Shell completion for defined tools, tasks and task matrix
   - Run `dukkha completion --help` for instructions
 
 - ANSI escape sequence handling for commands not respecting tty settings to avoid lengthy while meaningless log output (e.g. maven)
@@ -76,75 +75,45 @@ A typical build automation tool only takes one or two from the above at the same
   - Can be manually enabled by setting flag `--translate-ansi-stream` and `--retain-ansi-style` when running task
   - This functionality is largely based on [`github.com/aoldershaw/ansi`](https://github.com/aoldershaw/ansi)
 
-## How tasks looks?
+## How it looks?
 
-Here is just a `workflow` task
-
-```yaml
-workflow:run:
-- name: quick-example
-  matrix:
-    kernel: [linux]
-    arch: [amd64]
-  jobs@tpl:
-  # render environment variables before shell evaluation
-  - shell@env: |-
-      echo ${MATRIX_KERNEL}/{{ matrix.arch }}
-  # run shell script from http server
-  - shell@tpl|http: |-
-      https://gist.githubusercontent.com/arhatbot/{{- /* line join */ -}}
-      d1f27e2b6d7e41a7c9d0a6ef7e39a921/raw/{{- /* line join */ -}}
-      1e014333a3d78ac1139bc4cab9a68685e5080685/{{- /* line join */ -}}
-      echo.sh
-```
-
-__NOTE:__ You can find more [examples here](./docs/examples)
+see [docs/examples](./docs/examples)
 
 ## Installation
 
 ### Build from source (not stripped)
 
-- Option 1: Build directly with `go` 1.16+
+Clone and build with `make` and `go` 1.17+
 
-  ```bash
-  export VERSION=latest
-  go get -u arhat.dev/dukkha/cmd/dukkha@${VERSION}
-  ```
+```bash
+git clone https://github.com/arhat-dev/dukkha.git
+cd dukkha
+# checkout branch or commit as you prefer
+make dukkha
+```
 
-- Option 2: Clone and build with `make` and `go` 1.16+
-
-  ```bash
-  git clone https://github.com/arhat-dev/dukkha.git
-  cd dukkha
-  # checkout branch or commit as you prefer
-  make dukkha
-  # then you can find the built executable in build/dukkha
-  ```
+Then you can find the built executable at `./build/dukkha`
 
 ### Download Pre-built Executables
 
-Before you start, set what version you would like to download
-
-```bash
-# set dukkha version
-export VERSION=latest
-# set to your host kernel (same as GOOS value)
-export KERNEL=linux
-# set to your host arch (slightly different from GOARCH, see ./docs/constants.md)
-export ARCH=amd64
-```
-
-__NOTE:__ Combinations of `KERNEL` and `ARCH` are available at [scripts/dukkha/build-matrix.yml](./scripts/dukkha/build-matrix.yml)
-
 - Option 1: Download and verify signature of dukkha using [`sget`][sget]
 
-```bash
-sget --key https://arhat.dev/.well-known/cosign.pub -o dukkha \
-  "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
-chmod +x dukkha
-```
+  ```bash
+  # set dukkha version
+  export VERSION=latest
+  # set to your host kernel (same as GOOS value)
+  export KERNEL=linux
+  # set to your host arch (slightly different from GOARCH, see ./docs/constants.md)
+  export ARCH=amd64
 
-- Option 2: Download pre-built artifacts from [releases](https://github.com/arhat-dev/dukkha/releases)
+  sget --key https://arhat.dev/.well-known/cosign.pub -o dukkha \
+    "ghcr.io/arhat-dev/dist/dukkha:${VERSION}-${KERNEL}-${ARCH}"
+  chmod +x dukkha
+  ```
+
+  __NOTE:__ Please refer to [arhat-dev/dukkha-presets golang common matrix](https://github.com/arhat-dev/dukkha-presets/blob/dev/matrix/golang/1.17/common.yml) for `KERNEL` and `ARCH` values
+
+- Option 2: Download signed artifacts from [releases](https://github.com/arhat-dev/dukkha/releases), then decompress the tarball/zipfile.
 
 ## Further Thoughts
 
