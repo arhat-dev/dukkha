@@ -1082,10 +1082,7 @@
     "arhat.dev.dukkha.pkg.matrix.Spec": {
       "properties": {
         "arch": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector"
         },
         "exclude": {
           "items": {
@@ -1100,10 +1097,7 @@
           "type": "array"
         },
         "kernel": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector",
           "description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set",
           "x-intellij-html-description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set"
         }
@@ -1117,10 +1111,7 @@
       "additionalProperties": false,
       "patternProperties": {
         "^arch@.*": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector"
         },
         "^arch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1144,14 +1135,36 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^kernel@.*": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector",
           "description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set",
           "x-intellij-html-description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set"
         },
         "^kernel@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.matrix.Vector": {
+      "properties": {
+        "__": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "preferredOrder": [
+        "__"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^__@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^__@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
