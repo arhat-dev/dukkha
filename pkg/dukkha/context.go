@@ -119,7 +119,18 @@ func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context
 }
 
 func (c *dukkhaContext) RendererCacheDir(name string) string {
-	return filepath.Join(c.CacheDir(), "renderer", xstrings.ToKebabCase(name))
+	// replace invalid characters for windows
+	// ref: https://gist.github.com/doctaphred/d01d05291546186941e1b7ddc02034d3
+
+	basename := []rune(xstrings.ToKebabCase(name))
+	for i, c := range basename {
+		switch c {
+		case '<', '>', ':', '"', '/', '\\', '|', '?', '*':
+			basename[i] = '-'
+		}
+	}
+
+	return filepath.Join(c.CacheDir(), "renderer", string(basename))
 }
 
 func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
