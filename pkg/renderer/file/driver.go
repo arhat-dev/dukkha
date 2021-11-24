@@ -10,6 +10,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 )
 
 const (
@@ -22,8 +23,8 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
-		name:   name,
-		Config: cache.Config{EnableCache: false},
+		name:        name,
+		CacheConfig: renderer.CacheConfig{Enabled: false},
 	}
 }
 
@@ -31,19 +32,20 @@ var _ dukkha.Renderer = (*Driver)(nil)
 
 type Driver struct {
 	rs.BaseField `yaml:"-"`
-	name         string
 
-	cache.Config `yaml:",inline"`
+	name string
+
+	CacheConfig renderer.CacheConfig `yaml:"cache"`
 
 	cache *cache.Cache
 }
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	if d.EnableCache {
+	if d.CacheConfig.Enabled {
 		d.cache = cache.NewCache(
-			int64(d.CacheItemSizeLimit),
-			int64(d.CacheSizeLimit),
-			int64(d.CacheMaxAge.Seconds()),
+			int64(d.CacheConfig.MaxItemSize),
+			int64(d.CacheConfig.Size),
+			int64(d.CacheConfig.Timeout.Seconds()),
 		)
 	}
 

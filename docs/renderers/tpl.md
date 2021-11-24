@@ -17,8 +17,8 @@ __NOTICE:__
 
 ```yaml
 renderers:
-  tpl:
-    # include local template files, support glob pattern
+- tpl:
+    # include local template files, with glob pattern support
     include:
     - foo/*.tpl
     - bar.tpl

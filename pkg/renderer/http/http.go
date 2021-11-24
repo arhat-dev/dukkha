@@ -27,8 +27,8 @@ func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
 		name: name,
-		Config: cache.Config{
-			EnableCache: true,
+		CacheConfig: renderer.CacheConfig{
+			Enabled: true,
 		},
 	}
 }
@@ -37,9 +37,10 @@ var _ dukkha.Renderer = (*Driver)(nil)
 
 type Driver struct {
 	rs.BaseField `yaml:"-"`
-	name         string
 
-	cache.Config `yaml:",inline"`
+	name string
+
+	CacheConfig renderer.CacheConfig `yaml:"cache"`
 
 	DefaultConfig rendererHTTPConfig `yaml:",inline"`
 
@@ -49,12 +50,12 @@ type Driver struct {
 
 func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 	dir := ctx.RendererCacheDir(d.name)
-	if d.EnableCache {
+	if d.CacheConfig.Enabled {
 		d.cache = cache.NewTwoTierCache(
 			dir,
-			int64(d.CacheItemSizeLimit),
-			int64(d.CacheSizeLimit),
-			int64(d.CacheMaxAge.Seconds()),
+			int64(d.CacheConfig.MaxItemSize),
+			int64(d.CacheConfig.Size),
+			int64(d.CacheConfig.Timeout.Seconds()),
 		)
 	} else {
 		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)

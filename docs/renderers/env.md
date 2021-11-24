@@ -12,8 +12,7 @@ __NOTE:__ Backquoted string (e.g. <code>\`do something\`</code>) is not treated 
 
 ```yaml
 renderers:
-  # no options
-  env:
+- env:
     # enable arbitrary command execution (e.g. `$(do something)`) when expanding env
     #
     # Defaults to `false`

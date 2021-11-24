@@ -32,13 +32,13 @@ func TestConfig(t *testing.T) {
 			assert.NoError(t, actual.Resolve(ctx, true))
 			assert.NoError(t, expected.Resolve(ctx, true))
 
-			for k, list := range expected.Tools.Data {
-				if !assert.Len(t, actual.Tools.Data[k], len(list)) {
+			for k, list := range expected.Tools.Tools {
+				if !assert.Len(t, actual.Tools.Tools[k], len(list)) {
 					continue
 				}
 
 				for i, v := range list {
-					assert.EqualValues(t, v.Key(), actual.Tools.Data[k][i].Key())
+					assert.EqualValues(t, v.Key(), actual.Tools.Tools[k][i].Key())
 				}
 			}
 

@@ -24,7 +24,6 @@ import (
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/rs"
-	"gopkg.in/yaml.v3"
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
@@ -44,82 +43,6 @@ func NewConfig() *Config {
 	}).(*Config)
 }
 
-type GlobalConfig struct {
-	rs.BaseField `yaml:"-"`
-
-	// CacheDir set DUKKHA_CACHE_DIR to store script files, renderer cache
-	// and intermediate task execution data
-	CacheDir string `yaml:"cache_dir"`
-
-	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not
-	// detect branch name of origin/HEAD (e.g. github ci environment)
-	//
-	// If your have multiple definitions of this option in different config
-	// file, only the first occurrence of the option is used.
-	DefaultGitBranch string `yaml:"default_git_branch"`
-
-	// Env add global environment variables for all working parts in dukkha
-	Env dukkha.Env `yaml:"env"`
-
-	// Values is the global store of runtime values
-	//
-	// accessible from renderer template `{{ values.YOUR_VAL_KEY }}`
-	// and renderer env/shell `${VALUES.YOUR_VAL_KEY}`
-	Values rs.AnyObjectMap `yaml:"values"`
-}
-
-func (g *GlobalConfig) Merge(a *GlobalConfig) error {
-	err := g.BaseField.Inherit(&a.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to inherit other global config: %w", err)
-	}
-
-	g.Env = append(g.Env, a.Env...)
-	if len(a.CacheDir) != 0 {
-		g.CacheDir = a.CacheDir
-	}
-
-	if len(a.DefaultGitBranch) != 0 {
-		g.DefaultGitBranch = a.DefaultGitBranch
-	}
-
-	err = g.Values.Inherit(&a.Values.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to merge global values: %w", err)
-	}
-
-	if len(a.Values.Data) != 0 {
-		if g.Values.Data == nil {
-			g.Values.Data = a.Values.Data
-		} else {
-			for k, v := range a.Values.Data {
-				g.Values.Data[k] = v
-			}
-		}
-	}
-
-	return nil
-}
-
-func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(rc, g, "Env", "env")
-	if err != nil {
-		return fmt.Errorf("failed to resolve global env: %w", err)
-	}
-
-	err = g.ResolveFields(rc, -1, "cache_dir")
-	if err != nil {
-		return fmt.Errorf("failed to resolve cache dir: %w", err)
-	}
-
-	err = g.ResolveFields(rc, -1, "default_git_branch")
-	if err != nil {
-		return fmt.Errorf("failed to resolve default git branch: %w", err)
-	}
-
-	return nil
-}
-
 type Config struct {
 	rs.BaseField `yaml:"-"`
 
@@ -129,9 +52,6 @@ type Config struct {
 	// Include other files using path relative to DUKKHA_WORKING_DIR
 	// only local path (and path glob) is supported.
 	//
-	// You should always use relative path unless you do not want to
-	// maintain compatibility with other environments.
-	//
 	// no rendering suffix support for this field
 	Include []string `yaml:"include"`
 
@@ -139,39 +59,12 @@ type Config struct {
 	Shells []*tools.BaseToolWithInit `yaml:"shells"`
 
 	// Renderers config options
-	Renderers map[string]dukkha.Renderer `yaml:"renderers"`
+	Renderers []*RendererGroup `yaml:"renderers"`
 
 	// Tools config options for registered tools
 	Tools Tools `yaml:"tools"`
 
 	Tasks map[string][]dukkha.Task `yaml:",inline"`
-}
-
-var _ yaml.Unmarshaler = (*Tools)(nil)
-
-type Tools struct {
-	rs.BaseField `yaml:"-"`
-
-	Data map[string][]dukkha.Tool `yaml:",inline"`
-}
-
-func (m *Tools) Merge(a *Tools) error {
-	err := m.BaseField.Inherit(&a.BaseField)
-	if err != nil {
-		return fmt.Errorf("failed to inherit other tools config: %w", err)
-	}
-
-	if len(a.Data) != 0 {
-		if m.Data == nil {
-			m.Data = make(map[string][]dukkha.Tool)
-		}
-
-		for k := range a.Data {
-			m.Data[k] = append(m.Data[k], a.Data[k]...)
-		}
-	}
-
-	return nil
 }
 
 func (c *Config) Merge(a *Config) error {
@@ -190,10 +83,7 @@ func (c *Config) Merge(a *Config) error {
 	if c.Renderers == nil {
 		c.Renderers = a.Renderers
 	} else {
-		// TODO: handle duplicated renderers
-		for k, v := range a.Renderers {
-			c.Renderers[k] = v
-		}
+		c.Renderers = append(c.Renderers, a.Renderers...)
 	}
 
 	err = c.Tools.Merge(&a.Tools)
@@ -290,31 +180,36 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	// NOTE: resolving renderers requires dukkha cache dir to been set
 	// step 3: resolve renderers
 	{
-		logger.D("resolving renderers config overview")
+		logger.D("resolving to gain renderers overview")
 		err := c.ResolveFields(appCtx, 1, "renderers")
 		if err != nil {
-			return fmt.Errorf("failed to get renderers config overview: %w", err)
+			return fmt.Errorf("failed to get renderers list: %w", err)
 		}
 
 		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
-		for name, r := range c.Renderers {
-			logger := logger.WithFields(
-				log.Any("renderer", name),
-			)
+		for i, g := range c.Renderers {
+			logger := logger.WithFields(log.Int("index", i))
 
-			logger.D("resolving renderer config fields")
-			err = r.ResolveFields(appCtx, -1)
+			logger.D("resolving renderer group")
+
+			// renderers in the same group should shall be resolved all at once
+			// without knowning each other
+
+			err = g.ResolveFields(appCtx, -1)
 			if err != nil {
-				return fmt.Errorf("failed to resolve renderer %q config: %w", name, err)
+				return fmt.Errorf("failed to resolve renderer group #%d: %w", i, err)
 			}
 
-			err = r.Init(appCtx)
-			if err != nil {
-				return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
-			}
+			for name, r := range g.Renderers {
+				err = r.Init(appCtx)
+				if err != nil {
+					return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
+				}
 
-			appCtx.AddRenderer(name, c.Renderers[name])
+				appCtx.AddRenderer(name, g.Renderers[name])
+			}
 		}
+
 		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
 	}
 
@@ -416,8 +311,8 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		)
 	}
 
-	logger.V("resolving tools", log.Int("count", len(c.Tools.Data)))
-	for tk, toolSet := range c.Tools.Data {
+	logger.V("resolving tools", log.Int("count", len(c.Tools.Tools)))
+	for tk, toolSet := range c.Tools.Tools {
 		toolKind := dukkha.ToolKind(tk)
 
 		visited := make(map[dukkha.ToolName]struct{})
@@ -485,7 +380,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				)
 			}
 
-			appCtx.AddTool(key, c.Tools.Data[string(toolKind)][i])
+			appCtx.AddTool(key, c.Tools.Tools[string(toolKind)][i])
 		}
 	}
 
