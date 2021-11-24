@@ -9,7 +9,7 @@ import (
 type specItem struct {
 	rs.BaseField `yaml:"-"`
 
-	Data map[string][]string `yaml:",inline"`
+	Data map[string]*Vector `yaml:",inline"`
 }
 
 type Spec struct {
@@ -20,11 +20,11 @@ type Spec struct {
 
 	// TODO: validate kernel and arch values to ensure
 	// 		 tools get expected value set
-	Kernel []string `yaml:"kernel,omitempty"`
-	Arch   []string `yaml:"arch,omitempty"`
+	Kernel *Vector `yaml:"kernel,omitempty"`
+	Arch   *Vector `yaml:"arch,omitempty"`
 
 	// catch other matrix fields
-	Custom map[string][]string `yaml:",inline,omitempty"`
+	Custom map[string]*Vector `yaml:",inline,omitempty"`
 }
 
 func defaultSpecs(hostKernel, hostArch string) []Entry {
@@ -46,7 +46,7 @@ func (mc *Spec) GenerateEntries(
 	}
 
 	hasUserValue := len(mc.Include) != 0 || len(mc.Exclude) != 0
-	hasUserValue = hasUserValue || len(mc.Kernel) != 0 || len(mc.Arch) != 0 || len(mc.Custom) != 0
+	hasUserValue = hasUserValue || !mc.Kernel.IsEmpty() || !mc.Arch.IsEmpty() || len(mc.Custom) != 0
 
 	if !hasUserValue {
 		return defaultSpecs(hostKernel, hostArch)
@@ -54,22 +54,25 @@ func (mc *Spec) GenerateEntries(
 
 	all := make(map[string][]string)
 
-	if len(mc.Kernel) != 0 {
-		all["kernel"] = mc.Kernel
+	if !mc.Kernel.IsEmpty() {
+		all["kernel"] = mc.Kernel.Vector
 	}
 
-	if len(mc.Arch) != 0 {
-		all["arch"] = mc.Arch
+	if !mc.Arch.IsEmpty() {
+		all["arch"] = mc.Arch.Vector
 	}
 
 	for name := range mc.Custom {
-		all[name] = mc.Custom[name]
+		all[name] = mc.Custom[name].Vector
 	}
 
 	// remove excluded
 	var removeMatchList []map[string]string
 	for _, ex := range mc.Exclude {
-		removeMatchList = append(removeMatchList, CartesianProduct(ex.Data)...)
+		removeMatchList = append(
+			removeMatchList,
+			CartesianProduct(flattenVectorMap(ex.Data))...,
+		)
 	}
 
 	var result []Entry
@@ -80,7 +83,7 @@ func (mc *Spec) GenerateEntries(
 	)
 	if filter != nil {
 		if len(filter.match) != 0 {
-			matchFilter = CartesianProduct(filter.match)
+			matchFilter = CartesianProduct(flattenVectorMap(filter.match))
 		}
 
 		if len(filter.ignore) != 0 {
@@ -121,7 +124,7 @@ loop:
 
 	// add included
 	for _, inc := range mc.Include {
-		mat := CartesianProduct(inc.Data)
+		mat := CartesianProduct(flattenVectorMap(inc.Data))
 	addInclude:
 		for i := range mat {
 			includeEntry := Entry(mat[i])

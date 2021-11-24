@@ -2,10 +2,9 @@ docs:
 - docs/**
 - README.md
 
-ci:
+cicd:
 - .github/**
-- cicd/gitlab/**
-- .gitlab-ci.yml
+- cicd/**
 
 dependency:
 - go.mod

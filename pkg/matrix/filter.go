@@ -1,23 +1,29 @@
 package matrix
 
 func NewFilter(match map[string][]string) *Filter {
-	if match == nil {
-		match = make(map[string][]string)
+	mv := make(map[string]*Vector, len(match))
+	for k, v := range match {
+		mv[k] = newVector(v...)
 	}
 
 	return &Filter{
-		match:  match,
+		match:  mv,
 		ignore: nil,
 	}
 }
 
 type Filter struct {
-	match  map[string][]string
+	match  map[string]*Vector
 	ignore [][2]string
 }
 
 func (f *Filter) AddMatch(key, value string) {
-	f.match[key] = append(f.match[key], value)
+	vec, ok := f.match[key]
+	if ok {
+		vec.Vector = append(vec.Vector, value)
+	} else {
+		f.match[key] = newVector(value)
+	}
 }
 
 func (f *Filter) AddIgnore(key, value string) {
@@ -34,10 +40,10 @@ func (f *Filter) AsEntry() Entry {
 
 	ret := make(map[string]string, len(f.match))
 	for k, v := range f.match {
-		if len(v) == 0 {
+		if len(v.Vector) == 0 {
 			ret[k] = ""
 		} else {
-			ret[k] = v[0]
+			ret[k] = v.Vector[0]
 		}
 	}
 
@@ -46,12 +52,12 @@ func (f *Filter) AsEntry() Entry {
 
 func (f *Filter) Clone() *Filter {
 	var (
-		matchFilter  = make(map[string][]string, len(f.match))
+		matchFilter  = make(map[string]*Vector, len(f.match))
 		ignoreFilter = make([][2]string, len(f.ignore))
 	)
 
 	for k, v := range f.match {
-		matchFilter[k] = append(matchFilter[k], v...)
+		matchFilter[k] = newVector(v.Vector...)
 	}
 
 	for i, kv := range f.ignore {

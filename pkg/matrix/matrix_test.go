@@ -7,8 +7,6 @@ import (
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
-
-	_ "embed"
 )
 
 func TestMatrixConfig_GenerateEntries(t *testing.T) {
@@ -18,16 +16,16 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		// specs are sorted by name, put them in order
 		expected []Entry
 
-		matchFilter  map[string][]string
+		matchFilter  map[string]*Vector
 		ignoreFilter [][2]string
 	}{
 		{
 			name: "basic",
 			in: Spec{
-				Kernel: []string{"linux", "darwin"},
-				Arch:   []string{"amd64", "arm64"},
-				Custom: map[string][]string{
-					"foo": {"a", "b"},
+				Kernel: newVector("linux", "darwin"),
+				Arch:   newVector("amd64", "arm64"),
+				Custom: map[string]*Vector{
+					"foo": newVector("a", "b"),
 				},
 			},
 			expected: []Entry{
@@ -47,15 +45,15 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "basic + matchFilter",
 			in: Spec{
-				Kernel: []string{"linux", "darwin"},
-				Arch:   []string{"amd64", "arm64"},
-				Custom: map[string][]string{
-					"foo": {"a", "b"},
+				Kernel: newVector("linux", "darwin"),
+				Arch:   newVector("amd64", "arm64"),
+				Custom: map[string]*Vector{
+					"foo": newVector("a", "b"),
 				},
 			},
-			matchFilter: map[string][]string{
-				"kernel": {"linux"},
-				"arch":   {"arm64"},
+			matchFilter: map[string]*Vector{
+				"kernel": newVector("linux"),
+				"arch":   newVector("arm64"),
 			},
 			expected: []Entry{
 				// sort order: foo=a,b
@@ -66,10 +64,10 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "basic + ignoreFilter",
 			in: Spec{
-				Kernel: []string{"linux", "darwin"},
-				Arch:   []string{"amd64", "arm64"},
-				Custom: map[string][]string{
-					"foo": {"a", "b"},
+				Kernel: newVector("linux", "darwin"),
+				Arch:   newVector("amd64", "arm64"),
+				Custom: map[string]*Vector{
+					"foo": newVector("a", "b"),
 				},
 			},
 			ignoreFilter: [][2]string{
@@ -87,20 +85,20 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			in: Spec{
 				Include: []*specItem{
 					{
-						Data: map[string][]string{
-							"kernel": {"windows"},
-							"arch":   {"arm64", "amd64"},
+						Data: map[string]*Vector{
+							"kernel": newVector("windows"),
+							"arch":   newVector("arm64", "amd64"),
 						},
 					},
 					{
-						Data: map[string][]string{
-							"kernel": {"darwin"},
-							"arch":   {"arm64"},
+						Data: map[string]*Vector{
+							"kernel": newVector("darwin"),
+							"arch":   newVector("arm64"),
 						},
 					},
 				},
-				Kernel: []string{"linux"},
-				Arch:   []string{"amd64"},
+				Kernel: newVector("linux"),
+				Arch:   newVector("amd64"),
 			},
 			expected: []Entry{
 				{"kernel": "linux", "arch": "amd64"},
@@ -114,23 +112,23 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			in: Spec{
 				Include: []*specItem{
 					{
-						Data: map[string][]string{
-							"kernel": {"aix"},
-							"arch":   {"ppc64le"},
+						Data: map[string]*Vector{
+							"kernel": newVector("aix"),
+							"arch":   newVector("ppc64le"),
 						},
 					},
 					{
-						Data: map[string][]string{
-							"kernel": {"darwin"},
-							"arch":   {"arm64"},
+						Data: map[string]*Vector{
+							"kernel": newVector("darwin"),
+							"arch":   newVector("arm64"),
 						},
 					},
 				},
-				Kernel: []string{"linux"},
-				Arch:   []string{"amd64", "arm64"},
+				Kernel: newVector("linux"),
+				Arch:   newVector("amd64", "arm64"),
 			},
-			matchFilter: map[string][]string{
-				"arch": {"amd64"},
+			matchFilter: map[string]*Vector{
+				"arch": newVector("amd64"),
 			},
 			expected: []Entry{
 				{"kernel": "linux", "arch": "amd64"},
@@ -141,14 +139,14 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			in: Spec{
 				Exclude: []*specItem{
 					{
-						Data: map[string][]string{
-							"kernel": {"linux"},
-							"arch":   {"arm64", "amd64"},
+						Data: map[string]*Vector{
+							"kernel": newVector("linux"),
+							"arch":   newVector("arm64", "amd64"),
 						},
 					},
 				},
-				Kernel: []string{"linux"},
-				Arch:   []string{"amd64", "arm64"},
+				Kernel: newVector("linux"),
+				Arch:   newVector("amd64", "arm64"),
 			},
 			expected: nil,
 		},
@@ -157,13 +155,13 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			in: Spec{
 				Exclude: []*specItem{
 					{
-						Data: map[string][]string{
-							"kernel": {"linux"},
+						Data: map[string]*Vector{
+							"kernel": newVector("linux"),
 						},
 					},
 				},
-				Kernel: []string{"linux"},
-				Arch:   []string{"amd64", "arm64"},
+				Kernel: newVector("linux"),
+				Arch:   newVector("amd64", "arm64"),
 			},
 			expected: nil,
 		},
@@ -187,9 +185,9 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 	type testInputSpec struct {
 		rs.BaseField
 
-		MatchFilter  map[string][]string `yaml:"match_filter"`
-		IgnoreFilter [][2]string         `yaml:"ignore_fitler"`
-		Spec         Spec                `yaml:"spec"`
+		MatchFilter  map[string]*Vector `yaml:"match_filter"`
+		IgnoreFilter [][2]string        `yaml:"ignore_fitler"`
+		Spec         Spec               `yaml:"spec"`
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/gen-entries",

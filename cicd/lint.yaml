@@ -2,10 +2,17 @@ workflow:run:
 # required by ci job
 - name: lint
   matrix:
-    tool:
-    - editorconfig-checker
-    - shellcheck
-    - yamllint
-    - golangci-lint
+    include:
+    - tool: [editorconfig-checker]
+      config:
+      - __@http:presets#cached-file?str: tools/editorconfig-checker/config.json
+    - tool: [shellcheck]
+    - tool: [yamllint]
+      config:
+      - __@http:presets#cached-file?str: tools/yamllint/config.yaml
+    - tool: [golangci-lint]
+      # TODO: golangci-lint cannot recognize config without file extension
+      # config:
+      # - __@http:presets#cached-file?str: tools/golangci-lint/config.vendor.yaml
   jobs:
   - cmd@http:presets?str|tpl#use-spec: tools/http.tpl
