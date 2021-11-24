@@ -229,7 +229,7 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	}
 }
 
-const valuesEnvPrefix = "Values."
+const valuesEnvPrefix = "values."
 
 func genEnvForValues(values map[string]interface{}) (map[string]expand.Variable, error) {
 	out := make(map[string]expand.Variable)

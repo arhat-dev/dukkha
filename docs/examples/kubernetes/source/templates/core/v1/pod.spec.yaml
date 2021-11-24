@@ -1,5 +1,5 @@
 containers@tpl:
 - name: nginx
-  image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-  imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+  image: "{{ values.image.repository }}:{{ values.image.tag }}"
+  imagePullPolicy: "{{ values.image.pullPolicy }}"
   resources: {}

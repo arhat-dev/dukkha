@@ -1434,7 +1434,7 @@ func ValidName(val string) bool {
 		return false
 	}
 
-	isValuesRef := strings.HasPrefix(val, "Values.")
+	isValuesRef := strings.HasPrefix(val, "values.")
 	for i, r := range val {
 		switch {
 		case 'a' <= r && r <= 'z':

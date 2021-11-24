@@ -277,7 +277,7 @@ func pathExts(env expand.Environ) []string {
 	}
 	pathext := env.Get("PATHEXT").String()
 	if pathext == "" {
-		return []string{".com", ".exe", ".bat", ".cmd"}
+		return []string{".com", ".exe", ".bat", ".cmd", ""}
 	}
 	var exts []string
 	for _, e := range strings.Split(strings.ToLower(pathext), `;`) {
