@@ -11,7 +11,7 @@ Return what you write as is
 ```yaml
 renderers:
   # no options
-  echo: {}
+- echo: {}
 ```
 
 ## Supported value types

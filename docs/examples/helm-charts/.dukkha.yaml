@@ -3,14 +3,16 @@ global:
     renovate_values@file: values.yaml
 
 renderers:
-  http:
-    enable_cache: true
-    cache_item_size_limit: 1M
-    cache_max_age: 1h
-    cache_size_limit: 1G
+- http:
+    cache:
+      enabled: true
+      size: 1G
+      max_item_size: 1M
+      timeout: 1h
 
   af:
-    enable_cache: true
-    cache_item_size_limit: 1M
-    cache_max_age: 1h
-    cache_size_limit: 1G
+    cache:
+      enabled: true
+      max_item_size: 1M
+      timeout: 1h
+      size: 1G

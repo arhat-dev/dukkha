@@ -12,11 +12,12 @@ __NOTE:__ Configuration is required to activate this renderer, ssh config is req
 
 ```yaml
 renderers:
-  git:
+- git:
     # cache config
-    # enable local cache, disable to always fetch from remote
-    enable_cache: true
-    cache_max_age: 1h
+    cache:
+      # enable local cache, disable to always fetch from remote
+      enabled: true
+      timeout: 1h
 
     # git ssh config
     # git ssh user, defaults to git
@@ -85,4 +86,4 @@ renderers:
 
 ## Suggested Use Cases
 
-Access file content in a ssh only repo.
+- Private config reuse

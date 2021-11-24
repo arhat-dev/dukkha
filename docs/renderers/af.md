@@ -12,13 +12,16 @@ __NOTE:__ Configuration is required to activate this renderer.
 
 ```yaml
 renderers:
-  af:
-    # enable local file caching for extracted files
-    # disable to always extract from archive at runtime
-    enable_cache: true
-    cache_item_size_limit: 64KB
-    cache_max_age: 10h
-    cache_size_limit: 32MB
+- af:
+    cache:
+      enabled: false
+
+  af:my-archivefile-renderer:
+    cache:
+      enabled: true
+      size: 32MB
+      timeout: 10h
+      max_item_size: 64KB
 ```
 
 ## Supported value types

@@ -12,7 +12,7 @@ __NOTE:__ Configuration is required to activate this renderer.
 
 ```yaml
 renderers:
-  input:
+- input:
     # hide user input (e.g. entering password)
     # defaults to false
     hide_input: true

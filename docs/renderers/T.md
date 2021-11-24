@@ -17,7 +17,7 @@ Use operations to transform string value.
 ```yaml
 renderers:
   # no options
-  T: {}
+- T: {}
 ```
 
 ## Supported value types

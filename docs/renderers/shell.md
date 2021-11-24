@@ -11,7 +11,7 @@ Run embedded shell script and use the output to stdout as the field value
 ```yaml
 renderers:
   # no options
-  shell: {}
+- shell: {}
 ```
 
 ## Supported value types

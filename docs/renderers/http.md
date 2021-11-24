@@ -12,11 +12,12 @@ __NOTE:__ Configuration is required to activate this renderer.
 
 ```yaml
 renderers:
-  http:
+- http:
     # cache config
-    # enable local cache, disable to always fetch from remote
-    enable_cache: true
-    cache_max_age: 1h
+    cache:
+      # enable local cache, disable to always fetch from remote
+      enabled: true
+      timeout: 1h
 
     # http config
     method: GET # if not set, defaults to GET
@@ -71,5 +72,5 @@ renderers:
 
 ## Suggested Use Cases
 
-- Organization to share build recipes using certral http service.
-- Download file via http for other renderers
+- Organization to share dukkha config with certral http service.
+- Download file via http

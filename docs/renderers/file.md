@@ -10,12 +10,12 @@ Read local file content as the real value
 
 ```yaml
 renderers:
-  file:
+- file:
     # enable in memory cache, or always read local file
-    enable_cache: true
-    cache_max_age: "0"
-    # in memory cache size limit
-    cache_size_limit: 100M
+    cache:
+      enabled: true
+      timeout: "0"
+      size: 100M
 ```
 
 ## Supported value types
@@ -28,4 +28,4 @@ foo@file: /tmp/data.json
 
 ## Suggested Use Cases
 
-Config reuse
+- Local config reuse

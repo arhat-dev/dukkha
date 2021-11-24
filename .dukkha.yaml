@@ -2,9 +2,10 @@ include:
 - cicd
 
 renderers:
-  http:
-    enable_cache: true
-    cache_max_age: 5h
+- http:
+    cache:
+      enabled: true
+      timeout: 5h
 
   env:
     enable_exec: true
@@ -14,8 +15,9 @@ renderers:
     - cicd/artifacts/bin-name.tpl
 
   http:presets:
-    enable_cache: true
-    cache_max_age: 2h
+    cache:
+      enabled: true
+      timeout: 2h
     base_url: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/dev/
 
 global:
