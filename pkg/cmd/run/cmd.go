@@ -9,6 +9,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func NewRunCmd(ctx *dukkha.Context) *cobra.Command {
@@ -61,7 +62,7 @@ dukkha run golang in-docker build my-executable`,
 				Workers:             workerCount,
 			})
 
-			appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
+			appCtx.SetMatrixFilter(matrix.ParseMatrixFilter(matrixFilter))
 
 			return run(appCtx, args)
 		},

@@ -103,14 +103,20 @@ func TestParseTaskReference(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ref, err := ParseTaskReference(test.input, "")
+			actual, err := ParseTaskReference(test.input, "")
 			if test.expectErr {
 				assert.Error(t, err)
 				return
 			}
 
 			assert.NoError(t, err)
-			assert.EqualValues(t, &test.expected, ref)
+
+			assert.EqualValues(t, test.expected.ToolKind, actual.ToolKind)
+			assert.EqualValues(t, test.expected.ToolName, actual.ToolName)
+			assert.EqualValues(t, test.expected.TaskKind, actual.TaskKind)
+			assert.EqualValues(t, test.expected.TaskName, actual.TaskName)
+
+			assert.True(t, test.expected.MatrixFilter.Equals(actual.MatrixFilter))
 		})
 	}
 }

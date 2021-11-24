@@ -10,12 +10,11 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/iohelper"
-
-	"arhat.dev/dukkha/pkg/constant"
-
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 type SizedReaderAt interface {

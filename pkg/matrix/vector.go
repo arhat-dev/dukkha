@@ -14,7 +14,7 @@ func flattenVectorMap(m map[string]*Vector) map[string][]string {
 	return ret
 }
 
-func newVector(elems ...string) *Vector {
+func NewVector(elems ...string) *Vector {
 	return rs.Init(&Vector{Vector: elems}, nil).(*Vector)
 }
 
@@ -22,6 +22,32 @@ type Vector struct {
 	rs.BaseField
 
 	Vector []string `yaml:"__"`
+}
+
+func (v *Vector) Equals(a *Vector) bool {
+	if v == nil {
+		if a == nil {
+			return true
+		}
+
+		return false
+	}
+
+	if a == nil {
+		return false
+	}
+
+	if len(a.Vector) != len(v.Vector) {
+		return false
+	}
+
+	for i, el := range v.Vector {
+		if a.Vector[i] != el {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (v *Vector) IsEmpty() bool {
@@ -51,4 +77,12 @@ func (v *Vector) UnmarshalYAML(value *yaml.Node) error {
 func (v *Vector) ResolveFields(rc rs.RenderingHandler, depth int, names ...string) error {
 	_ = names
 	return v.BaseField.ResolveFields(rc, depth, "__")
+}
+
+func (v *Vector) MarshalYAML() (interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+
+	return v.Vector, nil
 }

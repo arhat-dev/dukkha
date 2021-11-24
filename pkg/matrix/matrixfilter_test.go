@@ -1,12 +1,9 @@
-package utils
+package matrix
 
 import (
 	"testing"
-	"unsafe"
 
 	"github.com/stretchr/testify/assert"
-
-	"arhat.dev/dukkha/pkg/matrix"
 )
 
 func TestParseMatrixFilter(t *testing.T) {
@@ -14,7 +11,7 @@ func TestParseMatrixFilter(t *testing.T) {
 		name    string
 		filters []string
 
-		match  map[string][]string
+		match  map[string]*Vector
 		ignore [][2]string
 	}{
 		{
@@ -23,7 +20,9 @@ func TestParseMatrixFilter(t *testing.T) {
 				"a=b",
 			},
 
-			match: map[string][]string{"a": {"b"}},
+			match: map[string]*Vector{
+				"a": NewVector("b"),
+			},
 		},
 		{
 			name: "Match Multiple",
@@ -31,7 +30,9 @@ func TestParseMatrixFilter(t *testing.T) {
 				"a=b", "a=c",
 			},
 
-			match: map[string][]string{"a": {"b", "c"}},
+			match: map[string]*Vector{
+				"a": NewVector("b", "c"),
+			},
 		},
 		{
 			name: "Ignore",
@@ -39,7 +40,7 @@ func TestParseMatrixFilter(t *testing.T) {
 				"a!=b",
 			},
 
-			match:  map[string][]string{},
+			match:  map[string]*Vector{},
 			ignore: [][2]string{{"a", "b"}},
 		},
 		{
@@ -48,7 +49,7 @@ func TestParseMatrixFilter(t *testing.T) {
 				"a!=b", "a!=c",
 			},
 
-			match:  map[string][]string{},
+			match:  map[string]*Vector{},
 			ignore: [][2]string{{"a", "b"}, {"a", "c"}},
 		},
 		{
@@ -57,21 +58,21 @@ func TestParseMatrixFilter(t *testing.T) {
 				"a!=b", "b=c",
 			},
 
-			match:  map[string][]string{"b": {"c"}},
+			match: map[string]*Vector{
+				"b": NewVector("c"),
+			},
 			ignore: [][2]string{{"a", "b"}},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			mf := ParseMatrixFilter(test.filters)
 
-			expected := struct {
-				match  map[string][]string
-				ignore [][2]string
-			}{
-				match:  test.match,
-				ignore: test.ignore,
+			assert.Equal(t, len(test.match), len(mf.match))
+			for k, v := range test.match {
+				assert.EqualValues(t, v.Vector, mf.match[k].Vector)
 			}
-			assert.EqualValues(t, (*matrix.Filter)(unsafe.Pointer(&expected)), mf)
+
+			assert.EqualValues(t, test.ignore, mf.ignore)
 		})
 	}
 }

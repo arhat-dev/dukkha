@@ -215,6 +215,10 @@ func storeLocalCache(
 	r io.Reader,
 	returnContent bool,
 ) (int64, []byte, error) {
+	if os.Chmod(dest, 0600) == nil {
+		defer func() { _ = os.Chmod(dest, 0400) }()
+	}
+
 	f, err := os.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
 	if err != nil {
 		return 0, nil, err
@@ -274,7 +278,7 @@ func lookupLocalCache(
 	// entries are sorted per fs.ReadDirFS.ReadDir requirement
 	// so we can do binary search directly
 	start := sort.Search(len(entries), func(i int) bool {
-		return prefix < entries[i].Name()
+		return prefix <= entries[i].Name()
 	})
 
 	if start == len(entries) {
@@ -285,13 +289,13 @@ func lookupLocalCache(
 	// find last entry with same prefix
 	// then we have a full list of cached data
 	end := start
-	for ; end+1 < len(entries); end++ {
-		if !strings.HasPrefix(entries[end+1].Name(), prefix) {
+	for ; end < len(entries); end++ {
+		if !strings.HasPrefix(entries[end].Name(), prefix) {
 			break
 		}
 	}
 
-	for _, info := range entries[start : end+1] {
+	for _, info := range entries[start:end] {
 		filename := info.Name()
 
 		parts := strings.SplitN(strings.TrimSuffix(filename, suffix), "-", 2)

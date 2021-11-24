@@ -12,6 +12,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/cmd/utils"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -39,7 +40,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appCtx := *ctx
 			appCtx = appCtx.DeriveNew()
-			appCtx.SetMatrixFilter(utils.ParseMatrixFilter(matrixFilter))
+			appCtx.SetMatrixFilter(matrix.ParseMatrixFilter(matrixFilter))
 
 			query, err := opts.getQuery()
 			if err != nil {

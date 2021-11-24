@@ -355,20 +355,36 @@ func TestLookupLocalCache_entries(t *testing.T) {
 		active, expired, invalid []string
 	}{
 		{
-			"Valid No Active", 201, "foo",
-			nil, []string{foo_1, foo_100, foo_200}, []string{"foo", foo_invalid_timestamp},
+			name:      "Valid No Active",
+			notBefore: 201,
+			prefix:    "foo",
+			active:    nil,
+			expired:   []string{foo_1, foo_100, foo_200},
+			invalid:   []string{"foo", foo_invalid_timestamp},
 		},
 		{
-			"Valid One Active", 199, "foo",
-			[]string{foo_200}, []string{foo_1, foo_100}, []string{"foo", foo_invalid_timestamp},
+			name:      "Valid One Active",
+			notBefore: 199,
+			prefix:    "foo",
+			active:    []string{foo_200},
+			expired:   []string{foo_1, foo_100},
+			invalid:   []string{"foo", foo_invalid_timestamp},
 		},
 		{
-			"Valid Two Active", 99, "foo",
-			[]string{foo_100, foo_200}, []string{foo_1}, []string{"foo", foo_invalid_timestamp},
+			name:      "Valid Two Active",
+			notBefore: 99,
+			prefix:    "foo",
+			active:    []string{foo_100, foo_200},
+			expired:   []string{foo_1},
+			invalid:   []string{"foo", foo_invalid_timestamp},
 		},
 		{
-			"Valid No Cache", 0, "bar",
-			nil, nil, nil,
+			name:      "Valid No Cache",
+			notBefore: 0,
+			prefix:    "bar",
+			active:    nil,
+			expired:   nil,
+			invalid:   nil,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -22,10 +22,10 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "basic",
 			in: Spec{
-				Kernel: newVector("linux", "darwin"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux", "darwin"),
+				Arch:   NewVector("amd64", "arm64"),
 				Custom: map[string]*Vector{
-					"foo": newVector("a", "b"),
+					"foo": NewVector("a", "b"),
 				},
 			},
 			expected: []Entry{
@@ -45,15 +45,15 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "basic + matchFilter",
 			in: Spec{
-				Kernel: newVector("linux", "darwin"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux", "darwin"),
+				Arch:   NewVector("amd64", "arm64"),
 				Custom: map[string]*Vector{
-					"foo": newVector("a", "b"),
+					"foo": NewVector("a", "b"),
 				},
 			},
 			matchFilter: map[string]*Vector{
-				"kernel": newVector("linux"),
-				"arch":   newVector("arm64"),
+				"kernel": NewVector("linux"),
+				"arch":   NewVector("arm64"),
 			},
 			expected: []Entry{
 				// sort order: foo=a,b
@@ -64,10 +64,10 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 		{
 			name: "basic + ignoreFilter",
 			in: Spec{
-				Kernel: newVector("linux", "darwin"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux", "darwin"),
+				Arch:   NewVector("amd64", "arm64"),
 				Custom: map[string]*Vector{
-					"foo": newVector("a", "b"),
+					"foo": NewVector("a", "b"),
 				},
 			},
 			ignoreFilter: [][2]string{
@@ -86,19 +86,19 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Include: []*specItem{
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("windows"),
-							"arch":   newVector("arm64", "amd64"),
+							"kernel": NewVector("windows"),
+							"arch":   NewVector("arm64", "amd64"),
 						},
 					},
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("darwin"),
-							"arch":   newVector("arm64"),
+							"kernel": NewVector("darwin"),
+							"arch":   NewVector("arm64"),
 						},
 					},
 				},
-				Kernel: newVector("linux"),
-				Arch:   newVector("amd64"),
+				Kernel: NewVector("linux"),
+				Arch:   NewVector("amd64"),
 			},
 			expected: []Entry{
 				{"kernel": "linux", "arch": "amd64"},
@@ -113,22 +113,22 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Include: []*specItem{
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("aix"),
-							"arch":   newVector("ppc64le"),
+							"kernel": NewVector("aix"),
+							"arch":   NewVector("ppc64le"),
 						},
 					},
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("darwin"),
-							"arch":   newVector("arm64"),
+							"kernel": NewVector("darwin"),
+							"arch":   NewVector("arm64"),
 						},
 					},
 				},
-				Kernel: newVector("linux"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux"),
+				Arch:   NewVector("amd64", "arm64"),
 			},
 			matchFilter: map[string]*Vector{
-				"arch": newVector("amd64"),
+				"arch": NewVector("amd64"),
 			},
 			expected: []Entry{
 				{"kernel": "linux", "arch": "amd64"},
@@ -140,13 +140,13 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Exclude: []*specItem{
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("linux"),
-							"arch":   newVector("arm64", "amd64"),
+							"kernel": NewVector("linux"),
+							"arch":   NewVector("arm64", "amd64"),
 						},
 					},
 				},
-				Kernel: newVector("linux"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux"),
+				Arch:   NewVector("amd64", "arm64"),
 			},
 			expected: nil,
 		},
@@ -156,12 +156,12 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 				Exclude: []*specItem{
 					{
 						Data: map[string]*Vector{
-							"kernel": newVector("linux"),
+							"kernel": NewVector("linux"),
 						},
 					},
 				},
-				Kernel: newVector("linux"),
-				Arch:   newVector("amd64", "arm64"),
+				Kernel: NewVector("linux"),
+				Arch:   NewVector("amd64", "arm64"),
 			},
 			expected: nil,
 		},

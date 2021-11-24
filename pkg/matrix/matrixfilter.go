@@ -1,13 +1,11 @@
-package utils
+package matrix
 
 import (
 	"strings"
-
-	"arhat.dev/dukkha/pkg/matrix"
 )
 
-func ParseMatrixFilter(arr []string) *matrix.Filter {
-	ret := matrix.NewFilter(make(map[string][]string))
+func ParseMatrixFilter(arr []string) *Filter {
+	ret := NewFilter(make(map[string][]string))
 
 	for _, v := range arr {
 		if idx := strings.Index(v, "!="); idx > 0 {
