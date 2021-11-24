@@ -31,3 +31,7 @@ func (ns *_osNS) WriteFile(filename string, d interface{}) error {
 
 	return os.WriteFile(filename, data, 0640)
 }
+
+func (ns *_osNS) MkdirAll(path string) error {
+	return os.MkdirAll(path, 0755)
+}

@@ -391,6 +391,7 @@
 - `now.Year() int`
 - `now.YearDay() int`
 - `now.Zone() (string, int)`
+- `os.MkdirAll(string) error`
 - `os.ReadFile(string) (string, error)`
 - `os.WriteFile(string, interface {}) error`
 - `path.Base(interface {}) string`

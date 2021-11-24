@@ -1,7 +1,16 @@
 golang:build:
 - name: dukkha
-  __@http:presets: golang/build/cmd.yml
   matrix@file: cicd/artifacts/matrix.yml
-  env:
-  - name: MODULE_NAME
-    value: arhat.dev/dukkha
+  __@tpl#use-spec:
+    template: |-
+      {{- include "golang.build.cmd" . -}}
+    include@:
+    - __@http:presets#cached-file: golang/build/cmd.yml
+  tags:
+  - netgo
+  - osusergo
+  - timetzdata
+  extra_args:
+  - -buildmode=exe
+  - -mod=vendor
+  - -trimpath
