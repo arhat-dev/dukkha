@@ -1,86 +1,107 @@
 global:
-  cache_dir: build/dukkha-cache
+  default_git_branch: master
   env:
-  - name: GIT_DEFAULT_BRANCH
-    value: master
-
-tools:
-  golang:
-  - name: local
-    env:
-    - name: GO111MODULE
-      value: "on"
-    - name: GO_PROXY
-      value: direct
-    - name: GO_SUMDB
-      value: "off"
-    cmd: [go]
-
-  - name: in-docker
-    cmd@template: [
-      docker, run, -it, --rm,
-      -e, CGO_ENABLED, -e, GO111MODULE=on, -e, GO_PROXY,
-      -e, GO_SUMDB, -e, GOOS, -e, GOARCH, -e, CGO_CFLAGS,
-      -v, "{{ .Env.DUKKHA_WORKING_DIR }}:{{ .Env.DUKKHA_WORKING_DIR }}",
-      -w, "{{ .Env.DUKKHA_WORKING_DIR }}",
-      # yamllint disable-line rule:quoted-strings
-      "ghcr.io/arhat-dev/builder-golang:1.16-alpine-{{ .Env.MATRIX_ARCH | default .Env.HOST_ARCH }}",
-      go,
-    ]
+  - name: GO_VERSION
+    value: "1.17"
+  values:
+    cmd:
+      run_container@http|template: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/templates/cmd-run-container.yml
 
 renderers:
+  http:
+    enable_cache: true
+    cache_max_age: 5h
   env:
     enable_exec: true
 
+tools:
+  workflow:
+  - name: local
+  - name: in-ctr
+
+  golang:
+  - name: local
+  - name: in-ctr
+    cmd@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line sep */ -}}
+      golang/cmd-in-ctr.yml
+
+workflow:run:
+- name: tidy
+  env:
+  - name: GOPROXY
+    value: direct
+  - name: GOSUMDB
+    value: "off"
+  jobs:
+  - shell: |-
+      go mod tidy
+      cd benchmark && go mod tidy
+
+- name: lint
+  matrix:
+    linter:
+    - editorconfig-checker
+    - shellcheck
+    - yamllint
+    - golangci-lint
+
+  jobs:
+  - shell@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- /* line join*/ -}}
+      linter/{{- matrix.linter -}}.tpl
+    env:
+    - name@template: |-
+        {{- matrix.linter | strings.SnakeCase | strings.ToUpper -}}_VERSION
+      value@template: |-
+        {{- matrix.version | default "" -}}
+
+- name: test
+  jobs:
+  - task: golang:test(rs, {})
+  # only run sonarqube on linux and darwin during CI
+  - shell@template|http|template: |-
+      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+      {{- if eq env.HOST_KERNEL "linux" "darwin" -}}
+        linter/sonar-scanner.tpl
+      {{- else -}}
+        empty.yml
+      {{- end -}}
+    continue_on_error: true
+
 golang:test:
 - name: rs
+  __@template|http: |-
+    https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
+    {{- /* line sep */ -}}
+    golang/test/pkg.yml
   env:
-  - name: TEST_PROFILE_DIR
+  - name: PROFILE_DIR
     value: build/test-profile
   matrix:
-    kernel@env:
-    - ${HOST_KERNEL}
-    arch@env:
-    - ${HOST_ARCH}
-    pkg@env|template: |-
+    pkg@template: |-
       {{-
         eval.Shell "go list ./..."
-        | removePrefix "$(go list -m)"
-        | addPrefix "- ./"
+        | removePrefix (eval.Shell "go list -m" | trimSuffix "\n")
+        | addPrefix "- "
       -}}
   hooks:
     before:
-    - shell: mkdir -p ${TEST_PROFILE_DIR}
-  cgo:
-    enabled: true
-  race: true
-  profile:
-    output_dir: build/test-profile
-    coverage:
-      enabled: true
-  benchmark:
-    enabled: true
-  json_output_file@template: |-
-    {{ .Env.TEST_PROFILE_DIR }}/result-
-    {{- .Env.MATRIX_PKG | strings.KebabCase -}}.json
-  verbose: true
-  path@env: ${MATRIX_PKG}
+    - shell: mkdir -p ${PROFILE_DIR}
 
 - name: benchmark
   env:
-  - name: TEST_PROFILE_DIR
+  - name: PROFILE_DIR
     value: build/test-profile
   matrix:
-    kernel@env:
-    - ${HOST_KERNEL}
-    arch@env:
-    - ${HOST_ARCH}
     pkg:
     - ./
   chdir: ./benchmark
   hooks:
     before:
-    - shell: mkdir -p ${TEST_PROFILE_DIR}
+    - shell: mkdir -p ${PROFILE_DIR}
   cgo:
     enabled: true
   race: true
@@ -95,6 +116,6 @@ golang:test:
   benchmark:
     enabled: true
   json_output_file@template: |-
-    {{ .Env.TEST_PROFILE_DIR }}/result-benchmark.json
+    {{ .Env.PROFILE_DIR }}/result-benchmark.json
   verbose: true
   path: ./

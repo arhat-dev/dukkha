@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: tidy
-tidy:
-	GOPROXY=direct GOSUMDB=off go mod tidy
-	cd benchmark && GOPROXY=direct GOSUMDB=off go mod tidy
-
-include scripts/lint.mk
-
 install.fuzz:
 	sh scripts/fuzz.sh install
 

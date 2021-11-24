@@ -3,8 +3,8 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.8.1-0.20211118095313-055cd15002ff
-	arhat.dev/rs v0.8.4-0.20211113095115-c107aceb0d05
+	arhat.dev/pkg v0.8.1
+	arhat.dev/rs v0.8.4
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -13,15 +13,15 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5
 	github.com/google/uuid v1.3.0
 	github.com/gosimple/slug v1.11.2
-	github.com/h2non/filetype v1.1.2-0.20210917125640-7fafb18134ff
+	github.com/h2non/filetype v1.1.3
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.5
 	github.com/klauspost/compress v1.13.6
-	github.com/minio/minio-go/v7 v7.0.15
+	github.com/minio/minio-go/v7 v7.0.16
 	github.com/muesli/termenv v0.9.0
 	github.com/nwaples/rardecode v1.1.2
-	github.com/pierrec/lz4/v4 v4.1.10
+	github.com/pierrec/lz4/v4 v4.1.11
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
@@ -37,7 +37,7 @@ require (
 	golang.org/x/tools v0.1.7
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	mvdan.cc/sh/v3 v3.4.0
+	mvdan.cc/sh/v3 v3.4.1
 )
 
 replace (

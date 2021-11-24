@@ -81,6 +81,9 @@ linters-settings:
 
 issues:
   exclude-rules:
+  - path: ./
+    linters:
+    - typecheck
   - path: _test\.go
     linters:
     - gocyclo
