@@ -53,10 +53,10 @@ func TestTwoTierCache(t *testing.T) {
 		assert.False(t, expired)
 		assert.EqualValues(t, cachedData, string(data))
 
-		data, ok := cache.cache.Get(cacheID)
+		data, ok := cache.memcache.Get(cacheID)
 		assert.False(t, ok)
 		assert.Nil(t, data)
-		assert.Zero(t, cache.cache.Size())
+		assert.Zero(t, cache.memcache.Size())
 
 		t.Run("Not Fetching Remote When Not Expired", func(t *testing.T) {
 			// should not call fetch remote at the exact same time
@@ -71,10 +71,10 @@ func TestTwoTierCache(t *testing.T) {
 			assert.NoError(t, err)
 			assert.EqualValues(t, cachedData, string(data))
 
-			data, ok = cache.cache.Get(cacheID)
+			data, ok = cache.memcache.Get(cacheID)
 			assert.False(t, ok)
 			assert.Nil(t, data)
-			assert.Zero(t, cache.cache.Size())
+			assert.Zero(t, cache.memcache.Size())
 		})
 
 		t.Run("Always Fetch Remote On Expired", func(t *testing.T) {
@@ -89,10 +89,10 @@ func TestTwoTierCache(t *testing.T) {
 			assert.NoError(t, err)
 			assert.EqualValues(t, cachedData, string(data))
 
-			data, ok = cache.cache.Get(cacheID)
+			data, ok = cache.memcache.Get(cacheID)
 			assert.False(t, ok)
 			assert.Nil(t, data)
-			assert.Zero(t, cache.cache.Size())
+			assert.Zero(t, cache.memcache.Size())
 		})
 
 		t.Run("Use Expired When Fetch Remote Failed", func(t *testing.T) {
@@ -135,7 +135,7 @@ func TestTwoTierCache(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, cachedData, string(data))
 
-		data, ok := cache.cache.Get(cacheID)
+		data, ok := cache.memcache.Get(cacheID)
 		assert.True(t, ok)
 		assert.Equal(t, cachedData, string(data))
 
@@ -158,7 +158,7 @@ func TestTwoTierCache(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, cachedData, string(data))
 
-		data, ok := cache.cache.Get(cacheID)
+		data, ok := cache.memcache.Get(cacheID)
 		assert.False(t, ok)
 		assert.Nil(t, data)
 
@@ -180,7 +180,7 @@ func TestTwoTierCache(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, cachedData, string(data))
 
-		data, ok := cache.cache.Get(cacheID)
+		data, ok := cache.memcache.Get(cacheID)
 		assert.False(t, ok)
 		assert.Nil(t, data)
 
@@ -215,7 +215,7 @@ func TestFormatLocalCacheFilename(t *testing.T) {
 		{1234567890, "b", "b-" + strings.Repeat("0", 10) + "1234567890"},
 	} {
 		t.Run(fmt.Sprint(test.now), func(t *testing.T) {
-			assert.EqualValues(t, test.expected, formatLocalCacheFilename(test.prefix, test.now))
+			assert.EqualValues(t, test.expected, formatLocalCacheFilename(test.prefix, "", test.now))
 		})
 	}
 }
@@ -324,7 +324,7 @@ func TestLookupLocalCache_fs(t *testing.T) {
 		{"Valid Empty FS", fstest.MapFS{}, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			_, _, _, err := lookupLocalCache(test.fs, "", 0)
+			_, _, _, err := lookupLocalCache(test.fs, "", "", 0)
 			assert.ErrorIs(t, err, test.expErr)
 		})
 	}
@@ -332,9 +332,9 @@ func TestLookupLocalCache_fs(t *testing.T) {
 
 // nolint:revive
 func TestLookupLocalCache_entries(t *testing.T) {
-	foo_1 := formatLocalCacheFilename("foo", 1)
-	foo_100 := formatLocalCacheFilename("foo", 100)
-	foo_200 := formatLocalCacheFilename("foo", 200)
+	foo_1 := formatLocalCacheFilename("foo", "", 1)
+	foo_100 := formatLocalCacheFilename("foo", "", 100)
+	foo_200 := formatLocalCacheFilename("foo", "", 200)
 	foo_invalid_timestamp := "foo-0x1b"
 	fs := fstest.MapFS{
 		foo_1:   &fstest.MapFile{},
@@ -372,7 +372,7 @@ func TestLookupLocalCache_entries(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			active, expired, invalid, err := lookupLocalCache(fs, test.prefix, test.notBefore)
+			active, expired, invalid, err := lookupLocalCache(fs, test.prefix, "", test.notBefore)
 			assert.EqualValues(t, test.active, active)
 			assert.EqualValues(t, test.expired, expired)
 			assert.EqualValues(t, test.invalid, invalid)

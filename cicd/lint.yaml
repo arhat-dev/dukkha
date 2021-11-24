@@ -11,8 +11,7 @@ workflow:run:
       config:
       - __@http:presets#cached-file?str: tools/yamllint/config.yaml
     - tool: [golangci-lint]
-      # TODO: golangci-lint cannot recognize config without file extension
-      # config:
-      # - __@http:presets#cached-file?str: tools/golangci-lint/config.vendor.yaml
+      config:
+      - __@http:presets#cached-file?str: tools/golangci-lint/config.vendor.yaml
   jobs:
   - cmd@http:presets?str|tpl#use-spec: tools/http.tpl

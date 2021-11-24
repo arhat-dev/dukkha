@@ -25,3 +25,7 @@ func (s *inputSpec) ScopeUniqueID() string {
 	// return append([]byte(s.Archive), "|...|"+s.Path...))
 	return s.Archive
 }
+
+func (s *inputSpec) Ext() string {
+	return ""
+}

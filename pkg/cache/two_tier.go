@@ -45,19 +45,17 @@ func NewTwoTierCache(cacheDir string, itemMaxBytes, maxBytes, maxAgeSeconds int6
 		cacheDirPath: cacheDir,
 
 		itemMaxBytes: itemMaxBytes,
-		cacheDir:     os.DirFS(cacheDir),
-		cache:        lru.New(maxBytes, maxAgeSeconds),
+		cacheFS:      os.DirFS(cacheDir),
+		memcache:     lru.New(maxBytes, maxAgeSeconds),
 	}
 }
-
-// TODO: garbage collect cached file
 
 type TwoTierCache struct {
 	cacheDirPath string
 
 	itemMaxBytes int64
-	cacheDir     fs.FS
-	cache        *lru.LruCache
+	cacheFS      fs.FS
+	memcache     *lru.LruCache
 }
 
 // Get cached content
@@ -94,22 +92,28 @@ func (c *TwoTierCache) get(
 ) (file string, content []byte, isExpired bool, err error) {
 	if retConent {
 		var ok bool
-		content, ok = c.cache.Get(obj.ScopeUniqueID())
+		content, ok = c.memcache.Get(obj.ScopeUniqueID())
 		if ok {
 			return "", content, false, nil
 		}
 	}
 
 	cacheFilenamePrefix := formatCacheFilenamePrefix(obj.ScopeUniqueID())
-	active, expired, _, err := lookupLocalCache(c.cacheDir, cacheFilenamePrefix, now-c.cache.MaxAge)
+	suffix := obj.Ext()
+	active, expired, _, err := lookupLocalCache(
+		c.cacheFS, cacheFilenamePrefix, suffix, now-c.memcache.MaxAge,
+	)
 	if err != nil {
 		return "", nil, false, err
 	}
 
 	// actively remove all but last expired cache
-	if len(expired) != 0 {
+	if len(expired) > 1 {
 		for _, v := range expired[:len(expired)-1] {
 			v = filepath.Join(c.cacheDirPath, v)
+
+			// best effort
+			_ = os.Chmod(v, 0600)
 			err = os.Remove(v)
 			if err != nil {
 				log.Log.I("failed to remove expired cache",
@@ -120,10 +124,11 @@ func (c *TwoTierCache) get(
 	}
 
 	if len(active) != 0 {
+		// use latest active cache
 		file = active[len(active)-1]
 		isExpired = false
 		if retConent {
-			content, err = fs.ReadFile(c.cacheDir, file)
+			content, err = fs.ReadFile(c.cacheFS, file)
 		}
 
 		file = filepath.Join(c.cacheDirPath, file)
@@ -158,7 +163,7 @@ func (c *TwoTierCache) get(
 
 		if retConent {
 			var err2 error
-			content, err2 = fs.ReadFile(c.cacheDir, file)
+			content, err2 = fs.ReadFile(c.cacheFS, file)
 			if err2 != nil {
 				err = fmt.Errorf("%v: %w", err, err2)
 			}
@@ -170,7 +175,7 @@ func (c *TwoTierCache) get(
 	defer func() { _ = r.Close() }()
 
 	isExpired = false
-	file = formatLocalCacheFilename(cacheFilenamePrefix, now)
+	file = formatLocalCacheFilename(cacheFilenamePrefix, suffix, now)
 	file = filepath.Join(c.cacheDirPath, file)
 
 	size, content, err := storeLocalCache(file, r, retConent)
@@ -181,14 +186,14 @@ func (c *TwoTierCache) get(
 
 	// no error, handle in memory cache
 
-	if size > c.itemMaxBytes || size > c.cache.MaxSize {
+	if size > c.itemMaxBytes || size > c.memcache.MaxSize {
 		// do not cache this item since it's too large
 		return
 	}
 
 	// do not actively read from cached file
 	if retConent {
-		c.cache.Set(obj.ScopeUniqueID(), content)
+		c.memcache.Set(obj.ScopeUniqueID(), content)
 	}
 
 	return
@@ -198,19 +203,19 @@ func formatCacheFilenamePrefix(id string) string {
 	return hex.EncodeToString(md5helper.Sum([]byte(id)))
 }
 
-func formatLocalCacheFilename(cacheFilenamePrefix string, now int64) string {
+func formatLocalCacheFilename(prefix, suffix string, now int64) string {
 	timestamp := strconv.FormatInt(now, 10)
 	// int64 can have at most 20 digits
 	timestamp = strings.Repeat("0", 20-len(timestamp)) + timestamp
-	return cacheFilenamePrefix + "-" + timestamp
+	return prefix + "-" + timestamp + suffix
 }
 
 func storeLocalCache(
-	cacheFile string,
+	dest string,
 	r io.Reader,
 	returnContent bool,
 ) (int64, []byte, error) {
-	f, err := os.OpenFile(cacheFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -239,7 +244,9 @@ func storeLocalCache(
 // it will also delete all but last expired cache file
 func lookupLocalCache(
 	cacheDir fs.FS,
-	cacheFilenamePrefix string,
+	prefix string,
+	// optional suffix to cached file (e.g. ".yaml")
+	suffix string,
 	// notBefore is the unix timestamp, all cache created before this timetamp is marked as expired
 	notBefore int64,
 ) (active, expired, invalid []string, err error) {
@@ -258,33 +265,37 @@ func lookupLocalCache(
 		return
 	}
 
-	// check entries, which helps normalizing entry index rules for later processing
+	// ensure not working with entries
+	// helps normalizing entry index rules for later processing
 	if len(entries) == 0 {
 		return
 	}
 
-	// entries are sorted
+	// entries are sorted per fs.ReadDirFS.ReadDir requirement
+	// so we can do binary search directly
 	start := sort.Search(len(entries), func(i int) bool {
-		return strings.HasPrefix(entries[i].Name(), cacheFilenamePrefix)
+		return prefix < entries[i].Name()
 	})
 
 	if start == len(entries) {
-		// at the end of entries => no cache
+		// not found
 		return
 	}
 
-	latestAt := start
-	for ; latestAt+1 < len(entries); latestAt++ {
-		if !strings.HasPrefix(entries[latestAt+1].Name(), cacheFilenamePrefix) {
+	// find last entry with same prefix
+	// then we have a full list of cached data
+	end := start
+	for ; end+1 < len(entries); end++ {
+		if !strings.HasPrefix(entries[end+1].Name(), prefix) {
 			break
 		}
 	}
 
-	for _, info := range entries[start : latestAt+1] {
+	for _, info := range entries[start : end+1] {
 		filename := info.Name()
 
-		parts := strings.SplitN(filename, "-", 2)
-		if len(parts) != 2 || parts[0] != cacheFilenamePrefix {
+		parts := strings.SplitN(strings.TrimSuffix(filename, suffix), "-", 2)
+		if len(parts) != 2 || parts[0] != prefix {
 			// invalid cache file
 			invalid = append(invalid, filename)
 			continue

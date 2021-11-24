@@ -142,7 +142,7 @@ func NewRootCmd() *cobra.Command {
 
 	globalFlags := rootCmd.PersistentFlags()
 	globalFlags.StringSliceVarP(
-		&configPaths, "config", "c", []string{".dukkha.yaml", ".dukkha"},
+		&configPaths, "config", "c", []string{".dukkha.yaml"},
 		"path to your config files and directories, if a directory is provided"+
 			"only files with .yaml extension in that directory are parsed",
 	)

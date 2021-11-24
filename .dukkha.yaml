@@ -5,6 +5,7 @@ renderers:
   http:
     enable_cache: true
     cache_max_age: 5h
+
   env:
     enable_exec: true
 
