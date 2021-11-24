@@ -36,8 +36,8 @@ func (m Entry) MatchKV(key, value string) bool {
 }
 
 func (m Entry) Equals(a map[string]string) bool {
-	if a == nil {
-		return m == nil
+	if m == nil {
+		return a == nil
 	}
 
 	if len(a) != len(m) {

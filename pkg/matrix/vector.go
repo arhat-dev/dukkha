@@ -26,11 +26,7 @@ type Vector struct {
 
 func (v *Vector) Equals(a *Vector) bool {
 	if v == nil {
-		if a == nil {
-			return true
-		}
-
-		return false
+		return a == nil
 	}
 
 	if a == nil {

@@ -19,11 +19,7 @@ type Filter struct {
 
 func (f *Filter) Equals(a *Filter) bool {
 	if f == nil {
-		if a == nil {
-			return true
-		}
-
-		return false
+		return a == nil
 	}
 
 	if a == nil {
