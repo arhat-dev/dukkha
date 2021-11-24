@@ -18,7 +18,6 @@ package conf
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"arhat.dev/pkg/log"
@@ -163,11 +162,6 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		cacheDir, err = filepath.Abs(cacheDir)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute path of cache dir: %w", err)
-		}
-
-		err = os.MkdirAll(cacheDir, 0750)
-		if err != nil && !os.IsExist(err) {
-			return fmt.Errorf("failed to ensure cache dir: %w", err)
 		}
 
 		if len(c.Global.DefaultGitBranch) != 0 {
