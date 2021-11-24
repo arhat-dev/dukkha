@@ -5,7 +5,11 @@ package constant
 // TODO: determine apple arch
 func GetAppleArch(mArch string) (string, bool) {
 	v, ok := map[string]string{
-		ARCH_AMD64: "x86_64",
+		ARCH_AMD64:    "x86_64",
+		ARCH_AMD64_V1: "x86_64",
+		ARCH_AMD64_V2: "x86_64",
+		ARCH_AMD64_V3: "x86_64",
+		ARCH_AMD64_V4: "x86_64",
 
 		// arm64 for m1 chip, arm64e for A12 - before m1
 		ARCH_ARM64: "arm64",
@@ -21,8 +25,12 @@ func GetAppleArch(mArch string) (string, bool) {
 		ARCH_PPC_LE:    "",
 		ARCH_PPC_LE_SF: "",
 
-		ARCH_PPC64:    "",
-		ARCH_PPC64_LE: "",
+		ARCH_PPC64:       "",
+		ARCH_PPC64_LE:    "",
+		ARCH_PPC64_V8:    "",
+		ARCH_PPC64_V8_LE: "",
+		ARCH_PPC64_V9:    "",
+		ARCH_PPC64_V9_LE: "",
 
 		ARCH_MIPS:         "",
 		ARCH_MIPS_SF:      "",
@@ -44,7 +52,11 @@ func GetAppleArch(mArch string) (string, bool) {
 
 func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
 	v, ok := map[string]string{
-		ARCH_AMD64: "x86_64-apple-darwin",
+		ARCH_AMD64:    "x86_64-apple-darwin",
+		ARCH_AMD64_V1: "x86_64-apple-darwin",
+		ARCH_AMD64_V2: "x86_64-apple-darwin",
+		ARCH_AMD64_V3: "x86_64-apple-darwin",
+		ARCH_AMD64_V4: "x86_64-apple-darwin",
 
 		ARCH_ARM64: "arm64-apple-darwin",
 
@@ -59,8 +71,12 @@ func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
 		ARCH_PPC_LE:    "",
 		ARCH_PPC_LE_SF: "",
 
-		ARCH_PPC64:    "",
-		ARCH_PPC64_LE: "",
+		ARCH_PPC64:       "",
+		ARCH_PPC64_LE:    "",
+		ARCH_PPC64_V8:    "",
+		ARCH_PPC64_V8_LE: "",
+		ARCH_PPC64_V9:    "",
+		ARCH_PPC64_V9_LE: "",
 
 		ARCH_MIPS:         "",
 		ARCH_MIPS_SF:      "",

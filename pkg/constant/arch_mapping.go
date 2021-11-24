@@ -83,7 +83,66 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
+	ARCH_AMD64_V1: {
+		Alpine: "x86_64",
+		Debian: "amd64",
+		GNU:    "x86_64",
 
+		Golang: "amd64",
+		Docker: "amd64",
+		OCI:    "amd64",
+
+		Qemu: "x86_64",
+
+		DockerHub: "amd64",
+
+		LLVM: "x86_64",
+	},
+	ARCH_AMD64_V2: {
+		Alpine: "x86_64",
+		Debian: "amd64",
+		GNU:    "x86_64",
+
+		Golang: "amd64",
+		Docker: "amd64",
+		OCI:    "amd64",
+
+		Qemu: "x86_64",
+
+		DockerHub: "amd64",
+
+		LLVM: "x86_64",
+	},
+	ARCH_AMD64_V3: {
+		Alpine: "x86_64",
+		Debian: "amd64",
+		GNU:    "x86_64",
+
+		Golang: "amd64",
+		Docker: "amd64",
+		OCI:    "amd64",
+
+		Qemu: "x86_64",
+
+		DockerHub: "amd64",
+
+		LLVM: "x86_64",
+	},
+	ARCH_AMD64_V4: {
+		Alpine: "x86_64",
+		Debian: "amd64",
+		GNU:    "x86_64",
+
+		Golang: "amd64",
+		Docker: "amd64",
+		OCI:    "amd64",
+
+		Qemu: "x86_64",
+
+		DockerHub: "amd64",
+
+		LLVM: "x86_64",
+	},
 	ARCH_ARM_V5: {
 		Alpine: "armv5l",
 		Debian: "armel",
@@ -144,7 +203,6 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "aarch64",
 	},
-
 	ARCH_PPC: {
 		Alpine: "",
 		Debian: "powerpc",
@@ -222,6 +280,66 @@ var archMapping = map[string]ArchMappingValues{
 		LLVM: "",
 	},
 	ARCH_PPC64_LE: {
+		Alpine: "ppc64le",
+		Debian: "ppc64el",
+		GNU:    "powerpc64le",
+
+		Golang: "ppc64le",
+		Docker: "ppc64le",
+		OCI:    "ppc64le",
+
+		Qemu: "ppc64le",
+
+		DockerHub: "ppc64le",
+
+		LLVM: "ppc64le",
+	},
+	ARCH_PPC64_V8: {
+		Alpine: "ppc64",
+		Debian: "ppc64",
+		GNU:    "powerpc64",
+
+		Golang: "ppc64",
+		Docker: "ppc64",
+		OCI:    "ppc64",
+
+		Qemu: "ppc64",
+
+		DockerHub: "",
+
+		LLVM: "",
+	},
+	ARCH_PPC64_V8_LE: {
+		Alpine: "ppc64le",
+		Debian: "ppc64el",
+		GNU:    "powerpc64le",
+
+		Golang: "ppc64le",
+		Docker: "ppc64le",
+		OCI:    "ppc64le",
+
+		Qemu: "ppc64le",
+
+		DockerHub: "ppc64le",
+
+		LLVM: "ppc64le",
+	},
+	ARCH_PPC64_V9: {
+		Alpine: "ppc64",
+		Debian: "ppc64",
+		GNU:    "powerpc64",
+
+		Golang: "ppc64",
+		Docker: "ppc64",
+		OCI:    "ppc64",
+
+		Qemu: "ppc64",
+
+		DockerHub: "",
+
+		LLVM: "",
+	},
+	ARCH_PPC64_V9_LE: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",

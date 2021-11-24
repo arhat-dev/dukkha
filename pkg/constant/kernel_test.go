@@ -34,6 +34,14 @@ func TestKernelMapping(t *testing.T) {
 			name:        "DockerOS",
 			mappingFunc: GetDockerOS,
 		},
+		{
+			name:        "Golang OS",
+			mappingFunc: GetGolangOS,
+		},
+		{
+			name:        "OCI OS",
+			mappingFunc: GetOciOS,
+		},
 	}
 
 	for _, test := range tests {

@@ -6,8 +6,12 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 	// NOTE: some arch value in triple name is different from alpine arch
 	// 		 so we cannot do the same conversion as GNU/LLVM triple does
 	v, ok := map[string]string{
-		ARCH_X86:   "i686-linux-musl",
-		ARCH_AMD64: "x86_64-linux-musl",
+		ARCH_X86:      "i686-linux-musl",
+		ARCH_AMD64:    "x86_64-linux-musl",
+		ARCH_AMD64_V1: "x86_64-linux-musl",
+		ARCH_AMD64_V2: "x86_64-linux-musl",
+		ARCH_AMD64_V3: "x86_64-linux-musl",
+		ARCH_AMD64_V4: "x86_64-linux-musl",
 
 		ARCH_ARM_V5: "armv5l-linux-musleabi",
 		ARCH_ARM_V6: "armv6-linux-musleabihf",
@@ -19,8 +23,12 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 		ARCH_PPC_LE:    "powerpcle-linux-musl",
 		ARCH_PPC_LE_SF: "powerpcle-linux-muslsf",
 
-		ARCH_PPC64:    "powerpc64-linux-musl",
-		ARCH_PPC64_LE: "powerpc64le-linux-musl",
+		ARCH_PPC64:       "powerpc64-linux-musl",
+		ARCH_PPC64_LE:    "powerpc64le-linux-musl",
+		ARCH_PPC64_V8:    "powerpc64-linux-musl",
+		ARCH_PPC64_V8_LE: "powerpc64le-linux-musl",
+		ARCH_PPC64_V9:    "powerpc64-linux-musl",
+		ARCH_PPC64_V9_LE: "powerpc64le-linux-musl",
 
 		ARCH_MIPS:         "mips-linux-musl",
 		ARCH_MIPS_SF:      "mips-linux-muslsf",
@@ -51,8 +59,12 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		// https://packages.debian.org/buster/musl-dev
 		// check list of files
 		v, ok := map[string]string{
-			ARCH_X86:   "i386-linux-musl",
-			ARCH_AMD64: "x86_64-linux-musl",
+			ARCH_X86:      "i386-linux-musl",
+			ARCH_AMD64:    "x86_64-linux-musl",
+			ARCH_AMD64_V1: "x86_64-linux-musl",
+			ARCH_AMD64_V2: "x86_64-linux-musl",
+			ARCH_AMD64_V3: "x86_64-linux-musl",
+			ARCH_AMD64_V4: "x86_64-linux-musl",
 
 			ARCH_ARM_V5: "arm-linux-musleabi",
 			ARCH_ARM_V6: "arm-linux-musleabi",
@@ -85,8 +97,12 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			ARCH_PPC_LE:    "",
 			ARCH_PPC_LE_SF: "",
 
-			ARCH_PPC64:    "",
-			ARCH_PPC64_LE: "",
+			ARCH_PPC64:       "",
+			ARCH_PPC64_LE:    "",
+			ARCH_PPC64_V8:    "",
+			ARCH_PPC64_V8_LE: "",
+			ARCH_PPC64_V9:    "",
+			ARCH_PPC64_V9_LE: "",
 		}[mArch]
 
 		return v, ok
@@ -97,7 +113,11 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			ARCH_X86: "i686-w64-mingw32",
 			// https://packages.debian.org/buster/mingw-w64-x86-64-dev
 			// check list of files
-			ARCH_AMD64: "x86_64-w64-mingw32",
+			ARCH_AMD64:    "x86_64-w64-mingw32",
+			ARCH_AMD64_V1: "x86_64-w64-mingw32",
+			ARCH_AMD64_V2: "x86_64-w64-mingw32",
+			ARCH_AMD64_V3: "x86_64-w64-mingw32",
+			ARCH_AMD64_V4: "x86_64-w64-mingw32",
 
 			ARCH_IA64: "",
 
@@ -111,8 +131,12 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			ARCH_PPC_LE:    "",
 			ARCH_PPC_LE_SF: "",
 
-			ARCH_PPC64:    "",
-			ARCH_PPC64_LE: "",
+			ARCH_PPC64:       "",
+			ARCH_PPC64_LE:    "",
+			ARCH_PPC64_V8:    "",
+			ARCH_PPC64_V8_LE: "",
+			ARCH_PPC64_V9:    "",
+			ARCH_PPC64_V9_LE: "",
 
 			ARCH_MIPS:         "",
 			ARCH_MIPS_SF:      "",
@@ -132,16 +156,24 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		fallthrough
 	default:
 		v, ok := map[string]string{
-			ARCH_X86:   "i686-linux-gnu",
-			ARCH_AMD64: "x86_64-linux-gnu",
+			ARCH_X86:      "i686-linux-gnu",
+			ARCH_AMD64:    "x86_64-linux-gnu",
+			ARCH_AMD64_V1: "x86_64-linux-gnu",
+			ARCH_AMD64_V2: "x86_64-linux-gnu",
+			ARCH_AMD64_V3: "x86_64-linux-gnu",
+			ARCH_AMD64_V4: "x86_64-linux-gnu",
 
 			ARCH_ARM_V5: "arm-linux-gnueabi",
 			ARCH_ARM_V6: "arm-linux-gnueabi",
 			ARCH_ARM_V7: "arm-linux-gnueabihf",
 			ARCH_ARM64:  "aarch64-linux-gnu",
 
-			ARCH_PPC64:    "powerpc64-linux-gnu",
-			ARCH_PPC64_LE: "powerpc64le-linux-gnu",
+			ARCH_PPC64:       "powerpc64-linux-gnu",
+			ARCH_PPC64_LE:    "powerpc64le-linux-gnu",
+			ARCH_PPC64_V8:    "powerpc64-linux-gnu",
+			ARCH_PPC64_V8_LE: "powerpc64le-linux-gnu",
+			ARCH_PPC64_V9:    "powerpc64-linux-gnu",
+			ARCH_PPC64_V9_LE: "powerpc64le-linux-gnu",
 
 			ARCH_MIPS:         "mips-linux-gnu",
 			ARCH_MIPS_SF:      "mips-linux-gnu",
