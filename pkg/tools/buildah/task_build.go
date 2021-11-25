@@ -354,6 +354,8 @@ func createManifestPlatformQueryForDigest(mKernel, mArch string) string {
 		manifestOsArchVariantQueryForDigest += fmt.Sprintf(
 			` and (.platform.variant == "%s")`, variant,
 		)
+	} else {
+		manifestOsArchVariantQueryForDigest += ` and select(.platform.variant == "" or  .platform.variant == null)`
 	}
 
 	return manifestOsArchVariantQueryForDigest + `) | .digest`

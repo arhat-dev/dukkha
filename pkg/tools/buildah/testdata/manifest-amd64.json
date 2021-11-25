@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.docker.distribution.manifest.list.v2+json",
+  "manifests": [
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 1260,
+      "digest": "amd64v4",
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux",
+        "variant": "v4"
+      }
+    },
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 1259,
+      "digest": "amd64v3",
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux",
+        "variant": "v3"
+      }
+    },
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 1259,
+      "digest": "amd64v2",
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux",
+        "variant": "v2"
+      }
+    },
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 1260,
+      "digest": "amd64v1",
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux",
+        "variant": "v1"
+      }
+    },
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 1262,
+      "digest": "amd64",
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      }
+    }
+  ]
+}
