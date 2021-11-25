@@ -8,17 +8,14 @@ buildah:login:
 
 buildah:push:
 - name: dukkha
-  matrix: &matrix
-    kernel:
-    - linux
-    arch@http:presets: matrix/container/linux/all.yml
+  matrix@file: &matrix cicd/images/matrix.yml
   image_names: &image_names
   - image: ghcr.io/arhat-dev/dukkha
     manifest: ghcr.io/arhat-dev/dukkha
 
 buildah:xbuild:
 - name: dukkha
-  matrix: *matrix
+  matrix@file: *matrix
   image_names: *image_names
   steps:
   - id: builder
