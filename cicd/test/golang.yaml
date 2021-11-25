@@ -18,8 +18,8 @@ golang:test:
   __@tpl#use-spec:
     template: |-
       {{- include "golang.test.pkg" . -}}
-    include@:
-    - __@http:presets#cached-file: golang/test/pkg.yml
+    include:
+    - path@http:presets#cached-file: golang/test/pkg.yml
     variables:
       profile_dir@tpl: |-
         {{- env.PROFILE_DIR -}}

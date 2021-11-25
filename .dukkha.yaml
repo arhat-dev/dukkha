@@ -12,7 +12,7 @@ renderers:
 
   tpl:
     include:
-    - cicd/artifacts/bin-name.tpl
+    - path: cicd/artifacts/bin-name.tpl
 
   http:presets:
     cache:
@@ -44,9 +44,9 @@ tools:
     cmd@tpl#use-spec:
       template: |-
         {{- include "golang.cmd.ctr" . -}}
-      include@:
-      - __@http:presets#cached-file: templates/image/flavored-tag.tpl
-      - __@http:presets#cached-file: golang/cmd/ctr.yml
+      include:
+      - path@http:presets#cached-file: templates/image/flavored-tag.tpl
+      - path@http:presets#cached-file: golang/cmd/ctr.yml
 
       variables:
         version@env?str: ${GO_VERSION}
@@ -58,8 +58,8 @@ tools:
     cmd@tpl#use-spec:
       template: |-
         {{- include "cosign.cmd.ctr" . -}}
-      include@:
-      - __@http:presets#cached-file?str: cosign/cmd/ctr.yml
+      include:
+      - path@http:presets#cached-file?str: cosign/cmd/ctr.yml
 
   # docker is required by cosign upload (login to docker registry)
   docker:
@@ -78,8 +78,8 @@ tools:
       template: |-
         {{- include "buildah.cmd.ctr" . -}}
 
-      include@:
-      - __@http:presets#cached-file?str: buildah/cmd/ctr.yml
+      include:
+      - path@http:presets#cached-file?str: buildah/cmd/ctr.yml
 
       variables:
         run_ctr@tpl#use-spec:

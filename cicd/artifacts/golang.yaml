@@ -4,8 +4,8 @@ golang:build:
   __@tpl#use-spec:
     template: |-
       {{- include "golang.build.cmd" . -}}
-    include@:
-    - __@http:presets#cached-file: golang/build/cmd.yml
+    include:
+    - path@http:presets#cached-file: golang/build/cmd.yml
   tags:
   - netgo
   - osusergo
