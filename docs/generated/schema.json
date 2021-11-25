@@ -1730,11 +1730,11 @@
       "properties": {
         "include": {
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.includeSpec"
           },
           "type": "array",
-          "description": "templates from local files/dirs",
-          "x-intellij-html-description": "templates from local files/dirs"
+          "description": "templates",
+          "x-intellij-html-description": "templates"
         },
         "variables": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
@@ -1749,11 +1749,11 @@
       "patternProperties": {
         "^include@.*": {
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.includeSpec"
           },
           "type": "array",
-          "description": "templates from local files/dirs",
-          "x-intellij-html-description": "templates from local files/dirs"
+          "description": "templates",
+          "x-intellij-html-description": "templates"
         },
         "^include@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1764,6 +1764,43 @@
           "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
         },
         "^variables@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.renderer.tpl.includeSpec": {
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "to local files/dirs",
+          "x-intellij-html-description": "to local files/dirs"
+        },
+        "text": {
+          "type": "string",
+          "description": "plain text template to be included",
+          "x-intellij-html-description": "plain text template to be included"
+        }
+      },
+      "preferredOrder": [
+        "path",
+        "text"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^path@.*": {
+          "type": "string",
+          "description": "to local files/dirs",
+          "x-intellij-html-description": "to local files/dirs"
+        },
+        "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^text@.*": {
+          "type": "string",
+          "description": "plain text template to be included",
+          "x-intellij-html-description": "plain text template to be included"
+        },
+        "^text@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

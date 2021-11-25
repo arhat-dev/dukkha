@@ -1,0 +1,12 @@
+result@tpl#use-spec?str:
+  include:
+  - text: testdata/foo.tpl
+  - text: testdata/foo.tpl
+  - text: testdata/foo.tpl
+  - text: testdata/foo.tpl
+  - text: testdata/no-define.tpl
+  template: |-
+    {{- include "#4" . -}}
+---
+result: |-
+  testdata/no-define.tpl

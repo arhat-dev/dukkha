@@ -78,7 +78,7 @@ func (d *Driver) RenderYaml(
 	}
 
 	var (
-		include   []string
+		include   []*includeSpec
 		variables map[string]interface{}
 		tplStr    string
 	)
@@ -129,25 +129,33 @@ func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte) (*inputSpec, 
 
 func renderTemplate(
 	rc dukkha.RenderingContext,
-	inc []string,
+	inc []*includeSpec,
 	variables map[string]interface{},
 
 	tplStr string,
 ) ([]byte, error) {
 	_fs := afero.NewIOFS(afero.NewOsFs())
 
-	var include []string
+	var (
+		includeFiles []string
+		includeText  []string
+	)
 	for _, inc := range inc {
-		matches, err := doublestar.Glob(_fs, inc)
-		if err != nil {
-			_, err2 := os.Stat(inc)
-			if err2 != nil {
-				return nil, err
-			}
+		switch {
+		case len(inc.Path) != 0:
+			matches, err := doublestar.Glob(_fs, inc.Path)
+			if err != nil {
+				_, err2 := os.Stat(inc.Path)
+				if err2 != nil {
+					return nil, err
+				}
 
-			include = append(include, inc)
-		} else {
-			include = append(include, matches...)
+				includeFiles = append(includeFiles, inc.Path)
+			} else {
+				includeFiles = append(includeFiles, matches...)
+			}
+		case len(inc.Text) != 0:
+			includeText = append(includeText, inc.Text)
 		}
 	}
 
@@ -160,7 +168,7 @@ func renderTemplate(
 	definedTemplates := make(map[string]struct{})
 	var tplList []*template.Template
 
-	for _, inc := range include {
+	for _, inc := range includeFiles {
 		// TODO: cache template files in memory
 		// 	     maybe also parsed templates if we are sure rendering context
 		// 	     is handled correctly
@@ -173,7 +181,7 @@ func renderTemplate(
 		name := filepath.Base(inc)
 		incTpl, err := tpl.New(name).Parse(string(tplBytes))
 		if err != nil {
-			return nil, fmt.Errorf("invalid template %q: %w", inc, err)
+			return nil, fmt.Errorf("invalid template file %q: %w", inc, err)
 		}
 
 		tplList = append(tplList, incTpl)
@@ -182,6 +190,14 @@ func renderTemplate(
 	}
 
 	tplListSize := int64(len(tplList))
+
+	for i, inc := range includeText {
+		name := "#" + strconv.FormatInt(int64(i), 10)
+		_, err := tpl.New(name).Parse(inc)
+		if err != nil {
+			return nil, fmt.Errorf("invalid template text %s: %w", inc, err)
+		}
+	}
 
 	for _, v := range tpl.Templates() {
 		definedTemplates[v.Name()] = struct{}{}

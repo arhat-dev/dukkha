@@ -2,11 +2,21 @@ package tpl
 
 import "arhat.dev/rs"
 
+type includeSpec struct {
+	rs.BaseField
+
+	// Path to local files/dirs
+	Path string `yaml:"path"`
+
+	// Text is the plain text template to be included
+	Text string `yaml:"text"`
+}
+
 type configSpec struct {
 	rs.BaseField
 
-	// Include templates from local files/dirs
-	Include []string `yaml:"include"`
+	// Include templates
+	Include []*includeSpec `yaml:"include"`
 
 	// Variables are a map of any data
 	//

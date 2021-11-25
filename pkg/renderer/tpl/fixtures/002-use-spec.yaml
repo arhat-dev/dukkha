@@ -1,10 +1,15 @@
 result@tpl#use-spec?str:
   include:
-  - testdata/*.tpl
-  - testdata/**/*.tpl
+  - path: testdata/*.tpl
+  - path: testdata/**/*.tpl
+  - text: |-
+      {{- define "test-text-template" -}}
+        test-text-template
+      {{- end -}}
   template: |-
     {{ template "foo" }}
     {{ template "bar" }}
+    {{ template "test-text-template" }}
   variables:
     foo: "foo"
     bar: "bar"
@@ -12,3 +17,4 @@ result@tpl#use-spec?str:
 result: |-
   foo: foo
   bar: bar
+  test-text-template
