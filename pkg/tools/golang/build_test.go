@@ -47,12 +47,20 @@ func TestCreateBuildEnv(t *testing.T) {
 	goarchTests := []struct {
 		mArch string
 
-		goarch string
-		goarm  string
-		gomips string
+		goarch  string
+		goarm   string
+		gomips  string
+		goamd64 string
+		goppc64 string
 	}{
 		{mArch: constant.ARCH_X86, goarch: "386"},
 		{mArch: constant.ARCH_AMD64, goarch: "amd64"},
+
+		{mArch: constant.ARCH_AMD64_V1, goarch: "amd64", goamd64: "v1"},
+		{mArch: constant.ARCH_AMD64_V2, goarch: "amd64", goamd64: "v2"},
+		{mArch: constant.ARCH_AMD64_V3, goarch: "amd64", goamd64: "v3"},
+		{mArch: constant.ARCH_AMD64_V4, goarch: "amd64", goamd64: "v4"},
+
 		{mArch: constant.ARCH_ARM64, goarch: "arm64"},
 
 		{mArch: constant.ARCH_ARM_V5, goarch: "arm", goarm: "5"},
@@ -77,6 +85,10 @@ func TestCreateBuildEnv(t *testing.T) {
 
 		{mArch: constant.ARCH_PPC64, goarch: "ppc64"},
 		{mArch: constant.ARCH_PPC64_LE, goarch: "ppc64le"},
+		{mArch: constant.ARCH_PPC64_V8, goarch: "ppc64", goppc64: "power8"},
+		{mArch: constant.ARCH_PPC64_V8_LE, goarch: "ppc64le", goppc64: "power8"},
+		{mArch: constant.ARCH_PPC64_V9, goarch: "ppc64", goppc64: "power9"},
+		{mArch: constant.ARCH_PPC64_V9_LE, goarch: "ppc64le", goppc64: "power9"},
 
 		{mArch: constant.ARCH_RISCV_64, goarch: "riscv64"},
 
@@ -106,6 +118,7 @@ func TestCreateBuildEnv(t *testing.T) {
 					Value: test.goarm,
 				})
 			}
+
 			if len(test.gomips) != 0 {
 				expected = append(expected, &dukkha.EnvEntry{
 					Name:  "GOMIPS",
@@ -113,6 +126,20 @@ func TestCreateBuildEnv(t *testing.T) {
 				}, &dukkha.EnvEntry{
 					Name:  "GOMIPS64",
 					Value: test.gomips,
+				})
+			}
+
+			if len(test.goamd64) != 0 {
+				expected = append(expected, &dukkha.EnvEntry{
+					Name:  "GOAMD64",
+					Value: test.goamd64,
+				})
+			}
+
+			if len(test.goppc64) != 0 {
+				expected = append(expected, &dukkha.EnvEntry{
+					Name:  "GOPPC64",
+					Value: test.goppc64,
 				})
 			}
 

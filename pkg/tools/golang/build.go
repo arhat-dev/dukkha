@@ -48,12 +48,20 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 			Name:  "GOMIPS64",
 			Value: gomips,
 		})
-	}
-
-	if goarm := getGOARM(v.MatrixArch()); len(goarm) != 0 {
+	} else if goarm := getGOARM(v.MatrixArch()); len(goarm) != 0 {
 		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOARM",
 			Value: goarm,
+		})
+	} else if goamd64 := getGOAMD64(v.MatrixArch()); len(goamd64) != 0 {
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOAMD64",
+			Value: goamd64,
+		})
+	} else if goppc64 := getGOPPC64(v.MatrixArch()); len(goppc64) != 0 {
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOPPC64",
+			Value: goppc64,
 		})
 	}
 
@@ -63,6 +71,14 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		v.HostOS(),
 		v.MatrixLibc(),
 	)...)
+}
+
+func getGOAMD64(mArch string) string {
+	if strings.HasPrefix(mArch, "amd64v") {
+		return strings.TrimPrefix(mArch, "amd64")
+	}
+
+	return ""
 }
 
 func getGOARM(mArch string) string {
@@ -83,6 +99,16 @@ func getGOMIPS(mArch string) string {
 	}
 
 	return "hardfloat"
+}
+
+func getGOPPC64(mArch string) string {
+	if !strings.HasPrefix(mArch, "ppc64v") {
+		return ""
+	}
+
+	// power8 or power9
+	return "power" + strings.TrimSuffix(
+		strings.TrimPrefix(mArch, "ppc64v"), "le")
 }
 
 type buildOptions struct {
