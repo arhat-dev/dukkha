@@ -1,0 +1,9 @@
+query:
+  kernel: linux
+  arch: amd64
+
+manifest@file?str: testdata/manifest-amd64.json
+---
+expect_err: false
+digests:
+- amd64
