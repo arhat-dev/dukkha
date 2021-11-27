@@ -1,0 +1,45 @@
+workflow:run:
+# merge yaml config using dukkha render
+- name: prepare-linter-config
+  matrix:
+    include:
+    - local:
+      - cicd/lint/config/golangci-lint.yml
+      preset:
+      - tools/golangci-lint/config.vendor.yaml
+      output:
+      - &golangci_lint_config
+        __@tpl: |-
+          {{- filepath.Join env.DUKKHA_CACHE_DIR "golangci-lint.yaml" -}}
+  jobs:
+  - idle@tpl: |-
+      {{- os.MkdirAll env.DUKKHA_CACHE_DIR -}}
+  - shell: |-
+      dukkha render --chdir . <<EOF > "${MATRIX_OUTPUT}"
+      __@!:
+        value@http:presets: ${MATRIX_PRESET}
+        merge:
+        - value@file: ${MATRIX_LOCAL}
+        map_list_append: true
+      EOF
+
+# required by ci job
+- name: lint
+  matrix:
+    include:
+    - tool: [editorconfig-checker]
+      config:
+      - __@http:presets#cached-file?str: tools/editorconfig-checker/config.json
+    - tool: [shellcheck]
+    - tool: [yamllint]
+      config:
+      - __@http:presets#cached-file?str: tools/yamllint/config.yaml
+    - tool: [golangci-lint]
+      config:
+      - *golangci_lint_config
+  hooks:
+    before:
+    - task: workflow:run(prepare-linter-config, {})
+
+  jobs:
+  - cmd@http:presets?str|tpl#use-spec: tools/http.tpl

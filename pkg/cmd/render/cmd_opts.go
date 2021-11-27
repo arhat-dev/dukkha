@@ -30,6 +30,8 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 
 	// validate input source, and prepare rendering specs for each of them
 	if len(args) == 0 {
+		// stdin input without using `-`, generalize this case
+		args = []string{"-"}
 		ret._specs["-"] = &renderingSpec{}
 	} else {
 		foundStdin := false
@@ -48,11 +50,22 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 		}
 	}
 
+	// length of args is at least 1
+
 	// validate chdir options
 	if len(opts.chdir) > len(args) {
 		return nil, fmt.Errorf(
 			"too many chdir options: more than the count of input source (%d)",
 			len(args),
+		)
+	}
+
+	// count of output destinations
+	// can either be 0 or equals count of input sources
+	if destCount := len(opts.outputDests); destCount != 0 && destCount != len(args) {
+		return nil, fmt.Errorf(
+			"destination count and source count not match: source = %d, dest = %d",
+			len(args), len(opts.outputDests),
 		)
 	}
 
@@ -73,31 +86,22 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 		}
 	}
 
-	if len(opts.outputDests) != 0 {
-		switch {
-		case len(args) == 0 && len(opts.outputDests) != 1:
-			return nil, fmt.Errorf("only one destination can be set for stdin input")
-		case len(opts.outputDests) != len(args):
-			return nil, fmt.Errorf(
-				"destination count and source count not match: source = %d, dest = %d",
-				len(args), len(opts.outputDests),
-			)
+	for i, dst := range opts.outputDests {
+		src := args[i]
+
+		path, err := filepath.Abs(dst)
+		if err != nil {
+			return nil, err
 		}
 
-		for i, dst := range opts.outputDests {
-			src := args[i]
-
-			path, err := filepath.Abs(dst)
-			if err != nil {
-				return nil, err
-			}
-
-			ret._specs[src].outputPath = &path
-		}
+		ret._specs[src].outputPath = &path
 	}
 
 	for i, chdir := range opts.chdir {
 		if chdir == "" {
+			// no path provided, use default, if wish to stay at current dir
+			// it should be "."
+
 			continue
 		}
 
@@ -118,7 +122,8 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 			continue
 		}
 
-		info, err := os.Stat(src)
+		// do not follow symlink
+		info, err := os.Lstat(src)
 		if err != nil {
 			return nil, fmt.Errorf("invalid input source: %w", err)
 		}
@@ -128,7 +133,7 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 			// we are going to chdir into src dicrectory, or we
 			// have already been there
 			//
-			// so the entrypoint is always current dir
+			// so the entrypoint is always the current dir
 			ret._specs[src].entrypoint = "."
 			chdir = src
 		} else {
@@ -141,6 +146,7 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 			chdir = filepath.Dir(src)
 		}
 
+		// only set default, do not override
 		if len(ret._specs[src].chdir) == 0 {
 			ret._specs[src].chdir, err = filepath.Abs(chdir)
 			if err != nil {

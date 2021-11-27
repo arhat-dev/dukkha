@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://json.schemastore.org/golangci-lint.json
+
+# linters:
+#   enable:
+#   - goheader
+#
+# linters-settings:
+#   goheader:
+#     template: |-
+#       SPDX-License-Identifier: Apache-2.0
