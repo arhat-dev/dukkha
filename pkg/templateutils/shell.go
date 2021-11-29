@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"mvdan.cc/sh/v3/expand"
@@ -144,6 +145,39 @@ func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (strin
 	}
 }
 
+func newDevNull() io.ReadWriteCloser {
+	return &devNull{
+		ch: make(chan struct{}),
+	}
+}
+
+type devNull struct {
+	ch chan struct{}
+}
+
+func (r *devNull) Write(p []byte) (int, error) { return io.Discard.Write(p) }
+
+func (r *devNull) Read(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	// mock actual read from /dev/null, always block
+	<-r.ch
+	return 0, io.EOF
+}
+
+func (r *devNull) Close() error {
+	select {
+	case <-r.ch:
+		// already closed
+	default:
+		close(r.ch)
+	}
+
+	return nil
+}
+
 func CreateEmbeddedShellRunner(
 	workingDir string,
 	rc dukkha.RenderingContext,
@@ -152,12 +186,34 @@ func CreateEmbeddedShellRunner(
 	stderr io.Writer,
 ) (*interp.Runner, error) {
 	cmdExecHandler := interp.DefaultExecHandler(0)
+
 	return interp.New(
 		interp.Env(rc),
 		interp.Dir(workingDir),
 		interp.StdIO(stdin, stdout, stderr),
 		interp.Params("-e"),
-		interp.ExecHandler(func(ctx context.Context, args []string) error {
+		interp.OpenHandler(func(
+			ctx context.Context,
+			path string,
+			flag int,
+			perm os.FileMode,
+		) (io.ReadWriteCloser, error) {
+			if !filepath.IsAbs(path) {
+				hc := interp.HandlerCtx(ctx)
+				path = filepath.Join(hc.Dir, path)
+			}
+
+			switch path {
+			case "/dev/null":
+				return newDevNull(), nil
+			default:
+				return os.OpenFile(path, flag, perm)
+			}
+		}),
+		interp.ExecHandler(func(
+			ctx context.Context,
+			args []string,
+		) error {
 			hc := interp.HandlerCtx(ctx)
 
 			if !strings.HasPrefix(args[0], "tpl:") {
