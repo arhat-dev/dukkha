@@ -194,10 +194,22 @@ func splitList(path string) []string {
 	if path == "" {
 		return []string{""}
 	}
-	list := strings.Split(path, ":")
+
+	list := filepath.SplitList(path)
 	if runtime.GOOS != "windows" {
 		return list
 	}
+
+	// on windows, handle both ';' and ':' separator
+
+	if len(list) != 1 {
+		// was separated by ';'
+		return list
+	}
+
+	// maybe separated by ':', give it a try
+	list = strings.Split(path, ":")
+
 	// join "C", "/foo" into "C:/foo"
 	var fixed []string
 	for i := 0; i < len(list); i++ {
