@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 	"time"
 
@@ -283,7 +283,7 @@ func doRun(
 			output.WriteExecStart(
 				ctx.PrefixColor(),
 				ctx.CurrentTool(), cmd,
-				filepath.Base(shellCmd[len(shellCmd)-1])[:7],
+				path.Base(shellCmd[len(shellCmd)-1])[:7],
 			)
 
 			cmd = shellCmd

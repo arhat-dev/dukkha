@@ -24,12 +24,14 @@ func init() {
 
 func newTaskSignImage(toolName string) dukkha.Task {
 	t := &TaskSignImage{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindSignImage, t)
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 	return t
 }
 
 type TaskSignImage struct {
 	rs.BaseField
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -37,6 +39,12 @@ type TaskSignImage struct {
 
 	// ImageNames
 	ImageNames []buildah.ImageNameSpec `yaml:"image_names"`
+}
+
+func (c *TaskSignImage) Kind() dukkha.TaskKind { return TaskKindSignImage }
+func (c *TaskSignImage) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskSignImage) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskSignImage) GetExecSpecs(

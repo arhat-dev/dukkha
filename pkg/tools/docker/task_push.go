@@ -17,13 +17,19 @@ func init() {
 		ToolKind, TaskKindPush,
 		func(toolName string) dukkha.Task {
 			t := &TaskPush{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
 }
 
 type TaskPush buildah.TaskPush
+
+func (w *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
+func (w *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
+func (w *TaskPush) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
+}
 
 func (c *TaskPush) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

@@ -1,6 +1,7 @@
 package echo
 
 import (
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 
@@ -23,7 +24,7 @@ type Driver struct {
 	name string
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 
 func (d *Driver) RenderYaml(
 	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,

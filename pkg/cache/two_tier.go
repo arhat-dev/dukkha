@@ -32,7 +32,10 @@ import (
 // maxAgeSeconds <= 0, once cached in memory, always valid during runtime,
 // 					   but will always fetch from remote if in memory cache lost
 // 				 > 0, limit both in memory and local file cache to this long.
-func NewTwoTierCache(cacheDir string, itemMaxBytes, maxBytes, maxAgeSeconds int64) *TwoTierCache {
+func NewTwoTierCache(
+	cacheFS *fshelper.OSFS,
+	itemMaxBytes, maxBytes, maxAgeSeconds int64,
+) *TwoTierCache {
 	if maxBytes < 0 {
 		maxBytes = math.MaxInt64
 	}
@@ -44,9 +47,7 @@ func NewTwoTierCache(cacheDir string, itemMaxBytes, maxBytes, maxAgeSeconds int6
 	return &TwoTierCache{
 		itemMaxBytes: itemMaxBytes,
 
-		cacheFS: fshelper.NewOSFS(true, func() (string, error) {
-			return cacheDir, nil
-		}),
+		cacheFS:  cacheFS,
 		memcache: lru.New(maxBytes, maxAgeSeconds),
 	}
 }

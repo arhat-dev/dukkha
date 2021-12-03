@@ -29,7 +29,7 @@ func init() {
 		ToolKind, TaskKindTest,
 		func(toolName string) dukkha.Task {
 			t := &TaskTest{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindTest, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -37,6 +37,8 @@ func init() {
 
 type TaskTest struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -56,6 +58,12 @@ type TaskTest struct {
 
 	// custom args only used when running the test
 	CustomArgs []string `yaml:"custom_args"`
+}
+
+func (c *TaskTest) Kind() dukkha.TaskKind { return TaskKindTest }
+func (c *TaskTest) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskTest) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskTest) GetExecSpecs(
@@ -103,13 +111,13 @@ func (c *TaskTest) GetExecSpecs(
 		compileArgs = append(compileArgs, c.Build.generateArgs()...)
 		compileArgs = append(compileArgs, c.Test.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
-		compileArgs = append(compileArgs, c.Profile.generateArgs(dukkhaWorkingDir, true)...)
+		compileArgs = append(compileArgs, c.Profile.generateArgs(rc.FS(), true)...)
 
 		runCmdPrefix := sliceutils.NewStrings(c.CustomCmdPrefix)
 		var runArgs []string
 		runArgs = append(runArgs, c.Test.generateArgs(false)...)
 		runArgs = append(runArgs, c.Benchmark.generateArgs(false)...)
-		runArgs = append(runArgs, c.Profile.generateArgs(dukkhaWorkingDir, false)...)
+		runArgs = append(runArgs, c.Profile.generateArgs(rc.FS(), false)...)
 		if len(c.CustomArgs) != 0 {
 			runArgs = append(runArgs, "--")
 			runArgs = append(runArgs, c.CustomArgs...)

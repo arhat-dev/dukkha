@@ -16,7 +16,7 @@ func init() {
 		ToolKind, TaskKindTest,
 		func(toolName string) dukkha.Task {
 			t := &TaskTest{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindTest, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -25,7 +25,16 @@ func init() {
 type TaskTest struct {
 	rs.BaseField `yaml:"-"`
 
+	TaskName string `yaml:"name"`
+
 	tools.BaseTask `yaml:",inline"`
+}
+
+func (w *TaskTest) Kind() dukkha.TaskKind { return TaskKindTest }
+func (w *TaskTest) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
+
+func (w *TaskTest) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
 }
 
 func (w *TaskTest) GetExecSpecs(

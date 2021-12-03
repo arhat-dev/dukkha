@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"mvdan.cc/sh/v3/syntax"
@@ -29,7 +30,7 @@ type Driver struct {
 	name string
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	return nil
 }
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -33,11 +33,11 @@ func renderYamlFile(
 
 		for _, ent := range entries {
 			name := ent.Name()
-			newSrc := filepath.Join(srcPath, name)
+			newSrc := path.Join(srcPath, name)
 
 			var newDest *string
 			if destPath != nil {
-				newDestPath := filepath.Join(*destPath, name)
+				newDestPath := path.Join(*destPath, name)
 				newDest = &newDestPath
 			}
 
@@ -48,7 +48,7 @@ func renderYamlFile(
 
 			srcPerm[newSrc] = newSrcInfo.Mode().Perm()
 
-			switch filepath.Ext(name) {
+			switch path.Ext(name) {
 			case ".yml", ".yaml":
 				err3 = renderYamlFile(rc, newSrc, newDest, opts, srcPerm)
 				if err3 != nil {
@@ -89,7 +89,7 @@ func renderYamlFile(
 		switch opts.outputFormat {
 		case "json":
 			// change extension name
-			dest = strings.TrimSuffix(dest, filepath.Ext(srcPath)) + ".json"
+			dest = strings.TrimSuffix(dest, path.Ext(srcPath)) + ".json"
 		case "yaml":
 			// do nothing since source file is yaml as well
 			// no matter .yml or .yaml
@@ -102,8 +102,8 @@ func renderYamlFile(
 }
 
 func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[string]fs.FileMode) error {
-	srcPath = filepath.Dir(srcPath)
-	destPath = filepath.Dir(destPath)
+	srcPath = path.Dir(srcPath)
+	destPath = path.Dir(destPath)
 	var doMkdir []func() error
 
 	for {
@@ -143,8 +143,8 @@ func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[str
 			return nil
 		})
 
-		srcPath = filepath.Dir(srcPath)
-		destPath = filepath.Dir(destPath)
+		srcPath = path.Dir(srcPath)
+		destPath = path.Dir(destPath)
 	}
 
 	for i := len(doMkdir) - 1; i >= 0; i-- {

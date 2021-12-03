@@ -54,6 +54,9 @@ func newContextRendering(
 		fs: fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.WorkDir(), nil
 		}),
+		cacheFS: fshelper.NewOSFS(false, func() (string, error) {
+			return envValues.CacheDir(), nil
+		}),
 	}
 }
 
@@ -74,7 +77,8 @@ type contextRendering struct {
 	// nolint:revive
 	_VALUE interface{}
 
-	fs *fshelper.OSFS
+	fs      *fshelper.OSFS
+	cacheFS *fshelper.OSFS
 }
 
 func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
@@ -95,6 +99,9 @@ func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRend
 
 		fs: fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.WorkDir(), nil
+		}),
+		cacheFS: fshelper.NewOSFS(false, func() (string, error) {
+			return envValues.CacheDir(), nil
 		}),
 	}
 }

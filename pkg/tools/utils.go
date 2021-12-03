@@ -5,31 +5,29 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/sha256helper"
 )
 
-func GetScriptCache(cacheDir, script string) (string, error) {
+func GetScriptCache(cacheDir *fshelper.OSFS, script string) (string, error) {
 	scriptName := hex.EncodeToString(sha256helper.Sum([]byte(script)))
-	scriptPath := filepath.Join(cacheDir, scriptName)
 
-	_, err := os.Stat(scriptPath)
+	_, err := cacheDir.Stat(scriptName)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
 			return "", fmt.Errorf("failed to check existence of script cache: %w", err)
 		}
 
-		err = os.WriteFile(scriptPath, []byte(script), 0600)
+		err = cacheDir.WriteFile(scriptName, []byte(script), 0600)
 		if err != nil {
 			return "", fmt.Errorf("failed to write script cache: %w", err)
 		}
 	}
 
-	return scriptPath, nil
+	return cacheDir.Abs(scriptName)
 }
 
 func getTagNamesToResolve(typ reflect.Type) []string {

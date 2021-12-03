@@ -3,10 +3,11 @@ package tpl
 import (
 	"bytes"
 	"fmt"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -41,7 +42,7 @@ type Driver struct {
 	variables map[string]interface{}
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	d.variables = d.Options.Variables.NormalizedValue()
 	return nil
 }
@@ -173,7 +174,7 @@ func renderTemplate(
 			return nil, fmt.Errorf("failed to load template file: %q", err)
 		}
 
-		name := filepath.Base(inc)
+		name := path.Base(inc)
 		incTpl, err := tpl.New(name).Parse(string(tplBytes))
 		if err != nil {
 			return nil, fmt.Errorf("invalid template file %q: %w", inc, err)

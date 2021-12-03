@@ -4,10 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -30,11 +28,6 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 		name, version := getOSNameAndVersion()
 		return name + "," + version
 	})
-
-	cwd, err := filepath.Abs(cwd)
-	if err != nil {
-		panic(fmt.Errorf("failed to get dukkha working dir: %w", err))
-	}
 
 	return map[string]utils.LazyValue{
 		constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),

@@ -54,7 +54,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 
 		rc := dt.NewTestContext(context.TODO())
 		rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
-		assert.NoError(t, d.Init(rc))
+		assert.NoError(t, d.Init(rc.RendererCacheFS("test")))
 
 		result, err := d.RenderYaml(rc, srv.URL+"/with-password", nil)
 		assert.NoError(t, err)

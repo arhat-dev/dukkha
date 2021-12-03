@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -46,17 +47,16 @@ type Driver struct {
 	cache *cache.TwoTierCache
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	dir := ctx.RendererCacheDir(d.name)
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	if d.CacheConfig.Enabled {
 		d.cache = cache.NewTwoTierCache(
-			dir,
+			cacheFS,
 			int64(d.CacheConfig.MaxItemSize),
 			int64(d.CacheConfig.Size),
 			int64(d.CacheConfig.Timeout.Seconds()),
 		)
 	} else {
-		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
+		d.cache = cache.NewTwoTierCache(cacheFS, 0, 0, 0)
 	}
 
 	return nil

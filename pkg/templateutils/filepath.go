@@ -3,7 +3,6 @@ package templateutils
 import (
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/gomplate/conv"
@@ -89,64 +88,4 @@ func (f *filepathNS) Abs(in interface{}) (string, error) {
 		// TODO: get fhs root
 		return "", wellknownerrors.ErrNotSupported
 	})
-}
-
-func absPath(workdir, path string) string {
-	if len(path) == 0 {
-		return workdir
-	}
-
-	if runtime.GOOS != "windows" {
-		if filepath.IsAbs(path) {
-			return path
-		}
-
-		return filepath.Join(workdir, path)
-	}
-
-	// windows
-
-	if filepath.IsAbs(path) {
-		// e.g. c:/some-path or \\nethost\share
-		return path
-	}
-
-	// non absolute path
-
-	if path[0] != '/' {
-		// non potential cygpath
-		return filepath.Join(workdir, path)
-	}
-
-	// cygpath or driver relative path
-
-	switch {
-	case strings.HasPrefix(path, "/cygdrive/"):
-		// provide empty default volume name since /cygdrive/ is followed
-		// by the volume name
-		return pathhelper.ConvertFSPathToWindowsPath("", strings.TrimPrefix(path, "/cygdrive"))
-	default:
-		// filter common prefixes used in hfs
-		// ref: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
-
-		isHFS := false
-		for _, posixPrefix := range []string{
-			"/bin", "/boot", "/dev", "/etc", "/home",
-			"/lib", "/lib64", "/lib32", "/media", "/mnt",
-			"/opt", "/proc", "/root", "/run", "/sbin",
-			"/srv", "/sys", "/tmp", "/usr", "/var",
-		} {
-			if strings.HasPrefix(path, posixPrefix) {
-				isHFS = true
-				break
-			}
-		}
-
-		if isHFS {
-			// TODO: lookup root path of cygwin/mingw64/msys2
-			return path
-		}
-
-		return pathhelper.ConvertFSPathToWindowsPath(filepath.VolumeName(workdir), path)
-	}
 }

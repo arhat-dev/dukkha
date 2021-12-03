@@ -17,9 +17,8 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 		{
 			Name: "Default Build Task",
 			Task: &TaskBuild{
-				BaseTask: tools.BaseTask{
-					TaskName: "foo",
-				},
+				TaskName: "foo",
+				BaseTask: tools.BaseTask{},
 			},
 			Options: dukkha_test.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{

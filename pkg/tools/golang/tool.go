@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -16,9 +17,17 @@ func init() {
 type Tool struct {
 	rs.BaseField `yaml:"-"`
 
+	ToolName dukkha.ToolName `yaml:"name"`
+
 	tools.BaseTool `yaml:",inline"`
 }
 
-func (t *Tool) Init(kind dukkha.ToolKind, cachdDir string) error {
-	return t.BaseTool.InitBaseTool(ToolKind, "go", cachdDir, t)
+func (t *Tool) Init(cacheFS *fshelper.OSFS) error {
+	return t.BaseTool.InitBaseTool("go", cacheFS, t)
+}
+
+func (t *Tool) Name() dukkha.ToolName { return t.ToolName }
+func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
+func (t *Tool) Key() dukkha.ToolKey {
+	return dukkha.ToolKey{Kind: t.Kind(), Name: t.Name()}
 }

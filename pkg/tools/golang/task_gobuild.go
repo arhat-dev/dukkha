@@ -16,7 +16,7 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -24,6 +24,8 @@ func init() {
 
 type TaskBuild struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -37,6 +39,12 @@ type TaskBuild struct {
 	CGO CGOSepc `yaml:"cgo"`
 }
 
+func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
+func (c *TaskBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskBuild) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
+
 func (c *TaskBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
@@ -45,7 +53,7 @@ func (c *TaskBuild) GetExecSpecs(
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
-			outputs = []string{c.BaseTask.TaskName}
+			outputs = []string{c.TaskName}
 		}
 
 		buildEnv := createBuildEnv(rc, c.CGO)

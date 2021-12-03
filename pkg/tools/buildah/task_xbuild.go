@@ -40,7 +40,7 @@ func init() {
 		ToolKind, TaskKindXBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskXBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindXBuild, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -49,12 +49,20 @@ func init() {
 type TaskXBuild struct {
 	rs.BaseField `yaml:"-"`
 
+	TaskName string `yaml:"name"`
+
 	tools.BaseTask `yaml:",inline"`
 
 	// Context string  `yaml:"context"`
 	Steps []*step `yaml:"steps"`
 
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
+}
+
+func (w *TaskXBuild) Kind() dukkha.TaskKind { return TaskKindXBuild }
+func (c *TaskXBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskXBuild) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 // nolint:gocyclo

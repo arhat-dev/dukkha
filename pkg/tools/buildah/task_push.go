@@ -22,10 +22,28 @@ func init() {
 			t := &TaskPush{
 				manifestCache: make(map[manifestCacheKey]manifestCacheValue),
 			}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
+}
+
+type TaskPush struct {
+	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
+
+	tools.BaseTask `yaml:",inline"`
+
+	ImageNames []ImageNameSpec `yaml:"image_names"`
+
+	manifestCache map[manifestCacheKey]manifestCacheValue
+}
+
+func (c *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
+func (c *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskPush) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskPush) GetExecSpecs(
@@ -99,16 +117,6 @@ type manifestCacheValue struct {
 	name     string
 
 	opts dukkha.TaskMatrixExecOptions
-}
-
-type TaskPush struct {
-	rs.BaseField `yaml:"-"`
-
-	tools.BaseTask `yaml:",inline"`
-
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-
-	manifestCache map[manifestCacheKey]manifestCacheValue
 }
 
 func (c *TaskPush) cacheManifestPushSpec(

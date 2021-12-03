@@ -3,7 +3,7 @@ package render
 import (
 	"fmt"
 	"io"
-	"path/filepath"
+	"path"
 
 	"arhat.dev/pkg/fshelper"
 	"github.com/itchyny/gojq"
@@ -91,7 +91,7 @@ func (opts *Options) Resolve(
 	for i, dst := range opts.outputDests {
 		src := args[i]
 
-		path, err := filepath.Abs(dst)
+		path, err := initialFS.Abs(dst)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +107,7 @@ func (opts *Options) Resolve(
 			continue
 		}
 
-		targetChdir, err := filepath.Abs(chdir)
+		targetChdir, err := initialFS.Abs(chdir)
 		if err != nil {
 			return nil, fmt.Errorf("invalid chdir option: %w", err)
 		}
@@ -140,17 +140,17 @@ func (opts *Options) Resolve(
 			chdir = src
 		} else {
 			// regular file
-			ret._specs[src].entrypoint, err = filepath.Abs(src)
+			ret._specs[src].entrypoint, err = initialFS.Abs(src)
 			if err != nil {
 				return nil, err
 			}
 
-			chdir = filepath.Dir(src)
+			chdir = path.Dir(src)
 		}
 
 		// only set default, do not override
 		if len(ret._specs[src].chdir) == 0 {
-			ret._specs[src].chdir, err = filepath.Abs(chdir)
+			ret._specs[src].chdir, err = initialFS.Abs(chdir)
 			if err != nil {
 				return nil, err
 			}

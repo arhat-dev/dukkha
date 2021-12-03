@@ -18,7 +18,7 @@ package conf
 
 import (
 	"fmt"
-	"path/filepath"
+	"strings"
 
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/rshelper"
@@ -55,7 +55,7 @@ type Config struct {
 	Include []string `yaml:"include"`
 
 	// Shells for command execution
-	Shells []*tools.BaseToolWithInit `yaml:"shells"`
+	Shells []*tools.ShellTool `yaml:"shells"`
 
 	// Renderers config options
 	Renderers []*RendererGroup `yaml:"renderers"`
@@ -131,8 +131,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		for name, r := range essentialRenderers {
 			// using default config, no need to resolve fields
-
-			err := r.Init(appCtx)
+			err := r.Init(appCtx.RendererCacheFS(name))
 			if err != nil {
 				return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
 			}
@@ -159,7 +158,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			cacheDir = constant.DefaultCacheDir
 		}
 
-		cacheDir, err = filepath.Abs(cacheDir)
+		cacheDir, err = appCtx.FS().Abs(cacheDir)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute path of cache dir: %w", err)
 		}
@@ -191,13 +190,20 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 			err = g.ResolveFields(appCtx, -1)
 			if err != nil {
-				return fmt.Errorf("failed to resolve renderer group #%d: %w", i, err)
+				return fmt.Errorf("resolving renderer group #%d: %w", i, err)
 			}
 
-			for name, r := range g.Renderers {
-				err = r.Init(appCtx)
+			for fullName, r := range g.Renderers {
+				idx := strings.IndexByte(fullName, ':')
+				if idx == -1 {
+					idx = 0
+				}
+
+				name := fullName[idx:]
+
+				err = r.Init(appCtx.RendererCacheFS(name))
 				if err != nil {
-					return fmt.Errorf("failed to initialize renderer %q: %w", name, err)
+					return fmt.Errorf("initializing renderer %q: %w", name, err)
 				}
 
 				appCtx.AddRenderer(name, g.Renderers[name])
@@ -213,7 +219,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		err := c.Global.ResolveFields(appCtx, -1, "values")
 		if err != nil {
-			return fmt.Errorf("failed to resolve global values: %w", err)
+			return fmt.Errorf("resolving global values: %w", err)
 		}
 
 		logger.V("resolved global values", log.Any("values", c.Global.Values))
@@ -221,12 +227,12 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		logger.D("adding global values")
 		values := c.Global.Values.NormalizedValue()
 		if err != nil {
-			return fmt.Errorf("failed to normalize global values: %w", err)
+			return fmt.Errorf("normalizing global values: %w", err)
 		}
 
 		err = appCtx.AddValues(values)
 		if err != nil {
-			return fmt.Errorf("failed to add global values: %w", err)
+			return fmt.Errorf("adding global values: %w", err)
 		}
 	}
 
@@ -236,7 +242,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		err := c.ResolveFields(appCtx, 1, "shells")
 		if err != nil {
-			return fmt.Errorf("failed to resolve shell config overview: %w", err)
+			return fmt.Errorf("resolving overview of shells: %w", err)
 		}
 		logger.V("resolved shell config overview", log.Any("result", c.Shells))
 
@@ -250,14 +256,12 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			logger.D("resolving shell config fields")
 			err := v.ResolveFields(appCtx, -1)
 			if err != nil {
-				return fmt.Errorf("failed to resolve shell %q #%d config: %w", v.Name(), i, err)
+				return fmt.Errorf("resolving shell %q #%d config: %w", v.Name(), i, err)
 			}
 
-			err = v.InitBaseTool(
-				"shell", string(v.Name()), appCtx.CacheDir(), v,
-			)
+			err = v.InitBaseTool(string(v.Name()), appCtx.ToolCacheFS(v), v)
 			if err != nil {
-				return fmt.Errorf("failed to initialize shell %q", v.Name())
+				return fmt.Errorf("initializing shell %q", v.Name())
 			}
 
 			logger.V("adding shell")
@@ -274,14 +278,14 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 	logger.D("resolving tools overview")
 	err := c.ResolveFields(appCtx, 2, "tools")
 	if err != nil {
-		return fmt.Errorf("failed to resolve tools overview: %w", err)
+		return fmt.Errorf("gain overview of tools: %w", err)
 	}
 	logger.V("resolved tools overview", log.Any("result", c.Tools))
 
 	logger.D("resolving tasks overview")
 	err = c.ResolveFields(appCtx, 1, "Tasks")
 	if err != nil {
-		return fmt.Errorf("failed to resolve tasks overview: %w", err)
+		return fmt.Errorf("gain overview of tasks: %w", err)
 	}
 	logger.V("resolved tasks overview", log.Any("result", c.Tasks))
 
@@ -290,7 +294,13 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		for _, tsk := range tasks {
 			err = tsk.ResolveFields(appCtx, -1, "name")
 			if err != nil {
-				return fmt.Errorf("failed to reoslve task name: %w", err)
+				return fmt.Errorf("reoslving task name: %w", err)
+			}
+
+			// FIXME: task name is empty at this time
+			err = tsk.Init(appCtx.TaskCacheFS(tsk))
+			if err != nil {
+				return fmt.Errorf("task init: %w", err)
 			}
 		}
 
@@ -325,7 +335,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 			// ensure tool names are unique
 			if _, ok := visited[name]; ok {
-				return fmt.Errorf("invalid duplicate %q tool name %q", toolKind, t.Name())
+				return fmt.Errorf("duplicate tool name %q of kind %q", t.Name(), toolKind)
 			}
 
 			visited[name] = struct{}{}
@@ -341,10 +351,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			)
 
 			logger.V("initializing tool")
-			err = t.Init(toolKind, appCtx.CacheDir())
+			err = t.Init(appCtx.ToolCacheFS(t))
 			if err != nil {
 				return fmt.Errorf(
-					"failed to initialize tool %q: %w",
+					"initializing tool %q: %w",
 					key, err,
 				)
 			}
@@ -369,7 +379,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			err = t.AddTasks(tasks)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to resolve tasks for tool %q: %w",
+					"admitting tasks to tool %q: %w",
 					key, err,
 				)
 			}

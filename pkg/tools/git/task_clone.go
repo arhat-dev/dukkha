@@ -19,7 +19,7 @@ func init() {
 		ToolKind, TaskKindClone,
 		func(toolName string) dukkha.Task {
 			t := &TaskClone{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindClone, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -27,6 +27,8 @@ func init() {
 
 type TaskClone struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -37,6 +39,12 @@ type TaskClone struct {
 	RemoteName   string `yaml:"remote_name"`
 
 	ExtraArgs []string `yaml:"extra_args"`
+}
+
+func (c *TaskClone) Kind() dukkha.TaskKind { return TaskKindClone }
+func (c *TaskClone) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskClone) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskClone) GetExecSpecs(

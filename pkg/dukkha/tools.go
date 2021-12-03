@@ -1,5 +1,7 @@
 package dukkha
 
+import "arhat.dev/pkg/fshelper"
+
 type (
 	ToolKind string
 	ToolName string
@@ -32,7 +34,7 @@ type Tool interface {
 
 	AllTasks() map[TaskKey]Task
 
-	Init(kind ToolKind, cachdDir string) error
+	Init(cacheFS *fshelper.OSFS) error
 
 	AddTasks(tasks []Task) error
 

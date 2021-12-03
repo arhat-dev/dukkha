@@ -1,6 +1,9 @@
 package dukkha
 
-import "arhat.dev/rs"
+import (
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/rs"
+)
 
 type RendererAttribute string
 
@@ -9,7 +12,7 @@ type Renderer interface {
 	rs.Field
 
 	// Init the renderer and add itself to the context
-	Init(ctx ConfigResolvingContext) error
+	Init(cacheFS *fshelper.OSFS) error
 
 	RenderYaml(rc RenderingContext, rawData interface{}, attributes []RendererAttribute) (result []byte, err error)
 }

@@ -26,13 +26,15 @@ func init() {
 
 func newTaskSign(toolName string) dukkha.Task {
 	t := &TaskSign{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindSign, t)
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 	return t
 }
 
 // TaskSign signs blob
 type TaskSign struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -50,6 +52,12 @@ type blobSigningFileSpec struct {
 
 	// Output is the destination path of signature output
 	Output string `yaml:"output"`
+}
+
+func (c *TaskSign) Kind() dukkha.TaskKind { return TaskKindSign }
+func (c *TaskSign) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskSign) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskSign) GetExecSpecs(

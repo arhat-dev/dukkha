@@ -46,7 +46,9 @@ func TestTwoTierCache(t *testing.T) {
 		})
 
 		cacheDir := t.TempDir()
-		cache := NewTwoTierCache(cacheDir, 0, 0, 0)
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+			return cacheDir, nil
+		}), 0, 0, 0)
 
 		data, expired, err := cache.Get(obj, 1111111110, true, fetchRemoteAlwaysOk)
 		assert.EqualValues(t, 1, calledOk)
@@ -120,7 +122,10 @@ func TestTwoTierCache(t *testing.T) {
 			calledOk = 0
 		})
 
-		cache := NewTwoTierCache(t.TempDir(), -1, -1, 100)
+		cacheDir := t.TempDir()
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+			return cacheDir, nil
+		}), -1, -1, 100)
 
 		// use expired
 		data, expired, err := cache.Get(obj, 1111111111, true, fetchRemoteAlwaysFail)
@@ -153,7 +158,10 @@ func TestTwoTierCache(t *testing.T) {
 			calledOk = 0
 		})
 
-		cache := NewTwoTierCache(t.TempDir(), 1, 1024, 100)
+		cacheDir := t.TempDir()
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+			return cacheDir, nil
+		}), 1, 1024, 100)
 		data, expired, err := cache.Get(obj, 1111111111, true, fetchRemoteAlwaysOk)
 		assert.False(t, expired)
 		assert.NoError(t, err)
@@ -175,7 +183,10 @@ func TestTwoTierCache(t *testing.T) {
 			calledOk = 0
 		})
 
-		cache := NewTwoTierCache(t.TempDir(), 0, 1, 100)
+		cacheDir := t.TempDir()
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+			return cacheDir, nil
+		}), 0, 1, 100)
 		data, expired, err := cache.Get(obj, 1111111111, true, fetchRemoteAlwaysOk)
 		assert.False(t, expired)
 		assert.NoError(t, err)

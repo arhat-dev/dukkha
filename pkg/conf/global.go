@@ -27,7 +27,7 @@ type GlobalConfig struct {
 	// Values is the global store of runtime values
 	//
 	// accessible from renderer template `{{ values.YOUR_VAL_KEY }}`
-	// and renderer env/shell `${VALUES.YOUR_VAL_KEY}`
+	// and renderer env/shell `${values.YOUR_VAL_KEY}`
 	Values rs.AnyObjectMap `yaml:"values"`
 }
 

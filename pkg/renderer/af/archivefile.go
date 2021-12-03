@@ -47,18 +47,16 @@ type Driver struct {
 	cache *cache.TwoTierCache
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	if d.CacheConfig.Enabled {
 		d.cache = cache.NewTwoTierCache(
-			ctx.RendererCacheDir(d.name),
+			cacheFS,
 			int64(d.CacheConfig.MaxItemSize),
 			int64(d.CacheConfig.Size),
 			int64(d.CacheConfig.Timeout.Seconds()),
 		)
 	} else {
-		d.cache = cache.NewTwoTierCache(
-			ctx.RendererCacheDir(d.name), 0, 0, -1,
-		)
+		d.cache = cache.NewTwoTierCache(cacheFS, 0, 0, -1)
 	}
 
 	return nil

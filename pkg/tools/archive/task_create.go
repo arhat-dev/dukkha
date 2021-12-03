@@ -20,12 +20,14 @@ func init() {
 
 func newCreateTask(toolName string) dukkha.Task {
 	t := &TaskCreate{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindCreate, t)
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 	return t
 }
 
 type TaskCreate struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -75,6 +77,12 @@ type archiveFileSpec struct {
 
 	// To is the in archive path those files will go
 	To string `yaml:"to"`
+}
+
+func (c *TaskCreate) Kind() dukkha.TaskKind { return TaskKindCreate }
+func (c *TaskCreate) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskCreate) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskCreate) GetExecSpecs(

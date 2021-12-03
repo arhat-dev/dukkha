@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
 
@@ -39,7 +40,7 @@ type Driver struct {
 	cache *cache.Cache
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	if d.CacheConfig.Enabled {
 		d.cache = cache.NewCache(
 			int64(d.CacheConfig.MaxItemSize),

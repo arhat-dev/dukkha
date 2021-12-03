@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 
@@ -36,9 +37,7 @@ type Driver struct {
 	EnableExec *bool `yaml:"enable_exec"`
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	return nil
-}
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 
 func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,

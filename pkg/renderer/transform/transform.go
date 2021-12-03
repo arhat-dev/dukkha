@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -31,7 +32,7 @@ type Driver struct {
 	name string
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 
 func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
