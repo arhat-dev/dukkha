@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/sorthelper"
-	"github.com/bmatcuk/doublestar/v4"
-	"github.com/spf13/afero"
 )
 
 type entry struct {
@@ -24,7 +22,10 @@ type entry struct {
 }
 
 // collectFiles to be archived
-func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
+func collectFiles(
+	ofs *fshelper.OSFS,
+	files []*archiveFileSpec,
+) ([]*entry, error) {
 	var (
 		swap []*entry
 
@@ -33,10 +34,9 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 		ret []*entry
 	)
 
-	_fs := afero.NewIOFS(afero.NewOsFs())
 	for _, f := range files {
 		from := filepath.Clean(f.From)
-		srcPaths, err := doublestar.Glob(_fs, from)
+		srcPaths, err := ofs.Glob(from)
 		if err != nil {
 			srcPaths = []string{from}
 		}
@@ -48,14 +48,14 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 				v = "."
 			}
 
-			info, err := os.Lstat(v)
+			info, err := ofs.Lstat(v)
 			if err != nil {
 				return nil, err
 			}
 
 			link := ""
 			if info.Mode()&fs.ModeSymlink != 0 {
-				link, err = os.Readlink(v)
+				link, err = ofs.Readlink(v)
 				if err != nil {
 					return nil, err
 				}
@@ -135,7 +135,7 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 			// no parent dir, add a fake one based on
 			// actual parent of the file
 			from := filepath.Dir(ret[idx].from)
-			info, err := os.Lstat(from)
+			info, err := ofs.Lstat(from)
 			if err != nil {
 				return nil, err
 			}
@@ -165,8 +165,8 @@ func collectFiles(files []*archiveFileSpec) ([]*entry, error) {
 	return ret, nil
 }
 
-func copyFileContent(w io.Writer, file string) error {
-	f, err := os.Open(file)
+func copyFileContent(ofs *fshelper.OSFS, w io.Writer, file string) error {
+	f, err := ofs.Open(file)
 	if err != nil {
 		return err
 	}

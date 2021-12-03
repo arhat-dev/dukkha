@@ -12,7 +12,7 @@ import (
 // This file describes runtime values derived from env
 
 type GlobalEnvValues interface {
-	WorkingDir() string
+	WorkDir() string
 	CacheDir() string
 
 	GitBranch() string
@@ -130,8 +130,8 @@ func (c *envValues) AddListEnv(env ...string) {
 	}
 }
 
-func (c *envValues) WorkingDir() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKING_DIR])
+func (c *envValues) WorkDir() string {
+	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKDIR])
 }
 
 func (c *envValues) CacheDir() string {

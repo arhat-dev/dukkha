@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -128,8 +130,8 @@ func (c *TaskBuild) createExecSpecs(
 		filePath := GetImageIDFileForImageName(
 			dukkhaCacheDir, imageName,
 		)
-		err = os.MkdirAll(filepath.Dir(filePath), 0750)
-		if err != nil && !os.IsExist(err) {
+		err = rc.FS().MkdirAll(filepath.Dir(filePath), 0750)
+		if err != nil && !errors.Is(err, fs.ErrExist) {
 			return nil, fmt.Errorf("failed to ensure image id dir exists")
 		}
 
@@ -158,13 +160,13 @@ func (c *TaskBuild) createExecSpecs(
 			replace dukkha.ReplaceEntries,
 			stdin io.Reader, stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
+			imageIDBytes, err := rc.FS().ReadFile(tmpImageIDFilePath)
 			if err != nil {
 				return nil, err
 			}
 
 			for _, f := range imageIDFiles {
-				err = os.WriteFile(f, imageIDBytes, 0750)
+				err = rc.FS().WriteFile(f, imageIDBytes, 0750)
 				if err != nil {
 					return nil, err
 				}

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 	"github.com/itchyny/gojq"
@@ -24,6 +25,9 @@ type RenderingContext interface {
 	rs.RenderingHandler
 	EnvValues
 
+	// FS returns the filesystem with cwd set to DUKKHA_WORKDIR
+	FS() *fshelper.OSFS
+
 	// AddValues will merge provided values into existing values
 	AddValues(values map[string]interface{}) error
 
@@ -32,37 +36,24 @@ type RenderingContext interface {
 	Values() map[string]interface{}
 }
 
-type RendererAttribute string
-
-// Renderer to handle rendering suffix
-type Renderer interface {
-	rs.Field
-
-	// Init the renderer and add itself to the context
-	Init(ctx ConfigResolvingContext) error
-
-	RenderYaml(rc RenderingContext, rawData interface{}, attributes []RendererAttribute) (result []byte, err error)
-}
-
-// RendererManager to manage renderers
-type RendererManager interface {
-	AllRenderers() map[string]Renderer
-	AddRenderer(name string, renderer Renderer)
-}
-
 func newContextRendering(
 	ctx *contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
 	globalEnv map[string]utils.LazyValue,
 ) *contextRendering {
+	envValues := newEnvValues(globalEnv)
 	return &contextRendering{
 		contextStd: ctx,
 
-		envValues: newEnvValues(globalEnv),
+		envValues: envValues,
 
 		ifaceTypeHandler: ifaceTypeHandler,
 		renderers:        make(map[string]Renderer),
 		values:           make(map[string]interface{}),
+
+		fs: fshelper.NewOSFS(false, func() (string, error) {
+			return envValues.WorkDir(), nil
+		}),
 	}
 }
 
@@ -82,6 +73,8 @@ type contextRendering struct {
 
 	// nolint:revive
 	_VALUE interface{}
+
+	fs *fshelper.OSFS
 }
 
 func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
@@ -99,9 +92,17 @@ func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRend
 
 		// values are global scoped, DO NOT deep copy in any case
 		values: c.values,
+
+		fs: fshelper.NewOSFS(false, func() (string, error) {
+			return envValues.WorkDir(), nil
+		}),
 	}
 }
 
+func (c *contextRendering) FS() *fshelper.OSFS { return c.fs }
+
+// Env returns all environment variables available
+// global environment variables are always kept
 func (c *contextRendering) Env() map[string]utils.LazyValue {
 	for k, v := range c.envValues.globalEnv {
 		c.envValues.env[k] = v
@@ -157,22 +158,34 @@ func (c *contextRendering) AllRenderers() map[string]Renderer {
 
 // Get implements expand.Environ
 func (c *contextRendering) Get(name string) expand.Variable {
-	v, exists := c.Env()[name]
+	v, exists := c.globalEnv[name]
 	if exists {
 		return createVariable(v.Get())
 	}
 
+	v, exists = c.env[name]
+	if exists {
+		return createVariable(v.Get())
+	}
+
+	// non existing env
+
+	// TODO: can we remove all these cases? (except the default case)
 	switch name {
 	case "IFS":
 		v = utils.ImmediateString(" \t\n")
 	case "OPTIND":
 		v = utils.ImmediateString("1")
 	case "PWD":
-		v = utils.ImmediateString(c.WorkingDir())
+		v = utils.ImmediateString(c.WorkDir())
 	case "UID":
-		// os.Getenv("UID") usually retruns empty value
-		// so we have to call os.Getuid
-		v = utils.ImmediateString(strconv.FormatInt(int64(os.Getuid()), 10))
+		v = utils.ImmediateString(
+			strconv.FormatInt(int64(os.Getuid()), 10),
+		)
+	case "GID":
+		v = utils.ImmediateString(
+			strconv.FormatInt(int64(os.Getegid()), 10),
+		)
 	default:
 		kind := expand.Unset
 		if strings.HasPrefix(name, valuesEnvPrefix) {
@@ -215,13 +228,28 @@ func (c *contextRendering) Get(name string) expand.Variable {
 
 // Each implements expand.Environ
 func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
-	for k, v := range c.Env() {
+	visited := make(map[string]struct{})
+
+	for k, v := range c.globalEnv {
+		visited[k] = struct{}{}
+
 		if !do(k, createVariable(v.Get())) {
 			return
 		}
 	}
 
-	values, _ := genEnvForValues(c.values)
+	for k, v := range c.env {
+		// do not override
+		if _, ok := visited[k]; ok {
+			continue
+		}
+
+		if !do(k, createVariable(v.Get())) {
+			return
+		}
+	}
+
+	values, _ := genEnvFromValues(c.values)
 	for k, v := range values {
 		if !do(k, v) {
 			return
@@ -231,10 +259,10 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 
 const valuesEnvPrefix = "values."
 
-func genEnvForValues(values map[string]interface{}) (map[string]expand.Variable, error) {
+func genEnvFromValues(values map[string]interface{}) (map[string]expand.Variable, error) {
 	out := make(map[string]expand.Variable)
 	for k, v := range values {
-		err := doGenEnvForInterface(valuesEnvPrefix+k, v, &out)
+		err := genEnvFromInterface(valuesEnvPrefix+k, v, &out)
 		if err != nil {
 			return nil, err
 		}
@@ -243,7 +271,7 @@ func genEnvForValues(values map[string]interface{}) (map[string]expand.Variable,
 	return out, nil
 }
 
-func doGenEnvForInterface(prefix string, v interface{}, out *map[string]expand.Variable) error {
+func genEnvFromInterface(prefix string, v interface{}, out *map[string]expand.Variable) error {
 	switch t := v.(type) {
 	case map[string]interface{}:
 		dataBytes, err := json.Marshal(v)
@@ -254,7 +282,7 @@ func doGenEnvForInterface(prefix string, v interface{}, out *map[string]expand.V
 		(*out)[prefix] = createVariable(string(dataBytes))
 
 		for k, v := range t {
-			err = doGenEnvForInterface(prefix+"."+k, v, out)
+			err = genEnvFromInterface(prefix+"."+k, v, out)
 			if err != nil {
 				return err
 			}

@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -97,8 +99,8 @@ func (w *TaskXBuild) GetExecSpecs(
 			filePath := GetImageIDFileForImageName(
 				rc.CacheDir(), imageName,
 			)
-			err = os.MkdirAll(filepath.Dir(filePath), 0750)
-			if err != nil && !os.IsExist(err) {
+			err = rc.FS().MkdirAll(filepath.Dir(filePath), 0750)
+			if err != nil && !errors.Is(err, fs.ErrExist) {
 				return fmt.Errorf("failed to ensure image id dir exists")
 			}
 
@@ -294,13 +296,13 @@ func (w *TaskXBuild) GetExecSpecs(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
+				imageIDBytes, err := rc.FS().ReadFile(tmpImageIDFilePath)
 				if err != nil {
 					return nil, err
 				}
 
 				for _, f := range imageIDFiles {
-					err = os.WriteFile(f, imageIDBytes, 0750)
+					err = rc.FS().WriteFile(f, imageIDBytes, 0750)
 					if err != nil {
 						return nil, err
 					}

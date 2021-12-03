@@ -48,7 +48,7 @@ type Config struct {
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
 
-	// Include other files using path relative to DUKKHA_WORKING_DIR
+	// Include other files using path relative to DUKKHA_WORKDIR
 	// only local path (and path glob) is supported.
 	//
 	// no rendering suffix support for this field

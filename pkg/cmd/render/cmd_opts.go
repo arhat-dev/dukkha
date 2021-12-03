@@ -3,9 +3,9 @@ package render
 import (
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 
+	"arhat.dev/pkg/fshelper"
 	"github.com/itchyny/gojq"
 )
 
@@ -20,7 +20,15 @@ type Options struct {
 	outputDests []string
 }
 
-func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*ResolvedOptions, error) {
+func (opts *Options) Resolve(
+	initialFS *fshelper.OSFS,
+	args []string, // args is always not empty
+	defaultOutputDest io.Writer,
+) (*ResolvedOptions, error) {
+	if len(args) == 0 {
+		panic("invalid empty args")
+	}
+
 	ret := &ResolvedOptions{
 		_specs: make(map[string]*renderingSpec),
 
@@ -29,24 +37,18 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 	}
 
 	// validate input source, and prepare rendering specs for each of them
-	if len(args) == 0 {
-		// stdin input without using `-`, generalize this case
-		args = []string{"-"}
-		ret._specs["-"] = &renderingSpec{}
-	} else {
-		foundStdin := false
-		for _, v := range args {
-			switch v {
-			case "-", "":
-				if foundStdin {
-					return nil, fmt.Errorf("too many stdin source, only one allowed")
-				}
-
-				foundStdin = true
-				ret._specs["-"] = &renderingSpec{}
-			default:
-				ret._specs[v] = &renderingSpec{}
+	foundStdin := false
+	for _, v := range args {
+		switch v {
+		case "-", "":
+			if foundStdin {
+				return nil, fmt.Errorf("too many stdin source, only one allowed")
 			}
+
+			foundStdin = true
+			ret._specs["-"] = &renderingSpec{}
+		default:
+			ret._specs[v] = &renderingSpec{}
 		}
 	}
 
@@ -123,7 +125,7 @@ func (opts *Options) Resolve(args []string, defaultOutputDest io.Writer) (*Resol
 		}
 
 		// do not follow symlink
-		info, err := os.Lstat(src)
+		info, err := initialFS.Lstat(src)
 		if err != nil {
 			return nil, fmt.Errorf("invalid input source: %w", err)
 		}

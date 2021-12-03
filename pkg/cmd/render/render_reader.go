@@ -34,8 +34,8 @@ func renderYamlReader(
 				return err
 			}
 		} else {
-			var destFile *os.File
-			destFile, err = os.OpenFile(
+			var _destFile fs.File
+			_destFile, err = rc.FS().OpenFile(
 				*destPath,
 				os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 				destPerm,
@@ -45,6 +45,7 @@ func renderYamlReader(
 					*destPath, err,
 				)
 			}
+			destFile := _destFile.(*os.File)
 			defer func() { _ = destFile.Close() }()
 
 			enc, err = opts.createEncoder(destFile)

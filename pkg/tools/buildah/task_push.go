@@ -3,7 +3,6 @@ package buildah
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"sort"
 
 	"arhat.dev/rs"
@@ -54,7 +53,7 @@ func (c *TaskPush) GetExecSpecs(
 				imageIDFile := GetImageIDFileForImageName(
 					dukkhaCacheDir, imageName,
 				)
-				imageIDBytes, err := os.ReadFile(imageIDFile)
+				imageIDBytes, err := rc.FS().ReadFile(imageIDFile)
 				if err != nil {
 					return fmt.Errorf("image id file not found: %w", err)
 				}

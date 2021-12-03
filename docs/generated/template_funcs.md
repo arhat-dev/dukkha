@@ -317,6 +317,7 @@
 - `file.Stat(interface {}) (fs.FileInfo, error)`
 - `file.Walk(interface {}) ([]string, error)`
 - `file.Write(interface {}, interface {}) (string, error)`
+- `filepath.Abs(interface {}) (string, error)`
 - `filepath.Base(interface {}) string`
 - `filepath.Clean(interface {}) string`
 - `filepath.Dir(interface {}) string`

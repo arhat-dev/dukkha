@@ -3,9 +3,10 @@ package buildah
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
-	"os"
+	"io/fs"
 	"path/filepath"
 
 	"arhat.dev/pkg/md5helper"
@@ -92,8 +93,8 @@ func (s *stepRun) genSpec(
 						"buildah", "xbuild",
 						"run-executable-"+hex.EncodeToString(md5helper.Sum([]byte(localExecutablePath)))+"-redacted",
 					)
-					err := os.MkdirAll(filepath.Dir(srcFile), 0755)
-					if err != nil && !os.IsExist(err) {
+					err := rc.FS().MkdirAll(filepath.Dir(srcFile), 0755)
+					if err != nil && !errors.Is(err, fs.ErrExist) {
 						return nil, fmt.Errorf("failed to ensure redacted executable file cache dir: %w", err)
 					}
 
@@ -103,7 +104,7 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("failed to create redacted executable file cache: %q", srcFile)
 					}
 
-					return nil, os.WriteFile(srcFile, []byte(""), 0644)
+					return nil, rc.FS().WriteFile(srcFile, []byte(""), 0644)
 				},
 			},
 			// copy executable to container
@@ -151,8 +152,8 @@ func (s *stepRun) genSpec(
 						"buildah", "xbuild",
 						"run-script-"+hex.EncodeToString(md5helper.Sum([]byte(script))),
 					)
-					err := os.MkdirAll(filepath.Dir(srcFile), 0755)
-					if err != nil && !os.IsExist(err) {
+					err := rc.FS().MkdirAll(filepath.Dir(srcFile), 0755)
+					if err != nil && !errors.Is(err, fs.ErrExist) {
 						return nil, fmt.Errorf("failed to ensure script cache dir: %w", err)
 					}
 
@@ -162,7 +163,7 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("failed to create script cache: %q", srcFile)
 					}
 
-					return nil, os.WriteFile(srcFile, []byte(script), 0644)
+					return nil, rc.FS().WriteFile(srcFile, []byte(script), 0644)
 				},
 			},
 			// write redacted file
@@ -189,7 +190,7 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("failed to write redacted file path: %w", err)
 					}
 
-					return nil, os.WriteFile(redactedSrcFile, []byte(""), 0644)
+					return nil, rc.FS().WriteFile(redactedSrcFile, []byte(""), 0644)
 				},
 			},
 			// copy script to container

@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"github.com/h2non/filetype"
@@ -107,7 +108,12 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache, spec, extractFileFromArchive, attributes,
+		d.cache,
+		spec,
+		func(obj cache.IdentifiableObject) (io.ReadCloser, error) {
+			return extractFileFromArchive(rc.FS(), obj)
+		},
+		attributes,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", d.name, err)
@@ -135,9 +141,9 @@ func parseOneLineSpec(onelineSpec string) *inputSpec {
 	return ret
 }
 
-func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error) {
+func extractFileFromArchive(ofs *fshelper.OSFS, obj cache.IdentifiableObject) (io.ReadCloser, error) {
 	spec := obj.(*inputSpec)
-	info, err := os.Stat(spec.Archive)
+	info, err := ofs.Stat(spec.Archive)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +153,7 @@ func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error)
 		return nil, err
 	}
 
-	f, err := os.Open(spec.Archive)
+	f, err := ofs.Open(spec.Archive)
 	if err != nil {
 		return nil, err
 	}
@@ -157,5 +163,5 @@ func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error)
 		*os.File
 	}
 
-	return unarchive(&src{info, f}, typ, spec.Path, spec.Password)
+	return unarchive(&src{info, f.(*os.File)}, typ, spec.Path, spec.Password)
 }

@@ -9,11 +9,11 @@ import (
 	"io/fs"
 	"math"
 	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/md5helper"
 	lru "github.com/die-net/lrucache"
@@ -42,20 +42,20 @@ func NewTwoTierCache(cacheDir string, itemMaxBytes, maxBytes, maxAgeSeconds int6
 	}
 
 	return &TwoTierCache{
-		cacheDirPath: cacheDir,
-
 		itemMaxBytes: itemMaxBytes,
-		cacheFS:      os.DirFS(cacheDir),
-		memcache:     lru.New(maxBytes, maxAgeSeconds),
+
+		cacheFS: fshelper.NewOSFS(true, func() (string, error) {
+			return cacheDir, nil
+		}),
+		memcache: lru.New(maxBytes, maxAgeSeconds),
 	}
 }
 
 type TwoTierCache struct {
-	cacheDirPath string
-
 	itemMaxBytes int64
-	cacheFS      fs.FS
-	memcache     *lru.LruCache
+
+	cacheFS  *fshelper.OSFS
+	memcache *lru.LruCache
 }
 
 // Get cached content
@@ -110,11 +110,9 @@ func (c *TwoTierCache) get(
 	// actively remove all but last expired cache
 	if len(expired) > 1 {
 		for _, v := range expired[:len(expired)-1] {
-			v = filepath.Join(c.cacheDirPath, v)
-
 			// best effort
-			_ = os.Chmod(v, 0600)
-			err = os.Remove(v)
+			_ = c.cacheFS.Chmod(v, 0600)
+			err = c.cacheFS.Remove(v)
 			if err != nil {
 				log.Log.I("failed to remove expired cache",
 					log.String("file", v), log.Error(err),
@@ -128,23 +126,23 @@ func (c *TwoTierCache) get(
 		file = active[len(active)-1]
 		isExpired = false
 		if retConent {
-			content, err = fs.ReadFile(c.cacheFS, file)
+			content, err = c.cacheFS.ReadFile(file)
 		}
 
-		file = filepath.Join(c.cacheDirPath, file)
+		file, err = c.cacheFS.Abs(file)
 		return
 	}
 
 	// no active cache, fetch from remote
 
-	// first ensure target dir exists
-	_, err = os.Stat(c.cacheDirPath)
+	// first ensure cache dir exists
+	_, err = c.cacheFS.Stat(".")
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return
 		}
 
-		err = os.MkdirAll(c.cacheDirPath, 0755)
+		err = c.cacheFS.MkdirAll(".", 0755)
 		if err != nil {
 			return
 		}
@@ -161,25 +159,31 @@ func (c *TwoTierCache) get(
 		file = expired[len(expired)-1]
 		isExpired = true
 
+		var err2 error
 		if retConent {
-			var err2 error
 			content, err2 = fs.ReadFile(c.cacheFS, file)
 			if err2 != nil {
 				err = fmt.Errorf("%v: %w", err, err2)
 			}
 		}
 
-		file = filepath.Join(c.cacheDirPath, file)
+		file, err2 = c.cacheFS.Abs(file)
+		if err2 != nil {
+			err = fmt.Errorf("%v: %w", err, err2)
+		}
+
 		return
 	}
 	defer func() { _ = r.Close() }()
 
 	isExpired = false
-	file = formatLocalCacheFilename(cacheFilenamePrefix, suffix, now)
-	file = filepath.Join(c.cacheDirPath, file)
+	_file := formatLocalCacheFilename(cacheFilenamePrefix, suffix, now)
+	size, content, err := storeLocalCache(c.cacheFS, _file, r, retConent)
+	if err != nil {
+		return
+	}
 
-	size, content, err := storeLocalCache(file, r, retConent)
-
+	file, err = c.cacheFS.Abs(_file)
 	if err != nil {
 		return
 	}
@@ -211,21 +215,22 @@ func formatLocalCacheFilename(prefix, suffix string, now int64) string {
 }
 
 func storeLocalCache(
+	ofs *fshelper.OSFS,
 	dest string,
 	r io.Reader,
 	returnContent bool,
 ) (int64, []byte, error) {
-	if os.Chmod(dest, 0600) == nil {
-		defer func() { _ = os.Chmod(dest, 0400) }()
+	if ofs.Chmod(dest, 0600) == nil {
+		defer func() { _ = ofs.Chmod(dest, 0400) }()
 	}
 
-	f, err := os.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
+	f, err := ofs.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
 	if err != nil {
 		return 0, nil, err
 	}
 	defer func() { _ = f.Close() }()
 
-	var dst io.Writer = f
+	var dst io.Writer = f.(*os.File)
 	var buf *bytes.Buffer
 	if returnContent {
 		buf = &bytes.Buffer{}

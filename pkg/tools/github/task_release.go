@@ -71,8 +71,7 @@ func (c *TaskRelease) GetExecSpecs(
 		}
 
 		if len(c.Notes) != 0 {
-			cacheDir := rc.CacheDir()
-			f, err := os.CreateTemp(cacheDir, "github-release-note-*")
+			f, err := os.CreateTemp(rc.CacheDir(), "github-release-note-*")
 			if err != nil {
 				return fmt.Errorf("failed to create temporary release note file: %w", err)
 			}

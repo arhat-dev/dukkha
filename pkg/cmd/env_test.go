@@ -38,7 +38,7 @@ func TestCreateGlobalEnv(t *testing.T) {
 		"HOST_KERNEL_VERSION": "",
 		"HOST_ARCH":           "",
 
-		"DUKKHA_WORKING_DIR": "",
+		"DUKKHA_WORKDIR": "",
 	}
 
 	for name, expectedValue := range requiredEnv {

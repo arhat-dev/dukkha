@@ -1,8 +1,8 @@
 arhat.dev/pkg v0.7.3-0.20211031112332-ffefabe6bd30/go.mod h1:zPTNrA/tEoOUSpFQFyr7McM3LO8WQRhwNcULbcAM+ms=
 arhat.dev/pkg v0.7.3/go.mod h1:QmcFSZKUYOlgbtw6b0zDJXE3Fo4aJWDuS/6xg2imu/Y=
 arhat.dev/pkg v0.8.0/go.mod h1:WN2MoK4tM/DcZqzRPzS1cKiG2N+FcPBQJ8qK5F5CXB4=
-arhat.dev/pkg v0.8.2-0.20211202064208-cab173456e43 h1:+eRqLaIv/GIxnfgRuEj8C9rvnJunpd3x6JGvmsQ4iP0=
-arhat.dev/pkg v0.8.2-0.20211202064208-cab173456e43/go.mod h1:2vF0tmjKIe94SlTf29I1YmivoLLZ2T+Wn47lQVwpqCc=
+arhat.dev/pkg v0.8.2-0.20211203131557-d088f40cc496 h1:l7E8llbYJhaVMbfjqBlZQ/7wXD34vkWtUijCVWP19G0=
+arhat.dev/pkg v0.8.2-0.20211203131557-d088f40cc496/go.mod h1:2vF0tmjKIe94SlTf29I1YmivoLLZ2T+Wn47lQVwpqCc=
 arhat.dev/rs v0.6.0/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
 arhat.dev/rs v0.7.0/go.mod h1:sJXVt9WQKBYdyiOwxBWBvGOYoDPqljtvPgOZ6ira9Y0=
 arhat.dev/rs v0.8.1/go.mod h1:FSH7DwQleSft5CudV8SGKPgEjZLsRPD3T13j5clQkQI=

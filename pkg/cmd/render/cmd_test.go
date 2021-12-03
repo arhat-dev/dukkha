@@ -64,7 +64,7 @@ func TestCmd(t *testing.T) {
 			})
 
 			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), map[string]utils.LazyValue{
-				constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(cwd),
+				constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),
 			})
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
@@ -107,7 +107,7 @@ func TestCmd(t *testing.T) {
 				return
 			}
 
-			ctx.(di.WorkingDirOverrider).OverrideWorkingDir(cwd)
+			ctx.(di.WorkDirOverrider).OverrideWorkDir(cwd)
 
 			// have a look at the output dir
 			entries, err := os.ReadDir(outputDir)

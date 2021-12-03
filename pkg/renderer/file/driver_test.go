@@ -1,11 +1,13 @@
 package file
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"os"
 	"testing"
 
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,19 +42,21 @@ func TestDriver_Render(t *testing.T) {
 		return
 	}
 
+	rc := dukkha_test.NewTestContext(context.TODO())
+
 	t.Run("Valid File Exists", func(t *testing.T) {
-		ret, err := d.RenderYaml(nil, tempFilePath, nil)
+		ret, err := d.RenderYaml(rc, tempFilePath, nil)
 		assert.NoError(t, err)
 		assert.EqualValues(t, []byte(expectedData), ret)
 	})
 
 	t.Run("Invalid Input Type", func(t *testing.T) {
-		_, err := d.RenderYaml(nil, true, nil)
+		_, err := d.RenderYaml(rc, true, nil)
 		assert.Error(t, err)
 	})
 
 	t.Run("Invalid File Not Exists", func(t *testing.T) {
-		_, err := d.RenderYaml(nil, randomData, nil)
+		_, err := d.RenderYaml(rc, randomData, nil)
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
 }

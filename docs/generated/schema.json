@@ -5163,8 +5163,8 @@
         },
         "panic_on_exit_0": {
           "type": "boolean",
-          "description": "Panic on call to os.Exit(0)",
-          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "description": "Panic on calling os.Exit(0)",
+          "x-intellij-html-description": "Panic on calling os.Exit(0)",
           "default": "false"
         },
         "parallel": {
@@ -5207,8 +5207,8 @@
         },
         "work_dir": {
           "type": "string",
-          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
-          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
+          "description": "to run test, defaults to DUKKHA_WORKDIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA_WORKDIR"
         }
       },
       "preferredOrder": [
@@ -5368,8 +5368,8 @@
         },
         "^panic_on_exit_0@.*": {
           "type": "boolean",
-          "description": "Panic on call to os.Exit(0)",
-          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "description": "Panic on calling os.Exit(0)",
+          "x-intellij-html-description": "Panic on calling os.Exit(0)",
           "default": "false"
         },
         "^panic_on_exit_0@[^\\|]*!": {
@@ -5439,8 +5439,8 @@
         },
         "^work_dir@.*": {
           "type": "string",
-          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
-          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
+          "description": "to run test, defaults to DUKKHA_WORKDIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA_WORKDIR"
         },
         "^work_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

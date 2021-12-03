@@ -3,14 +3,16 @@ package golang
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
-	"os"
+	"io/fs"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
@@ -91,7 +93,7 @@ func (c *TaskTest) GetExecSpecs(
 		// since they are generated dynamically
 		taskName := c.TaskName
 		dukkhaCacheDir := rc.CacheDir()
-		dukkhaWorkingDir := rc.WorkingDir()
+		dukkhaWorkingDir := rc.WorkDir()
 		toolCmd := []string{constant.DUKKHA_TOOL_CMD}
 		chdir := c.Chdir
 		workDir := c.Test.WorkDir
@@ -147,6 +149,7 @@ func (c *TaskTest) GetExecSpecs(
 						}
 
 						builtTestExecutable, subCompileSteps := generateCompileSpecs(
+							rc.FS(),
 							taskName,
 							dukkhaCacheDir,
 							chdir,
@@ -157,6 +160,7 @@ func (c *TaskTest) GetExecSpecs(
 						compileSteps = append(compileSteps, subCompileSteps...)
 
 						subRunSpecs := generateRunSpecs(
+							rc.FS(),
 							dukkhaWorkingDir,
 							builtTestExecutable,
 							chdir,
@@ -210,6 +214,7 @@ func getBuiltTestExecutablePath(dukkhaCacheDir, taskName, pkgRelPath string) str
 
 // compile one package for testing at a time
 func generateCompileSpecs(
+	ofs *fshelper.OSFS,
 	taskName string,
 	dukkhaCacheDir string,
 	chdir string,
@@ -233,8 +238,8 @@ func generateCompileSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			err := os.Remove(builtTestExecutable)
-			if err != nil && !os.IsNotExist(err) {
+			err := ofs.Remove(builtTestExecutable)
+			if err != nil && !errors.Is(err, fs.ErrNotExist) {
 				return nil, fmt.Errorf("failed to remove previously built test executable: %w", err)
 			}
 
@@ -263,7 +268,7 @@ func generateCompileSpecs(
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				return nil, os.Chmod(builtTestExecutable, 0750)
+				return nil, ofs.Chmod(builtTestExecutable, 0750)
 			},
 			IgnoreError: true,
 		},
@@ -281,6 +286,7 @@ func getGoToolTest2JsonResultReplaceKey(pkgRelPath string) string {
 }
 
 func generateRunSpecs(
+	ofs *fshelper.OSFS,
 	dukkhaWorkingDir string,
 	builtTestExecutable string,
 	chdir string,
@@ -388,7 +394,7 @@ func generateRunSpecs(
 									return nil, fmt.Errorf("failed to get json result of test")
 								}
 
-								err := os.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
+								err := ofs.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
 								if err != nil {
 									return nil, fmt.Errorf("failed to save test json output: %w", err)
 								}
@@ -439,10 +445,10 @@ type testSpec struct {
 	// JSONOutputFile
 	JSONOutputFile string `yaml:"json_output_file"`
 
-	// Panic on call to os.Exit(0)
+	// Panic on calling os.Exit(0)
 	PanicOnExit0 bool `yaml:"panic_on_exit_0"`
 
-	// WorkDir to run test, defaults to DUKKHA_WORKING_DIR
+	// WorkDir to run test, defaults to DUKKHA_WORKDIR
 	WorkDir string `yaml:"work_dir"`
 }
 

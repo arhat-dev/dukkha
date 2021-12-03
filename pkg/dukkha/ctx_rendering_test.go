@@ -51,7 +51,7 @@ func TestGenEnvForValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			values, err := genEnvForValues(test.values)
+			values, err := genEnvFromValues(test.values)
 			assert.NoError(t, err)
 			assert.EqualValues(t, test.expected, values)
 		})

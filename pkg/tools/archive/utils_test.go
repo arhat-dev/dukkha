@@ -76,7 +76,7 @@ func TestCollectFiles(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(context.TODO())
 			assert.NoError(t, spec.ResolveFields(ctx, -1))
 
-			actualFiles, err := collectFiles(spec.Task.Files)
+			actualFiles, err := collectFiles(ctx.FS(), spec.Task.Files)
 			if spec.ExpectErr {
 				assert.Error(t, err)
 				return

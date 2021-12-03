@@ -3,15 +3,12 @@ package tpl
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
-	"github.com/bmatcuk/doublestar/v4"
-	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -134,8 +131,6 @@ func renderTemplate(
 
 	tplStr string,
 ) ([]byte, error) {
-	_fs := afero.NewIOFS(afero.NewOsFs())
-
 	var (
 		includeFiles []string
 		includeText  []string
@@ -143,9 +138,9 @@ func renderTemplate(
 	for _, inc := range inc {
 		switch {
 		case len(inc.Path) != 0:
-			matches, err := doublestar.Glob(_fs, inc.Path)
+			matches, err := rc.FS().Glob(inc.Path)
 			if err != nil {
-				_, err2 := os.Stat(inc.Path)
+				_, err2 := rc.FS().Stat(inc.Path)
 				if err2 != nil {
 					return nil, err
 				}
@@ -173,7 +168,7 @@ func renderTemplate(
 		// 	     maybe also parsed templates if we are sure rendering context
 		// 	     is handled correctly
 
-		tplBytes, err := os.ReadFile(inc)
+		tplBytes, err := rc.FS().ReadFile(inc)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load template file: %q", err)
 		}

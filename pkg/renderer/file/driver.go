@@ -2,7 +2,6 @@ package file
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"arhat.dev/rs"
@@ -53,7 +52,7 @@ func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
 }
 
 func (d *Driver) RenderYaml(
-	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -82,11 +81,11 @@ func (d *Driver) RenderYaml(
 		data, err = d.cache.Get(
 			cache.IdentifiableString(path),
 			func(_ cache.IdentifiableObject) ([]byte, error) {
-				return os.ReadFile(path)
+				return rc.FS().ReadFile(path)
 			},
 		)
 	} else {
-		data, err = os.ReadFile(path)
+		data, err = rc.FS().ReadFile(path)
 	}
 
 	if err != nil {

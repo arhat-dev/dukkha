@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"mvdan.cc/sh/v3/expand"
@@ -37,6 +37,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 
 	config := &expand.Config{
 		Env: rc,
+		// reassemble back-quoted string and $() by default
 		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
 			script, err2 := rebuildShellEvaluation(printer, cs)
 			if err2 != nil {
@@ -58,13 +59,13 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 			return err2
 		},
 		ProcSubst: nil,
-		ReadDir: func(s string) ([]os.FileInfo, error) {
-			ents, err2 := os.ReadDir(s)
+		ReadDir: func(s string) ([]fs.FileInfo, error) {
+			ents, err2 := rc.FS().ReadDir(s)
 			if err2 != nil {
 				return nil, err2
 			}
 
-			ret := make([]os.FileInfo, len(ents))
+			ret := make([]fs.FileInfo, len(ents))
 			for i, e := range ents {
 				ret[i], err2 = e.Info()
 				if err2 != nil {
@@ -82,12 +83,13 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	if enableExec {
 		stdout := &bytes.Buffer{}
 		runner, err := CreateEmbeddedShellRunner(
-			rc.WorkingDir(), rc, nil, stdout, os.Stderr,
+			rc.WorkDir(), rc, nil, stdout, os.Stderr,
 		)
 		if err != nil {
 			return "", fmt.Errorf("failed to create shell runner for env: %w", err)
 		}
 
+		// reassemble back-quoted string but eval $()
 		config.CmdSubst = func(w io.Writer, cs *syntax.CmdSubst) error {
 			script, err2 := rebuildShellEvaluation(printer, cs)
 			if err2 != nil {
@@ -145,98 +147,27 @@ func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (strin
 	}
 }
 
-func newDevNull() io.ReadWriteCloser {
-	return &devNull{
-		ch: make(chan struct{}),
-	}
-}
-
-type devNull struct {
-	ch chan struct{}
-}
-
-func (r *devNull) Write(p []byte) (int, error) { return io.Discard.Write(p) }
-
-func (r *devNull) Read(p []byte) (int, error) {
-	if len(p) == 0 {
-		return 0, nil
-	}
-
-	// mock actual read from /dev/null, always block
-	<-r.ch
-	return 0, io.EOF
-}
-
-func (r *devNull) Close() error {
-	select {
-	case <-r.ch:
-		// already closed
-	default:
-		close(r.ch)
-	}
-
-	return nil
-}
-
 func CreateEmbeddedShellRunner(
-	workingDir string,
+	workdir string,
 	rc dukkha.RenderingContext,
 	stdin io.Reader,
 	stdout io.Writer,
 	stderr io.Writer,
 ) (*interp.Runner, error) {
-	cmdExecHandler := interp.DefaultExecHandler(0)
-
-	return interp.New(
+	runner, err := interp.New(
 		interp.Env(rc),
-		interp.Dir(workingDir),
+		interp.Dir(workdir),
 		interp.StdIO(stdin, stdout, stderr),
 		interp.Params("-e"),
-		interp.OpenHandler(func(
-			ctx context.Context,
-			path string,
-			flag int,
-			perm os.FileMode,
-		) (io.ReadWriteCloser, error) {
-			if !filepath.IsAbs(path) {
-				hc := interp.HandlerCtx(ctx)
-				path = filepath.Join(hc.Dir, path)
-			}
-
-			switch path {
-			case "/dev/null":
-				return newDevNull(), nil
-			default:
-				return os.OpenFile(path, flag, perm)
-			}
-		}),
-		interp.ExecHandler(func(
-			ctx context.Context,
-			args []string,
-		) error {
-			hc := interp.HandlerCtx(ctx)
-
-			if !strings.HasPrefix(args[0], "tpl:") {
-				return cmdExecHandler(ctx, args)
-			}
-
-			var pipeReader io.Reader
-			if hc.Stdin != stdin {
-				// piped context
-				pipeReader = hc.Stdin
-			}
-
-			return ExecCmdAsTemplateFuncCall(
-				rc,
-				pipeReader,
-				hc.Stdout,
-				append(
-					[]string{strings.TrimPrefix(args[0], "tpl:")},
-					args[1:]...,
-				),
-			)
-		}),
+		interp.OpenHandler(fileOpenHandler),
+		interp.ExecHandler(newExecHandler(rc, stdin)),
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return runner, nil
 }
 
 func RunScriptInEmbeddedShell(

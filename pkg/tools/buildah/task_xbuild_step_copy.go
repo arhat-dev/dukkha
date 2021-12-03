@@ -3,9 +3,10 @@ package buildah
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
-	"os"
+	"io/fs"
 	"path/filepath"
 
 	"arhat.dev/pkg/md5helper"
@@ -62,8 +63,8 @@ func (s *stepCopy) genSpec(
 					"buildah", "xbuild",
 					"copy-text-"+hex.EncodeToString(md5helper.Sum([]byte(data))),
 				)
-				err := os.MkdirAll(filepath.Dir(srcFile), 0755)
-				if err != nil && !os.IsExist(err) {
+				err := rc.FS().MkdirAll(filepath.Dir(srcFile), 0755)
+				if err != nil && !errors.Is(err, fs.ErrExist) {
 					return nil, fmt.Errorf("failed to ensure text data cache dir: %w", err)
 				}
 
@@ -73,7 +74,7 @@ func (s *stepCopy) genSpec(
 					return nil, fmt.Errorf("failed to create text data cache: %q", srcFile)
 				}
 
-				return nil, os.WriteFile(srcFile, []byte(data), 0644)
+				return nil, rc.FS().WriteFile(srcFile, []byte(data), 0644)
 			},
 		})
 

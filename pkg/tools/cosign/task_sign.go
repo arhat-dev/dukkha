@@ -2,8 +2,10 @@ package cosign
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -114,12 +116,12 @@ func (s *blobSigningOptions) ensurePrivateKey(dukkhaCacheDir string) (string, er
 		return keyFile, nil
 	}
 
-	if !os.IsNotExist(err) {
+	if !errors.Is(err, fs.ErrNotExist) {
 		return "", fmt.Errorf("failed to check cosign private_key: %w", err)
 	}
 
 	err = os.MkdirAll(dir, 0750)
-	if err != nil && !os.IsExist(err) {
+	if err != nil && !errors.Is(err, fs.ErrExist) {
 		return "", fmt.Errorf("failed to ensure cosign dir: %w", err)
 	}
 

@@ -2,18 +2,18 @@ package templateutils
 
 import "arhat.dev/dukkha/pkg/dukkha"
 
-func createStateNS(rc dukkha.RenderingContext) *_stateNS {
-	return &_stateNS{ctx: rc}
+func createStateNS(rc dukkha.RenderingContext) *stateNS {
+	return &stateNS{ctx: rc}
 }
 
-type _stateNS struct {
+type stateNS struct {
 	ctx dukkha.RenderingContext
 }
 
-func (s *_stateNS) Succeeded() bool {
+func (s *stateNS) Succeeded() bool {
 	return s.ctx.(dukkha.TaskExecContext).State() == dukkha.TaskExecSucceeded
 }
 
-func (s *_stateNS) Failed() bool {
+func (s *stateNS) Failed() bool {
 	return s.ctx.(dukkha.TaskExecContext).State() == dukkha.TaskExecFailed
 }

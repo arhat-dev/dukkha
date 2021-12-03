@@ -44,7 +44,7 @@ func (c *TaskIndex) GetExecSpecs(
 			indexCmd = append(indexCmd, "--url", c.RepoURL)
 		}
 
-		dukkhaWorkingDir := rc.WorkingDir()
+		dukkhaWorkingDir := rc.WorkDir()
 		if len(c.PackagesDir) != 0 {
 			pkgDir, err := filepath.Abs(c.PackagesDir)
 			if err != nil {

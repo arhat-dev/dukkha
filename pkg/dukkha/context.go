@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/rs"
 	"github.com/huandu/xstrings"
 
@@ -120,12 +121,9 @@ func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context
 
 func (c *dukkhaContext) RendererCacheDir(name string) string {
 	// replace invalid characters for windows
-	// ref: https://gist.github.com/doctaphred/d01d05291546186941e1b7ddc02034d3
-
 	basename := []rune(xstrings.ToKebabCase(name))
 	for i, c := range basename {
-		switch c {
-		case '<', '>', ':', '"', '/', '\\', '|', '?', '*':
+		if pathhelper.IsReservedWindowsPathChar(c) {
 			basename[i] = '-'
 		}
 	}

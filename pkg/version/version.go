@@ -19,12 +19,16 @@ package version
 import (
 	"fmt"
 	"runtime"
+	"time"
 )
 
 var (
 	branch, commit, tag, arch string
-	goCompilerPlatform        string
-	workspaceClean            string
+
+	worktreeClean string
+	buildTime     string
+
+	goCompilerPlatform string
 )
 
 var version string
@@ -35,7 +39,8 @@ commit: %s
 tag: %s
 arch: %s
 goVersion: %s
-workspaceClean: %s
+buildTime: %s
+worktreeClean: %s
 goCompilerPlatform: %s
 `,
 		Branch(),
@@ -43,7 +48,8 @@ goCompilerPlatform: %s
 		Tag(),
 		Arch(),
 		GoVersion(),
-		workspaceClean,
+		buildTime,
+		worktreeClean,
 		GoCompilerPlatform(),
 	)
 }
@@ -75,8 +81,17 @@ func GoVersion() string {
 	return runtime.Version()
 }
 
-func WorkspaceClean() bool {
-	return workspaceClean == "true"
+func BuildTime() time.Time {
+	ret, err := time.Parse(time.RFC3339, buildTime)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return ret
+}
+
+func WorktreeClean() bool {
+	return worktreeClean == "true"
 }
 
 func GoCompilerPlatform() string {

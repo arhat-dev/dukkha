@@ -16,7 +16,7 @@ func TestInternalTypes(t *testing.T) {
 	_, ok := ctx.(DefaultGitBranchOverrider)
 	assert.True(t, ok)
 
-	_, ok = ctx.(WorkingDirOverrider)
+	_, ok = ctx.(WorkDirOverrider)
 	assert.True(t, ok)
 
 	_, ok = ctx.(CacheDirSetter)

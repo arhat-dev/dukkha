@@ -1,12 +1,14 @@
 package render
 
 import (
+	"errors"
 	"fmt"
-	"os"
+	"io/fs"
 	"path/filepath"
 	"strings"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/pkg/fshelper"
 )
 
 func renderYamlFile(
@@ -14,9 +16,9 @@ func renderYamlFile(
 	srcPath string,
 	destPath *string,
 	opts *ResolvedOptions,
-	srcPerm map[string]os.FileMode,
+	srcPerm map[string]fs.FileMode,
 ) error {
-	sInfo, err := os.Stat(srcPath)
+	sInfo, err := rc.FS().Stat(srcPath)
 	if err != nil {
 		return fmt.Errorf("invalid file source: %w", err)
 	}
@@ -24,7 +26,7 @@ func renderYamlFile(
 	srcPerm[srcPath] = sInfo.Mode().Perm()
 
 	if sInfo.IsDir() {
-		entries, err2 := os.ReadDir(srcPath)
+		entries, err2 := rc.FS().ReadDir(srcPath)
 		if err2 != nil {
 			return fmt.Errorf("unable to check files in src dir %q: %w", srcPath, err2)
 		}
@@ -67,7 +69,7 @@ func renderYamlFile(
 
 	// srcPath should be a yaml file
 
-	srcFile, err := os.Open(srcPath)
+	srcFile, err := rc.FS().Open(srcPath)
 	if err != nil {
 		return err
 	}
@@ -78,7 +80,7 @@ func renderYamlFile(
 	if destPath != nil {
 		// prepare destination parent dir if not exists
 
-		err = ensureDestDir(srcPath, *destPath, srcPerm)
+		err = ensureDestDir(rc.FS(), srcPath, *destPath, srcPerm)
 		if err != nil {
 			return err
 		}
@@ -99,26 +101,26 @@ func renderYamlFile(
 	return renderYamlReader(rc, srcFile, destPath, srcPerm[srcPath], opts)
 }
 
-func ensureDestDir(srcPath, destPath string, srcPerm map[string]os.FileMode) error {
+func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[string]fs.FileMode) error {
 	srcPath = filepath.Dir(srcPath)
 	destPath = filepath.Dir(destPath)
 	var doMkdir []func() error
 
 	for {
-		_, err := os.Stat(destPath)
+		_, err := ofs.Stat(destPath)
 		if err == nil {
 			// already exists, do nothing
 			break
 		}
 
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to check dest dir %q: %w", destPath, err)
 		}
 
 		perm, ok := srcPerm[srcPath]
 		if !ok {
 			// checking parent dir of user priveded src dir
-			info, err2 := os.Stat(srcPath)
+			info, err2 := ofs.Stat(srcPath)
 			if err2 != nil {
 				return fmt.Errorf("failed to check src parent dir %q: %w", srcPath, err2)
 			}
@@ -130,7 +132,7 @@ func ensureDestDir(srcPath, destPath string, srcPerm map[string]os.FileMode) err
 		targetDir := destPath
 		src := srcPath
 		doMkdir = append(doMkdir, func() error {
-			err = os.Mkdir(targetDir, perm)
+			err = ofs.Mkdir(targetDir, perm)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to create dest dir %q for src dir %q: %w",

@@ -4,6 +4,22 @@ import (
 	"strings"
 )
 
+// IsWindowsAbs reports whether the path is absolute.
+func IsWindowsAbs(path string) (b bool) {
+	if IsReservedWindowsName(path) {
+		return true
+	}
+	l := volumeNameLen(path)
+	if l == 0 {
+		return false
+	}
+	path = path[l:]
+	if path == "" {
+		return false
+	}
+	return IsWindowsSlash(path[0])
+}
+
 // AbsWindowsPath returns absolute path of path with custom cwd
 // the argument path SHOULD be relative path, that is:
 // 	on windows: not start with `[a-zA-Z]:/` or `\\`

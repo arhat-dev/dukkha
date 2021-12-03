@@ -4,9 +4,11 @@ import (
 	"archive/tar"
 	"io"
 	"strings"
+
+	"arhat.dev/pkg/fshelper"
 )
 
-func createTar(w io.Writer, files []*entry) error {
+func createTar(ofs *fshelper.OSFS, w io.Writer, files []*entry) error {
 	tw := tar.NewWriter(w)
 	defer func() { _ = tw.Close() }()
 
@@ -28,7 +30,7 @@ func createTar(w io.Writer, files []*entry) error {
 		}
 
 		if f.info.Mode().IsRegular() {
-			err = copyFileContent(tw, f.from)
+			err = copyFileContent(ofs, tw, f.from)
 			if err != nil {
 				return err
 			}

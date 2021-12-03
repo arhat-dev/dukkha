@@ -84,7 +84,7 @@ func (c *TaskCreate) GetExecSpecs(
 
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		output := c.Output
-		files, err := collectFiles(c.Files)
+		files, err := collectFiles(rc.FS(), c.Files)
 		if err != nil {
 			return err
 		}
@@ -128,11 +128,12 @@ func (c *TaskCreate) GetExecSpecs(
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				out, err := os.OpenFile(output, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+				_out, err := rc.FS().OpenFile(output, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 				if err != nil {
 					return nil, err
 				}
 
+				out := _out.(*os.File)
 				defer func() { _ = out.Close() }()
 
 				switch format {
@@ -146,12 +147,12 @@ func (c *TaskCreate) GetExecSpecs(
 						}
 					}
 
-					err = createTar(tarball, files)
+					err = createTar(rc.FS(), tarball, files)
 					_ = tarball.Close()
 
 					return nil, err
 				case constant.ArchiveFormat_Zip:
-					return nil, createZip(out, files, method, level)
+					return nil, createZip(rc.FS(), out, files, method, level)
 				default:
 					return nil, fmt.Errorf("unsupported format: %q", format)
 				}

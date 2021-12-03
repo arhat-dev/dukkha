@@ -148,7 +148,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		buf := &bytes.Buffer{}
 		var runner *interp.Runner
 		runner, err = templateutils.CreateEmbeddedShellRunner(
-			rc.WorkingDir(), rc, nil, buf, os.Stderr,
+			rc.WorkDir(), rc, nil, buf, os.Stderr,
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -168,7 +168,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 
 		return buf.Next(buf.Len()), nil
 	case op.Checksum != nil:
-		return valueBytes, op.Checksum.Verify()
+		return valueBytes, op.Checksum.Verify(rc.FS())
 	default:
 		return valueBytes, nil
 	}

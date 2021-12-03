@@ -12,15 +12,15 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func createEvalNS(rc dukkha.RenderingContext) *_evalNS {
-	return &_evalNS{rc: rc}
+func createEvalNS(rc dukkha.RenderingContext) *evalNS {
+	return &evalNS{rc: rc}
 }
 
-type _evalNS struct {
+type evalNS struct {
 	rc dukkha.RenderingContext
 }
 
-func (ens *_evalNS) Template(tplData interface{}) (string, error) {
+func (ens *evalNS) Template(tplData interface{}) (string, error) {
 	var tplStr string
 	switch tt := tplData.(type) {
 	case string:
@@ -58,7 +58,7 @@ func (ens *_evalNS) Template(tplData interface{}) (string, error) {
 // valid options before last argument are
 // `disable_exec` to deny shell evaluation (default behvior)
 // `enable_exec` to allow shell evaluation during expansing
-func (ens *_evalNS) Env(args ...interface{}) (string, error) {
+func (ens *evalNS) Env(args ...interface{}) (string, error) {
 	var textData interface{}
 	switch len(args) {
 	case 0:
@@ -96,7 +96,7 @@ func (ens *_evalNS) Env(args ...interface{}) (string, error) {
 // if no input was provided, it will use os.Stdin as shell stdin
 // scriptData can be string or bytes
 // inputs can be string, bytes, or io.Reader
-func (ens *_evalNS) Shell(scriptData interface{}, inputs ...interface{}) (string, error) {
+func (ens *evalNS) Shell(scriptData interface{}, inputs ...interface{}) (string, error) {
 	var script string
 	switch tt := scriptData.(type) {
 	case string:
@@ -137,7 +137,7 @@ func (ens *_evalNS) Shell(scriptData interface{}, inputs ...interface{}) (string
 
 	stdout := &bytes.Buffer{}
 	runner, err := CreateEmbeddedShellRunner(
-		ens.rc.WorkingDir(), ens.rc, stdin, stdout, os.Stderr,
+		ens.rc.WorkDir(), ens.rc, stdin, stdout, os.Stderr,
 	)
 	if err != nil {
 		return "", err

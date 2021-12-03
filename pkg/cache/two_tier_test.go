@@ -11,6 +11,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"arhat.dev/pkg/fshelper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -261,8 +262,13 @@ func TestStoreLocalCache(t *testing.T) {
 	t.Run("Invalid Path", func(t *testing.T) {
 		defer t.Cleanup(func() {})
 
-		dst := filepath.Join(t.TempDir(), "non-existing", "test")
-		size, content, err := storeLocalCache(dst, strings.NewReader("NOT USED"), true)
+		tmpdir := t.TempDir()
+
+		ofs := fshelper.NewOSFS(true, func() (string, error) {
+			return tmpdir, nil
+		})
+
+		size, content, err := storeLocalCache(ofs, "invalid/non-existing", strings.NewReader("NOT USED"), true)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 		assert.Nil(t, content)
 		assert.Zero(t, size)
@@ -271,8 +277,13 @@ func TestStoreLocalCache(t *testing.T) {
 	t.Run("Reader Error", func(t *testing.T) {
 		defer t.Cleanup(func() {})
 
-		dst := filepath.Join(t.TempDir(), "test")
-		size, content, err := storeLocalCache(dst, NewAlwaysFailReader(io.ErrClosedPipe), true)
+		tmpdir := t.TempDir()
+
+		ofs := fshelper.NewOSFS(true, func() (string, error) {
+			return tmpdir, nil
+		})
+
+		size, content, err := storeLocalCache(ofs, "test", NewAlwaysFailReader(io.ErrClosedPipe), true)
 		assert.ErrorIs(t, err, io.ErrClosedPipe)
 		assert.Nil(t, content)
 		assert.Zero(t, size)
@@ -289,8 +300,13 @@ func TestStoreLocalCache(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer t.Cleanup(func() {})
 
-			dst := filepath.Join(t.TempDir(), "test")
-			size, content, err := storeLocalCache(dst,
+			tmpdir := t.TempDir()
+
+			ofs := fshelper.NewOSFS(true, func() (string, error) {
+				return tmpdir, nil
+			})
+
+			size, content, err := storeLocalCache(ofs, "test",
 				strings.NewReader(test.data),
 				test.retContent,
 			)
@@ -303,7 +319,7 @@ func TestStoreLocalCache(t *testing.T) {
 				assert.EqualValues(t, test.data, string(content))
 			}
 
-			content, err = os.ReadFile(dst)
+			content, err = ofs.ReadFile("test")
 			if !assert.NoError(t, err, "failed to read file just wrote") {
 				return
 			}

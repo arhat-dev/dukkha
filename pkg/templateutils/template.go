@@ -56,18 +56,18 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
 		Funcs(map[string]interface{}{
-			"filepath": func() *_filepathNS { return filepathNS },
+			"filepath": func() *filepathNS { return createFilePathNS(rc) },
 			"strconv":  func() *_strconvNS { return strconvNS },
-			"dukkha":   func() *_dukkhaNS { return createDukkhaNS(rc) },
-			"os":       func() *_osNS { return osNS },
+			"dukkha":   func() *dukkhaNS { return createDukkhaNS(rc) },
+			"os":       func() *osNS { return createOSNS(rc) },
 			"archconv": func() *_archconvNS { return archconvNS },
 			// eval shell and template
-			"eval":   func() *_evalNS { return createEvalNS(rc) },
+			"eval":   func() *evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,
 			"values": rc.Values,
 			"matrix": func() map[string]string { return rc.MatrixFilter().AsEntry() },
 			// state task execution
-			"state": func() *_stateNS { return createStateNS(rc) },
+			"state": func() *stateNS { return createStateNS(rc) },
 			// for transform renderer
 			"VALUE": func() interface{} {
 				vg, ok := rc.(di.VALUEGetter)
@@ -140,12 +140,12 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"totp": totpTemplateFunc,
 
 			"appendFile": func(filename string, data []byte) error {
-				f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+				f, err := rc.FS().OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 				if err != nil {
 					return err
 				}
 
-				_, err = f.Write(data)
+				_, err = f.(*os.File).Write(data)
 				return err
 			},
 			"toBytes": func(s interface{}) ([]byte, error) {

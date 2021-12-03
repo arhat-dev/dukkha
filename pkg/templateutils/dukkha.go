@@ -8,15 +8,15 @@ import (
 
 // Dukkha runtime specific template funcs
 
-func createDukkhaNS(rc dukkha.RenderingContext) *_dukkhaNS {
-	return &_dukkhaNS{rc: rc}
+func createDukkhaNS(rc dukkha.RenderingContext) *dukkhaNS {
+	return &dukkhaNS{rc: rc}
 }
 
-type _dukkhaNS struct {
+type dukkhaNS struct {
 	rc dukkha.RenderingContext
 }
 
-func (ns *_dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {
+func (ns *dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {
 	var err error
 	// parse yaml/json doc when v is string or bytes
 	switch t := v.(type) {

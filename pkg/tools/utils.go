@@ -2,7 +2,9 @@ package tools
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -17,7 +19,7 @@ func GetScriptCache(cacheDir, script string) (string, error) {
 
 	_, err := os.Stat(scriptPath)
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return "", fmt.Errorf("failed to check existence of script cache: %w", err)
 		}
 

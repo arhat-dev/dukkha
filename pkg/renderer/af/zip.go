@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/iohelper"
+	"arhat.dev/pkg/pathhelper"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
@@ -82,7 +83,7 @@ func unzip(src SizedReaderAt, target, password string) (io.Reader, error) {
 				return nil, err
 			}
 
-			target = cleanLink(info.Name(), string(targetBytes))
+			target = pathhelper.EvalLink(info.Name(), string(targetBytes))
 			continue
 		default:
 			return nil, fmt.Errorf("unzip: unsupported non regular file %q: %v", info.Name(), m)

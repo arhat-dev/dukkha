@@ -6,8 +6,8 @@ type (
 		OverrideDefaultGitBranch(branch string)
 	}
 
-	WorkingDirOverrider interface {
-		OverrideWorkingDir(cwd string)
+	WorkDirOverrider interface {
+		OverrideWorkDir(cwd string)
 	}
 
 	CacheDirSetter interface {

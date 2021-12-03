@@ -3,8 +3,6 @@ package af
 import (
 	"io"
 	"math"
-	"path"
-	"strings"
 
 	"arhat.dev/pkg/iohelper"
 )
@@ -111,39 +109,4 @@ func (s *bufferredReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
 	}
 
 	return 0, err
-}
-
-func cleanLink(currentFile, linkName string) string {
-	linkName = path.Clean(linkName)
-	if path.IsAbs(linkName) {
-		return linkName
-	}
-
-	var (
-		upperDir  string
-		remainder = linkName
-		actualDir = path.Join(path.Dir(currentFile), ".")
-	)
-
-	idx := strings.IndexByte(remainder, '/')
-	for idx != -1 && actualDir != "." {
-		upperDir, remainder = remainder[:idx], remainder[idx+1:]
-
-		if upperDir != ".." {
-			break
-		}
-
-		idx = strings.IndexByte(remainder, '/')
-		actualDir = path.Dir(actualDir)
-	}
-
-	if actualDir == "." {
-		return remainder
-	}
-
-	if strings.HasPrefix(linkName, "..") {
-		return path.Join(currentFile, linkName)
-	}
-
-	return path.Join(path.Dir(currentFile), linkName)
 }
