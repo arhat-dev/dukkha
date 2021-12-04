@@ -6,7 +6,7 @@ result@tpl#use-spec?str:
   - path: testdata/foo.tpl
   - path: testdata/no-define.tpl
   template: |-
-    {{- include "4" . -}}
+    {{- include "4" . | trimSpace -}}
 ---
 result: |
   no-define: no-define
