@@ -136,12 +136,7 @@ func replaceInvalidWindowsPathChars(name string) string {
 
 func (c *dukkhaContext) RendererCacheFS(name string) *fshelper.OSFS {
 	name = replaceInvalidWindowsPathChars(name)
-	rfs, err := c.cacheFS.Sub(path.Join("renderer", name))
-	if err != nil {
-		panic(err)
-	}
-
-	return rfs.(*fshelper.OSFS)
+	return lazyEnsuredSubFS(c.cacheFS, path.Join("renderer", name))
 }
 
 func (c *dukkhaContext) ToolCacheFS(t Tool) *fshelper.OSFS {
@@ -155,12 +150,7 @@ func (c *dukkhaContext) ToolCacheFS(t Tool) *fshelper.OSFS {
 		name = "_"
 	}
 
-	cfs, err := c.cacheFS.Sub(path.Join(k, name))
-	if err != nil {
-		panic(err)
-	}
-
-	return cfs.(*fshelper.OSFS)
+	return lazyEnsuredSubFS(c.cacheFS, path.Join(k, name))
 }
 
 func (c *dukkhaContext) TaskCacheFS(t Task) *fshelper.OSFS {
@@ -184,12 +174,7 @@ func (c *dukkhaContext) TaskCacheFS(t Task) *fshelper.OSFS {
 		panic("invalid empty task name")
 	}
 
-	cfs, err := c.cacheFS.Sub(path.Join(toolKind, toolName, kind, name))
-	if err != nil {
-		panic(err)
-	}
-
-	return cfs.(*fshelper.OSFS)
+	return lazyEnsuredSubFS(c.cacheFS, path.Join(toolKind, toolName, kind, name))
 }
 
 func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {

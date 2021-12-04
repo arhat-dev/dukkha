@@ -149,7 +149,6 @@ func (s *stepRun) genSpec(
 					stdin io.Reader,
 					stdout, stderr io.Writer,
 				) (dukkha.RunTaskOrRunCmd, error) {
-
 					file := "run-script-" + hex.EncodeToString(md5helper.Sum([]byte(script)))
 					err := cacheFS.WriteFile(file, []byte(script), 0644)
 					if err != nil {
@@ -167,7 +166,7 @@ func (s *stepRun) genSpec(
 						return nil, fmt.Errorf("write script cache path to stdout: %q", srcFile)
 					}
 
-					return nil, rc.FS().WriteFile(srcFile, []byte(script), 0644)
+					return nil, nil
 				},
 			},
 			// write redacted file

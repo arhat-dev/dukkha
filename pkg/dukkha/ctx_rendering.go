@@ -123,7 +123,18 @@ func lazyEnsuredSubFS(ofs *fshelper.OSFS, subdir string) *fshelper.OSFS {
 	}
 
 	return fshelper.NewOSFS(false, func() (string, error) {
-		err := ofs.MkdirAll(subdir, 0755)
+		_, err := ofs.Stat(subdir)
+		if err == nil {
+			return ofs.Abs(subdir)
+		}
+
+		// we can only handle dir not exist error
+
+		if !errors.Is(err, fs.ErrNotExist) {
+			return "", err
+		}
+
+		err = ofs.MkdirAll(subdir, 0755)
 		if err != nil && !errors.Is(err, fs.ErrExist) {
 			return "", err
 		}
