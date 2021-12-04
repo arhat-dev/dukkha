@@ -71,7 +71,7 @@ func TestDriver(t *testing.T) {
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
 			rdr := NewDefault("af")
-			rdr.Init(ctx.RendererCacheFS("af"))
+			assert.NoError(t, rdr.Init(ctx.RendererCacheFS("af")))
 			ctx.AddRenderer("af", rdr)
 			ctx.AddEnv(true, &dukkha.EnvEntry{
 				Name: "test_archives",

@@ -26,7 +26,8 @@ func TestDriver_RenderYaml(t *testing.T) {
 				assert.Equal(t, "foo", user)
 
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(r.RequestURI))
+				_, err := w.Write([]byte(r.RequestURI))
+				assert.NoError(t, err)
 
 				if expectPassword {
 					assert.Equal(t, "bar", password)

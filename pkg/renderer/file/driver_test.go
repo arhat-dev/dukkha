@@ -78,9 +78,10 @@ func TestDriver_cacheData(t *testing.T) {
 	tmpdir := t.TempDir()
 
 	d := NewDefault("").(*Driver)
-	d.Init(fshelper.NewOSFS(false, func() (string, error) {
+	err := d.Init(fshelper.NewOSFS(false, func() (string, error) {
 		return tmpdir, nil
 	}))
+	assert.NoError(t, err)
 
 	const testdata = "test-data"
 

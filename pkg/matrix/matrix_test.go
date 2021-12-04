@@ -198,7 +198,7 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 		},
 		func(t *testing.T, in, exp interface{}) {
 			spec := in.(*testInputSpec)
-			spec.ResolveFields(rs.RenderingHandleFunc(
+			err := spec.ResolveFields(rs.RenderingHandleFunc(
 				func(renderer string, rawData interface{}) (result []byte, err error) {
 					data, err := rs.NormalizeRawData(rawData)
 					if err != nil {
@@ -208,6 +208,7 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 					return yamlhelper.ToYamlBytes(data)
 				},
 			), -1)
+			assert.NoError(t, err)
 
 			actual := spec.Spec.GenerateEntries(&Filter{
 				match:  spec.MatchFilter,
