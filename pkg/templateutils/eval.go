@@ -37,7 +37,7 @@ func (ens *evalNS) Template(tplData interface{}) (string, error) {
 	tpl, err := CreateTemplate(ens.rc).Parse(tplStr)
 	if err != nil {
 		return "", fmt.Errorf(
-			"failed to parse template to eval \n\n%s\n\n %w",
+			"parsing template\n\n%s\n\n %w",
 			tplStr, err,
 		)
 	}
@@ -46,7 +46,7 @@ func (ens *evalNS) Template(tplData interface{}) (string, error) {
 	err = tpl.Execute(buf, ens.rc)
 	if err != nil {
 		return "", fmt.Errorf(
-			"failed to eval template \n\n%s\n\n %w",
+			"evaluating template\n\n%s\n\n %w",
 			tplStr, err,
 		)
 	}

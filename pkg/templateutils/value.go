@@ -33,13 +33,13 @@ func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
 	out := rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject)
 	err := yaml.Unmarshal([]byte(v), out)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal yaml data\n\n%s\n\nerr: %w", v, err)
+		return nil, fmt.Errorf("unmarshal yaml data\n\n%s\n\nerr: %w", v, err)
 	}
 
 	err = out.ResolveFields(rc, -1)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to resolve yaml data\n\n%s\n\nerr: %w",
+			"resolving yaml data\n\n%s\n\nerr: %w",
 			v, err,
 		)
 	}

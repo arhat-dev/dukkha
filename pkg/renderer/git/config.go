@@ -40,14 +40,14 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 
 	client, err := ssh.NewClient(sshConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create ssh client: %w", err)
+		return nil, fmt.Errorf("create ssh client: %w", err)
 	}
 
 	defer func() { _ = client.Close() }()
 
 	session, err := client.NewSession()
 	if err != nil {
-		return nil, fmt.Errorf("failed to open ssh seesion: %w", err)
+		return nil, fmt.Errorf("open ssh seesion: %w", err)
 	}
 	defer func() { _ = session.Close() }()
 
@@ -64,13 +64,13 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 
 	err = session.Setenv("GIT_PROTOCOL", "version=2")
 	if err != nil {
-		return nil, fmt.Errorf("failed to GIT_PROTOCOL env: %w", err)
+		return nil, fmt.Errorf("set env GIT_PROTOCOL: %w", err)
 	}
 
 	err = session.Start(fmt.Sprintf("git-upload-archive '%s'", f.Repo))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to run git-upload-archive in remote host: %w",
+			"run git-upload-archive in remote host: %w",
 			err,
 		)
 	}
@@ -94,7 +94,7 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 	))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to write params for git-upload-archive: %w",
+			"writing params for git-upload-archive: %w",
 			err,
 		)
 	}
@@ -102,7 +102,7 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 	ackBytes, err := stdout.ReadPkt()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to check ack from git-upload-archive: %w",
+			"check ack from git-upload-archive: %w",
 			err,
 		)
 	}
@@ -135,8 +135,7 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 	sbr, err := stdout.SideBandReader()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to create sideband reader: %w",
-			err,
+			"creating sideband reader: %w", err,
 		)
 	}
 

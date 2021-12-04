@@ -44,7 +44,7 @@ func renderYamlFile(
 
 			newSrcInfo, err3 := ent.Info()
 			if err3 != nil {
-				return fmt.Errorf("failed to check dir entry %q: %w", newSrc, err3)
+				return fmt.Errorf("check dir entry %q: %w", newSrc, err3)
 			}
 
 			srcPerm[newSrc] = newSrcInfo.Mode().Perm()
@@ -53,13 +53,13 @@ func renderYamlFile(
 			case ".yml", ".yaml":
 				err3 = renderYamlFile(rc, newSrc, newDest, opts, srcPerm)
 				if err3 != nil {
-					return fmt.Errorf("failed to render file %q: %w", newSrc, err3)
+					return fmt.Errorf("render file %q: %w", newSrc, err3)
 				}
 			default:
 				if ent.IsDir() && opts.recursive {
 					err3 = renderYamlFile(rc, newSrc, newDest, opts, srcPerm)
 					if err3 != nil {
-						return fmt.Errorf("failed to render dir %q: %w", newSrc, err3)
+						return fmt.Errorf("render dir %q: %w", newSrc, err3)
 					}
 				}
 			}
@@ -115,7 +115,7 @@ func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[str
 		}
 
 		if !errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to check dest dir %q: %w", destPath, err)
+			return fmt.Errorf("check dest dir %q: %w", destPath, err)
 		}
 
 		perm, ok := srcPerm[srcPath]
@@ -123,7 +123,7 @@ func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[str
 			// checking parent dir of user priveded src dir
 			info, err2 := ofs.Stat(srcPath)
 			if err2 != nil {
-				return fmt.Errorf("failed to check src parent dir %q: %w", srcPath, err2)
+				return fmt.Errorf("check src parent dir %q: %w", srcPath, err2)
 			}
 
 			perm = info.Mode().Perm()
@@ -136,7 +136,7 @@ func ensureDestDir(ofs *fshelper.OSFS, srcPath, destPath string, srcPerm map[str
 			err = ofs.Mkdir(targetDir, perm)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to create dest dir %q for src dir %q: %w",
+					"creating dest dir %q for src dir %q: %w",
 					targetDir, src, err,
 				)
 			}

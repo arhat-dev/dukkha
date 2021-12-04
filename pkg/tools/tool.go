@@ -45,7 +45,7 @@ func (t *ShellTool) GetExecSpec(
 	if !isFilePath {
 		scriptPath, err = GetScriptCache(t.CacheFS, strings.Join(toExec, " "))
 		if err != nil {
-			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
+			return nil, nil, fmt.Errorf("unable to ensure script cache: %w", err)
 		}
 	} else {
 		scriptPath = toExec[0]
@@ -160,21 +160,21 @@ func (t *BaseTool) DoAfterFieldsResolved(
 		// resolve all fields of the real task type
 		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
-			return fmt.Errorf("failed to resolve tool fields: %w", err)
+			return fmt.Errorf("resolving tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTool.", tagNames)
 		if len(forBase) != 0 {
 			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested BaseTool fields: %w", err)
+				return fmt.Errorf("resolving requested BaseTool fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
 			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested fields: %w", err)
+				return fmt.Errorf("resolving requested fields: %w", err)
 			}
 		}
 	}

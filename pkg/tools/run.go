@@ -84,7 +84,7 @@ func doRun(
 					_, err := stdoutW.Flush()
 					if err != nil {
 						log.Log.I(
-							"failed to flush translated plain text data to stdout when closing",
+							"flushing translated plain text data to stdout when closing",
 							log.Error(err),
 						)
 					}
@@ -96,7 +96,7 @@ func doRun(
 						_, err := stdoutW.Flush()
 						if err != nil {
 							log.Log.I(
-								"failed to flush translated plain text data to stdout",
+								"flushing translated plain text data to stdout",
 								log.Error(err),
 							)
 							return
@@ -249,7 +249,7 @@ func doRun(
 
 		toolCmd, err := getToolCmd(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to get final tool cmd: %w", err)
+			return fmt.Errorf("resolving final tool cmd: %w", err)
 		}
 
 		var actualCmd []string
@@ -276,7 +276,7 @@ func doRun(
 				_, shellCmd, err = sh.GetExecSpec(cmd, false)
 				if err != nil {
 					ctx.SetState(dukkha.TaskExecFailed)
-					return fmt.Errorf("failed to get exec spec for shell %q: %w", es.ShellName, err)
+					return fmt.Errorf("creating exec spec for shell %q: %w", es.ShellName, err)
 				}
 			}
 
@@ -312,7 +312,7 @@ func doRun(
 			ctx.SetState(dukkha.TaskExecFailed)
 			setReplaceEntry(err)
 			if !es.IgnoreError {
-				return fmt.Errorf("failed to prepare command [ %s ]: %w", strings.Join(cmd, " "), err)
+				return fmt.Errorf("preparing command [ %s ]: %w", strings.Join(cmd, " "), err)
 			}
 
 			// TODO: log error in detail

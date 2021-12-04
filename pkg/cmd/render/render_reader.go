@@ -41,7 +41,7 @@ func renderYamlReader(
 				destPerm,
 			)
 			if err != nil {
-				return fmt.Errorf("failed to open output file %q: %w",
+				return fmt.Errorf("open output file %q: %w",
 					*destPath, err,
 				)
 			}

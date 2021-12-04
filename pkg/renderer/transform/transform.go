@@ -52,7 +52,7 @@ func (d *Driver) RenderYaml(
 	err = yaml.Unmarshal(rawBytes, spec)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to resolve input as transform spec: %w",
+			"renderer.%s: unmarshal transform spec: %w",
 			d.name, err,
 		)
 	}
@@ -62,7 +62,7 @@ func (d *Driver) RenderYaml(
 	err = spec.ResolveFields(rc, 2)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to resolve transform spec fields: %w",
+			"renderer.%s: resolving transform spec: %w",
 			d.name, err,
 		)
 	}
@@ -72,7 +72,7 @@ func (d *Driver) RenderYaml(
 		data, err = op.Do(rc, data)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to do #%d transformation: %w",
+				"renderer.%s: step #%d: %w",
 				d.name, i, err,
 			)
 		}
@@ -131,13 +131,13 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		var tpl *template.Template
 		tpl, err = templateutils.CreateTemplate(rc).Parse(tplStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse template %q: %w", tplStr, err)
+			return nil, fmt.Errorf("parsing template %q: %w", tplStr, err)
 		}
 
 		buf := &bytes.Buffer{}
 		err = tpl.Execute(buf, rc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to execute template %q: %w", tplStr, err)
+			return nil, fmt.Errorf("executing template %q: %w", tplStr, err)
 		}
 
 		return buf.Next(buf.Len()), nil
@@ -151,7 +151,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"failed to create embedded shell: %w",
+				"creating embedded shell: %w",
 				err,
 			)
 		}

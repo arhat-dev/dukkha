@@ -68,14 +68,14 @@ func (ns *dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {
 	err = genNewVal(key, v, &newValues)
 	if err != nil {
 		return v, fmt.Errorf(
-			"failed to generate new values for key %q: %w",
+			"generate new values for key %q: %w",
 			key, err,
 		)
 	}
 
 	err = ns.rc.AddValues(newValues)
 	if err != nil {
-		return v, fmt.Errorf("failed to add new value: %w", err)
+		return v, fmt.Errorf("bad new value: %w", err)
 	}
 
 	return v, nil

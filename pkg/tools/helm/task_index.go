@@ -56,8 +56,8 @@ func (c *TaskIndex) GetExecSpecs(
 			pkgDir, err := rc.FS().Abs(c.PackagesDir)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to determine absolute path of package_dir: %w",
-					err,
+					"determine absolute path of package_dir %q: %w",
+					pkgDir, err,
 				)
 			}
 

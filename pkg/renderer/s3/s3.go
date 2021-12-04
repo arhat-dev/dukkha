@@ -87,7 +87,7 @@ func (d *Driver) RenderYaml(
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to unmarshal input as s3 spec: %w",
+				"renderer.%s: unmarshal input spec: %w",
 				d.name, err,
 			)
 		}
@@ -95,7 +95,7 @@ func (d *Driver) RenderYaml(
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to resolve s3 spec: %w",
+				"renderer.%s: resolving input spec: %w",
 				d.name, err,
 			)
 		}
@@ -106,7 +106,7 @@ func (d *Driver) RenderYaml(
 		client, err = spec.Config.createClient()
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to create s3 client for spec: %w",
+				"renderer.%s: creating s3 client for spec: %w",
 				d.name, err,
 			)
 		}

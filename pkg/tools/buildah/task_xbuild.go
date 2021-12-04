@@ -72,7 +72,7 @@ func (w *TaskXBuild) GetExecSpecs(
 	err := w.DoAfterFieldsResolved(rc, -1, true, func() error {
 		tmpImageIDFile, err := os.CreateTemp(rc.CacheDir(), "buildah-xbuild-image-id-*")
 		if err != nil {
-			return fmt.Errorf("failed to create a temp file for image id: %w", err)
+			return fmt.Errorf("xbuild: create temp file for image id: %w", err)
 		}
 		tmpImageIDFilePath := tmpImageIDFile.Name()
 		_ = tmpImageIDFile.Close()
@@ -96,7 +96,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			_, err := nameSum.Write([]byte(imageName))
 			if err != nil {
-				return fmt.Errorf("failed to write image name to name sum: %w", err)
+				return fmt.Errorf("xbuild: write image name to name sum: %w", err)
 			}
 
 			realImageNames = append(realImageNames, imageName)
@@ -167,7 +167,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			stepRet, err := step.genSpec(rc, w.CacheFS)
 			if err != nil {
-				return fmt.Errorf("failed to generate #%d step spec: %w", i, err)
+				return fmt.Errorf("xbuild: generate #%d step spec: %w", i, err)
 			}
 
 			ret = append(ret, stepRet...)
@@ -406,7 +406,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 					digests, err := parseManifestOsArchVariantQueryResult(digestResult)
 					if err != nil {
-						return nil, fmt.Errorf("failed to parse digest result: %w", err)
+						return nil, fmt.Errorf("xbuild: parse digest result: %w", err)
 					}
 
 					var subSteps []dukkha.TaskExecSpec
@@ -449,7 +449,7 @@ func (w *TaskXBuild) GetExecSpecs(
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate build spec: %w", err)
+		return nil, fmt.Errorf("xbuild: generate build spec: %w", err)
 	}
 
 	return ret, nil

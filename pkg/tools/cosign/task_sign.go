@@ -67,7 +67,7 @@ func (c *TaskSign) GetExecSpecs(
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		keyFile, err := c.Options.ensurePrivateKey(c.CacheFS)
 		if err != nil {
-			return fmt.Errorf("failed to ensure private key: %w", err)
+			return fmt.Errorf("ensuring private key: %w", err)
 		}
 
 		for _, fSpec := range c.Files {
@@ -117,12 +117,12 @@ func (s *blobSigningOptions) ensurePrivateKey(cacheFS *fshelper.OSFS) (string, e
 	}
 
 	if !errors.Is(err, fs.ErrNotExist) {
-		return "", fmt.Errorf("failed to check cosign private_key: %w", err)
+		return "", fmt.Errorf("check cosign private_key: %w", err)
 	}
 
 	err = cacheFS.WriteFile(keyFile, []byte(s.PrivateKey), 0400)
 	if err != nil {
-		return "", fmt.Errorf("failed to save private key to temporary file: %w", err)
+		return "", fmt.Errorf("saving private key to temporary file: %w", err)
 	}
 
 	return cacheFS.Abs(keyFile)
@@ -197,7 +197,7 @@ func (s *blobSigningOptions) genSignAndVerifySpec(
 			) (dukkha.RunTaskOrRunCmd, error) {
 				err := os.WriteFile(pubKeyFile, []byte(pubKey), 0644)
 				if err != nil {
-					return nil, fmt.Errorf("failed to save public file: %w", err)
+					return nil, fmt.Errorf("saving public file: %w", err)
 				}
 				return nil, nil
 			},

@@ -95,7 +95,7 @@ func (c *TaskBuild) createExecSpecs(
 	dukkhaCacheDir := rc.CacheDir()
 	tmpImageIDFile, err := os.CreateTemp(dukkhaCacheDir, "buildah-build-image-id-*")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a temp file for image id: %w", err)
+		return nil, fmt.Errorf("creating temp file for image id: %w", err)
 	}
 	tmpImageIDFilePath := tmpImageIDFile.Name()
 	_ = tmpImageIDFile.Close()
@@ -275,7 +275,7 @@ func (c *TaskBuild) createExecSpecs(
 
 				digests, err := parseManifestOsArchVariantQueryResult(digestResult)
 				if err != nil {
-					return nil, fmt.Errorf("failed to parse digest result: %w", err)
+					return nil, fmt.Errorf("parsing digest result: %w", err)
 				}
 
 				var subSteps []dukkha.TaskExecSpec

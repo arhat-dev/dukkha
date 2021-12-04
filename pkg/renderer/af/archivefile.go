@@ -66,18 +66,18 @@ func (d *Driver) RenderYaml(
 		var rawDataBytes []byte
 		rawDataBytes, err = yamlhelper.ToYamlBytes(t)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 		}
 
 		spec = rs.Init(&inputSpec{}, nil).(*inputSpec)
 		err = yaml.Unmarshal(rawDataBytes, spec)
 		if err != nil {
-			return nil, fmt.Errorf("%s: invalid input spec: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: invalid input spec: %w", d.name, err)
 		}
 
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
-			return nil, fmt.Errorf("%s: failed to resolve input spec: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: resolving input spec: %w", d.name, err)
 		}
 	}
 
@@ -96,7 +96,7 @@ func (d *Driver) RenderYaml(
 		d.Attributes(attributes),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", d.name, err)
+		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 	}
 
 	return data, err

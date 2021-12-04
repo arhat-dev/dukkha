@@ -111,10 +111,7 @@ func NewClient(f *Spec) (*ssh.Client, error) {
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to dial remote git ssh server: %w",
-			err,
-		)
+		return nil, fmt.Errorf("dial remote git ssh server: %w", err)
 	}
 
 	return client, nil

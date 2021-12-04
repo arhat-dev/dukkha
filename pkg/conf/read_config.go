@@ -89,20 +89,20 @@ func readAndMergeConfigFile(
 
 	configBytes, err := fs.ReadFile(rootfs, file)
 	if err != nil {
-		return fmt.Errorf("failed to read config file %q: %w", file, err)
+		return fmt.Errorf("read config file %q: %w", file, err)
 	}
 
 	current := NewConfig()
 	err = yaml.Unmarshal(configBytes, &current)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal config file %q: %w", file, err)
+		return fmt.Errorf("unmarshal config file %q: %w", file, err)
 	}
 
 	log.Log.V("config unmarshaled", log.String("file", file), log.Any("config", current))
 
 	err = mergedConfig.Merge(current)
 	if err != nil {
-		return fmt.Errorf("failed to merge config file %q: %w", file, err)
+		return fmt.Errorf("merge config file %q: %w", file, err)
 	}
 
 	for _, inc := range current.Include {
@@ -124,7 +124,7 @@ func readAndMergeConfigFile(
 			rootfs, matches, false, visitedPaths, mergedConfig,
 		)
 		if err2 != nil {
-			return fmt.Errorf("failed to load included config files: %w", err2)
+			return fmt.Errorf("loading included config files: %w", err2)
 		}
 	}
 

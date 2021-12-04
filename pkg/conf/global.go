@@ -35,7 +35,7 @@ type GlobalConfig struct {
 func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 	err := g.BaseField.Inherit(&a.BaseField)
 	if err != nil {
-		return fmt.Errorf("failed to inherit other global config: %w", err)
+		return fmt.Errorf("inherit global config: %w", err)
 	}
 
 	g.Env = append(g.Env, a.Env...)
@@ -49,7 +49,7 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 
 	err = g.Values.Inherit(&a.Values.BaseField)
 	if err != nil {
-		return fmt.Errorf("failed to merge global values: %w", err)
+		return fmt.Errorf("merge global values: %w", err)
 	}
 
 	if len(a.Values.Data) != 0 {
@@ -70,17 +70,17 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
 	err := dukkha.ResolveEnv(rc, g, "Env", "env")
 	if err != nil {
-		return fmt.Errorf("failed to resolve global env: %w", err)
+		return fmt.Errorf("resolve global env: %w", err)
 	}
 
 	err = g.ResolveFields(rc, -1, "cache_dir")
 	if err != nil {
-		return fmt.Errorf("failed to resolve cache dir: %w", err)
+		return fmt.Errorf("resolve cache dir: %w", err)
 	}
 
 	err = g.ResolveFields(rc, -1, "default_git_branch")
 	if err != nil {
-		return fmt.Errorf("failed to resolve default git branch: %w", err)
+		return fmt.Errorf("resolve default git branch: %w", err)
 	}
 
 	return nil

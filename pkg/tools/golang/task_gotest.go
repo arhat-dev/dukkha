@@ -193,7 +193,7 @@ func (c *TaskTest) GetExecSpecs(
 					return nil, stderrResult.Err
 				}
 
-				return nil, fmt.Errorf("failed to determine which packages to test")
+				return nil, fmt.Errorf("unable to determine which packages to test")
 			},
 			IgnoreError: false,
 		})
@@ -241,7 +241,7 @@ func generateCompileSpecs(
 		) (dukkha.RunTaskOrRunCmd, error) {
 			err := cacheFS.Remove(builtTestExecutable)
 			if err != nil && !errors.Is(err, fs.ErrNotExist) {
-				return nil, fmt.Errorf("failed to remove previously built test executable: %w", err)
+				return nil, fmt.Errorf("removing previously built test executable: %w", err)
 			}
 
 			return nil, nil
@@ -381,7 +381,7 @@ func generateRunSpecs(
 				) (dukkha.RunTaskOrRunCmd, error) {
 					testOutput, ok := replace[stdoutReplaceKey]
 					if !ok {
-						return nil, fmt.Errorf("failed to get test output")
+						return nil, fmt.Errorf("test output not found")
 					}
 
 					resultKey := getGoToolTest2JsonResultReplaceKey(pkgRelPath)
@@ -399,12 +399,12 @@ func generateRunSpecs(
 							) (dukkha.RunTaskOrRunCmd, error) {
 								jsonOutput, ok := replace[resultKey]
 								if !ok {
-									return nil, fmt.Errorf("failed to get json result of test")
+									return nil, fmt.Errorf("json of test result not found")
 								}
 
 								err := ofs.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
 								if err != nil {
-									return nil, fmt.Errorf("failed to save test json output: %w", err)
+									return nil, fmt.Errorf("saving test json output: %w", err)
 								}
 
 								return nil, nil

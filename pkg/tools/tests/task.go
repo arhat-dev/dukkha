@@ -57,7 +57,7 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	}
 
 	if test.Prepare != nil {
-		if !assert.NoError(t, test.Prepare(), "failed to prepare test environment") {
+		if !assert.NoError(t, test.Prepare(), "preparing test environment") {
 			return
 		}
 	}

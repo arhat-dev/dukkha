@@ -92,7 +92,7 @@ func (d *Driver) RenderYaml(
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to unmarshal input as config: %w",
+				"renderer.%s: unmarshal input spec: %w",
 				d.name, err,
 			)
 		}
@@ -100,7 +100,7 @@ func (d *Driver) RenderYaml(
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to resolve input config: %w",
+				"renderer.%s: resolving input spec: %w",
 				d.name, err,
 			)
 		}
@@ -111,7 +111,7 @@ func (d *Driver) RenderYaml(
 		client, err = spec.Config.createClient()
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to create http client for spec: %w",
+				"renderer.%s: creating http client for spec: %w",
 				d.name, err,
 			)
 		}
@@ -130,7 +130,7 @@ func (d *Driver) RenderYaml(
 
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s failed to fetch http content: %w",
+			"renderer.%s: fetching http content: %w",
 			d.name, err,
 		)
 	}
@@ -171,7 +171,7 @@ func (d *Driver) fetchRemote(
 
 	req, err = http.NewRequest(method, targetURL, body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http request: %w", err)
+		return nil, fmt.Errorf("creating http request: %w", err)
 	}
 
 	if len(config.User) != 0 {

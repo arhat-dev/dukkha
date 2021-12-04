@@ -85,20 +85,20 @@ func diffFile(rc dukkha.RenderingContext, srcDocSrc, baseDocSrc, newDocSrc strin
 		)
 		sd, cleanupSD, err = newDecoder(srcDocSrc)
 		if err != nil {
-			return fmt.Errorf("failed to open src doc: %w", err)
+			return fmt.Errorf("open src doc: %w", err)
 		}
 		defer cleanupSD()
 	}
 
 	bd, cleanupBD, err := newDecoder(baseDocSrc)
 	if err != nil {
-		return fmt.Errorf("failed to open base doc: %w", err)
+		return fmt.Errorf("open base doc: %w", err)
 	}
 	defer cleanupBD()
 
 	nd, cleanupND, err := newDecoder(newDocSrc)
 	if err != nil {
-		return fmt.Errorf("failed to open target doc: %w", err)
+		return fmt.Errorf("open target doc: %w", err)
 	}
 	defer cleanupND()
 

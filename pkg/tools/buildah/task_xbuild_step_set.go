@@ -73,7 +73,7 @@ func (s *stepSet) genSpec(
 	if len(s.Entrypoint) != 0 {
 		ent, err := json.Marshal(s.Entrypoint)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal entrypoint value: %w", err)
+			return nil, fmt.Errorf("xbuild: marshal entrypoint: %w", err)
 		}
 
 		configArgs = append(configArgs, "--entrypoint", string(ent))

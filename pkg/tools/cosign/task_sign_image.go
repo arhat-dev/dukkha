@@ -54,7 +54,7 @@ func (c *TaskSignImage) GetExecSpecs(
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
 		keyFile, err := c.Options.Options.ensurePrivateKey(c.CacheFS)
 		if err != nil {
-			return fmt.Errorf("failed to ensure private key: %w", err)
+			return fmt.Errorf("ensuring private key: %w", err)
 		}
 
 		for _, spec := range c.ImageNames {
@@ -171,7 +171,7 @@ func (s *imageSigningOptions) genSignAndVerifySpec(
 			) (dukkha.RunTaskOrRunCmd, error) {
 				err := os.WriteFile(pubKeyFile, []byte(pubKey), 0644)
 				if err != nil {
-					return nil, fmt.Errorf("failed to save public file: %w", err)
+					return nil, fmt.Errorf("saving public file: %w", err)
 				}
 				return nil, nil
 			},

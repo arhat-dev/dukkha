@@ -77,21 +77,21 @@ func (t *BaseTask) DoAfterFieldsResolved(
 		// resolve all fields of the real task type
 		err := t.impl.ResolveFields(ctx, depth, t.tagsToResolve...)
 		if err != nil {
-			return fmt.Errorf("failed to resolve tool fields: %w", err)
+			return fmt.Errorf("resolving tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTask.", tagNames)
 		if len(forBase) != 0 {
 			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested BaseTask fields: %w", err)
+				return fmt.Errorf("resolving requested BaseTask fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
 			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested fields: %w", err)
+				return fmt.Errorf("resolving requested fields: %w", err)
 			}
 		}
 	}
@@ -133,7 +133,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	err := dukkha.ResolveEnv(taskCtx, t, "Env", "env")
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to prepare env for hook %q: %w",
+			"preparing env for hook %q: %w",
 			stage.String(), err,
 		)
 	}
@@ -141,7 +141,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	err = t.ResolveFields(taskCtx, 1, "hooks")
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to resolve hooks overview for hook %q: %w",
+			"resolving hooks overview for hook %q: %w",
 			stage.String(), err,
 		)
 	}
@@ -149,7 +149,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to generate exec specs for hook %q: %w",
+			"generating exec specs for hook %q: %w",
 			stage.String(), err,
 		)
 	}

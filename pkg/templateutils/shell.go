@@ -86,7 +86,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 			rc.WorkDir(), rc, nil, stdout, os.Stderr,
 		)
 		if err != nil {
-			return "", fmt.Errorf("failed to create shell runner for env: %w", err)
+			return "", fmt.Errorf("creating shell runner for env: %w", err)
 		}
 
 		// reassemble back-quoted string but eval $()
@@ -131,7 +131,7 @@ func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (strin
 	buf := &bytes.Buffer{}
 	err2 := printer.Print(buf, cs)
 	if err2 != nil {
-		return "", fmt.Errorf("failed to get evaluation commands: %w", err2)
+		return "", fmt.Errorf("rebuild evaluation commands: %w", err2)
 	}
 
 	rawCmd := string(buf.Next(buf.Len()))
@@ -222,7 +222,7 @@ func ExecCmdAsTemplateFuncCall(
 
 	t, err := CreateTemplate(rc).Parse(tpl)
 	if err != nil {
-		return fmt.Errorf("failed to convert to template call: %w", err)
+		return fmt.Errorf("convert cmd to template call: %w", err)
 	}
 
 	return t.Execute(stdout, values)

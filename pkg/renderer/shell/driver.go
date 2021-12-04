@@ -59,8 +59,7 @@ func (d *Driver) RenderYaml(
 		}
 	default:
 		return nil, fmt.Errorf(
-			"renderer.%s: unsupported input type %T",
-			d.name, rawData,
+			"renderer.%s: unsupported input type %T", d.name, rawData,
 		)
 	}
 
@@ -70,8 +69,7 @@ func (d *Driver) RenderYaml(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to create embedded shell: %w",
-			d.name, err,
+			"renderer.%s: creating embedded shell: %w", d.name, err,
 		)
 	}
 

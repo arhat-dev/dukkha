@@ -115,16 +115,12 @@ func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte) (*inputSpec, 
 
 	err := yaml.Unmarshal(tplBytes, spec)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"invalid template input spec: %w", err,
-		)
+		return nil, fmt.Errorf("invalid template input spec: %w", err)
 	}
 
 	err = spec.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to resolve template input spec: %w", err,
-		)
+		return nil, fmt.Errorf("resolving template input spec: %w", err)
 	}
 
 	return spec, nil
@@ -176,7 +172,7 @@ func renderTemplate(
 
 		tplBytes, err := rc.FS().ReadFile(inc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load template file: %q", err)
+			return nil, fmt.Errorf("loading template file %q: %w", inc, err)
 		}
 
 		name := path.Base(inc)
@@ -212,9 +208,7 @@ func renderTemplate(
 
 	tpl, err := tpl.Parse(tplStr)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to parse template: %w", err,
-		)
+		return nil, fmt.Errorf("parsing template: %w", err)
 	}
 
 	// Override placeholder funcs immediately before execute template

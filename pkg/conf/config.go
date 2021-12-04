@@ -68,7 +68,7 @@ type Config struct {
 func (c *Config) Merge(a *Config) error {
 	err := c.BaseField.Inherit(&a.BaseField)
 	if err != nil {
-		return fmt.Errorf("failed to inherit other top level base field: %w", err)
+		return fmt.Errorf("inherit top level config: %w", err)
 	}
 
 	err = c.Global.Merge(&a.Global)
@@ -132,7 +132,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 			// using default config, no need to resolve fields
 			err := r.Init(appCtx.RendererCacheFS(name))
 			if err != nil {
-				return fmt.Errorf("failed to initialize essential renderer %q: %w", name, err)
+				return fmt.Errorf("initializing essential renderer %q: %w", name, err)
 			}
 		}
 	}
@@ -142,12 +142,12 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		logger.D("resolving global config")
 		err := c.ResolveFields(appCtx, 1, "global")
 		if err != nil {
-			return fmt.Errorf("failed to get global config overview: %w", err)
+			return fmt.Errorf("get global config overview: %w", err)
 		}
 
 		err = c.Global.ResolveAllButValues(appCtx)
 		if err != nil {
-			return fmt.Errorf("failed to resolve global config: %w", err)
+			return fmt.Errorf("resolve global config: %w", err)
 		}
 
 		logger.V("resolved global config", log.Any("result", c.Global))
@@ -159,7 +159,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		cacheDir, err = appCtx.FS().Abs(cacheDir)
 		if err != nil {
-			return fmt.Errorf("failed to get absolute path of cache dir: %w", err)
+			return fmt.Errorf("get absolute path of cache dir: %w", err)
 		}
 
 		if len(c.Global.DefaultGitBranch) != 0 {
@@ -175,7 +175,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		logger.D("resolving to gain renderers overview")
 		err := c.ResolveFields(appCtx, 1, "renderers")
 		if err != nil {
-			return fmt.Errorf("failed to get renderers list: %w", err)
+			return fmt.Errorf("gain overview of renderers: %w", err)
 		}
 
 		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
@@ -319,7 +319,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		for i, t := range toolSet {
 			err = t.ResolveFields(appCtx, -1, "name")
 			if err != nil {
-				return fmt.Errorf("failed to resolve tool name: %w", err)
+				return fmt.Errorf("resolve tool name: %w", err)
 			}
 
 			// do not allow empty name

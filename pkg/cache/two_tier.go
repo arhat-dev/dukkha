@@ -115,7 +115,7 @@ func (c *TwoTierCache) get(
 			_ = c.cacheFS.Chmod(v, 0600)
 			err = c.cacheFS.Remove(v)
 			if err != nil {
-				log.Log.I("failed to remove expired cache",
+				log.Log.I("removing expired cache",
 					log.String("file", v), log.Error(err),
 				)
 			}
@@ -266,7 +266,7 @@ func lookupLocalCache(
 	entries, err := fs.ReadDir(cacheDir, ".")
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
-			err = fmt.Errorf("failed to check local cache dir: %w", err)
+			err = fmt.Errorf("checking local cache dir: %w", err)
 			return
 		}
 

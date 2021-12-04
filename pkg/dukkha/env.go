@@ -42,7 +42,7 @@ func (orig Env) Clone() Env {
 func ResolveEnv(ctx RenderingContext, parent rs.Field, envFieldName, envTagName string) error {
 	err := parent.ResolveFields(ctx, 1, envTagName)
 	if err != nil {
-		return fmt.Errorf("failed to get env overview: %w", err)
+		return fmt.Errorf("gain overview of env: %w", err)
 	}
 
 	fv := reflect.ValueOf(parent)
@@ -59,7 +59,7 @@ func ResolveEnv(ctx RenderingContext, parent rs.Field, envFieldName, envTagName 
 	for i := range env {
 		err = env[i].ResolveFields(ctx, -1)
 		if err != nil {
-			return fmt.Errorf("failed to resolve env %q: %w", env[i].Name, err)
+			return fmt.Errorf("resolving env %q: %w", env[i].Name, err)
 		}
 
 		ctx.AddEnv(true, env[i])

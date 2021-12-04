@@ -12,22 +12,22 @@ import (
 	"arhat.dev/pkg/sha256helper"
 )
 
-func GetScriptCache(cacheDir *fshelper.OSFS, script string) (string, error) {
+func GetScriptCache(cacheFS *fshelper.OSFS, script string) (string, error) {
 	scriptName := hex.EncodeToString(sha256helper.Sum([]byte(script)))
 
-	_, err := cacheDir.Stat(scriptName)
+	_, err := cacheFS.Stat(scriptName)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
-			return "", fmt.Errorf("failed to check existence of script cache: %w", err)
+			return "", fmt.Errorf("check existence of script cache: %w", err)
 		}
 
-		err = cacheDir.WriteFile(scriptName, []byte(script), 0600)
+		err = cacheFS.WriteFile(scriptName, []byte(script), 0600)
 		if err != nil {
-			return "", fmt.Errorf("failed to write script cache: %w", err)
+			return "", fmt.Errorf("writing script cache: %w", err)
 		}
 	}
 
-	return cacheDir.Abs(scriptName)
+	return cacheFS.Abs(scriptName)
 }
 
 func getTagNamesToResolve(typ reflect.Type) []string {

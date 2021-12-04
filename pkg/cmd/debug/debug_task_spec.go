@@ -51,7 +51,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task, _, _ int) error {
 					matrixSpecs, err := task.GetMatrixSpecs(appCtx)
 					if err != nil {
-						return fmt.Errorf("failed to get task matrix specs: %w", err)
+						return fmt.Errorf("create task matrix specs: %w", err)
 					}
 
 					execOpts := dukkha.CreateTaskExecOptions(0, len(matrixSpecs))
@@ -69,7 +69,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						)
 						_ = mExecOpts
 						if err2 != nil {
-							return fmt.Errorf("failed to create task matrix context: %w", err2)
+							return fmt.Errorf("creating task matrix context: %w", err2)
 						}
 
 						err2 = task.DoAfterFieldsResolved(mCtx, -1, true, func() error {
@@ -130,7 +130,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 							return err
 						})
 						if err2 != nil {
-							return fmt.Errorf("failed to generate task spec: %w", err2)
+							return fmt.Errorf("generate task spec: %w", err2)
 						}
 					}
 
