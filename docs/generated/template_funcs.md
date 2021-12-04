@@ -306,7 +306,10 @@
 - `crypto.SHA512_224(interface {}) string`
 - `crypto.SHA512_256(interface {}) string`
 - `crypto.WPAPSK(interface {}, interface {}) (string, error)`
+- `dukkha.CacheDir() string`
+- `dukkha.Set(string, interface {}) (interface {}, error)`
 - `dukkha.SetValue(string, interface {}) (interface {}, error)`
+- `dukkha.WorkDir() string`
 - `eval.Env(...interface {}) (string, error)`
 - `eval.Shell(interface {}, ...interface {}) (string, error)`
 - `eval.Template(interface {}) (string, error)`
@@ -331,6 +334,16 @@
 - `filepath.Split(interface {}) []string`
 - `filepath.ToSlash(interface {}) string`
 - `filepath.VolumeName(interface {}) string`
+- `git.Branch() string`
+- `git.Commit() string`
+- `git.DefaultBranch() string`
+- `git.Tag() string`
+- `git.WorktreeClean() bool`
+- `host.Arch() string`
+- `host.Kernel() string`
+- `host.KernelVersion() string`
+- `host.OS() string`
+- `host.OSVersion() string`
 - `math.Abs(interface {}) interface {}`
 - `math.Add(...interface {}) interface {}`
 - `math.Ceil(interface {}) interface {}`
