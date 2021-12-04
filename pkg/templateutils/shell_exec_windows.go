@@ -22,5 +22,7 @@ func pathExts(env expand.Environ) []string {
 		}
 		exts = append(exts, e)
 	}
-	return exts
+
+	// allow no extension
+	return append(exts, "")
 }

@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/pathhelper"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
@@ -184,15 +185,24 @@ func lookPathDir(cwd string, env expand.Environ, file string, find findAny) (str
 		panic("no find function found")
 	}
 
-	pathList := splitPathList(cwd, env.Get("PATH").String())
 	chars := `/`
 	if runtime.GOOS == constant.KERNEL_WINDOWS {
 		chars = `:\/`
 	}
 	exts := pathExts(env)
+
 	if strings.ContainsAny(file, chars) {
 		return find(cwd, file, exts)
 	}
+
+	pathList := splitPathList(cwd, env.Get("PATH").String())
+
+	log.Log.V("lookup path list",
+		log.String("PATH", env.Get("PATH").String()),
+		log.Strings("path_list", pathList),
+		log.Strings("exts", exts),
+	)
+
 	for _, elem := range pathList {
 		var path string
 		switch elem {
@@ -202,10 +212,12 @@ func lookPathDir(cwd string, env expand.Environ, file string, find findAny) (str
 		default:
 			path = filepath.Join(elem, file)
 		}
+
 		if f, err := find(cwd, path, exts); err == nil {
 			return f, nil
 		}
 	}
+
 	return "", fmt.Errorf("%q: executable file not found in $PATH", file)
 }
 
@@ -223,18 +235,36 @@ func splitPathList(cwd, path string) []string {
 	list := pathhelper.SplitList(path, true, isWindows, isSlash)
 
 	for i, v := range list {
-		if isWindows {
-			var err error
-			list[i], err = pathhelper.AbsWindowsPath(cwd, v, func() (string, error) {
-				// TODO: implement fhs root lookup
-				return "", nil
-			})
-
-			// error can only happen when looking up fhs root
-			_ = err
-		} else if !filepath.IsAbs(v) {
-			list[i] = filepath.Join(cwd, v)
+		if filepath.IsAbs(v) {
+			continue
 		}
+
+		if !isWindows {
+			list[i] = pathhelper.JoinUnixPath(cwd, v)
+			continue
+		}
+
+		var err error
+		list[i], err = pathhelper.AbsWindowsPath(cwd, v, func() (string, error) {
+			// find root path of the fhs root using cygpath
+			output, err := exec.Command("cygpath", "-w", "/").CombinedOutput()
+			if err == nil {
+				return strings.TrimSpace(string(output)), nil
+			}
+
+			// github action has msys2 installed without PATH added
+			// so we cannot find `cygpath` executable
+			switch {
+			case os.Getenv("GITHUB_ACTIONS") == "true":
+				return `C:\msys64`, nil
+			default:
+				// TODO: other defaults?
+				return "", err
+			}
+		})
+
+		// error can only happen when looking up fhs root
+		_ = err
 	}
 
 	return list
