@@ -4,10 +4,12 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/third_party/gomplate/conv"
 	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/pkg/wellknownerrors"
+
+	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
 type filepathNS struct {
@@ -80,7 +82,7 @@ func (f *filepathNS) Abs(in interface{}) (string, error) {
 		return path, nil
 	}
 
-	if runtime.GOOS != "windows" {
+	if runtime.GOOS != constant.KERNEL_WINDOWS {
 		return filepath.Join(f.rc.WorkDir(), path), nil
 	}
 

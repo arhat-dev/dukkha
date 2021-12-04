@@ -13,8 +13,9 @@ import (
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/pkg/fshelper"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 func createZip(

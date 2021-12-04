@@ -23,10 +23,10 @@ func init() {
 
 type TaskLogin buildah.TaskLogin
 
-func (w *TaskLogin) Kind() dukkha.TaskKind { return TaskKindLogin }
-func (w *TaskLogin) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
-func (w *TaskLogin) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
+func (c *TaskLogin) Kind() dukkha.TaskKind { return TaskKindLogin }
+func (c *TaskLogin) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskLogin) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskLogin) GetExecSpecs(

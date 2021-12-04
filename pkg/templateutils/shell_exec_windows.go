@@ -3,11 +3,8 @@ package templateutils
 import (
 	"strings"
 
-	"arhat.dev/pkg/pathhelper"
 	"mvdan.cc/sh/v3/expand"
 )
-
-func isSlash(c byte) bool { return pathhelper.IsWindowsSlash(c) }
 
 func pathExts(env expand.Environ) []string {
 	pathext := env.Get("PATHEXT").String()

@@ -12,10 +12,12 @@ import (
 	"syscall"
 	"time"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/pathhelper"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
+
+	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHandlerFunc {
@@ -56,7 +58,7 @@ func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHand
 
 // sysExecHandler returns an ExecHandlerFunc used by default.
 // It finds binaries in PATH and executes them.
-// When context is cancelled, interrupt signal is sent to running processes.
+// When context is canceled, interrupt signal is sent to running processes.
 // KillTimeout is a duration to wait before sending kill signal.
 // A negative value means that a kill signal will be sent immediately.
 // On Windows, the kill signal is always sent immediately,
@@ -86,7 +88,7 @@ func sysExecHandler(killTimeout time.Duration) interp.ExecHandlerFunc {
 				go func() {
 					<-done
 
-					if killTimeout <= 0 || runtime.GOOS == "windows" {
+					if killTimeout <= 0 || runtime.GOOS == constant.KERNEL_WINDOWS {
 						_ = cmd.Process.Signal(os.Kill)
 						return
 					}
@@ -136,13 +138,13 @@ func findExecutable(dir, file string, exts []string) (string, error) {
 		return checkStat(dir, file, true)
 	}
 	if winHasExt(file) {
-		if file, err := checkStat(dir, file, true); err == nil {
-			return file, nil
+		if file2, err := checkStat(dir, file, true); err == nil {
+			return file2, nil
 		}
 	}
+
 	for _, e := range exts {
-		f := file + e
-		if f, err := checkStat(dir, f, true); err == nil {
+		if f, err := checkStat(dir, file+e, true); err == nil {
 			return f, nil
 		}
 	}
@@ -169,7 +171,7 @@ func checkStat(dir, file string, checkExec bool) (string, error) {
 	if m.IsDir() {
 		return "", fmt.Errorf("is a directory")
 	}
-	if checkExec && runtime.GOOS != "windows" && m&0o111 == 0 {
+	if checkExec && runtime.GOOS != constant.KERNEL_WINDOWS && m&0o111 == 0 {
 		return "", fmt.Errorf("permission denied")
 	}
 	return file, nil
@@ -184,7 +186,7 @@ func lookPathDir(cwd string, env expand.Environ, file string, find findAny) (str
 
 	pathList := splitPathList(cwd, env.Get("PATH").String())
 	chars := `/`
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == constant.KERNEL_WINDOWS {
 		chars = `:\/`
 	}
 	exts := pathExts(env)
@@ -210,7 +212,7 @@ func lookPathDir(cwd string, env expand.Environ, file string, find findAny) (str
 // splitPathList normalize PATH list as absolute paths
 // both ; and : are treated as path separator
 func splitPathList(cwd, path string) []string {
-	isWindows := runtime.GOOS == "windows"
+	isWindows := runtime.GOOS == constant.KERNEL_WINDOWS
 
 	isSlash := pathhelper.IsUnixSlash
 	if isWindows {

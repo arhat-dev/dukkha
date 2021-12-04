@@ -57,9 +57,9 @@ type TaskXBuild struct {
 }
 
 func (w *TaskXBuild) Kind() dukkha.TaskKind { return TaskKindXBuild }
-func (c *TaskXBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskXBuild) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+func (w *TaskXBuild) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
+func (w *TaskXBuild) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
 }
 
 // nolint:gocyclo

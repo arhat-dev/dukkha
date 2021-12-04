@@ -3,8 +3,9 @@ package shell
 import (
 	"testing"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 var _ dukkha.Renderer = (*Driver)(nil)

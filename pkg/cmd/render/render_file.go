@@ -7,8 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/fshelper"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func renderYamlFile(

@@ -25,10 +25,10 @@ func init() {
 
 type TaskPush buildah.TaskPush
 
-func (w *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
-func (w *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
-func (w *TaskPush) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
+func (c *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
+func (c *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskPush) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskPush) GetExecSpecs(

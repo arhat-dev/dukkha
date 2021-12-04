@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/sha256helper"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 var _ dukkha.Renderer = (*Driver)(nil)

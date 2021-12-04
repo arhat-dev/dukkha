@@ -1,8 +1,9 @@
 package conf
 
 import (
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 // RendererGroup contains a group of renderers can be initialized

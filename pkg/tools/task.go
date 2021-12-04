@@ -17,9 +17,9 @@ var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
 type _baseTaskWithGetExecSpecs struct{ BaseTask }
 
 func (b *_baseTaskWithGetExecSpecs) Kind() dukkha.TaskKind { return "_" }
-func (c *_baseTaskWithGetExecSpecs) Name() dukkha.TaskName { return "_" }
-func (c *_baseTaskWithGetExecSpecs) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+func (b *_baseTaskWithGetExecSpecs) Name() dukkha.TaskName { return "_" }
+func (b *_baseTaskWithGetExecSpecs) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: b.Kind(), Name: b.Name()}
 }
 
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(

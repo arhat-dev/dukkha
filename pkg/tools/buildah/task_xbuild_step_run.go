@@ -86,7 +86,9 @@ func (s *stepRun) genSpec(
 					stdin io.Reader,
 					stdout, stderr io.Writer,
 				) (dukkha.RunTaskOrRunCmd, error) {
-					file := "run-executable-" + hex.EncodeToString(md5helper.Sum([]byte(localExecutablePath))) + "-redacted"
+					file := "run-executable-" + hex.EncodeToString(
+						md5helper.Sum([]byte(localExecutablePath)),
+					) + "-redacted"
 
 					err := cacheFS.WriteFile(file, []byte(""), 0644)
 					if err != nil {

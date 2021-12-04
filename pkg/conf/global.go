@@ -3,8 +3,9 @@ package conf
 import (
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 type GlobalConfig struct {
