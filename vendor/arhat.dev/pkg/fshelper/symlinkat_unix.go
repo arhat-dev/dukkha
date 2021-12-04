@@ -1,5 +1,5 @@
-//go:build !windows
-// +build !windows
+//go:build !windows && !solaris && !js
+// +build !windows,!solaris,!js
 
 package fshelper
 

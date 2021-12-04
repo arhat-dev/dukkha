@@ -1,3 +1,6 @@
+//go:build windows || solaris || js
+// +build windows solaris js
+
 package fshelper
 
 import "os"
