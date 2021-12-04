@@ -82,7 +82,7 @@ func (c *TaskUpload) GetExecSpecs(
 		var keyFile string
 		if c.Signing.Enabled {
 			var err error
-			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(rc.CacheDir())
+			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(c.CacheFS)
 			if err != nil {
 				return fmt.Errorf("failed to ensure private key: %w", err)
 			}

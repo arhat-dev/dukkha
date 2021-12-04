@@ -4,12 +4,9 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"arhat.dev/pkg/md5helper"
@@ -23,16 +20,18 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
-const TaskKindBuild = "build"
+const (
+	TaskKindBuild = "build"
+)
 
 func init() {
 	dukkha.RegisterTask(ToolKind, TaskKindBuild, newTaskBuild)
 
 	templateutils.RegisterTemplateFuncs(map[string]templateutils.TemplateFuncFactory{
 		"getBuildahImageIDFile": func(rc dukkha.RenderingContext) interface{} {
-			return func(imageName string) string {
+			return func(imageName string) (string, error) {
 				return GetImageIDFileForImageName(
-					rc.CacheDir(),
+					rc,
 					templateutils.SetDefaultImageTagIfNoTagSet(rc, imageName, true),
 				)
 			}
@@ -135,12 +134,9 @@ func (c *TaskBuild) createExecSpecs(
 		// FQDN image names
 		budCmd = append(budCmd, "-t", imageName)
 
-		filePath := GetImageIDFileForImageName(
-			dukkhaCacheDir, imageName,
-		)
-		err = rc.FS().MkdirAll(filepath.Dir(filePath), 0750)
-		if err != nil && !errors.Is(err, fs.ErrExist) {
-			return nil, fmt.Errorf("failed to ensure image id dir exists")
+		filePath, err := GetImageIDFileForImageName(rc, imageName)
+		if err != nil {
+			return nil, err
 		}
 
 		imageIDFiles = append(imageIDFiles, filePath)
@@ -379,12 +375,14 @@ func getLocalManifestName(manifestName string) string {
 	return hex.EncodeToString(md5helper.Sum([]byte(manifestName)))
 }
 
-func GetImageIDFileForImageName(dukkhaCacheDir, imageName string) string {
-	return filepath.Join(
-		dukkhaCacheDir,
-		"buildah",
-		fmt.Sprintf(
-			"image-id-%s", getLocalImageName(imageName),
-		),
-	)
+func GetImageIDFileForImageName(rc dukkha.RenderingContext, imageName string) (string, error) {
+	const imageIDCacheDir = "buildah/image-id"
+
+	ret, err := rc.GlobalCacheFS(imageIDCacheDir).
+		Abs(getLocalImageName(imageName))
+	if err != nil {
+		return "", err
+	}
+
+	return ret, err
 }

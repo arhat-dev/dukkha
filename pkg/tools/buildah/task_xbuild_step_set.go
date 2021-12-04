@@ -36,7 +36,6 @@ type stepSet struct {
 
 func (s *stepSet) genSpec(
 	rc dukkha.TaskExecContext,
-	_ dukkha.TaskMatrixExecOptions,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc

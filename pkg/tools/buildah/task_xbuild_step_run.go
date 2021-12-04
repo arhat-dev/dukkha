@@ -3,12 +3,10 @@ package buildah
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
-	"path/filepath"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
@@ -53,7 +51,7 @@ const (
 
 func (s *stepRun) genSpec(
 	rc dukkha.TaskExecContext,
-	_ dukkha.TaskMatrixExecOptions,
+	cacheFS *fshelper.OSFS,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	runCmd := []string{constant.DUKKHA_TOOL_CMD, "run"}
@@ -88,14 +86,16 @@ func (s *stepRun) genSpec(
 					stdin io.Reader,
 					stdout, stderr io.Writer,
 				) (dukkha.RunTaskOrRunCmd, error) {
-					srcFile := filepath.Join(
-						rc.CacheDir(),
-						"buildah", "xbuild",
-						"run-executable-"+hex.EncodeToString(md5helper.Sum([]byte(localExecutablePath)))+"-redacted",
-					)
-					err := rc.FS().MkdirAll(filepath.Dir(srcFile), 0755)
-					if err != nil && !errors.Is(err, fs.ErrExist) {
-						return nil, fmt.Errorf("failed to ensure redacted executable file cache dir: %w", err)
+					file := "run-executable-" + hex.EncodeToString(md5helper.Sum([]byte(localExecutablePath))) + "-redacted"
+
+					err := cacheFS.WriteFile(file, []byte(""), 0644)
+					if err != nil {
+						return nil, err
+					}
+
+					srcFile, err := cacheFS.Abs(file)
+					if err != nil {
+						return nil, err
 					}
 
 					// TODO: remove additional \n for ansi translation flush
@@ -147,14 +147,16 @@ func (s *stepRun) genSpec(
 					stdin io.Reader,
 					stdout, stderr io.Writer,
 				) (dukkha.RunTaskOrRunCmd, error) {
-					srcFile := filepath.Join(
-						rc.CacheDir(),
-						"buildah", "xbuild",
-						"run-script-"+hex.EncodeToString(md5helper.Sum([]byte(script))),
-					)
-					err := rc.FS().MkdirAll(filepath.Dir(srcFile), 0755)
-					if err != nil && !errors.Is(err, fs.ErrExist) {
-						return nil, fmt.Errorf("failed to ensure script cache dir: %w", err)
+
+					file := "run-script-" + hex.EncodeToString(md5helper.Sum([]byte(script)))
+					err := cacheFS.WriteFile(file, []byte(script), 0644)
+					if err != nil {
+						return nil, err
+					}
+
+					srcFile, err := cacheFS.Abs(file)
+					if err != nil {
+						return nil, err
 					}
 
 					// TODO: remove additional \n for ansi translation flush

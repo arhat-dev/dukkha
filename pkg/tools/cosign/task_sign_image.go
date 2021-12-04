@@ -52,7 +52,7 @@ func (c *TaskSignImage) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		keyFile, err := c.Options.Options.ensurePrivateKey(rc.CacheDir())
+		keyFile, err := c.Options.Options.ensurePrivateKey(c.CacheFS)
 		if err != nil {
 			return fmt.Errorf("failed to ensure private key: %w", err)
 		}

@@ -4,12 +4,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -104,12 +101,9 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			realImageNames = append(realImageNames, imageName)
 
-			filePath := GetImageIDFileForImageName(
-				rc.CacheDir(), imageName,
-			)
-			err = rc.FS().MkdirAll(filepath.Dir(filePath), 0750)
-			if err != nil && !errors.Is(err, fs.ErrExist) {
-				return fmt.Errorf("failed to ensure image id dir exists")
+			filePath, err := GetImageIDFileForImageName(rc, imageName)
+			if err != nil {
+				return err
 			}
 
 			imageIDFiles = append(imageIDFiles, filePath)
@@ -171,7 +165,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			// add this step to global step index
 
-			stepRet, err := step.genSpec(rc, options)
+			stepRet, err := step.genSpec(rc, w.CacheFS)
 			if err != nil {
 				return fmt.Errorf("failed to generate #%d step spec: %w", i, err)
 			}

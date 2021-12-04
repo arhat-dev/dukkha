@@ -3,8 +3,12 @@ package dukkha
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -34,6 +38,8 @@ type RenderingContext interface {
 	Env() map[string]utils.LazyValue
 
 	Values() map[string]interface{}
+
+	GlobalCacheFS(subdir string) *fshelper.OSFS
 }
 
 func newContextRendering(
@@ -51,12 +57,12 @@ func newContextRendering(
 		renderers:        make(map[string]Renderer),
 		values:           make(map[string]interface{}),
 
-		fs: fshelper.NewOSFS(false, func() (string, error) {
+		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.WorkDir(), nil
-		}),
-		cacheFS: fshelper.NewOSFS(false, func() (string, error) {
+		}), "."),
+		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.CacheDir(), nil
-		}),
+		}), "."),
 	}
 }
 
@@ -82,7 +88,6 @@ type contextRendering struct {
 }
 
 func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
-
 	envValues := c.envValues
 	if deepCopy {
 		envValues = c.envValues.clone()
@@ -97,16 +102,35 @@ func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRend
 		// values are global scoped, DO NOT deep copy in any case
 		values: c.values,
 
-		fs: fshelper.NewOSFS(false, func() (string, error) {
+		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.WorkDir(), nil
-		}),
-		cacheFS: fshelper.NewOSFS(false, func() (string, error) {
+		}), "."),
+		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.CacheDir(), nil
-		}),
+		}), "."),
 	}
 }
 
 func (c *contextRendering) FS() *fshelper.OSFS { return c.fs }
+
+func (c *contextRendering) GlobalCacheFS(subdir string) *fshelper.OSFS {
+	return lazyEnsuredSubFS(c.cacheFS, subdir)
+}
+
+func lazyEnsuredSubFS(ofs *fshelper.OSFS, subdir string) *fshelper.OSFS {
+	if path.IsAbs(subdir) || filepath.IsAbs(subdir) {
+		panic(fmt.Errorf("expecting relative path, got %q", subdir))
+	}
+
+	return fshelper.NewOSFS(false, func() (string, error) {
+		err := ofs.MkdirAll(subdir, 0755)
+		if err != nil && !errors.Is(err, fs.ErrExist) {
+			return "", err
+		}
+
+		return ofs.Abs(subdir)
+	})
+}
 
 // Env returns all environment variables available
 // global environment variables are always kept

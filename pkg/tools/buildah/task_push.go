@@ -63,14 +63,14 @@ func (c *TaskPush) GetExecSpecs(
 			}
 		}
 
-		dukkhaCacheDir := rc.CacheDir()
-
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
 				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image, true)
-				imageIDFile := GetImageIDFileForImageName(
-					dukkhaCacheDir, imageName,
-				)
+				imageIDFile, err := GetImageIDFileForImageName(rc, imageName)
+				if err != nil {
+					return err
+				}
+
 				imageIDBytes, err := rc.FS().ReadFile(imageIDFile)
 				if err != nil {
 					return fmt.Errorf("image id file not found: %w", err)

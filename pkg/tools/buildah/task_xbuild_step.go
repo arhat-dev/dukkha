@@ -3,6 +3,7 @@ package buildah
 import (
 	"fmt"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -54,7 +55,7 @@ type step struct {
 
 func (s *step) genSpec(
 	rc dukkha.TaskExecContext,
-	options dukkha.TaskMatrixExecOptions,
+	cacheFS *fshelper.OSFS,
 ) ([]dukkha.TaskExecSpec, error) {
 	record := true
 	if s.Record != nil {
@@ -63,13 +64,13 @@ func (s *step) genSpec(
 
 	switch {
 	case s.Set != nil:
-		return s.Set.genSpec(rc, options, record)
+		return s.Set.genSpec(rc, record)
 	case s.From != nil:
-		return s.From.genSpec(rc, options)
+		return s.From.genSpec(rc)
 	case s.Run != nil:
-		return s.Run.genSpec(rc, options, record)
+		return s.Run.genSpec(rc, cacheFS, record)
 	case s.Copy != nil:
-		return s.Copy.genSpec(rc, options, record)
+		return s.Copy.genSpec(rc, cacheFS, record)
 	default:
 		return nil, fmt.Errorf("unknown step")
 	}

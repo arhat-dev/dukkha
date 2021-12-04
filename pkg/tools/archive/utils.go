@@ -35,10 +35,9 @@ func collectFiles(
 	)
 
 	for _, f := range files {
-		from := filepath.Clean(f.From)
-		srcPaths, err := ofs.Glob(from)
+		srcPaths, err := ofs.Glob(f.From)
 		if err != nil {
-			srcPaths = []string{from}
+			srcPaths = []string{f.From}
 		}
 
 		// normalize matched paths

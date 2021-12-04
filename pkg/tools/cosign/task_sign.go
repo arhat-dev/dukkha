@@ -7,9 +7,9 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
@@ -65,7 +65,7 @@ func (c *TaskSign) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		keyFile, err := c.Options.ensurePrivateKey(rc.CacheDir())
+		keyFile, err := c.Options.ensurePrivateKey(c.CacheFS)
 		if err != nil {
 			return fmt.Errorf("failed to ensure private key: %w", err)
 		}
@@ -102,43 +102,30 @@ type blobSigningOptions struct {
 	PublicKey string `yaml:"public_key"`
 }
 
-func (s *blobSigningOptions) ensurePrivateKey(dukkhaCacheDir string) (string, error) {
+func (s *blobSigningOptions) ensurePrivateKey(cacheFS *fshelper.OSFS) (string, error) {
 	if len(s.PrivateKey) == 0 {
 		return "", fmt.Errorf("no private key provided for signing")
 	}
 
-	dir := filepath.Join(dukkhaCacheDir, "cosign")
-
-	keyFile := filepath.Join(
-		dir,
-		fmt.Sprintf(
-			"private-key-%s",
-			hex.EncodeToString(
-				md5helper.Sum([]byte(s.PrivateKey)),
-			),
-		),
+	keyFile := "private-key-" + hex.EncodeToString(
+		md5helper.Sum([]byte(s.PrivateKey)),
 	)
 
-	_, err := os.Stat(keyFile)
+	_, err := cacheFS.Stat(keyFile)
 	if err == nil {
-		return keyFile, nil
+		return cacheFS.Abs(keyFile)
 	}
 
 	if !errors.Is(err, fs.ErrNotExist) {
 		return "", fmt.Errorf("failed to check cosign private_key: %w", err)
 	}
 
-	err = os.MkdirAll(dir, 0750)
-	if err != nil && !errors.Is(err, fs.ErrExist) {
-		return "", fmt.Errorf("failed to ensure cosign dir: %w", err)
-	}
-
-	err = os.WriteFile(keyFile, []byte(s.PrivateKey), 0400)
+	err = cacheFS.WriteFile(keyFile, []byte(s.PrivateKey), 0400)
 	if err != nil {
 		return "", fmt.Errorf("failed to save private key to temporary file: %w", err)
 	}
 
-	return keyFile, nil
+	return cacheFS.Abs(keyFile)
 }
 
 func (s *blobSigningOptions) genSignAndVerifySpec(
