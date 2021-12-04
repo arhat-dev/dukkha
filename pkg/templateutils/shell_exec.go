@@ -247,8 +247,8 @@ func splitPathList(cwd, path string) []string {
 		var err error
 		list[i], err = pathhelper.AbsWindowsPath(cwd, v, func() (string, error) {
 			// find root path of the fhs root using cygpath
-			output, err := exec.Command("cygpath", "-w", "/").CombinedOutput()
-			if err == nil {
+			output, err2 := exec.Command("cygpath", "-w", "/").CombinedOutput()
+			if err2 == nil {
 				return strings.TrimSpace(string(output)), nil
 			}
 
@@ -259,7 +259,7 @@ func splitPathList(cwd, path string) []string {
 				return `C:\msys64`, nil
 			default:
 				// TODO: other defaults?
-				return "", err
+				return "", err2
 			}
 		})
 
