@@ -22,10 +22,22 @@ renderers:
 
 - String: Local file path
 
-```yaml
-foo@file: /tmp/data.json
-```
+  ```yaml
+  foo@file: /tmp/data.json
+  ```
+
+- Any valid yaml value (only when `cache-data` attribute applied)
+
+  ```yaml
+  foo@file#cache-data: |-
+    you can find me in DUKKHA_CACHE_DIR
+  ```
+
+## Supported Attributes
+
+- `cache-data`: Save input data to cache, and return absolute local path to the cached file.
 
 ## Suggested Use Cases
 
 - Local config reuse
+- Store content to file

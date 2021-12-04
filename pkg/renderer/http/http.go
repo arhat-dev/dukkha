@@ -26,12 +26,7 @@ const (
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &Driver{
-		name: name,
-		CacheConfig: renderer.CacheConfig{
-			Enabled: true,
-		},
-	}
+	return &Driver{name: name}
 }
 
 var _ dukkha.Renderer = (*Driver)(nil)
@@ -39,33 +34,21 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
 
 	name string
-
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
 
 	DefaultConfig rendererHTTPConfig `yaml:",inline"`
 
 	defaultClient *http.Client
-	cache         *cache.TwoTierCache
 }
 
-func (d *Driver) Alias() string { return d.RendererAlias }
-
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			cacheFS,
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(cacheFS, 0, 0, 0)
+	err := d.BaseTwoTierCachedRenderer.Init(cacheFS)
+	if err != nil {
+		return err
 	}
 
-	var err error
 	d.defaultClient, err = d.DefaultConfig.createClient()
 	return err
 }
@@ -137,12 +120,12 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache,
+		d.Cache,
 		cache.IdentifiableString(reqURL),
 		func(_ cache.IdentifiableObject) (io.ReadCloser, error) {
 			return d.fetchRemote(client, reqURL, config)
 		},
-		attributes,
+		d.Attributes(attributes),
 	)
 
 	if err != nil {

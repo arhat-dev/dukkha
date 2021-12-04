@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -28,16 +27,12 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseRenderer `yaml:",inline"`
 
 	name string
 
 	Config configSpec `yaml:",inline"`
 }
-
-func (d *Driver) Alias() string { return d.RendererAlias }
-
-func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 
 func (d *Driver) RenderYaml(
 	_ dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
@@ -53,7 +48,7 @@ func (d *Driver) RenderYaml(
 	}
 
 	var useSpec bool
-	for _, attr := range attributes {
+	for _, attr := range d.Attributes(attributes) {
 		switch attr {
 		case renderer.AttrUseSpec:
 			useSpec = true

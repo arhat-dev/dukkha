@@ -5,11 +5,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/sha256helper"
 	"github.com/stretchr/testify/assert"
 )
+
+var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestNewDriver(t *testing.T) {
 	assert.NotNil(t, NewDefault(""))
@@ -59,4 +65,28 @@ func TestDriver_Render(t *testing.T) {
 		_, err := d.RenderYaml(rc, randomData, nil)
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
+}
+
+func TestDriver_readFile(t *testing.T) {
+
+}
+
+func TestDriver_cacheData(t *testing.T) {
+	defer t.Cleanup(func() {})
+
+	tmpdir := t.TempDir()
+
+	d := NewDefault("").(*Driver)
+	d.Init(fshelper.NewOSFS(false, func() (string, error) {
+		return tmpdir, nil
+	}))
+
+	const testdata = "test-data"
+
+	actual, err := d.cacheData([]byte(testdata))
+	assert.NoError(t, err)
+	assert.EqualValues(t, filepath.Join(tmpdir, hex.EncodeToString(sha256helper.Sum([]byte(testdata)))), actual)
+	data, err := os.ReadFile(string(actual))
+	assert.NoError(t, err)
+	assert.EqualValues(t, testdata, string(data))
 }

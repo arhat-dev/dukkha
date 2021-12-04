@@ -30,8 +30,7 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
+		name: name,
 	}
 }
 
@@ -40,30 +39,9 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
 
 	name string
-
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
-
-	cache *cache.TwoTierCache
-}
-
-func (d *Driver) Alias() string { return d.RendererAlias }
-
-func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			cacheFS,
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(cacheFS, 0, 0, -1)
-	}
-
-	return nil
 }
 
 func (d *Driver) RenderYaml(
@@ -110,12 +88,12 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache,
+		d.Cache,
 		spec,
 		func(obj cache.IdentifiableObject) (io.ReadCloser, error) {
 			return extractFileFromArchive(rc.FS(), obj)
 		},
-		attributes,
+		d.Attributes(attributes),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", d.name, err)

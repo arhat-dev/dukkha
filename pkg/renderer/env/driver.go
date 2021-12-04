@@ -3,11 +3,11 @@ package env
 import (
 	"fmt"
 
-	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
@@ -19,12 +19,10 @@ func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer { return &Driver{name: name} }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseRenderer `yaml:",inline"`
 
 	name string
 
@@ -38,10 +36,6 @@ type Driver struct {
 	// Defaults to `false`
 	EnableExec *bool `yaml:"enable_exec"`
 }
-
-func (d *Driver) Alias() string { return d.RendererAlias }
-
-func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 
 func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,

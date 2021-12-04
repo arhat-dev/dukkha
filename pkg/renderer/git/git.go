@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -26,44 +25,18 @@ const (
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
-	}
+	return &Driver{name: name}
 }
-
-var _ dukkha.Renderer = (*Driver)(nil)
 
 // Driver is the git renderer implementation
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
 
 	name string
 
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
-
 	SSHConfig ssh.Spec `yaml:",inline"`
-
-	cache *cache.TwoTierCache
-}
-
-func (d *Driver) Alias() string { return d.RendererAlias }
-
-func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			cacheFS,
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(cacheFS, 0, 0, 0)
-	}
-
-	return nil
 }
 
 func (d *Driver) RenderYaml(
@@ -161,13 +134,13 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache,
+		d.Cache,
 		cache.IdentifiableString(reqURL),
 		func(_ cache.IdentifiableObject) (io.ReadCloser, error) {
 			// key is the url we passed in
 			return fetchConfig.fetchRemote(sshConfig)
 		},
-		attributes,
+		d.Attributes(attributes),
 	)
 
 	if err != nil {

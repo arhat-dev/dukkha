@@ -1152,6 +1152,9 @@
         }
       }
     },
+    "arhat.dev.dukkha.pkg.dukkha.RendererAttribute": {
+      "type": "string"
+    },
     "arhat.dev.dukkha.pkg.dukkha.ToolName": {
       "type": "string"
     },
@@ -1329,20 +1332,35 @@
         "alias": {
           "type": "string"
         },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         }
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "cache"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache@.*": {
@@ -1357,17 +1375,32 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         }
       },
       "preferredOrder": [
-        "alias"
+        "alias",
+        "attributes"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1376,6 +1409,12 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         },
         "enable_exec": {
           "type": "boolean",
@@ -1386,6 +1425,7 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "enable_exec"
       ],
       "additionalProperties": false,
@@ -1394,6 +1434,15 @@
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^enable_exec@.*": {
@@ -1412,20 +1461,35 @@
         "alias": {
           "type": "string"
         },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         }
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "cache"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache@.*": {
@@ -1440,6 +1504,12 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
@@ -1475,6 +1545,7 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "cache",
         "user",
         "host",
@@ -1483,7 +1554,6 @@
         "private_key",
         "password"
       ],
-      "additionalProperties": false,
       "description": "git renderer implementation",
       "x-intellij-html-description": "git renderer implementation",
       "patternProperties": {
@@ -1491,6 +1561,15 @@
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache@.*": {
@@ -1552,6 +1631,12 @@
         "alias": {
           "type": "string"
         },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "base_url": {
           "type": "string",
           "description": "BaseURL",
@@ -1584,6 +1669,7 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "cache",
         "user",
         "password",
@@ -1594,12 +1680,20 @@
         "body",
         "base_url"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^base_url@.*": {
@@ -1757,6 +1851,12 @@
         "alias": {
           "type": "string"
         },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "hide_input": {
           "type": "boolean",
           "description": "do not echo input",
@@ -1771,15 +1871,24 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "hide_input",
         "prompt"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^hide_input@.*": {
@@ -1812,6 +1921,12 @@
         "alias": {
           "type": "string"
         },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "base_path": {
           "type": "string"
         },
@@ -1830,6 +1945,7 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "cache",
         "endpoint_url",
         "region",
@@ -1838,7 +1954,6 @@
         "access_key_id",
         "access_key_secret"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^access_key_id@.*": {
           "type": "string"
@@ -1856,6 +1971,15 @@
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^base_path@.*": {
@@ -1894,17 +2018,32 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         }
       },
       "preferredOrder": [
-        "alias"
+        "alias",
+        "attributes"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -1913,6 +2052,12 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         },
         "include": {
           "items": {
@@ -1930,15 +2075,24 @@
       },
       "preferredOrder": [
         "alias",
+        "attributes",
         "include",
         "variables"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^include@.*": {
@@ -2003,17 +2157,32 @@
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
         }
       },
       "preferredOrder": [
-        "alias"
+        "alias",
+        "attributes"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
         },
         "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

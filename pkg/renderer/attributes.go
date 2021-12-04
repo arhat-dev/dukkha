@@ -5,4 +5,6 @@ const (
 
 	AttrAllowExpired = "allow-expired"
 	AttrCachedFile   = "cached-file"
+
+	AttrCacheData = "cache-data"
 )

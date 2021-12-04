@@ -30,12 +30,10 @@ func NewDefault(name string) dukkha.Renderer {
 	}
 }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	RendererAlias string `yaml:"alias"`
+	renderer.BaseRenderer `yaml:",inline"`
 
 	name string
 
@@ -44,9 +42,12 @@ type Driver struct {
 	variables map[string]interface{}
 }
 
-func (d *Driver) Alias() string { return d.RendererAlias }
-
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
+	err := d.BaseRenderer.Init(cacheFS)
+	if err != nil {
+		return err
+	}
+
 	d.variables = d.Options.Variables.NormalizedValue()
 	return nil
 }
@@ -71,7 +72,7 @@ func (d *Driver) RenderYaml(
 	var (
 		useSpec bool
 	)
-	for _, attr := range attributes {
+	for _, attr := range d.Attributes(attributes) {
 		switch attr {
 		case renderer.AttrUseSpec:
 			useSpec = true
