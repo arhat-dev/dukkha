@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.8.2-0.20211203131557-d088f40cc496
+# arhat.dev/pkg v0.8.2-0.20211204064211-204cd9ea8d1b
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper

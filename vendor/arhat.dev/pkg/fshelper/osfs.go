@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"arhat.dev/pkg/pathhelper"
@@ -56,7 +57,7 @@ func (ofs *OSFS) SetStrict(s bool) {
 //
 // the returned rpath value is always system file path
 func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, _ error) {
-	if !fs.ValidPath(name) && ofs.strict {
+	if (!fs.ValidPath(name) || runtime.GOOS == "windows" && strings.ContainsAny(name, `\:`)) && ofs.strict {
 		return "", "", &fs.PathError{
 			Op:   "",
 			Err:  fs.ErrInvalid,
