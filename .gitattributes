@@ -147,3 +147,6 @@ gradlew.bat     binary
 *.props      text eol=crlf
 *.filters    text eol=crlf
 *.vcxitems   text eol=crlf
+
+# test data, do not change line ending
+**/testdata/** binary
