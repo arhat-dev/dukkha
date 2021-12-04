@@ -18,7 +18,6 @@ package conf
 
 import (
 	"fmt"
-	"strings"
 
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/rshelper"
@@ -193,14 +192,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				return fmt.Errorf("resolving renderer group #%d: %w", i, err)
 			}
 
-			for fullName, r := range g.Renderers {
-				idx := strings.IndexByte(fullName, ':')
-				if idx == -1 {
-					idx = 0
-				}
-
-				name := fullName[idx:]
-
+			for name, r := range g.Renderers {
 				err = r.Init(appCtx.RendererCacheFS(name))
 				if err != nil {
 					return fmt.Errorf("initializing renderer %q: %w", name, err)
