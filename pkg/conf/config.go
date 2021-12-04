@@ -199,6 +199,9 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				}
 
 				appCtx.AddRenderer(name, g.Renderers[name])
+				if len(r.Alias()) != 0 {
+					appCtx.AddRenderer(r.Alias(), g.Renderers[name])
+				}
 			}
 		}
 

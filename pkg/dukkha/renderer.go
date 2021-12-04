@@ -14,6 +14,8 @@ type Renderer interface {
 	// Init the renderer and add itself to the context
 	Init(cacheFS *fshelper.OSFS) error
 
+	Alias() string
+
 	RenderYaml(rc RenderingContext, rawData interface{}, attributes []RendererAttribute) (result []byte, err error)
 }
 

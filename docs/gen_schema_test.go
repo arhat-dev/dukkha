@@ -64,7 +64,7 @@ func TestGenerateSchema(t *testing.T) {
 
 	configModelFields = append(configModelFields, reflect.StructField{
 		Name: "Renderers",
-		Type: reflect.StructOf(rdrs),
+		Type: reflect.SliceOf(reflect.StructOf(rdrs)),
 		Tag:  reflect.StructTag(`yaml:"renderers"`),
 	}, reflect.StructField{
 		Name: "Tools",
@@ -160,7 +160,7 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 	topLevelStruct := scm.Definitions[topLevelStructName]
 	for k, def := range topLevelStruct.Properties {
 		switch {
-		case strings.Contains(k, ":"):
+		case strings.Contains(k, ":"): // is task schema
 			// tasks can be tool specific
 			parts := strings.SplitN(k, ":", 2)
 			taskPattern := fmt.Sprintf(`^%s(:.+){0,1}:%s$`, parts[0], parts[1])
@@ -170,6 +170,12 @@ func generateSchemaJSON(pkgPath, topLevelStructName string) ([]byte, error) {
 			}
 
 			topLevelStruct.PatternProperties[taskPattern] = def
+		case k == "renderers": // is renderers
+			def.Items.PatternProperties = make(map[string]*definition.Definition, len(def.Items.Properties))
+			for rdr, rdrDef := range def.Items.Properties {
+				rdrPattern := fmt.Sprintf("^%s(:.+){0,1}$", rdr)
+				def.Items.PatternProperties[rdrPattern] = rdrDef
+			}
 		default:
 		}
 	}

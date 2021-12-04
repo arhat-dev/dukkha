@@ -24,6 +24,8 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	RendererAlias string `yaml:"alias"`
+
 	name string
 
 	// EnableExec controls arbitrary command execution support when expanding env.
@@ -36,6 +38,8 @@ type Driver struct {
 	// Defaults to `false`
 	EnableExec *bool `yaml:"enable_exec"`
 }
+
+func (d *Driver) Alias() string { return d.RendererAlias }
 
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 

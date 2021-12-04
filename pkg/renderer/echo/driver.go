@@ -21,8 +21,12 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	RendererAlias string `yaml:"alias"`
+
 	name string
 }
+
+func (d *Driver) Alias() string { return d.RendererAlias }
 
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error { return nil }
 

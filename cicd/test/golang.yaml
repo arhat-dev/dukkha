@@ -19,7 +19,7 @@ golang:test:
     template: |-
       {{- include "golang.test.pkg" . -}}
     include:
-    - path@http:presets#cached-file: golang/test/pkg.yml
+    - path@presets#cached-file: golang/test/pkg.yml
     variables:
       profile_dir@tpl: |-
         {{- env.PROFILE_DIR -}}

@@ -33,12 +33,16 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	RendererAlias string `yaml:"alias"`
+
 	name string
 
 	CacheConfig renderer.CacheConfig `yaml:"cache"`
 
 	cache *cache.Cache
 }
+
+func (d *Driver) Alias() string { return d.RendererAlias }
 
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 	if d.CacheConfig.Enabled {

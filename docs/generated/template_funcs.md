@@ -69,7 +69,7 @@
 - `genSignedCert(string, []interface {}, []interface {}, int, sprig.certificate) (sprig.certificate, error)`
 - `genSignedCertWithKey(string, []interface {}, []interface {}, int, sprig.certificate, string) (sprig.certificate, error)`
 - `get(map[string]interface {}, string) interface {}`
-- `getBuildahImageIDFile(string) string`
+- `getBuildahImageIDFile(string) (string, error)`
 - `getDefaultImageTag(string, ...string) string`
 - `getDefaultManifestTag(string, ...string) string`
 - `getHostByName(string) string`

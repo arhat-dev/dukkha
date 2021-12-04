@@ -10,5 +10,5 @@ workflow:run:
     - sonar-scanner
   jobs:
   # only run sonar scan on linux and darwin during CI
-  - cmd@http:presets?str|tpl#use-spec: tools/http.tpl
+  - cmd@presets?str|tpl#use-spec: tools/http.tpl
     continue_on_error: true
