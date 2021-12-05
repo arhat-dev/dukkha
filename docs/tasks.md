@@ -45,6 +45,7 @@ workflow:local:run:
 And `Action` is defined as:
 
 - `name: string`: action name
+- `if: bool`: skip this action when set to false (defaults to true)
 - `task: string`: reference to other task
   - task reference format: `<tool-kind>{:<tool-name>}:<task-kind>(<another_task_name>{, <matrix-spec> })`
     - where `<matrix-sepc>` is the task matrix yaml

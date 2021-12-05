@@ -16,7 +16,6 @@ func ResolveActions(
 	x dukkha.Resolvable,
 	actionsFieldName string,
 	actionsTagName string,
-	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	jobIndex := make(map[string]int)
 	mCtx := rc.DeriveNew()
@@ -50,7 +49,7 @@ func ResolveActions(
 
 	return next(mCtx,
 		x, actionsFieldName, actionsTagName,
-		jobIndex, options, 0,
+		jobIndex, 0,
 	)
 }
 
@@ -62,12 +61,13 @@ func next(
 
 	// data
 	jobIndex map[string]int,
-	options dukkha.TaskMatrixExecOptions,
 	index int,
 ) ([]dukkha.TaskExecSpec, error) {
 	var (
 		thisAction dukkha.RunTaskOrRunCmd
 		thisJob    *Action
+
+		skip bool
 	)
 
 	var err error
@@ -87,7 +87,12 @@ func next(
 		thisJob = jobs[index]
 
 		// resolve single action
-		return thisJob.DoAfterFieldResolved(mCtx, func() error {
+		return thisJob.DoAfterFieldResolved(mCtx, func(run bool) error {
+			if !run {
+				skip = true
+				return nil
+			}
+
 			thisAction, err = thisJob.GenSpecs(mCtx.DeriveNew(), index)
 			return err
 		})
@@ -95,6 +100,12 @@ func next(
 
 	if err != nil || thisJob == nil {
 		return nil, err
+	}
+
+	if skip {
+		// not running this action, continue to next
+		// DO NOT depend on thisAction value, as it can be nil when using idle
+		return next(mCtx, x, actionsFieldName, actionsTagName, jobIndex, index+1)
 	}
 
 	return []dukkha.TaskExecSpec{
@@ -121,7 +132,7 @@ func next(
 
 				// we will dead lock self when *next is self and calling
 				// next() directly inside
-				err = thisJob.DoAfterFieldResolved(mCtx, func() error {
+				err = thisJob.DoAfterFieldResolved(mCtx, func(run bool) error {
 					if nj := thisJob.Next; nj != nil {
 						var ok bool
 						ni, ok = jobIndex[*nj]
@@ -142,7 +153,7 @@ func next(
 				return next(
 					mCtx,
 					x, actionsFieldName, actionsTagName,
-					jobIndex, options, ni,
+					jobIndex, ni,
 				)
 			},
 		},

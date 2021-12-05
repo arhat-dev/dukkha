@@ -94,7 +94,6 @@ func (h *TaskHooks) GenSpecs(
 	return ResolveActions(
 		taskCtx.DeriveNew(), h,
 		fieldAndTagNames[0], fieldAndTagNames[1],
-		nil,
 	)
 }
 

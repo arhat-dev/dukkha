@@ -40,5 +40,5 @@ func (w *TaskRun) Key() dukkha.TaskKey {
 func (w *TaskRun) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
-	return tools.ResolveActions(rc, w, "Jobs", "jobs", options)
+	return tools.ResolveActions(rc, w, "Jobs", "jobs")
 }
