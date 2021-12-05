@@ -1,0 +1,13 @@
+actions:
+- idle@: step-1
+  if: false
+  next: not-found
+---
+steps:
+# after initial resolving shoud not error, since we do not look at *next
+- actions:
+  - idle: step-1
+    next: not-found
+
+# there will be no error since the step is skipped
+# - error: false

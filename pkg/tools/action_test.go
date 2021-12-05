@@ -52,7 +52,7 @@ func TestActionFixtures(t *testing.T) {
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("env", env.NewDefault(""))
 
-			assert.NoError(t, actual.DoAfterFieldResolved(ctx, func() error { return nil }))
+			assert.NoError(t, actual.DoAfterFieldResolved(ctx, func(bool) error { return nil }))
 
 			if !assertVisibleFields(t, &expected.Resolved, actual) {
 				return

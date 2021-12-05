@@ -33,6 +33,11 @@ type Action struct {
 	// Env specific to this action
 	Env dukkha.Env `yaml:"env"`
 
+	// Run checks running condition, only run this action when set to true
+	//
+	// Defaults to `true`
+	Run *bool `yaml:"if"`
+
 	// Idle does nothing but serves as a placeholder for preparation purpose
 	// recommended usage of Idle action is to apply renderers like `tpl`
 	// to do some task execution state related operation (e.g. set global
@@ -77,7 +82,7 @@ type Action struct {
 }
 
 func (act *Action) DoAfterFieldResolved(
-	mCtx dukkha.TaskExecContext, do func() error, tagNames ...string,
+	mCtx dukkha.TaskExecContext, do func(run bool) error, tagNames ...string,
 ) error {
 	act.mu.Lock()
 	defer act.mu.Unlock()
@@ -89,7 +94,7 @@ func (act *Action) DoAfterFieldResolved(
 
 	if len(tagNames) == 0 {
 		tagNames = []string{
-			"idle", "task", "shell", "cmd", "chdir",
+			"if", "idle", "task", "shell", "cmd", "chdir",
 			"continue_on_error", "ExternalShell",
 		}
 	}
@@ -103,7 +108,7 @@ func (act *Action) DoAfterFieldResolved(
 		return nil
 	}
 
-	return do()
+	return do(act.Run == nil || *act.Run)
 }
 
 func (act *Action) GenSpecs(

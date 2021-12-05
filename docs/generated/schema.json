@@ -2269,6 +2269,12 @@
           "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
           "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
+        "if": {
+          "type": "boolean",
+          "description": "checks running condition, only run this action when set to true",
+          "x-intellij-html-description": "checks running condition, only run this action when set to true",
+          "default": true
+        },
         "name": {
           "type": "string",
           "description": "of this action  if set, can be used as value for `Next`",
@@ -2294,6 +2300,7 @@
       "preferredOrder": [
         "name",
         "env",
+        "if",
         "idle",
         "task",
         "shell",
@@ -2347,6 +2354,15 @@
           "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "^idle@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^if@.*": {
+          "type": "boolean",
+          "description": "checks running condition, only run this action when set to true",
+          "x-intellij-html-description": "checks running condition, only run this action when set to true",
+          "default": true
+        },
+        "^if@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^next@.*": {
