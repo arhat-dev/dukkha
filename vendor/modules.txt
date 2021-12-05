@@ -1,9 +1,10 @@
-# arhat.dev/pkg v0.8.2-0.20211204223949-1275a1bf7bc1
+# arhat.dev/pkg v0.8.2-0.20211205065941-c4a8f6909eb4
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
 arhat.dev/pkg/fshelper
 arhat.dev/pkg/iohelper
+arhat.dev/pkg/kernelconst
 arhat.dev/pkg/log
 arhat.dev/pkg/matrixhelper
 arhat.dev/pkg/md5helper

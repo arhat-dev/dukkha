@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"arhat.dev/pkg/kernelconst"
 	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/pkg/wellknownerrors"
 	"github.com/bmatcuk/doublestar/v4"
@@ -56,8 +57,8 @@ func (ofs *OSFS) SetStrict(s bool) {
 // name MUST be valid fs path value in strict mode
 //
 // the returned rpath value is always system file path
-func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, _ error) {
-	if (!fs.ValidPath(name) || runtime.GOOS == "windows" && strings.ContainsAny(name, `\:`)) && ofs.strict {
+func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, err error) {
+	if (!fs.ValidPath(name) || runtime.GOOS == kernelconst.Windows && strings.ContainsAny(name, `\:`)) && ofs.strict {
 		return "", "", &fs.PathError{
 			Op:   "",
 			Err:  fs.ErrInvalid,
@@ -67,7 +68,7 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, _ error) {
 
 	if path.IsAbs(name) {
 		// path starts with `/`
-		if runtime.GOOS != "windows" {
+		if runtime.GOOS != kernelconst.Windows {
 			// on unix platforms, it means absolute path
 			// no more action required
 			return "", name, nil
@@ -79,7 +80,7 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, _ error) {
 		// - /cygdrive/c/foo is like /c/foo, but in cygpath style
 		// - /usr/foo is the path inside msys2/mingw64/cygwin root
 
-		cwd, err := ofs.getCwd()
+		cwd, err = ofs.getCwd()
 		if err != nil {
 			return "", "", err
 		}
@@ -92,14 +93,14 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, _ error) {
 		return "", rpath, err
 	}
 
-	if runtime.GOOS == "windows" && pathhelper.IsWindowsAbs(name) {
+	if runtime.GOOS == kernelconst.Windows && pathhelper.IsWindowsAbs(name) {
 		// handle paths like c:\\, \\host\share
 		return "", name, nil
 	}
 
 	// is relative path for both windows and unix
 
-	cwd, err := ofs.getCwd()
+	cwd, err = ofs.getCwd()
 	if err != nil {
 		return "", "", err
 	}

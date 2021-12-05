@@ -4,8 +4,6 @@
 
 package pathhelper
 
-import "path/filepath"
-
 // copied from go1.17.3 filepath/path.go
 
 // A lazybuf is a lazily constructed path buffer.
@@ -50,7 +48,6 @@ func (b *lazybuf) string() string {
 
 // isUNC reports whether path is a UNC path.
 func isUNC(path string) bool {
-	filepath.VolumeName("")
 	return volumeNameLen(path) > 2
 }
 

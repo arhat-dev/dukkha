@@ -37,12 +37,12 @@ func (d *DevNull) Read(p []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func (r *DevNull) Close() error {
+func (d *DevNull) Close() error {
 	select {
-	case <-r.closeSig:
+	case <-d.closeSig:
 		// already closed
 	default:
-		close(r.closeSig)
+		close(d.closeSig)
 	}
 
 	return nil

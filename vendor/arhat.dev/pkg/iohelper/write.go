@@ -23,6 +23,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"arhat.dev/pkg/kernelconst"
 )
 
 // WriteFile write data to target file
@@ -33,7 +35,7 @@ func WriteFile(file string, data []byte, perm os.FileMode, overwrite bool) (undo
 	}
 
 	rootPath := "/"
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == kernelconst.Windows {
 		rootPath = filepath.VolumeName(file)
 	}
 

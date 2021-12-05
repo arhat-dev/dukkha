@@ -1,7 +1,7 @@
 package pathhelper
 
 import (
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -9,7 +9,7 @@ func JoinUnixPath(elem ...string) string {
 	// If there's a bug here, fix the logic in ./path_plan9.go too.
 	for i, e := range elem {
 		if e != "" {
-			return filepath.Clean(strings.Join(elem[i:], string(UnixPathSeparator)))
+			return path.Clean(strings.Join(elem[i:], string(UnixPathSeparator)))
 		}
 	}
 	return ""

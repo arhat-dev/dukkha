@@ -191,7 +191,7 @@ func (r *fdBufferedReader) Buffered() int {
 // directly unless you are sure it is not read
 //
 // NOTE: this function MUST be called exactly once
-// nolint:gocyclo
+
 func (t *TimeoutReader) FallbackReading(stopSig <-chan struct{}) {
 	var (
 		n          int
