@@ -3581,6 +3581,11 @@
           "description": "of this step, if not set, will be the array index of this step",
           "x-intellij-html-description": "of this step, if not set, will be the array index of this step"
         },
+        "if": {
+          "type": "boolean",
+          "description": "skip this step when set to false",
+          "x-intellij-html-description": "skip this step when set to false"
+        },
         "record": {
           "type": "boolean",
           "description": "to add flag --add-history",
@@ -3595,12 +3600,6 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.stepSet",
           "description": "default options for all following steps",
           "x-intellij-html-description": "default options for all following steps"
-        },
-        "skip": {
-          "type": "boolean",
-          "description": "this step when set to true",
-          "x-intellij-html-description": "this step when set to true",
-          "default": "false"
         }
       },
       "preferredOrder": [
@@ -3610,7 +3609,7 @@
         "commit_as",
         "extra_commit_args",
         "compress",
-        "skip",
+        "if",
         "set",
         "from",
         "run",
@@ -3677,6 +3676,14 @@
         "^id@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^if@.*": {
+          "type": "boolean",
+          "description": "skip this step when set to false",
+          "x-intellij-html-description": "skip this step when set to false"
+        },
+        "^if@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^record@.*": {
           "type": "boolean",
           "description": "to add flag --add-history",
@@ -3699,15 +3706,6 @@
           "x-intellij-html-description": "default options for all following steps"
         },
         "^set@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
-        "^skip@.*": {
-          "type": "boolean",
-          "description": "this step when set to true",
-          "x-intellij-html-description": "this step when set to true",
-          "default": "false"
-        },
-        "^skip@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

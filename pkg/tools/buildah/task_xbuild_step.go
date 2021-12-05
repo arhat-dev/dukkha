@@ -33,8 +33,8 @@ type step struct {
 	// Compress when commit, defaults to true
 	Compress *bool `yaml:"compress,omitempty"`
 
-	// Skip this step when set to true
-	Skip bool `yaml:"skip"`
+	// If skip this step when set to false
+	If *bool `yaml:"if"`
 
 	//
 	// Step spec
@@ -51,6 +51,10 @@ type step struct {
 
 	// Copy files to somewhere
 	Copy *stepCopy `yaml:"copy,omitempty"`
+}
+
+func (s *step) isSkipped() bool {
+	return s.If != nil && !*s.If
 }
 
 func (s *step) genSpec(

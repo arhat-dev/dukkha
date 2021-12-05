@@ -131,7 +131,7 @@ func (w *TaskXBuild) GetExecSpecs(
 		// 		})
 
 		for i, step := range w.Steps {
-			if step.Skip {
+			if step.isSkipped() {
 				continue
 			}
 
@@ -200,7 +200,7 @@ func (w *TaskXBuild) GetExecSpecs(
 				// is last step when all following steps are skipped
 				isLastStep = true
 				for _, s := range w.Steps[i+1:] {
-					if !s.Skip {
+					if !s.isSkipped() {
 						isLastStep = false
 						break
 					}
