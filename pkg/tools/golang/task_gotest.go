@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -101,7 +100,13 @@ func (c *TaskTest) GetExecSpecs(
 		// copy values and do not reference task fields
 		// since they are generated dynamically
 		toolCmd := []string{constant.DUKKHA_TOOL_CMD}
-		chdir := c.Chdir
+
+		_fs, err := rc.FS().Sub(c.Chdir)
+		if err != nil {
+			return err
+		}
+		cwdFS := _fs.(*fshelper.OSFS)
+
 		workDir := c.Test.WorkDir
 		jsonOutputFile := c.Test.JSONOutputFile
 
@@ -109,13 +114,13 @@ func (c *TaskTest) GetExecSpecs(
 		compileArgs = append(compileArgs, c.Build.generateArgs()...)
 		compileArgs = append(compileArgs, c.Test.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
-		compileArgs = append(compileArgs, c.Profile.generateArgs(rc.FS(), true)...)
+		compileArgs = append(compileArgs, c.Profile.generateArgs(cwdFS, true)...)
 
 		runCmdPrefix := sliceutils.NewStrings(c.CustomCmdPrefix)
 		var runArgs []string
 		runArgs = append(runArgs, c.Test.generateArgs(false)...)
 		runArgs = append(runArgs, c.Benchmark.generateArgs(false)...)
-		runArgs = append(runArgs, c.Profile.generateArgs(rc.FS(), false)...)
+		runArgs = append(runArgs, c.Profile.generateArgs(cwdFS, false)...)
 		if len(c.CustomArgs) != 0 {
 			runArgs = append(runArgs, "--")
 			runArgs = append(runArgs, c.CustomArgs...)
@@ -156,7 +161,7 @@ func (c *TaskTest) GetExecSpecs(
 
 						builtTestExecutable, subCompileSteps := generateCompileSpecs(
 							c.CacheFS,
-							chdir,
+							cwdFS,
 							buildEnv, compileArgs, pkgRelPath,
 							toolCmd,
 						)
@@ -164,9 +169,8 @@ func (c *TaskTest) GetExecSpecs(
 						compileSteps = append(compileSteps, subCompileSteps...)
 
 						subRunSpecs := generateRunSpecs(
-							rc.FS(),
+							cwdFS,
 							builtTestExecutable,
-							chdir,
 							workDir,
 
 							toolCmd,
@@ -214,8 +218,8 @@ func getBuiltTestExecutablePath(pkgRelPath string) string {
 
 // compile one package for testing at a time
 func generateCompileSpecs(
-	cacheFS *fshelper.OSFS,
-	chdir string,
+	cacheFS *fshelper.OSFS, // cachefs to store compiled data
+	cwdFS *fshelper.OSFS, // cwdfs with current workdir in target path
 	buildEnv dukkha.Env,
 	args []string,
 	pkgRelPath string,
@@ -239,9 +243,9 @@ func generateCompileSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			err := cacheFS.Remove(builtTestExecutable)
-			if err != nil && !errors.Is(err, fs.ErrNotExist) {
-				return nil, fmt.Errorf("removing previously built test executable: %w", err)
+			err2 := cacheFS.Remove(builtTestExecutable)
+			if err2 != nil && !errors.Is(err2, fs.ErrNotExist) {
+				return nil, fmt.Errorf("removing previously built test executable: %w", err2)
 			}
 
 			return nil, nil
@@ -253,6 +257,11 @@ func generateCompileSpecs(
 	)
 
 	compileCmd = append(compileCmd, args...)
+
+	chdir, err := cwdFS.Abs(".")
+	if err != nil {
+		panic(err)
+	}
 
 	steps = append(steps, dukkha.TaskExecSpec{
 		StdoutAsReplace: getGoTestCompileResultReplaceKey(pkgRelPath),
@@ -287,9 +296,8 @@ func getGoToolTest2JsonResultReplaceKey(pkgRelPath string) string {
 }
 
 func generateRunSpecs(
-	ofs *fshelper.OSFS,
+	cwdFS *fshelper.OSFS,
 	builtTestExecutable string,
-	chdir string,
 	_workdir string,
 
 	toolCmd []string,
@@ -305,27 +313,19 @@ func generateRunSpecs(
 	switch {
 	case len(workdir) == 0:
 		// use same default workdir as go test (the pakcage dir)
-		if filepath.IsAbs(chdir) {
-			workdir = filepath.Join(chdir, pkgRelPath)
-		} else {
-			var err error
-			workdir, err = ofs.Abs(path.Join(chdir, pkgRelPath))
-			if err != nil {
-				panic(err)
-			}
+		var err error
+		workdir, err = cwdFS.Abs(pkgRelPath)
+		if err != nil {
+			panic(err)
 		}
 	case filepath.IsAbs(workdir):
 		// just use it
 	default:
 		// workdir is a relative path
-		if filepath.IsAbs(chdir) {
-			workdir = filepath.Join(chdir, workdir)
-		} else {
-			var err error
-			workdir, err = ofs.Abs(path.Join(chdir, workdir))
-			if err != nil {
-				panic(err)
-			}
+		var err error
+		workdir, err = cwdFS.Abs(workdir)
+		if err != nil {
+			panic(err)
 		}
 	}
 
@@ -402,7 +402,7 @@ func generateRunSpecs(
 									return nil, fmt.Errorf("json of test result not found")
 								}
 
-								err := ofs.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
+								err := cwdFS.WriteFile(jsonOutputFile, jsonOutput.Data, 0644)
 								if err != nil {
 									return nil, fmt.Errorf("saving test json output: %w", err)
 								}
@@ -516,8 +516,8 @@ func (s testSpec) generateArgs(compileTime bool) []string {
 	return args
 }
 
-func getTestFlagPrefix(compileTime bool) string {
-	if compileTime {
+func getTestFlagPrefix(isCompileTime bool) string {
+	if isCompileTime {
 		return "-"
 	}
 

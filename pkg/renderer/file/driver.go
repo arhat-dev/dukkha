@@ -3,6 +3,7 @@ package file
 import (
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"strings"
 
 	"arhat.dev/pkg/fshelper"
@@ -33,6 +34,9 @@ type Driver struct {
 	renderer.BaseInMemCachedRenderer `yaml:",inline"`
 
 	name string
+
+	// BasePath to be used instead of current working dir
+	BasePath string `yaml:"base_path"`
 }
 
 func (d *Driver) RenderYaml(
@@ -51,12 +55,15 @@ func (d *Driver) RenderYaml(
 	}
 
 	var (
-		cacheData bool
+		cacheData  bool
+		cachedFile bool
 	)
 	for _, attr := range d.Attributes(attributes) {
 		switch attr {
 		case renderer.AttrCacheData:
 			cacheData = true
+		case renderer.AttrCachedFile:
+			cachedFile = true
 		default:
 		}
 	}
@@ -65,7 +72,11 @@ func (d *Driver) RenderYaml(
 		return d.cacheData(dataBytes)
 	}
 
-	return d.readFile(rc.FS(), strings.TrimSpace(string(dataBytes)))
+	return d.readFile(
+		rc.FS(),
+		strings.TrimSpace(string(dataBytes)),
+		cachedFile,
+	)
 }
 
 func (d *Driver) cacheData(data []byte) ([]byte, error) {
@@ -83,21 +94,41 @@ func (d *Driver) cacheData(data []byte) ([]byte, error) {
 	return []byte(path), nil
 }
 
-func (d *Driver) readFile(fs *fshelper.OSFS, path string) ([]byte, error) {
+func (d *Driver) readFile(ofs *fshelper.OSFS, target string, getPath bool) ([]byte, error) {
 	var (
 		data []byte
 		err  error
 	)
 
+	if len(d.BasePath) != 0 {
+		var fs2 fs.FS
+		fs2, err = ofs.Sub(d.BasePath)
+		if err != nil {
+			return nil, err
+		}
+
+		ofs = fs2.(*fshelper.OSFS)
+	}
+
+	if getPath {
+		var ret string
+		ret, err = ofs.Abs(target)
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(ret), nil
+	}
+
 	if d.Cache != nil {
 		data, err = d.Cache.Get(
-			cache.IdentifiableString(path),
+			cache.IdentifiableString(target),
 			func(_ cache.IdentifiableObject) ([]byte, error) {
-				return fs.ReadFile(path)
+				return ofs.ReadFile(target)
 			},
 		)
 	} else {
-		data, err = fs.ReadFile(path)
+		data, err = ofs.ReadFile(target)
 	}
 
 	if err != nil {

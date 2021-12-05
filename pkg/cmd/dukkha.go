@@ -103,6 +103,7 @@ func NewRootCmd() *cobra.Command {
 				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
 				createGlobalEnv(appBaseCtx, cwd),
 			)
+			_appCtx.AddListEnv(os.Environ()...)
 
 			// add essential renderers for bootstraping
 			{
@@ -140,8 +141,6 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
-
-			_appCtx.AddListEnv(os.Environ()...)
 
 			var needTasks bool
 			switch {

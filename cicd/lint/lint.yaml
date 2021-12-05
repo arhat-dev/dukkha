@@ -42,4 +42,4 @@ workflow:run:
     - task: workflow:run(prepare-linter-config, {})
 
   jobs:
-  - cmd@presets?str|tpl#use-spec: tools/http.tpl
+  - cmd@presets?str|tpl#use-spec: tools/presets.tpl
