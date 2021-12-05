@@ -1,12 +1,14 @@
 package file
 
 import (
+	"encoding/hex"
 	"fmt"
-	"os"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/sha256helper"
+	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
-	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/cache"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -22,71 +24,80 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
-	}
+	return &Driver{name: name}
 }
-
-var _ dukkha.Renderer = (*Driver)(nil)
 
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseInMemCachedRenderer `yaml:",inline"`
+
 	name string
-
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
-
-	cache *cache.Cache
-}
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewCache(
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	}
-
-	return nil
 }
 
 func (d *Driver) RenderYaml(
-	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext,
+	rawData interface{},
+	attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
 		return nil, err
 	}
 
-	var path string
-	switch t := rawData.(type) {
-	case string:
-		path = t
-	case []byte:
-		path = string(t)
-	case *yaml.Node:
-		path = t.Value
-	default:
-		return nil, fmt.Errorf(
-			"renderer.%s: unexpected non-string input %T",
-			d.name, rawData,
-		)
+	dataBytes, err := yamlhelper.ToYamlBytes(rawData)
+	if err != nil {
+		return nil, err
 	}
 
-	path = strings.TrimSpace(path)
+	var (
+		cacheData bool
+	)
+	for _, attr := range d.Attributes(attributes) {
+		switch attr {
+		case renderer.AttrCacheData:
+			cacheData = true
+		default:
+		}
+	}
 
-	var data []byte
-	if d.cache != nil {
-		data, err = d.cache.Get(
+	if cacheData {
+		return d.cacheData(dataBytes)
+	}
+
+	return d.readFile(rc.FS(), strings.TrimSpace(string(dataBytes)))
+}
+
+func (d *Driver) cacheData(data []byte) ([]byte, error) {
+	filename := hex.EncodeToString(sha256helper.Sum(data))
+	err := d.CacheFS.WriteFile(filename, data, 0400)
+	if err != nil {
+		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
+	}
+
+	path, err := d.CacheFS.Abs(filename)
+	if err != nil {
+		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
+	}
+
+	return []byte(path), nil
+}
+
+func (d *Driver) readFile(fs *fshelper.OSFS, path string) ([]byte, error) {
+	var (
+		data []byte
+		err  error
+	)
+
+	if d.Cache != nil {
+		data, err = d.Cache.Get(
 			cache.IdentifiableString(path),
 			func(_ cache.IdentifiableObject) ([]byte, error) {
-				return os.ReadFile(path)
+				return fs.ReadFile(path)
 			},
 		)
 	} else {
-		data, err = os.ReadFile(path)
+		data, err = fs.ReadFile(path)
 	}
 
 	if err != nil {

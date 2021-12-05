@@ -2,7 +2,6 @@ package helm
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"arhat.dev/rs"
 
@@ -18,7 +17,7 @@ func init() {
 		ToolKind, TaskKindIndex,
 		func(toolName string) dukkha.Task {
 			t := &TaskIndex{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindIndex, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -27,11 +26,20 @@ func init() {
 type TaskIndex struct {
 	rs.BaseField `yaml:"-"`
 
+	TaskName string `yaml:"name"`
+
 	tools.BaseTask `yaml:",inline"`
 
 	RepoURL     string `yaml:"repo_url"`
 	PackagesDir string `yaml:"packages_dir"`
 	Merge       string `yaml:"merge"`
+}
+
+func (c *TaskIndex) Kind() dukkha.TaskKind { return TaskKindIndex }
+func (c *TaskIndex) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+
+func (c *TaskIndex) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskIndex) GetExecSpecs(
@@ -44,19 +52,18 @@ func (c *TaskIndex) GetExecSpecs(
 			indexCmd = append(indexCmd, "--url", c.RepoURL)
 		}
 
-		dukkhaWorkingDir := rc.WorkingDir()
 		if len(c.PackagesDir) != 0 {
-			pkgDir, err := filepath.Abs(c.PackagesDir)
+			pkgDir, err := rc.FS().Abs(c.PackagesDir)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to determine absolute path of package_dir: %w",
-					err,
+					"determine absolute path of package_dir %q: %w",
+					pkgDir, err,
 				)
 			}
 
 			indexCmd = append(indexCmd, pkgDir)
 		} else {
-			indexCmd = append(indexCmd, dukkhaWorkingDir)
+			indexCmd = append(indexCmd, rc.WorkDir())
 		}
 
 		if len(c.Merge) != 0 {

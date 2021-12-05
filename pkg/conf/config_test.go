@@ -21,7 +21,7 @@ func TestConfig(t *testing.T) {
 		func() interface{} { return conf.NewConfig() },
 		func(t *testing.T, spec, exp interface{}) {
 			actual := conf.NewConfig()
-			actual.Merge(spec.(*conf.Config))
+			assert.NoError(t, actual.Merge(spec.(*conf.Config)))
 			expected := exp.(*conf.Config)
 
 			ctx := dukkha_test.NewTestContext(context.TODO())

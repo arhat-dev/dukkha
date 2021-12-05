@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sync"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -15,6 +16,12 @@ var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
 
 type _baseTaskWithGetExecSpecs struct{ BaseTask }
 
+func (b *_baseTaskWithGetExecSpecs) Kind() dukkha.TaskKind { return "_" }
+func (b *_baseTaskWithGetExecSpecs) Name() dukkha.TaskName { return "_" }
+func (b *_baseTaskWithGetExecSpecs) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: b.Kind(), Name: b.Name()}
+}
+
 func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
@@ -24,23 +31,29 @@ func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 type BaseTask struct {
 	rs.BaseField `yaml:"-"`
 
-	TaskName string      `yaml:"name"`
-	Env      dukkha.Env  `yaml:"env"`
-	Matrix   matrix.Spec `yaml:"matrix"`
-	Hooks    TaskHooks   `yaml:"hooks,omitempty"`
+	Env    dukkha.Env  `yaml:"env"`
+	Matrix matrix.Spec `yaml:"matrix"`
+	Hooks  TaskHooks   `yaml:"hooks,omitempty"`
 
 	ContinueOnErrorFlag bool `yaml:"continue_on_error"`
 
 	// fields managed by BaseTask
 
+	CacheFS *fshelper.OSFS `yaml:"-"`
+
 	toolName dukkha.ToolName `yaml:"-"`
 	toolKind dukkha.ToolKind `yaml:"-"`
-	taskKind dukkha.TaskKind `yaml:"-"`
 
-	fieldsToResolve []string
-	impl            dukkha.Task
+	tagsToResolve []string
+
+	impl dukkha.Task
 
 	mu sync.Mutex
+}
+
+func (t *BaseTask) Init(cacheFS *fshelper.OSFS) error {
+	t.CacheFS = cacheFS
+	return nil
 }
 
 func (t *BaseTask) DoAfterFieldsResolved(
@@ -62,23 +75,23 @@ func (t *BaseTask) DoAfterFieldsResolved(
 
 	if len(tagNames) == 0 {
 		// resolve all fields of the real task type
-		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
+		err := t.impl.ResolveFields(ctx, depth, t.tagsToResolve...)
 		if err != nil {
-			return fmt.Errorf("failed to resolve tool fields: %w", err)
+			return fmt.Errorf("resolving tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTask.", tagNames)
 		if len(forBase) != 0 {
 			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested BaseTask fields: %w", err)
+				return fmt.Errorf("resolving requested BaseTask fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
 			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested fields: %w", err)
+				return fmt.Errorf("resolving requested fields: %w", err)
 			}
 		}
 	}
@@ -89,28 +102,19 @@ func (t *BaseTask) DoAfterFieldsResolved(
 func (t *BaseTask) InitBaseTask(
 	k dukkha.ToolKind,
 	n dukkha.ToolName,
-	tk dukkha.TaskKind,
 	impl dukkha.Task,
 ) {
 	t.toolKind = k
 	t.toolName = n
 
-	t.taskKind = tk
-
 	t.impl = impl
 
 	typ := reflect.TypeOf(impl).Elem()
-	t.fieldsToResolve = getTagNamesToResolve(typ)
+	t.tagsToResolve = getTagNamesToResolve(typ)
 }
 
 func (t *BaseTask) ToolKind() dukkha.ToolKind { return t.toolKind }
 func (t *BaseTask) ToolName() dukkha.ToolName { return t.toolName }
-func (t *BaseTask) Kind() dukkha.TaskKind     { return t.taskKind }
-func (t *BaseTask) Name() dukkha.TaskName     { return dukkha.TaskName(t.TaskName) }
-
-func (t *BaseTask) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: t.taskKind, Name: dukkha.TaskName(t.TaskName)}
-}
 
 func (t *BaseTask) ContinueOnError() bool {
 	return t.ContinueOnErrorFlag
@@ -129,7 +133,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	err := dukkha.ResolveEnv(taskCtx, t, "Env", "env")
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to prepare env for hook %q: %w",
+			"preparing env for hook %q: %w",
 			stage.String(), err,
 		)
 	}
@@ -137,7 +141,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	err = t.ResolveFields(taskCtx, 1, "hooks")
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to resolve hooks overview for hook %q: %w",
+			"resolving hooks overview for hook %q: %w",
 			stage.String(), err,
 		)
 	}
@@ -145,7 +149,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	specs, err := t.Hooks.GenSpecs(taskCtx, stage)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to generate exec specs for hook %q: %w",
+			"generating exec specs for hook %q: %w",
 			stage.String(), err,
 		)
 	}

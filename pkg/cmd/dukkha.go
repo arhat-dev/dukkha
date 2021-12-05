@@ -23,8 +23,8 @@ import (
 	"os/signal"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/log"
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/cmd/completion"
@@ -83,7 +83,7 @@ func NewRootCmd() *cobra.Command {
 			// setup global logger for debugging
 			err := log.SetDefaultLogger(log.ConfigSet{*logConfig})
 			if err != nil {
-				return fmt.Errorf("failed to initialize logger: %w", err)
+				return fmt.Errorf("initializing logger: %w", err)
 			}
 
 			logger := log.Log.WithName("pre-run")
@@ -91,21 +91,21 @@ func NewRootCmd() *cobra.Command {
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
 			err = conf.ReadConfigRecursively(
-				afero.NewIOFS(afero.NewOsFs()),
+				fshelper.NewOSFS(false, os.Getwd),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
 				&visitedPaths,
 				config,
 			)
 			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
+				return fmt.Errorf("loading config: %w", err)
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
 
 			cwd, err := os.Getwd()
 			if err != nil {
-				return fmt.Errorf("failed to get working dir: %w", err)
+				return fmt.Errorf("check working dir: %w", err)
 			}
 
 			_appCtx := dukkha.NewConfigResolvingContext(
@@ -129,7 +129,7 @@ func NewRootCmd() *cobra.Command {
 
 			err = config.Resolve(_appCtx, needTasks)
 			if err != nil {
-				return fmt.Errorf("failed to resolve config: %w", err)
+				return err
 			}
 
 			appCtx = _appCtx

@@ -47,7 +47,6 @@ type baseTaskInitializer interface {
 	InitBaseTask(
 		k dukkha.ToolKind,
 		n dukkha.ToolName,
-		tk dukkha.TaskKind,
 		impl dukkha.Task,
 	)
 }
@@ -58,7 +57,7 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	}
 
 	if test.Prepare != nil {
-		if !assert.NoError(t, test.Prepare(), "failed to prepare test environment") {
+		if !assert.NoError(t, test.Prepare(), "preparing test environment") {
 			return
 		}
 	}
@@ -68,8 +67,10 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	// nolint:gocritic
 	switch t := test.Task.(type) {
 	case baseTaskInitializer:
-		t.InitBaseTask(test.Task.ToolKind(), test.Task.ToolName(), test.Task.Kind(), test.Task)
+		t.InitBaseTask("test-tool", "test-tool-name", test.Task)
 	}
+
+	assert.NoError(t, test.Task.Init(taskCtx.(dukkha.ConfigResolvingContext).TaskCacheFS(test.Task)))
 
 	if test.ExpectErr {
 		_, err := test.Task.GetExecSpecs(taskCtx, test.Options)
@@ -144,7 +145,7 @@ func TestTask(
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
 			afr := af.NewDefault("af")
-			assert.NoError(t, afr.Init(ctx))
+			assert.NoError(t, afr.Init(ctx.RendererCacheFS("af")))
 			ctx.AddRenderer("af", afr)
 
 			if !assert.NoError(t, dukkha.ResolveEnv(ctx, spec, "Env", "env")) {
@@ -157,7 +158,7 @@ func TestTask(
 
 			rs.Init(tool, nil)
 
-			assert.NoError(t, tool.Init("", ctx.CacheDir()))
+			assert.NoError(t, tool.Init(ctx.ToolCacheFS(tool)))
 			ctx.AddTool(tool.Key(), tool)
 
 			assert.NoError(t, tool.AddTasks([]dukkha.Task{spec.Task}))

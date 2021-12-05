@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -23,10 +24,7 @@ func init() {
 }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
-	}
+	return &Driver{name: name}
 }
 
 var _ dukkha.Renderer = (*Driver)(nil)
@@ -34,31 +32,21 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	name string
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
 
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
+	name string
 
 	DefaultConfig rendererS3Config `yaml:",inline"`
 
 	defaultClient *s3Client
-
-	cache *cache.TwoTierCache
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	dir := ctx.RendererCacheDir(d.name)
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			dir,
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
+	err := d.BaseTwoTierCachedRenderer.Init(cacheFS)
+	if err != nil {
+		return err
 	}
 
-	var err error
 	d.defaultClient, err = d.DefaultConfig.createClient()
 	return err
 }
@@ -99,7 +87,7 @@ func (d *Driver) RenderYaml(
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to unmarshal input as s3 spec: %w",
+				"renderer.%s: unmarshal input spec: %w",
 				d.name, err,
 			)
 		}
@@ -107,7 +95,7 @@ func (d *Driver) RenderYaml(
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to resolve s3 spec: %w",
+				"renderer.%s: resolving input spec: %w",
 				d.name, err,
 			)
 		}
@@ -118,19 +106,19 @@ func (d *Driver) RenderYaml(
 		client, err = spec.Config.createClient()
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to create s3 client for spec: %w",
+				"renderer.%s: creating s3 client for spec: %w",
 				d.name, err,
 			)
 		}
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache,
+		d.Cache,
 		cache.IdentifiableString(path),
 		func(key cache.IdentifiableObject) (io.ReadCloser, error) {
 			return client.download(rc, key.ScopeUniqueID())
 		},
-		attributes,
+		d.Attributes(attributes),
 	)
 
 	if err != nil {

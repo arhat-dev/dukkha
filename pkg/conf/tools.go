@@ -3,8 +3,9 @@ package conf
 import (
 	"fmt"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 type Tools struct {
@@ -16,7 +17,7 @@ type Tools struct {
 func (m *Tools) Merge(a *Tools) error {
 	err := m.BaseField.Inherit(&a.BaseField)
 	if err != nil {
-		return fmt.Errorf("failed to inherit other tools config: %w", err)
+		return fmt.Errorf("inherit tools config: %w", err)
 	}
 
 	if len(a.Tools) != 0 {

@@ -72,7 +72,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		return nil
 	}, "BaseTool.env")
 	if err != nil {
-		return fmt.Errorf("failed to resolve tool specific env: %w", err)
+		return fmt.Errorf("resolving tool specific env: %w", err)
 	}
 
 	// resolve hooks for whole task
@@ -125,7 +125,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 
 	matrixSpecs, err := req.Task.GetMatrixSpecs(req.Context)
 	if err != nil {
-		return fmt.Errorf("failed to get execution matrix: %w", err)
+		return fmt.Errorf("creating execution matrix: %w", err)
 	}
 
 	if len(matrixSpecs) == 0 {
@@ -236,7 +236,7 @@ matrixRun:
 			if err3 != nil {
 				appendErrorResult(
 					ms,
-					fmt.Errorf("failed to generate task exec specs: %w", err3),
+					fmt.Errorf("generating task exec specs: %w", err3),
 				)
 				return
 			}
@@ -369,7 +369,7 @@ func CreateTaskMatrixContext(
 		return nil
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to add tool env: %w", err)
+		return nil, nil, fmt.Errorf("add tool env: %w", err)
 	}
 
 	return mCtx, options, nil

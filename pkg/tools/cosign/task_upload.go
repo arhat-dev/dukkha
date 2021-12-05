@@ -21,7 +21,7 @@ func init() {
 		ToolKind, TaskKindUpload,
 		func(toolName string) dukkha.Task {
 			t := &TaskUpload{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindUpload, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -29,6 +29,8 @@ func init() {
 
 type TaskUpload struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -66,6 +68,12 @@ type signingSpec struct {
 	Options imageSigningOptions `yaml:",inline"`
 }
 
+func (c *TaskUpload) Kind() dukkha.TaskKind { return TaskKindUpload }
+func (c *TaskUpload) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskUpload) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
+
 func (c *TaskUpload) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
@@ -74,9 +82,9 @@ func (c *TaskUpload) GetExecSpecs(
 		var keyFile string
 		if c.Signing.Enabled {
 			var err error
-			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(rc.CacheDir())
+			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(c.CacheFS)
 			if err != nil {
-				return fmt.Errorf("failed to ensure private key: %w", err)
+				return fmt.Errorf("ensuring private key: %w", err)
 			}
 		}
 

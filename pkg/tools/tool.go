@@ -6,26 +6,35 @@ import (
 	"strings"
 	"sync"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-var _ dukkha.Tool = (*BaseToolWithInit)(nil)
+var _ dukkha.Tool = (*ShellTool)(nil)
 
-type BaseToolWithInit struct {
+type ShellTool struct {
 	rs.BaseField `yaml:"-"`
+
+	ToolName dukkha.ToolName `yaml:"name"`
 
 	BaseTool `yaml:",inline"`
 }
 
-func (t *BaseToolWithInit) Init(kind dukkha.ToolKind, cacheDir string) error {
-	return t.InitBaseTool(kind, "", cacheDir, t)
+func (t *ShellTool) Init(cacheFS *fshelper.OSFS) error {
+	return t.InitBaseTool("", cacheFS, t)
+}
+
+func (t *ShellTool) Name() dukkha.ToolName { return t.ToolName }
+func (t *ShellTool) Kind() dukkha.ToolKind { return "shell" }
+func (t *ShellTool) Key() dukkha.ToolKey {
+	return dukkha.ToolKey{Kind: t.Kind(), Name: t.Name()}
 }
 
 // GetExecSpec is a helper func for shells
-func (t *BaseToolWithInit) GetExecSpec(
+func (t *ShellTool) GetExecSpec(
 	toExec []string, isFilePath bool,
 ) (env dukkha.Env, cmd []string, err error) {
 	if len(toExec) == 0 {
@@ -34,9 +43,9 @@ func (t *BaseToolWithInit) GetExecSpec(
 
 	scriptPath := ""
 	if !isFilePath {
-		scriptPath, err = GetScriptCache(t.cacheDir, strings.Join(toExec, " "))
+		scriptPath, err = GetScriptCache(t.CacheFS, strings.Join(toExec, " "))
 		if err != nil {
-			return nil, nil, fmt.Errorf("tools: failed to ensure script cache: %w", err)
+			return nil, nil, fmt.Errorf("unable to ensure script cache: %w", err)
 		}
 	} else {
 		scriptPath = toExec[0]
@@ -53,13 +62,11 @@ func (t *BaseToolWithInit) GetExecSpec(
 type BaseTool struct {
 	rs.BaseField `yaml:"-"`
 
-	ToolName dukkha.ToolName `yaml:"name"`
-	Env      dukkha.Env      `yaml:"env"`
-	Cmd      []string        `yaml:"cmd"`
+	Env dukkha.Env `yaml:"env"`
+	Cmd []string   `yaml:"cmd"`
 
-	kind dukkha.ToolKind
+	CacheFS *fshelper.OSFS `yaml:"-"`
 
-	cacheDir          string
 	defaultExecutable string
 
 	impl  dukkha.Tool
@@ -70,9 +77,6 @@ type BaseTool struct {
 	mu sync.Mutex
 }
 
-func (t *BaseTool) Kind() dukkha.ToolKind { return t.kind }
-func (t *BaseTool) Name() dukkha.ToolName { return t.ToolName }
-
 func (t *BaseTool) GetCmd() []string {
 	toolCmd := sliceutils.NewStrings(t.Cmd)
 	if len(toolCmd) == 0 && len(t.defaultExecutable) != 0 {
@@ -80,10 +84,6 @@ func (t *BaseTool) GetCmd() []string {
 	}
 
 	return toolCmd
-}
-
-func (t *BaseTool) Key() dukkha.ToolKey {
-	return dukkha.ToolKey{Kind: t.Kind(), Name: t.Name()}
 }
 
 func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
@@ -99,14 +99,11 @@ func (t *BaseTool) GetEnv() dukkha.Env                       { return t.Env }
 //
 // MUST be called when in Init
 func (t *BaseTool) InitBaseTool(
-	kind dukkha.ToolKind,
-	defaultExecutable,
-	cacheDir string,
+	defaultExecutable string,
+	cacheFS *fshelper.OSFS,
 	impl dukkha.Tool,
 ) error {
-	t.kind = kind
-
-	t.cacheDir = cacheDir
+	t.CacheFS = cacheFS
 	t.defaultExecutable = defaultExecutable
 
 	t.impl = impl
@@ -163,21 +160,21 @@ func (t *BaseTool) DoAfterFieldsResolved(
 		// resolve all fields of the real task type
 		err := t.impl.ResolveFields(ctx, depth, t.fieldsToResolve...)
 		if err != nil {
-			return fmt.Errorf("failed to resolve tool fields: %w", err)
+			return fmt.Errorf("resolving tool fields: %w", err)
 		}
 	} else {
 		forBase, forImpl := separateBaseAndImpl("BaseTool.", tagNames)
 		if len(forBase) != 0 {
 			err := t.ResolveFields(ctx, depth, forBase...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested BaseTool fields: %w", err)
+				return fmt.Errorf("resolving requested BaseTool fields: %w", err)
 			}
 		}
 
 		if len(forImpl) != 0 {
 			err := t.impl.ResolveFields(ctx, depth, forImpl...)
 			if err != nil {
-				return fmt.Errorf("failed to resolve requested fields: %w", err)
+				return fmt.Errorf("resolving requested fields: %w", err)
 			}
 		}
 	}

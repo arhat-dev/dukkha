@@ -5,8 +5,8 @@ package constant
 // Environment variables for all tasks
 // nolint:revive
 const (
-	ENV_DUKKHA_CACHE_DIR   = "DUKKHA_CACHE_DIR"
-	ENV_DUKKHA_WORKING_DIR = "DUKKHA_WORKING_DIR"
+	ENV_DUKKHA_CACHE_DIR = "DUKKHA_CACHE_DIR"
+	ENV_DUKKHA_WORKDIR   = "DUKKHA_WORKDIR"
 
 	ENV_GIT_BRANCH         = "GIT_BRANCH"
 	ENV_GIT_COMMIT         = "GIT_COMMIT"

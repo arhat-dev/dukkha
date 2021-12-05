@@ -24,12 +24,14 @@ func init() {
 
 func newTaskSignImage(toolName string) dukkha.Task {
 	t := &TaskSignImage{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindSignImage, t)
+	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 	return t
 }
 
 type TaskSignImage struct {
 	rs.BaseField
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -39,14 +41,20 @@ type TaskSignImage struct {
 	ImageNames []buildah.ImageNameSpec `yaml:"image_names"`
 }
 
+func (c *TaskSignImage) Kind() dukkha.TaskKind { return TaskKindSignImage }
+func (c *TaskSignImage) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskSignImage) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
+
 func (c *TaskSignImage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		keyFile, err := c.Options.Options.ensurePrivateKey(rc.CacheDir())
+		keyFile, err := c.Options.Options.ensurePrivateKey(c.CacheFS)
 		if err != nil {
-			return fmt.Errorf("failed to ensure private key: %w", err)
+			return fmt.Errorf("ensuring private key: %w", err)
 		}
 
 		for _, spec := range c.ImageNames {
@@ -163,7 +171,7 @@ func (s *imageSigningOptions) genSignAndVerifySpec(
 			) (dukkha.RunTaskOrRunCmd, error) {
 				err := os.WriteFile(pubKeyFile, []byte(pubKey), 0644)
 				if err != nil {
-					return nil, fmt.Errorf("failed to save public file: %w", err)
+					return nil, fmt.Errorf("saving public file: %w", err)
 				}
 				return nil, nil
 			},

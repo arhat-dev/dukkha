@@ -4,10 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -31,13 +29,8 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 		return name + "," + version
 	})
 
-	cwd, err := filepath.Abs(cwd)
-	if err != nil {
-		panic(fmt.Errorf("failed to get dukkha working dir: %w", err))
-	}
-
 	return map[string]utils.LazyValue{
-		constant.ENV_DUKKHA_WORKING_DIR: utils.ImmediateString(cwd),
+		constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),
 
 		constant.ENV_TIME_ZONE:        utils.ImmediateString(zone),
 		constant.ENV_TIME_ZONE_OFFSET: utils.ImmediateString(strconv.FormatInt(int64(offset), 10)),
@@ -74,12 +67,13 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 func getOSNameAndVersion() (osName, osVersion string) {
 	switch runtime.GOOS {
 	case constant.KERNEL_LINUX:
-		data, err2 := os.ReadFile("/etc/os-release")
+		osReleaseFile, err2 := os.Open("/etc/os-release")
 		if err2 != nil {
 			break
 		}
+		defer func() { _ = osReleaseFile.Close() }()
 
-		s := bufio.NewScanner(bytes.NewReader(data))
+		s := bufio.NewScanner(osReleaseFile)
 		s.Split(bufio.ScanLines)
 
 		for s.Scan() {

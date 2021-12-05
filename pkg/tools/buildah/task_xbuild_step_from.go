@@ -46,7 +46,6 @@ type stepFrom struct {
 
 func (s *stepFrom) genSpec(
 	rc dukkha.TaskExecContext,
-	_ dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc
 

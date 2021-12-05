@@ -13,10 +13,13 @@ import (
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
 
+	"arhat.dev/pkg/fshelper"
+
 	"arhat.dev/dukkha/pkg/constant"
 )
 
 func createZip(
+	ofs *fshelper.OSFS,
 	w io.Writer, files []*entry,
 	compressionMethod *string,
 	compressionLevel string,
@@ -100,7 +103,7 @@ func createZip(
 				return err
 			}
 		case mode.IsRegular():
-			err = copyFileContent(wr, f.from)
+			err = copyFileContent(ofs, wr, f.from)
 			if err != nil {
 				return err
 			}

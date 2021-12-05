@@ -123,7 +123,7 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 			rawInput, err := tryRender(rc, node.RawNode, rdrs[:lastRdr])
 			if err != nil {
 				ret = append(ret, &Reason{
-					Err: fmt.Errorf("failed to render input for last meaningful renderer %v", err),
+					Err: fmt.Errorf("render input for last meaningful renderer %v", err),
 				})
 
 				continue

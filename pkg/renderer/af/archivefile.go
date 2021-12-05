@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"github.com/h2non/filetype"
@@ -29,8 +30,7 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
+		name: name,
 	}
 }
 
@@ -39,28 +39,9 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
+
 	name string
-
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
-
-	cache *cache.TwoTierCache
-}
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			ctx.RendererCacheDir(d.name),
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(
-			ctx.RendererCacheDir(d.name), 0, 0, -1,
-		)
-	}
-
-	return nil
 }
 
 func (d *Driver) RenderYaml(
@@ -85,18 +66,18 @@ func (d *Driver) RenderYaml(
 		var rawDataBytes []byte
 		rawDataBytes, err = yamlhelper.ToYamlBytes(t)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 		}
 
 		spec = rs.Init(&inputSpec{}, nil).(*inputSpec)
 		err = yaml.Unmarshal(rawDataBytes, spec)
 		if err != nil {
-			return nil, fmt.Errorf("%s: invalid input spec: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: invalid input spec: %w", d.name, err)
 		}
 
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
-			return nil, fmt.Errorf("%s: failed to resolve input spec: %w", d.name, err)
+			return nil, fmt.Errorf("renderer.%s: resolving input spec: %w", d.name, err)
 		}
 	}
 
@@ -107,10 +88,15 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache, spec, extractFileFromArchive, attributes,
+		d.Cache,
+		spec,
+		func(obj cache.IdentifiableObject) (io.ReadCloser, error) {
+			return extractFileFromArchive(rc.FS(), obj)
+		},
+		d.Attributes(attributes),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", d.name, err)
+		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 	}
 
 	return data, err
@@ -135,9 +121,9 @@ func parseOneLineSpec(onelineSpec string) *inputSpec {
 	return ret
 }
 
-func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error) {
+func extractFileFromArchive(ofs *fshelper.OSFS, obj cache.IdentifiableObject) (io.ReadCloser, error) {
 	spec := obj.(*inputSpec)
-	info, err := os.Stat(spec.Archive)
+	info, err := ofs.Stat(spec.Archive)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +133,7 @@ func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error)
 		return nil, err
 	}
 
-	f, err := os.Open(spec.Archive)
+	f, err := ofs.Open(spec.Archive)
 	if err != nil {
 		return nil, err
 	}
@@ -157,5 +143,5 @@ func extractFileFromArchive(obj cache.IdentifiableObject) (io.ReadCloser, error)
 		*os.File
 	}
 
-	return unarchive(&src{info, f}, typ, spec.Path, spec.Password)
+	return unarchive(&src{info, f.(*os.File)}, typ, spec.Path, spec.Password)
 }

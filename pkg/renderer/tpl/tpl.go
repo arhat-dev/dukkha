@@ -3,15 +3,13 @@ package tpl
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
-	"github.com/bmatcuk/doublestar/v4"
-	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -32,10 +30,10 @@ func NewDefault(name string) dukkha.Renderer {
 	}
 }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
+
+	renderer.BaseRenderer `yaml:",inline"`
 
 	name string
 
@@ -44,7 +42,12 @@ type Driver struct {
 	variables map[string]interface{}
 }
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
+func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
+	err := d.BaseRenderer.Init(cacheFS)
+	if err != nil {
+		return err
+	}
+
 	d.variables = d.Options.Variables.NormalizedValue()
 	return nil
 }
@@ -69,7 +72,7 @@ func (d *Driver) RenderYaml(
 	var (
 		useSpec bool
 	)
-	for _, attr := range attributes {
+	for _, attr := range d.Attributes(attributes) {
 		switch attr {
 		case renderer.AttrUseSpec:
 			useSpec = true
@@ -112,16 +115,12 @@ func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte) (*inputSpec, 
 
 	err := yaml.Unmarshal(tplBytes, spec)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"invalid template input spec: %w", err,
-		)
+		return nil, fmt.Errorf("invalid template input spec: %w", err)
 	}
 
 	err = spec.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to resolve template input spec: %w", err,
-		)
+		return nil, fmt.Errorf("resolving template input spec: %w", err)
 	}
 
 	return spec, nil
@@ -134,8 +133,6 @@ func renderTemplate(
 
 	tplStr string,
 ) ([]byte, error) {
-	_fs := afero.NewIOFS(afero.NewOsFs())
-
 	var (
 		includeFiles []string
 		includeText  []string
@@ -143,9 +140,9 @@ func renderTemplate(
 	for _, inc := range inc {
 		switch {
 		case len(inc.Path) != 0:
-			matches, err := doublestar.Glob(_fs, inc.Path)
+			matches, err := rc.FS().Glob(inc.Path)
 			if err != nil {
-				_, err2 := os.Stat(inc.Path)
+				_, err2 := rc.FS().Stat(inc.Path)
 				if err2 != nil {
 					return nil, err
 				}
@@ -173,12 +170,12 @@ func renderTemplate(
 		// 	     maybe also parsed templates if we are sure rendering context
 		// 	     is handled correctly
 
-		tplBytes, err := os.ReadFile(inc)
+		tplBytes, err := rc.FS().ReadFile(inc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load template file: %q", err)
+			return nil, fmt.Errorf("loading template file %q: %w", inc, err)
 		}
 
-		name := filepath.Base(inc)
+		name := path.Base(inc)
 		incTpl, err := tpl.New(name).Parse(string(tplBytes))
 		if err != nil {
 			return nil, fmt.Errorf("invalid template file %q: %w", inc, err)
@@ -211,9 +208,7 @@ func renderTemplate(
 
 	tpl, err := tpl.Parse(tplStr)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to parse template: %w", err,
-		)
+		return nil, fmt.Errorf("parsing template: %w", err)
 	}
 
 	// Override placeholder funcs immediately before execute template

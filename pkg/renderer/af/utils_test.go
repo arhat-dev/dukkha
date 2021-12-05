@@ -128,23 +128,3 @@ func TestBufferedReaderAt_ReadAt(t *testing.T) {
 		assert.EqualValues(t, testData, string(r.buf))
 	})
 }
-
-func TestCleanLink(t *testing.T) {
-	for _, test := range []struct {
-		current  string
-		linkname string
-		expected string
-	}{
-		{"foo", "../", ".."},
-		{"foo", "../..", "../.."},
-		{"foo", "../../../", "../../.."},
-		{"foo/bar/woo", "../foo", "foo/bar/foo"},
-		{"foo/bar", "./foo", "foo/foo"},
-		{"foo/bar/woo", "../foo/..", "foo/bar"},
-		{"foo/bar/woo", "foo/woo", "foo/bar/foo/woo"},
-	} {
-		t.Run(test.current+"|"+test.linkname, func(t *testing.T) {
-			assert.EqualValues(t, test.expected, cleanLink(test.current, test.linkname))
-		})
-	}
-}

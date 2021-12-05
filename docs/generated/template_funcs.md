@@ -69,7 +69,7 @@
 - `genSignedCert(string, []interface {}, []interface {}, int, sprig.certificate) (sprig.certificate, error)`
 - `genSignedCertWithKey(string, []interface {}, []interface {}, int, sprig.certificate, string) (sprig.certificate, error)`
 - `get(map[string]interface {}, string) interface {}`
-- `getBuildahImageIDFile(string) string`
+- `getBuildahImageIDFile(string) (string, error)`
 - `getDefaultImageTag(string, ...string) string`
 - `getDefaultManifestTag(string, ...string) string`
 - `getHostByName(string) string`
@@ -306,7 +306,10 @@
 - `crypto.SHA512_224(interface {}) string`
 - `crypto.SHA512_256(interface {}) string`
 - `crypto.WPAPSK(interface {}, interface {}) (string, error)`
+- `dukkha.CacheDir() string`
+- `dukkha.Set(string, interface {}) (interface {}, error)`
 - `dukkha.SetValue(string, interface {}) (interface {}, error)`
+- `dukkha.WorkDir() string`
 - `eval.Env(...interface {}) (string, error)`
 - `eval.Shell(interface {}, ...interface {}) (string, error)`
 - `eval.Template(interface {}) (string, error)`
@@ -317,6 +320,7 @@
 - `file.Stat(interface {}) (fs.FileInfo, error)`
 - `file.Walk(interface {}) ([]string, error)`
 - `file.Write(interface {}, interface {}) (string, error)`
+- `filepath.Abs(interface {}) (string, error)`
 - `filepath.Base(interface {}) string`
 - `filepath.Clean(interface {}) string`
 - `filepath.Dir(interface {}) string`
@@ -330,6 +334,16 @@
 - `filepath.Split(interface {}) []string`
 - `filepath.ToSlash(interface {}) string`
 - `filepath.VolumeName(interface {}) string`
+- `git.Branch() string`
+- `git.Commit() string`
+- `git.DefaultBranch() string`
+- `git.Tag() string`
+- `git.WorktreeClean() bool`
+- `host.Arch() string`
+- `host.Kernel() string`
+- `host.KernelVersion() string`
+- `host.OS() string`
+- `host.OSVersion() string`
 - `math.Abs(interface {}) interface {}`
 - `math.Add(...interface {}) interface {}`
 - `math.Ceil(interface {}) interface {}`

@@ -23,13 +23,13 @@ func NewTestContextWithGlobalEnv(
 		globalEnv,
 	)
 
-	if len(d.WorkingDir()) == 0 {
+	if len(d.WorkDir()) == 0 {
 		cwd, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
 
-		d.(di.WorkingDirOverrider).OverrideWorkingDir(cwd)
+		d.(di.WorkDirOverrider).OverrideWorkDir(cwd)
 	}
 
 	d.SetRuntimeOptions(dukkha.RuntimeOptions{

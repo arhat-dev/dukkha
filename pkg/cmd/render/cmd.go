@@ -3,6 +3,7 @@ package render
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -64,23 +65,17 @@ func createOptionsFlags(cmd *cobra.Command, opts *Options) {
 }
 
 func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) error {
-	resolvedOpts, err := opts.Resolve(args, stdout)
+	if len(args) == 0 {
+		// defaults to read from stdin
+		args = append(args, "-")
+	}
+
+	resolvedOpts, err := opts.Resolve(appCtx.FS(), args, stdout)
 	if err != nil {
 		return fmt.Errorf("invalid options: %w", err)
 	}
 
-	if len(args) == 0 {
-		// render yaml from stdin only
-		return renderYamlReader(
-			appCtx,
-			os.Stdin,
-			resolvedOpts.OutputPathFor("-"),
-			0664,
-			resolvedOpts,
-		)
-	}
-
-	lastWorkDir := appCtx.WorkingDir()
+	lastWorkDir := appCtx.WorkDir()
 	for _, src := range args {
 		if src == "-" {
 			err = renderYamlReader(
@@ -104,17 +99,9 @@ func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) 
 			chdir := resolvedOpts.ChdirFor(src)
 
 			if chdir != lastWorkDir {
-				err = os.Chdir(chdir)
-				if err != nil {
-					return fmt.Errorf(
-						"chdir: going to source root %q: %w",
-						src, err,
-					)
-				}
-
-				// change DUKKHA_WORKING_DIR to make renderers like
+				// change DUKKHA_WORKDIR to make renderers like
 				// `file`, `shell` and `env` work properly
-				appCtx.(di.WorkingDirOverrider).OverrideWorkingDir(chdir)
+				appCtx.(di.WorkDirOverrider).OverrideWorkDir(chdir)
 
 				lastWorkDir = chdir
 			}
@@ -124,7 +111,7 @@ func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) 
 				resolvedOpts.EntrypointFor(src),
 				resolvedOpts.OutputPathFor(src),
 				resolvedOpts,
-				make(map[string]os.FileMode),
+				make(map[string]fs.FileMode),
 			)
 		}()
 

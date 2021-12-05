@@ -16,14 +16,19 @@ import (
 func TestTaskClone_GetExecSpecs(t *testing.T) {
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
-			Name:      "Invalid Empty",
-			Task:      &tool_git.TaskClone{},
+			Name: "Invalid Empty",
+			Task: &tool_git.TaskClone{
+				TaskName: "foo",
+			},
 			ExpectErr: true,
 			Options:   dt.CreateTaskMatrixExecOptions(),
 		},
 		{
-			Name:    "Valid Clone Using Default Branch",
-			Task:    &tool_git.TaskClone{URL: "example/foo.git"},
+			Name: "Valid Clone Using Default Branch",
+			Task: &tool_git.TaskClone{
+				TaskName: "foo",
+				URL:      "example/foo.git",
+			},
 			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
@@ -41,8 +46,12 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 			},
 		},
 		{
-			Name:    "Valid Clone Changing Remote Name",
-			Task:    &tool_git.TaskClone{URL: "example/foo", RemoteName: "bar"},
+			Name: "Valid Clone Changing Remote Name",
+			Task: &tool_git.TaskClone{
+				TaskName:   "foo",
+				URL:        "example/foo",
+				RemoteName: "bar",
+			},
 			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{

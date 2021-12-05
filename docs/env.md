@@ -11,7 +11,7 @@ For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
 
-- `DUKKHA_WORKING_DIR`
+- `DUKKHA_WORKDIR`
   - Description: The absolute directory path in which you invoked `dukkha`
   - Default Value: `$(pwd)` value in the directory you run dukkha
   - Customization: Not Supported
@@ -20,7 +20,7 @@ For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 - `DUKKHA_CACHE_DIR`
   - Description: The absolute path of the cache directory used for task intermediate output caching
-  - Default Value: `${DUKKHA_WORKING_DIR}/.dukkha/cache`
+  - Default Value: `${DUKKHA_WORKDIR}/.dukkha/cache`
   - Customization: Set `bootstrap.cache_dir` in your config file
 
 ## `git` Repo Information

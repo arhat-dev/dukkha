@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -38,7 +37,7 @@ func init() {
 		ToolKind, TaskKindXBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskXBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindXBuild, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -47,12 +46,20 @@ func init() {
 type TaskXBuild struct {
 	rs.BaseField `yaml:"-"`
 
+	TaskName string `yaml:"name"`
+
 	tools.BaseTask `yaml:",inline"`
 
 	// Context string  `yaml:"context"`
 	Steps []*step `yaml:"steps"`
 
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
+}
+
+func (w *TaskXBuild) Kind() dukkha.TaskKind { return TaskKindXBuild }
+func (w *TaskXBuild) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
+func (w *TaskXBuild) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
 }
 
 // nolint:gocyclo
@@ -65,7 +72,7 @@ func (w *TaskXBuild) GetExecSpecs(
 	err := w.DoAfterFieldsResolved(rc, -1, true, func() error {
 		tmpImageIDFile, err := os.CreateTemp(rc.CacheDir(), "buildah-xbuild-image-id-*")
 		if err != nil {
-			return fmt.Errorf("failed to create a temp file for image id: %w", err)
+			return fmt.Errorf("xbuild: create temp file for image id: %w", err)
 		}
 		tmpImageIDFilePath := tmpImageIDFile.Name()
 		_ = tmpImageIDFile.Close()
@@ -89,17 +96,14 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			_, err := nameSum.Write([]byte(imageName))
 			if err != nil {
-				return fmt.Errorf("failed to write image name to name sum: %w", err)
+				return fmt.Errorf("xbuild: write image name to name sum: %w", err)
 			}
 
 			realImageNames = append(realImageNames, imageName)
 
-			filePath := GetImageIDFileForImageName(
-				rc.CacheDir(), imageName,
-			)
-			err = os.MkdirAll(filepath.Dir(filePath), 0750)
-			if err != nil && !os.IsExist(err) {
-				return fmt.Errorf("failed to ensure image id dir exists")
+			filePath, err := GetImageIDFileForImageName(rc, imageName)
+			if err != nil {
+				return err
 			}
 
 			imageIDFiles = append(imageIDFiles, filePath)
@@ -161,9 +165,9 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			// add this step to global step index
 
-			stepRet, err := step.genSpec(rc, options)
+			stepRet, err := step.genSpec(rc, w.CacheFS)
 			if err != nil {
-				return fmt.Errorf("failed to generate #%d step spec: %w", i, err)
+				return fmt.Errorf("xbuild: generate #%d step spec: %w", i, err)
 			}
 
 			ret = append(ret, stepRet...)
@@ -294,13 +298,13 @@ func (w *TaskXBuild) GetExecSpecs(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				imageIDBytes, err := os.ReadFile(tmpImageIDFilePath)
+				imageIDBytes, err := rc.FS().ReadFile(tmpImageIDFilePath)
 				if err != nil {
 					return nil, err
 				}
 
 				for _, f := range imageIDFiles {
-					err = os.WriteFile(f, imageIDBytes, 0750)
+					err = rc.FS().WriteFile(f, imageIDBytes, 0750)
 					if err != nil {
 						return nil, err
 					}
@@ -402,7 +406,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 					digests, err := parseManifestOsArchVariantQueryResult(digestResult)
 					if err != nil {
-						return nil, fmt.Errorf("failed to parse digest result: %w", err)
+						return nil, fmt.Errorf("xbuild: parse digest result: %w", err)
 					}
 
 					var subSteps []dukkha.TaskExecSpec
@@ -445,7 +449,7 @@ func (w *TaskXBuild) GetExecSpecs(
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate build spec: %w", err)
+		return nil, fmt.Errorf("xbuild: generate build spec: %w", err)
 	}
 
 	return ret, nil

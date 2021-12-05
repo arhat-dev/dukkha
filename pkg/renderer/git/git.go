@@ -25,41 +25,18 @@ const (
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer {
-	return &Driver{
-		name:        name,
-		CacheConfig: renderer.CacheConfig{Enabled: false},
-	}
+	return &Driver{name: name}
 }
-
-var _ dukkha.Renderer = (*Driver)(nil)
 
 // Driver is the git renderer implementation
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseTwoTierCachedRenderer `yaml:",inline"`
+
 	name string
 
-	CacheConfig renderer.CacheConfig `yaml:"cache"`
-
 	SSHConfig ssh.Spec `yaml:",inline"`
-
-	cache *cache.TwoTierCache
-}
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	dir := ctx.RendererCacheDir(d.name)
-	if d.CacheConfig.Enabled {
-		d.cache = cache.NewTwoTierCache(
-			dir,
-			int64(d.CacheConfig.MaxItemSize),
-			int64(d.CacheConfig.Size),
-			int64(d.CacheConfig.Timeout.Seconds()),
-		)
-	} else {
-		d.cache = cache.NewTwoTierCache(dir, 0, 0, 0)
-	}
-
-	return nil
 }
 
 func (d *Driver) RenderYaml(
@@ -101,7 +78,7 @@ func (d *Driver) RenderYaml(
 		err = yaml.Unmarshal(rawBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to unmarshal input as config: %w",
+				"renderer.%s: unmarshal input spec: %w",
 				d.name, err,
 			)
 		}
@@ -109,7 +86,7 @@ func (d *Driver) RenderYaml(
 		err = spec.ResolveFields(rc, -1)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to resolve input config: %w",
+				"renderer.%s: resolving input spec: %w",
 				d.name, err,
 			)
 		}
@@ -157,18 +134,18 @@ func (d *Driver) RenderYaml(
 	}
 
 	data, err := renderer.HandleRenderingRequestWithRemoteFetch(
-		d.cache,
+		d.Cache,
 		cache.IdentifiableString(reqURL),
 		func(_ cache.IdentifiableObject) (io.ReadCloser, error) {
 			// key is the url we passed in
 			return fetchConfig.fetchRemote(sshConfig)
 		},
-		attributes,
+		d.Attributes(attributes),
 	)
 
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s failed to fetch http content: %w",
+			"renderer.%s: fetching git content: %w",
 			d.name, err,
 		)
 	}

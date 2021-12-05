@@ -129,7 +129,7 @@ func TestStepCopy_genSpec(t *testing.T) {
 
 			ret, err := test.spec.genSpec(
 				ctx,
-				dt.CreateTaskMatrixExecOptions(),
+				ctx.GlobalCacheFS(""),
 				false,
 			)
 			assert.NoError(t, err)

@@ -5,6 +5,7 @@ import (
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 )
 
 const (
@@ -15,15 +16,13 @@ func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer { return &Driver{name: name} }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseRenderer `yaml:",inline"`
+
 	name string
 }
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
 func (d *Driver) RenderYaml(
 	_ dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,

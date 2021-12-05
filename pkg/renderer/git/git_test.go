@@ -2,7 +2,11 @@ package git
 
 import (
 	"testing"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
+
+var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestFetchSpec(t *testing.T) {
 	// TODO: enable fetch test

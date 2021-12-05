@@ -31,7 +31,7 @@ func TestFixturesUsingRenderingSuffix(
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			for k, v := range renderers {
-				assert.NoError(t, v.Init(ctx))
+				assert.NoError(t, v.Init(ctx.RendererCacheFS(k)))
 
 				ctx.AddRenderer(k, v)
 			}

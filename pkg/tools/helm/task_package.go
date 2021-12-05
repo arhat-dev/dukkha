@@ -1,7 +1,6 @@
 package helm
 
 import (
-	"path/filepath"
 	"strings"
 
 	"arhat.dev/rs"
@@ -18,7 +17,7 @@ func init() {
 		ToolKind, TaskKindPackage,
 		func(toolName string) dukkha.Task {
 			t := &TaskPackage{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPackage, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -26,6 +25,8 @@ func init() {
 
 type TaskPackage struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -42,6 +43,12 @@ type PackageSigningSpec struct {
 	GPGKeyPassphrase string `yaml:"gpg_key_passphrase"`
 }
 
+func (c *TaskPackage) Kind() dukkha.TaskKind { return TaskKindPackage }
+func (c *TaskPackage) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskPackage) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
+
 func (c *TaskPackage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
@@ -50,7 +57,7 @@ func (c *TaskPackage) GetExecSpecs(
 	}
 
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		matches, err := filepath.Glob(c.Chart)
+		matches, err := rc.FS().Glob(c.Chart)
 		if err != nil {
 			pkgStep.Command = append(pkgStep.Command, c.Chart)
 		} else {

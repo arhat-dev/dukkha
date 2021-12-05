@@ -308,6 +308,10 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 	if r.stop(ctx) {
 		return
 	}
+
+	tracingEnabled := r.opts[optXTrace]
+	trace := r.tracer()
+
 	switch x := cm.(type) {
 	case *syntax.Block:
 		r.stmts(ctx, x.Stmts)
@@ -337,6 +341,24 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 			for _, as := range x.Assigns {
 				vr := r.assignVal(as, "")
 				r.setVar(as.Name.Value, as.Index, vr)
+
+				if !tracingEnabled {
+					continue
+				}
+
+				// Strangely enough, it seems like Bash prints original
+				// source for arrays, but the expanded value otherwise.
+				// TODO: add test cases for x[i]=y and x+=y.
+				if as.Array != nil {
+					trace.expr(as)
+				} else if as.Value != nil {
+					val, err := syntax.Quote(vr.String(), syntax.LangBash)
+					if err != nil { // should never happen
+						panic(err)
+					}
+					trace.stringf("%s=%s", as.Name.Value, val)
+				}
+				trace.newLineFlush()
 			}
 			break
 		}
@@ -359,6 +381,10 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 
 			r.setVarInternal(name, vr)
 		}
+
+		trace.call(fields[0], fields[1:]...)
+		trace.newLineFlush()
+
 		r.call(ctx, x.Args[0].Pos(), fields)
 		for _, restore := range restores {
 			r.setVarInternal(restore.name, restore.vr)
@@ -434,11 +460,24 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 		case *syntax.WordIter:
 			name := y.Name.Value
 			items := r.Params // for i; do ...
-			if y.InPos.IsValid() {
+
+			inToken := y.InPos.IsValid()
+			if inToken {
 				items = r.fields(y.Items...) // for i in ...; do ...
 			}
+
 			for _, field := range items {
 				r.setVarString(name, field)
+				trace.stringf("for %s in", y.Name.Value)
+				if inToken {
+					for _, item := range y.Items {
+						trace.string(" ")
+						trace.expr(item)
+					}
+				} else {
+					trace.string(` "$@"`)
+				}
+				trace.newLineFlush()
 				if r.loopStmtsBroken(ctx, x.Do) {
 					break
 				}
@@ -464,9 +503,32 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 		var val int
 		for _, expr := range x.Exprs {
 			val = r.arithm(expr)
+
+			if !tracingEnabled {
+				continue
+			}
+
+			switch v := expr.(type) {
+			case *syntax.Word:
+				qs, err := syntax.Quote(r.literal(v), syntax.LangBash)
+				if err != nil {
+					return
+				}
+				trace.stringf("let %v", qs)
+			case *syntax.BinaryArithm, *syntax.UnaryArithm:
+				trace.expr(x)
+			case *syntax.ParenArithm:
+				// TODO
+			}
 		}
+
+		trace.newLineFlush()
 		r.exit = oneIf(val == 0)
 	case *syntax.CaseClause:
+		trace.string("case ")
+		trace.expr(x.Word)
+		trace.string(" in")
+		trace.newLineFlush()
 		str := r.literal(x.Word)
 		for _, ci := range x.Items {
 			for _, word := range ci.Patterns {

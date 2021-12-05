@@ -10,6 +10,7 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 )
 
@@ -21,16 +22,12 @@ func init() {
 
 func NewDefault(name string) dukkha.Renderer { return &Driver{name: name} }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
-	name string
-}
+	renderer.BaseRenderer `yaml:",inline"`
 
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	return nil
+	name string
 }
 
 func (d *Driver) RenderYaml(
@@ -62,19 +59,17 @@ func (d *Driver) RenderYaml(
 		}
 	default:
 		return nil, fmt.Errorf(
-			"renderer.%s: unsupported input type %T",
-			d.name, rawData,
+			"renderer.%s: unsupported input type %T", d.name, rawData,
 		)
 	}
 
 	buf := &bytes.Buffer{}
 	runner, err := templateutils.CreateEmbeddedShellRunner(
-		rc.WorkingDir(), rc, nil, buf, os.Stderr,
+		rc.WorkDir(), rc, nil, buf, os.Stderr,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to create embedded shell: %w",
-			d.name, err,
+			"renderer.%s: creating embedded shell: %w", d.name, err,
 		)
 	}
 

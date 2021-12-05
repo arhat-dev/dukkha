@@ -14,7 +14,7 @@ func init() {
 		ToolKind, TaskKindRun,
 		func(toolName string) dukkha.Task {
 			t := &TaskRun{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRun, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -23,9 +23,18 @@ func init() {
 type TaskRun struct {
 	rs.BaseField `yaml:"-"`
 
+	TaskName string `yaml:"name"`
+
 	tools.BaseTask `yaml:",inline"`
 
 	Jobs tools.Actions `yaml:"jobs"`
+}
+
+func (w *TaskRun) Kind() dukkha.TaskKind { return TaskKindRun }
+func (w *TaskRun) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
+
+func (w *TaskRun) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
 }
 
 func (w *TaskRun) GetExecSpecs(

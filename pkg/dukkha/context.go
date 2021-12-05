@@ -3,8 +3,10 @@ package dukkha
 import (
 	"context"
 	"fmt"
-	"path/filepath"
+	"path"
 
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/rs"
 	"github.com/huandu/xstrings"
 
@@ -21,8 +23,10 @@ type ConfigResolvingContext interface {
 	TaskManager
 	RendererManager
 
-	// values
-	RendererCacheDir(name string) string
+	// cache fs
+	ToolCacheFS(t Tool) *fshelper.OSFS
+	TaskCacheFS(t Task) *fshelper.OSFS
+	RendererCacheFS(name string) *fshelper.OSFS
 }
 
 type TaskExecContext interface {
@@ -118,19 +122,59 @@ func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context
 	return newCtx
 }
 
-func (c *dukkhaContext) RendererCacheDir(name string) string {
+func replaceInvalidWindowsPathChars(name string) string {
 	// replace invalid characters for windows
-	// ref: https://gist.github.com/doctaphred/d01d05291546186941e1b7ddc02034d3
-
 	basename := []rune(xstrings.ToKebabCase(name))
 	for i, c := range basename {
-		switch c {
-		case '<', '>', ':', '"', '/', '\\', '|', '?', '*':
+		if pathhelper.IsReservedWindowsPathChar(c) {
 			basename[i] = '-'
 		}
 	}
 
-	return filepath.Join(c.CacheDir(), "renderer", string(basename))
+	return string(basename)
+}
+
+func (c *dukkhaContext) RendererCacheFS(name string) *fshelper.OSFS {
+	name = replaceInvalidWindowsPathChars(name)
+	return lazyEnsuredSubFS(c.cacheFS, path.Join("renderer", name))
+}
+
+func (c *dukkhaContext) ToolCacheFS(t Tool) *fshelper.OSFS {
+	k := string(t.Kind())
+	if len(k) == 0 {
+		panic("invalid empty tool kind")
+	}
+
+	name := replaceInvalidWindowsPathChars(string(t.Name()))
+	if len(name) == 0 {
+		name = "_"
+	}
+
+	return lazyEnsuredSubFS(c.cacheFS, path.Join(k, name))
+}
+
+func (c *dukkhaContext) TaskCacheFS(t Task) *fshelper.OSFS {
+	toolKind := string(t.ToolKind())
+	if len(toolKind) == 0 {
+		panic("invalid empty tool kind")
+	}
+
+	toolName := replaceInvalidWindowsPathChars(string(t.ToolName()))
+	if len(toolName) == 0 {
+		toolName = "_"
+	}
+
+	kind := string(t.Kind())
+	if len(kind) == 0 {
+		panic("invalid empty task kind")
+	}
+
+	name := replaceInvalidWindowsPathChars(string(t.Name()))
+	if len(name) == 0 {
+		panic("invalid empty task name")
+	}
+
+	return lazyEnsuredSubFS(c.cacheFS, path.Join(toolKind, toolName, kind, name))
 }
 
 func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {

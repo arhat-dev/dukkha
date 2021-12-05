@@ -40,7 +40,7 @@ func SetupTaskAndTaskMatrixCompletion(
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to register matrix filter autocompletion: %w", err)
+		return fmt.Errorf("register matrix filter auto completion: %w", err)
 	}
 
 	return nil

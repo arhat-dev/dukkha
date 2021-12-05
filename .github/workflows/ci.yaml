@@ -44,6 +44,17 @@ jobs:
       prepare: |-
         make dukkha
         mv build/dukkha "$(command -v dukkha)"
+      matrix: |-
+        {
+          "os": [
+            "macos-latest",
+            "windows-latest",
+            "ubuntu-latest"
+          ],
+          "go": [
+            "1.17.x"
+          ]
+        }
     secrets:
       sonarqube-server-url: ${{ secrets.SONAR_HOST_URL }}
       sonarqube-token: ${{ secrets.SONAR_TOKEN }}

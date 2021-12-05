@@ -15,13 +15,19 @@ func init() {
 		ToolKind, TaskKindLogin,
 		func(toolName string) dukkha.Task {
 			t := &TaskLogin{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindLogin, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
 }
 
 type TaskLogin buildah.TaskLogin
+
+func (c *TaskLogin) Kind() dukkha.TaskKind { return TaskKindLogin }
+func (c *TaskLogin) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskLogin) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
 
 func (c *TaskLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

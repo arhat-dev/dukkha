@@ -13,6 +13,7 @@ import (
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/third_party/golang/text/template"
 )
@@ -23,15 +24,13 @@ func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
 func NewDefault(name string) dukkha.Renderer { return &Driver{name: name} }
 
-var _ dukkha.Renderer = (*Driver)(nil)
-
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseRenderer `yaml:",inline"`
+
 	name string
 }
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error { return nil }
 
 func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
@@ -53,7 +52,7 @@ func (d *Driver) RenderYaml(
 	err = yaml.Unmarshal(rawBytes, spec)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to resolve input as transform spec: %w",
+			"renderer.%s: unmarshal transform spec: %w",
 			d.name, err,
 		)
 	}
@@ -63,7 +62,7 @@ func (d *Driver) RenderYaml(
 	err = spec.ResolveFields(rc, 2)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"renderer.%s: failed to resolve transform spec fields: %w",
+			"renderer.%s: resolving transform spec: %w",
 			d.name, err,
 		)
 	}
@@ -73,7 +72,7 @@ func (d *Driver) RenderYaml(
 		data, err = op.Do(rc, data)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"renderer.%s: failed to do #%d transformation: %w",
+				"renderer.%s: step #%d: %w",
 				d.name, i, err,
 			)
 		}
@@ -132,13 +131,13 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		var tpl *template.Template
 		tpl, err = templateutils.CreateTemplate(rc).Parse(tplStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse template %q: %w", tplStr, err)
+			return nil, fmt.Errorf("parsing template %q: %w", tplStr, err)
 		}
 
 		buf := &bytes.Buffer{}
 		err = tpl.Execute(buf, rc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to execute template %q: %w", tplStr, err)
+			return nil, fmt.Errorf("executing template %q: %w", tplStr, err)
 		}
 
 		return buf.Next(buf.Len()), nil
@@ -148,11 +147,11 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		buf := &bytes.Buffer{}
 		var runner *interp.Runner
 		runner, err = templateutils.CreateEmbeddedShellRunner(
-			rc.WorkingDir(), rc, nil, buf, os.Stderr,
+			rc.WorkDir(), rc, nil, buf, os.Stderr,
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"failed to create embedded shell: %w",
+				"creating embedded shell: %w",
 				err,
 			)
 		}
@@ -168,7 +167,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 
 		return buf.Next(buf.Len()), nil
 	case op.Checksum != nil:
-		return valueBytes, op.Checksum.Verify()
+		return valueBytes, op.Checksum.Verify(rc.FS())
 	default:
 		return valueBytes, nil
 	}

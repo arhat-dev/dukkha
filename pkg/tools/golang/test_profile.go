@@ -1,8 +1,7 @@
 package golang
 
 import (
-	"path/filepath"
-
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 )
 
@@ -31,16 +30,17 @@ type testProfileSpec struct {
 	Trace testTraceProfileSpec `yaml:"trace"`
 }
 
-func (s testProfileSpec) generateArgs(dukkhaWorkDir string, compileTime bool) []string {
+func (s testProfileSpec) generateArgs(cwdFS *fshelper.OSFS, compileTime bool) []string {
 	var args []string
 
 	prefix := getTestFlagPrefix(compileTime)
 	if len(s.OutputDir) != 0 {
-		if filepath.IsAbs(s.OutputDir) {
-			args = append(args, prefix+"outputdir", s.OutputDir)
-		} else {
-			args = append(args, prefix+"outputdir", filepath.Join(dukkhaWorkDir, s.OutputDir))
+		outputDir, err := cwdFS.Abs(s.OutputDir)
+		if err != nil {
+			panic(err)
 		}
+
+		args = append(args, prefix+"outputdir", outputDir)
 	}
 
 	args = append(args, s.Coverage.generateArgs(compileTime)...)

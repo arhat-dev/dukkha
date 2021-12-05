@@ -376,59 +376,97 @@
           "type": "array"
         },
         "renderers": {
-          "properties": {
-            "T": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+          "items": {
+            "properties": {
+              "T": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+              },
+              "af": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
+              },
+              "echo": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
+              },
+              "env": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
+              },
+              "file": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
+              },
+              "git": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
+              },
+              "http": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
+              },
+              "input": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
+              },
+              "s3": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
+              },
+              "shell": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
+              },
+              "tpl": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+              }
             },
-            "af": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
-            },
-            "echo": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
-            },
-            "env": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
-            },
-            "file": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
-            },
-            "git": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
-            },
-            "http": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
-            },
-            "input": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
-            },
-            "s3": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
-            },
-            "shell": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
-            },
-            "tpl": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+            "preferredOrder": [
+              "T",
+              "af",
+              "echo",
+              "env",
+              "file",
+              "git",
+              "http",
+              "input",
+              "s3",
+              "shell",
+              "tpl"
+            ],
+            "additionalProperties": false,
+            "patternProperties": {
+              "^T(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+              },
+              "^af(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
+              },
+              "^echo(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
+              },
+              "^env(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
+              },
+              "^file(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
+              },
+              "^git(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
+              },
+              "^http(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
+              },
+              "^input(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
+              },
+              "^s3(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
+              },
+              "^shell(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
+              },
+              "^tpl(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+              }
             }
           },
-          "preferredOrder": [
-            "T",
-            "af",
-            "echo",
-            "env",
-            "file",
-            "git",
-            "http",
-            "input",
-            "s3",
-            "shell",
-            "tpl"
-          ],
-          "additionalProperties": false
+          "type": "array"
         },
         "shells": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.BaseToolWithInit"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.ShellTool"
           },
           "type": "array"
         },
@@ -805,62 +843,100 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^renderers@.*": {
-          "properties": {
-            "T": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+          "items": {
+            "properties": {
+              "T": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+              },
+              "af": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
+              },
+              "echo": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
+              },
+              "env": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
+              },
+              "file": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
+              },
+              "git": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
+              },
+              "http": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
+              },
+              "input": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
+              },
+              "s3": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
+              },
+              "shell": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
+              },
+              "tpl": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+              }
             },
-            "af": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
-            },
-            "echo": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
-            },
-            "env": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
-            },
-            "file": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
-            },
-            "git": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
-            },
-            "http": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
-            },
-            "input": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
-            },
-            "s3": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
-            },
-            "shell": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
-            },
-            "tpl": {
-              "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+            "preferredOrder": [
+              "T",
+              "af",
+              "echo",
+              "env",
+              "file",
+              "git",
+              "http",
+              "input",
+              "s3",
+              "shell",
+              "tpl"
+            ],
+            "additionalProperties": false,
+            "patternProperties": {
+              "^T(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.transform.Driver"
+              },
+              "^af(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.af.Driver"
+              },
+              "^echo(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.echo.Driver"
+              },
+              "^env(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.env.Driver"
+              },
+              "^file(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.file.Driver"
+              },
+              "^git(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.git.Driver"
+              },
+              "^http(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.http.Driver"
+              },
+              "^input(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.input.Driver"
+              },
+              "^s3(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.s3.Driver"
+              },
+              "^shell(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.shell.Driver"
+              },
+              "^tpl(:.+){0,1}$": {
+                "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.Driver"
+              }
             }
           },
-          "preferredOrder": [
-            "T",
-            "af",
-            "echo",
-            "env",
-            "file",
-            "git",
-            "http",
-            "input",
-            "s3",
-            "shell",
-            "tpl"
-          ],
-          "additionalProperties": false
+          "type": "array"
         },
         "^renderers@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^shells@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.BaseToolWithInit"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.ShellTool"
           },
           "type": "array"
         },
@@ -991,8 +1067,8 @@
         },
         "values": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${VALUES.YOUR_VAL_KEY}`",
-          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${VALUES.YOUR_VAL_KEY}</code>"
+          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${values.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
         }
       },
       "preferredOrder": [
@@ -1029,8 +1105,8 @@
         },
         "^values@.*": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${VALUES.YOUR_VAL_KEY}`",
-          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${VALUES.YOUR_VAL_KEY}</code>"
+          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${values.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
         },
         "^values@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1075,6 +1151,9 @@
           "$ref": "#/definitions/PatchSpec"
         }
       }
+    },
+    "arhat.dev.dukkha.pkg.dukkha.RendererAttribute": {
+      "type": "string"
     },
     "arhat.dev.dukkha.pkg.dukkha.ToolName": {
       "type": "string"
@@ -1250,15 +1329,40 @@
     },
     "arhat.dev.dukkha.pkg.renderer.af.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "cache"
       ],
-      "additionalProperties": false,
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         },
@@ -1267,9 +1371,51 @@
         }
       }
     },
-    "arhat.dev.dukkha.pkg.renderer.echo.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.echo.Driver": {
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        }
+      },
+      "preferredOrder": [
+        "alias",
+        "attributes"
+      ],
+      "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.renderer.env.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "enable_exec": {
           "type": "boolean",
           "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
@@ -1278,10 +1424,27 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "enable_exec"
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^enable_exec@.*": {
           "type": "boolean",
           "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
@@ -1295,15 +1458,40 @@
     },
     "arhat.dev.dukkha.pkg.renderer.file.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "cache"
       ],
-      "additionalProperties": false,
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         },
@@ -1314,6 +1502,15 @@
     },
     "arhat.dev.dukkha.pkg.renderer.git.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         },
@@ -1347,6 +1544,8 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "cache",
         "user",
         "host",
@@ -1355,10 +1554,24 @@
         "private_key",
         "password"
       ],
-      "additionalProperties": false,
       "description": "git renderer implementation",
       "x-intellij-html-description": "git renderer implementation",
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cache@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         },
@@ -1415,6 +1628,15 @@
     },
     "arhat.dev.dukkha.pkg.renderer.http.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "base_url": {
           "type": "string",
           "description": "BaseURL",
@@ -1446,6 +1668,8 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "cache",
         "user",
         "password",
@@ -1456,8 +1680,22 @@
         "body",
         "base_url"
       ],
-      "additionalProperties": false,
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^base_url@.*": {
           "type": "string",
           "description": "BaseURL",
@@ -1610,6 +1848,15 @@
     },
     "arhat.dev.dukkha.pkg.renderer.input.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "hide_input": {
           "type": "boolean",
           "description": "do not echo input",
@@ -1623,10 +1870,27 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "hide_input",
         "prompt"
       ],
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^hide_input@.*": {
           "type": "boolean",
           "description": "do not echo input",
@@ -1654,6 +1918,15 @@
         "access_key_secret": {
           "type": "string"
         },
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "base_path": {
           "type": "string"
         },
@@ -1671,6 +1944,8 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "cache",
         "endpoint_url",
         "region",
@@ -1679,7 +1954,6 @@
         "access_key_id",
         "access_key_secret"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^access_key_id@.*": {
           "type": "string"
@@ -1691,6 +1965,21 @@
           "type": "string"
         },
         "^access_key_secret@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^base_path@.*": {
@@ -1725,9 +2014,51 @@
         }
       }
     },
-    "arhat.dev.dukkha.pkg.renderer.shell.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.shell.Driver": {
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        }
+      },
+      "preferredOrder": [
+        "alias",
+        "attributes"
+      ],
+      "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.renderer.tpl.Driver": {
       "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
         "include": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.includeSpec"
@@ -1743,10 +2074,27 @@
         }
       },
       "preferredOrder": [
+        "alias",
+        "attributes",
         "include",
         "variables"
       ],
       "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^include@.*": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.tpl.includeSpec"
@@ -1805,7 +2153,40 @@
         }
       }
     },
-    "arhat.dev.dukkha.pkg.renderer.transform.Driver": {},
+    "arhat.dev.dukkha.pkg.renderer.transform.Driver": {
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        }
+      },
+      "preferredOrder": [
+        "alias",
+        "attributes"
+      ],
+      "patternProperties": {
+        "^alias@.*": {
+          "type": "string"
+        },
+        "^alias@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^attributes@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.RendererAttribute"
+          },
+          "type": "array"
+        },
+        "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
     "arhat.dev.dukkha.pkg.tools.Action": {
       "properties": {
         "chdir": {
@@ -1948,7 +2329,7 @@
       },
       "type": "array"
     },
-    "arhat.dev.dukkha.pkg.tools.BaseToolWithInit": {
+    "arhat.dev.dukkha.pkg.tools.ShellTool": {
       "properties": {
         "cmd": {
           "items": {
@@ -1968,6 +2349,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -2246,6 +2628,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -2791,6 +3174,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4184,6 +4568,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4387,6 +4772,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4546,6 +4932,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4746,6 +5133,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -5163,8 +5551,8 @@
         },
         "panic_on_exit_0": {
           "type": "boolean",
-          "description": "Panic on call to os.Exit(0)",
-          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "description": "Panic on calling os.Exit(0)",
+          "x-intellij-html-description": "Panic on calling os.Exit(0)",
           "default": "false"
         },
         "parallel": {
@@ -5207,8 +5595,8 @@
         },
         "work_dir": {
           "type": "string",
-          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
-          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
+          "description": "to run test, defaults to DUKKHA_WORKDIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA_WORKDIR"
         }
       },
       "preferredOrder": [
@@ -5368,8 +5756,8 @@
         },
         "^panic_on_exit_0@.*": {
           "type": "boolean",
-          "description": "Panic on call to os.Exit(0)",
-          "x-intellij-html-description": "Panic on call to os.Exit(0)",
+          "description": "Panic on calling os.Exit(0)",
+          "x-intellij-html-description": "Panic on calling os.Exit(0)",
           "default": "false"
         },
         "^panic_on_exit_0@[^\\|]*!": {
@@ -5439,8 +5827,8 @@
         },
         "^work_dir@.*": {
           "type": "string",
-          "description": "to run test, defaults to DUKKHA_WORKING_DIR",
-          "x-intellij-html-description": "to run test, defaults to DUKKHA<em>WORKING</em>DIR"
+          "description": "to run test, defaults to DUKKHA_WORKDIR",
+          "x-intellij-html-description": "to run test, defaults to DUKKHA_WORKDIR"
         },
         "^work_dir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5467,6 +5855,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -6243,6 +6632,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -6352,6 +6742,7 @@
         "hooks",
         "continue_on_error"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -6400,6 +6791,7 @@
         "env",
         "cmd"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {

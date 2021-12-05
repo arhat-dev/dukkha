@@ -27,13 +27,11 @@ var _ dukkha.Renderer = (*Driver)(nil)
 type Driver struct {
 	rs.BaseField `yaml:"-"`
 
+	renderer.BaseRenderer `yaml:",inline"`
+
 	name string
 
 	Config configSpec `yaml:",inline"`
-}
-
-func (d *Driver) Init(ctx dukkha.ConfigResolvingContext) error {
-	return nil
 }
 
 func (d *Driver) RenderYaml(
@@ -50,7 +48,7 @@ func (d *Driver) RenderYaml(
 	}
 
 	var useSpec bool
-	for _, attr := range attributes {
+	for _, attr := range d.Attributes(attributes) {
 		switch attr {
 		case renderer.AttrUseSpec:
 			useSpec = true

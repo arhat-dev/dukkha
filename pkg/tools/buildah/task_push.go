@@ -3,7 +3,6 @@ package buildah
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"sort"
 
 	"arhat.dev/rs"
@@ -23,10 +22,28 @@ func init() {
 			t := &TaskPush{
 				manifestCache: make(map[manifestCacheKey]manifestCacheValue),
 			}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindPush, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
+}
+
+type TaskPush struct {
+	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
+
+	tools.BaseTask `yaml:",inline"`
+
+	ImageNames []ImageNameSpec `yaml:"image_names"`
+
+	manifestCache map[manifestCacheKey]manifestCacheValue
+}
+
+func (c *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
+func (c *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskPush) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskPush) GetExecSpecs(
@@ -46,15 +63,15 @@ func (c *TaskPush) GetExecSpecs(
 			}
 		}
 
-		dukkhaCacheDir := rc.CacheDir()
-
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
 				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image, true)
-				imageIDFile := GetImageIDFileForImageName(
-					dukkhaCacheDir, imageName,
-				)
-				imageIDBytes, err := os.ReadFile(imageIDFile)
+				imageIDFile, err := GetImageIDFileForImageName(rc, imageName)
+				if err != nil {
+					return err
+				}
+
+				imageIDBytes, err := rc.FS().ReadFile(imageIDFile)
 				if err != nil {
 					return fmt.Errorf("image id file not found: %w", err)
 				}
@@ -100,16 +117,6 @@ type manifestCacheValue struct {
 	name     string
 
 	opts dukkha.TaskMatrixExecOptions
-}
-
-type TaskPush struct {
-	rs.BaseField `yaml:"-"`
-
-	tools.BaseTask `yaml:",inline"`
-
-	ImageNames []ImageNameSpec `yaml:"image_names"`
-
-	manifestCache map[manifestCacheKey]manifestCacheValue
 }
 
 func (c *TaskPush) cacheManifestPushSpec(

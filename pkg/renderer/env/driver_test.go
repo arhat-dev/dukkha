@@ -11,6 +11,8 @@ import (
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
+var _ dukkha.Renderer = (*Driver)(nil)
+
 func TestNewDriver(t *testing.T) {
 	ret := NewDefault("")
 

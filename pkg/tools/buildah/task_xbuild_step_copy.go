@@ -5,9 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
 
@@ -28,7 +27,7 @@ type stepCopy struct {
 
 func (s *stepCopy) genSpec(
 	rc dukkha.TaskExecContext,
-	_ dukkha.TaskMatrixExecOptions,
+	cacheFS *fshelper.OSFS,
 	record bool,
 ) ([]dukkha.TaskExecSpec, error) {
 	_ = rc
@@ -48,6 +47,8 @@ func (s *stepCopy) genSpec(
 			replace_XBUILD_COPY_FROM_TEXT_DATA_SRC_PATH = "<XBUILD_COPY_FROM_TEXT_DATA_FILE>"
 		)
 
+		file := "copy-text-" + hex.EncodeToString(md5helper.Sum([]byte(data)))
+
 		steps = append(steps, dukkha.TaskExecSpec{
 			StdoutAsReplace:          replace_XBUILD_COPY_FROM_TEXT_DATA_SRC_PATH,
 			FixStdoutValueForReplace: bytes.TrimSpace,
@@ -57,23 +58,23 @@ func (s *stepCopy) genSpec(
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				srcFile := filepath.Join(
-					rc.CacheDir(),
-					"buildah", "xbuild",
-					"copy-text-"+hex.EncodeToString(md5helper.Sum([]byte(data))),
-				)
-				err := os.MkdirAll(filepath.Dir(srcFile), 0755)
-				if err != nil && !os.IsExist(err) {
-					return nil, fmt.Errorf("failed to ensure text data cache dir: %w", err)
+				err := cacheFS.WriteFile(file, []byte(data), 0644)
+				if err != nil {
+					return nil, fmt.Errorf("writing text data: %w", err)
+				}
+
+				srcFile, err := cacheFS.Abs(file)
+				if err != nil {
+					return nil, err
 				}
 
 				// TODO: remove additional \n for ansi translation flush
 				_, err = stdout.Write([]byte(srcFile + "\n"))
 				if err != nil {
-					return nil, fmt.Errorf("failed to create text data cache: %q", srcFile)
+					return nil, fmt.Errorf("passing src file %q via stdout: %w", srcFile, err)
 				}
 
-				return nil, os.WriteFile(srcFile, []byte(data), 0644)
+				return nil, rc.FS().WriteFile(srcFile, []byte(data), 0644)
 			},
 		})
 

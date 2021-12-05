@@ -2,7 +2,6 @@ package cache
 
 import (
 	"io"
-	"path/filepath"
 )
 
 type (
@@ -26,8 +25,7 @@ func (s IdentifiableString) Ext() string {
 	data := []rune(s)
 	for i := len(data) - 1; i >= 0; i-- {
 		switch {
-		case data[i] == '/',
-			data[i] == filepath.Separator:
+		case data[i] == '/':
 			return ""
 		case data[i] == '.':
 			return string(data[i:])

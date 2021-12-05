@@ -2,15 +2,20 @@ package templateutils
 
 import (
 	"fmt"
-	"os"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-var osNS = &_osNS{}
+func createOSNS(rc dukkha.RenderingContext) *osNS {
+	return &osNS{rc: rc}
+}
 
-type _osNS struct{}
+type osNS struct {
+	rc dukkha.RenderingContext
+}
 
-func (ns *_osNS) ReadFile(filename string) (string, error) {
-	data, err := os.ReadFile(filename)
+func (ns *osNS) ReadFile(filename string) (string, error) {
+	data, err := ns.rc.FS().ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
@@ -18,7 +23,7 @@ func (ns *_osNS) ReadFile(filename string) (string, error) {
 	return string(data), nil
 }
 
-func (ns *_osNS) WriteFile(filename string, d interface{}) error {
+func (ns *osNS) WriteFile(filename string, d interface{}) error {
 	var data []byte
 	switch dt := d.(type) {
 	case string:
@@ -29,9 +34,9 @@ func (ns *_osNS) WriteFile(filename string, d interface{}) error {
 		return fmt.Errorf("invalid non string nor bytes data: %T", d)
 	}
 
-	return os.WriteFile(filename, data, 0640)
+	return ns.rc.FS().WriteFile(filename, data, 0640)
 }
 
-func (ns *_osNS) MkdirAll(path string) error {
-	return os.MkdirAll(path, 0755)
+func (ns *osNS) MkdirAll(path string) error {
+	return ns.rc.FS().MkdirAll(path, 0755)
 }

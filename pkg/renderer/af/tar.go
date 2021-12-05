@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"path"
+
+	"arhat.dev/pkg/pathhelper"
 )
 
 // when target is empty or `.`, return reader of first regular file
@@ -51,7 +53,7 @@ func untar(r io.ReadSeeker, target string) (io.Reader, error) {
 			}
 
 			// only allow internal link
-			return untar(r, cleanLink(name, hdr.Linkname))
+			return untar(r, pathhelper.EvalLink(name, hdr.Linkname))
 		default:
 			return nil, fmt.Errorf("untar: unsupported non regular file %q", name)
 		}

@@ -13,13 +13,19 @@ func init() {
 		ToolKind, TaskKindBuild,
 		func(toolName string) dukkha.Task {
 			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindBuild, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
 }
 
 type TaskBuild buildah.TaskBuild
+
+func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
+func (c *TaskBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskBuild) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+}
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)

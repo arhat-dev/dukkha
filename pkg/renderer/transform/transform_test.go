@@ -9,10 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	di "arhat.dev/dukkha/internal"
+	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/tpl"
 )
+
+var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestDriver_RenderYaml(t *testing.T) {
 	type TestSpec struct {

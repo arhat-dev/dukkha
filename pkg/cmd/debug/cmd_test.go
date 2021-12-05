@@ -130,7 +130,7 @@ func prepareDebugCmd(flags []string) (checkFlags func() error, runCmd func() err
 	debugCmd.AddCommand(debugTaskCmd)
 	debugCmd.SetArgs(flags)
 	return func() error {
-		// TODO: test bad flags, currently always return nil due we want
+		// TODO: test bad flags, currently always return nil due to we want
 		// 		 sub command Flags() has PersistentFlags() from debugCmd
 		return nil
 	}, debugCmd.Execute, nil

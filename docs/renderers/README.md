@@ -4,7 +4,7 @@ Renderers are the core components to make dukkha config dynamic.
 
 ## Concepts
 
-### Renderer Name
+### Name
 
 A renderer name consists of two parts:
 
@@ -21,7 +21,21 @@ Examples for renderer kind `tpl`:
 - `tpl:` (empty instance name, same as no instance name)
 - `tpl:my-tpl` (with instance name `my-tpl`)
 
-### Renderer Attributes
+### Alias
+
+A renderer can have one alias of its renderer name
+
+Some renderers work online (e.g. `http`, `git`), some work locally (e.g. `file`, `env`), alias makes the switching from one to another seamless.
+
+Example config:
+
+```yaml
+renderers:
+- http:
+    alias: my-http
+```
+
+### Attributes
 
 `<renderer>#<attr_1,attr_2,...>`
 
@@ -34,6 +48,37 @@ Examples for renderer `tpl`:
 - `tpl` (no attribute)
 - `tpl#` (empty attributes, same as no attribute)
 - `tpl#a,b,c` (attributes `a`, `b`, `c`)
+
+### Default Attributes
+
+You can set default attributes to renderer in renderer config, these default attributes are respected as long as there is no explicit attributes to the renderer.
+
+Example:
+
+Set default attributes
+
+```yaml
+renderers:
+- http:
+    attributes:
+    - cached-file
+```
+
+Use the renderer with default attributes
+
+```yaml
+foo@http: https://example.com/content
+# foo will be set to the path to local cache file of fetched content
+```
+
+Use the renderer with custom attributes (and no default attributes applied in this case)
+
+```yaml
+foo@http#cached-file,use-spec:
+  url: https://example.com/content
+```
+
+__NOTE:__ to clear default attributes, use single `#` (e.g. `foo@http#`, which means reset attributes to `http` renderer)
 
 ## Configuration
 

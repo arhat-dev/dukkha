@@ -17,9 +17,6 @@ workflow:run:
       go mod tidy
       go mod vendor
 
-  - shell: |-
-      patch -u -p1 --verbose -i cicd/vendor.patch
-
 # generate docs
 - name: docs
   jobs:

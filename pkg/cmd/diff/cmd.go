@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/diff"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -52,7 +50,7 @@ func NewDiffCmd(ctx *dukkha.Context) *cobra.Command {
 	return diffCmd
 }
 
-func diffFile(rc rs.RenderingHandler, srcDocSrc, baseDocSrc, newDocSrc string) error {
+func diffFile(rc dukkha.RenderingContext, srcDocSrc, baseDocSrc, newDocSrc string) error {
 	if baseDocSrc == newDocSrc {
 		return nil
 	}
@@ -71,7 +69,7 @@ func diffFile(rc rs.RenderingHandler, srcDocSrc, baseDocSrc, newDocSrc string) e
 			return yaml.NewDecoder(os.Stdin), func() {}, nil
 		}
 
-		rd, err := os.Open(src)
+		rd, err := rc.FS().Open(src)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -87,20 +85,20 @@ func diffFile(rc rs.RenderingHandler, srcDocSrc, baseDocSrc, newDocSrc string) e
 		)
 		sd, cleanupSD, err = newDecoder(srcDocSrc)
 		if err != nil {
-			return fmt.Errorf("failed to open src doc: %w", err)
+			return fmt.Errorf("open src doc: %w", err)
 		}
 		defer cleanupSD()
 	}
 
 	bd, cleanupBD, err := newDecoder(baseDocSrc)
 	if err != nil {
-		return fmt.Errorf("failed to open base doc: %w", err)
+		return fmt.Errorf("open base doc: %w", err)
 	}
 	defer cleanupBD()
 
 	nd, cleanupND, err := newDecoder(newDocSrc)
 	if err != nil {
-		return fmt.Errorf("failed to open target doc: %w", err)
+		return fmt.Errorf("open target doc: %w", err)
 	}
 	defer cleanupND()
 

@@ -56,7 +56,7 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task, _, _ int) error {
 					matrixSpecs, err := task.GetMatrixSpecs(appCtx)
 					if err != nil {
-						return fmt.Errorf("failed to get task matrix specs: %w", err)
+						return fmt.Errorf("get task matrix specs: %w", err)
 					}
 
 					err = opts.writeHeader(TaskHeaderLineData{

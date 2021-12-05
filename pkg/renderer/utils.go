@@ -3,10 +3,11 @@ package renderer
 import (
 	"time"
 
-	"arhat.dev/dukkha/pkg/cache"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
+
+	"arhat.dev/dukkha/pkg/cache"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func ResolveInputSpec(rc rs.RenderingHandler, rawBytes []byte, out rs.Field) (rs.Field, error) {

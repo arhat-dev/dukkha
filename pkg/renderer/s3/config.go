@@ -67,7 +67,7 @@ func (c *rendererS3Config) createClient() (*s3Client, error) {
 		Region: c.Region,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create s3 client: %w", err)
+		return nil, fmt.Errorf("creating s3 client: %w", err)
 	}
 
 	return &s3Client{

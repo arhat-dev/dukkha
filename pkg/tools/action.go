@@ -84,7 +84,7 @@ func (act *Action) DoAfterFieldResolved(
 
 	err := dukkha.ResolveEnv(mCtx, act, "Env", "env")
 	if err != nil {
-		return fmt.Errorf("failed to resolve action specific env: %w", err)
+		return fmt.Errorf("resolving action specific env: %w", err)
 	}
 
 	if len(tagNames) == 0 {
@@ -96,7 +96,7 @@ func (act *Action) DoAfterFieldResolved(
 
 	err = act.ResolveFields(mCtx, -1, tagNames...)
 	if err != nil {
-		return fmt.Errorf("failed to resolve fields: %w", err)
+		return fmt.Errorf("resolving action fields: %w", err)
 	}
 
 	if do == nil {
@@ -195,7 +195,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 				workingDir, ctx, stdin, stdout, stderr,
 			)
 			if err != nil {
-				return nil, fmt.Errorf("%q: failed to create embedded shell: %w", hookID, err)
+				return nil, fmt.Errorf("%q: creating embedded shell: %w", hookID, err)
 			}
 
 			parser := syntax.NewParser(syntax.Variant(syntax.LangBash))

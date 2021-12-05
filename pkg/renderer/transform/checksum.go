@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"os"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
 )
 
@@ -51,7 +51,7 @@ type Checksum struct {
 }
 
 // VerifyFile check local file if matching the checksum
-func (cs Checksum) Verify() error {
+func (cs Checksum) Verify(ofs *fshelper.OSFS) error {
 	var newHash func() hash.Hash
 	switch cs.Kind {
 	case checksum_MD5:
@@ -78,7 +78,7 @@ func (cs Checksum) Verify() error {
 	var src io.Reader
 	switch {
 	case cs.File != nil:
-		f, err := os.Open(*cs.File)
+		f, err := ofs.Open(*cs.File)
 		if err != nil {
 			return err
 		}

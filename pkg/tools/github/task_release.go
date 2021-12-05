@@ -20,7 +20,7 @@ func init() {
 		ToolKind, TaskKindRelease,
 		func(toolName string) dukkha.Task {
 			t := &TaskRelease{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), TaskKindRelease, t)
+			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
 			return t
 		},
 	)
@@ -28,6 +28,8 @@ func init() {
 
 type TaskRelease struct {
 	rs.BaseField `yaml:"-"`
+
+	TaskName string `yaml:"name"`
 
 	tools.BaseTask `yaml:",inline"`
 
@@ -48,6 +50,12 @@ type ReleaseFileSpec struct {
 	// the display label as noted in gh docs
 	// https://cli.github.com/manual/gh_release_create
 	Label string `yaml:"label"`
+}
+
+func (c *TaskRelease) Kind() dukkha.TaskKind { return TaskKindRelease }
+func (c *TaskRelease) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
+func (c *TaskRelease) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
 }
 
 func (c *TaskRelease) GetExecSpecs(
@@ -71,29 +79,33 @@ func (c *TaskRelease) GetExecSpecs(
 		}
 
 		if len(c.Notes) != 0 {
-			cacheDir := rc.CacheDir()
-			f, err := os.CreateTemp(cacheDir, "github-release-note-*")
+			f, err := os.CreateTemp(rc.CacheDir(), "github-release-note-*")
 			if err != nil {
-				return fmt.Errorf("failed to create temporary release note file: %w", err)
+				return fmt.Errorf("creating temporary release note file: %w", err)
 			}
 
 			noteFile := f.Name()
 			_, err = f.Write([]byte(c.Notes))
 			_ = f.Close()
 			if err != nil {
-				return fmt.Errorf("failed to write release note: %w", err)
+				return fmt.Errorf("writing release note: %w", err)
 			}
 
 			createCmd = append(createCmd, "--notes-file", noteFile)
 		}
 
 		for _, spec := range c.Files {
-			matches, err := filepath.Glob(spec.Path)
+			matches, err := rc.FS().Glob(spec.Path)
 			if err != nil {
 				matches = []string{spec.Path}
 			}
 
 			for i, file := range matches {
+				file, err = rc.FS().Abs(file)
+				if err != nil {
+					return err
+				}
+
 				var arg string
 				if len(spec.Label) != 0 {
 					arg += file + `#` + spec.Label
