@@ -69,7 +69,35 @@ func TestDriver_Render(t *testing.T) {
 }
 
 func TestDriver_readFile(t *testing.T) {
+	defer t.Cleanup(func() {})
 
+	tmpdir := t.TempDir()
+
+	d := NewDefault("").(*Driver)
+
+	err := d.Init(fshelper.NewOSFS(false, func() (string, error) {
+		return tmpdir, nil
+	}))
+	assert.NoError(t, err)
+
+	const (
+		testdata = "test-data"
+		testfile = "test-file"
+	)
+	assert.NoError(t, os.WriteFile(filepath.Join(tmpdir, testfile), []byte(testdata), 0400))
+
+	d.BasePath = tmpdir
+
+	ofs := fshelper.NewOSFS(false, func() (string, error) {
+		return "no-where", nil
+	})
+	actual, err := d.readFile(ofs, testfile, false)
+	assert.NoError(t, err)
+	assert.EqualValues(t, testdata, string(actual))
+
+	actual, err = d.readFile(ofs, testfile, true)
+	assert.NoError(t, err)
+	assert.EqualValues(t, filepath.Join(tmpdir, testfile), string(actual))
 }
 
 func TestDriver_cacheData(t *testing.T) {

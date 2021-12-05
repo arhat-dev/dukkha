@@ -16,6 +16,9 @@ renderers:
       enabled: true
       timeout: "0"
       size: 100M
+    # set base path
+    # if it's a relative path (without prefix `/`), will be joined with current working dir
+    base_path: /somewhere
 ```
 
 ## Supported value types
@@ -36,6 +39,7 @@ renderers:
 ## Supported Attributes
 
 - `cache-data`: Save input data to cache, and return absolute local path to the cached file.
+- `cached-file`: Return local path passed in directly (mainly intended to support offline mode of remote renderers)
 
 ## Suggested Use Cases
 

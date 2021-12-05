@@ -16,8 +16,18 @@ renderers:
     include:
     - path: cicd/artifacts/bin-name.tpl
 
-  http:presets:
-    alias: presets
+- file:dukkha-presets:
+    alias@tpl: |-
+      {{- if env.LOCAL_DUKKHA_PRESETS_PATH -}}
+        presets
+      {{- end -}}
+    base_path@env: ${LOCAL_DUKKHA_PRESETS_PATH:-".dukkha/cache/dukkha-presets"}
+
+  http:dukkha-presets:
+    alias@tpl: |-
+      {{- if not env.LOCAL_DUKKHA_PRESETS_PATH -}}
+        presets
+      {{- end -}}
     cache:
       enabled: true
       timeout: 2h

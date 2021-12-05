@@ -1504,6 +1504,11 @@
           },
           "type": "array"
         },
+        "base_path": {
+          "type": "string",
+          "description": "to be used instead of current working dir",
+          "x-intellij-html-description": "to be used instead of current working dir"
+        },
         "cache": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.renderer.CacheConfig"
         }
@@ -1511,8 +1516,10 @@
       "preferredOrder": [
         "alias",
         "attributes",
-        "cache"
+        "cache",
+        "base_path"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^alias@.*": {
           "type": "string"
@@ -1527,6 +1534,14 @@
           "type": "array"
         },
         "^attributes@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^base_path@.*": {
+          "type": "string",
+          "description": "to be used instead of current working dir",
+          "x-intellij-html-description": "to be used instead of current working dir"
+        },
+        "^base_path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cache@.*": {

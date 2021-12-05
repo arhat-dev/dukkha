@@ -70,8 +70,6 @@ func (c *Config) Merge(a *Config) error {
 		return err
 	}
 
-	c.Shells = append(c.Shells, a.Shells...)
-
 	err = c.Tools.Merge(&a.Tools)
 	if err != nil {
 		return err
@@ -94,7 +92,7 @@ func (c *Config) resolveRenderers(appCtx dukkha.ConfigResolvingContext) error {
 	logger := log.Log.WithName("config")
 
 	logger.D("resolving to gain renderers overview")
-	err := c.ResolveFields(appCtx, 1, "renderers")
+	err := c.ResolveFields(appCtx, 2, "renderers")
 	if err != nil {
 		return fmt.Errorf("gain overview of renderers: %w", err)
 	}
@@ -114,6 +112,13 @@ func (c *Config) resolveRenderers(appCtx dukkha.ConfigResolvingContext) error {
 		}
 
 		for name, r := range g.Renderers {
+			err = r.ResolveFields(appCtx, -1)
+			if err != nil {
+				return fmt.Errorf("resolving renderer %q: %w", name, err)
+			}
+
+			logger.V("resoving renderer", log.String("name", name), log.String("alias", r.Alias()))
+
 			err = r.Init(appCtx.RendererCacheFS(name))
 			if err != nil {
 				return fmt.Errorf("initializing renderer %q: %w", name, err)
