@@ -56,7 +56,7 @@ func collectTemplateFuncs() []*templateFunc {
 			continue
 		}
 
-		// using namespaced func
+		// namespaced func
 		ns := v.Call(nil)[0].Type()
 		for i := 0; i < ns.NumMethod(); i++ {
 			m := ns.Method(i)

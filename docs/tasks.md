@@ -42,7 +42,7 @@ workflow:local:run:
   - `after:failure: []Action`: run actions after all task matrix finished but some errored.
   - `after: []Action`: run actions after all task matrix run finished, regardless of failure.
 
-And action is defined as:
+And `Action` is defined as:
 
 - `name: string`: action name
 - `task: string`: reference to other task
