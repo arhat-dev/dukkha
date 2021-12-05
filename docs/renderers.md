@@ -98,7 +98,7 @@ renderers:
 - env:foo: {}
 
 # group #1
-- # use env:foo defined in group #0
+- # use env:foo from group #0 is ok
   file:my-file@env:foo: {}
 ```
 
@@ -108,8 +108,8 @@ Bad:
 renderers:
 # group #0
 - af:bar: {}
-  # use af:bar in the same group to render
-  # config of tpl can cause unexpected errors
-  tpl:
+  # use `af:bar` in the same group to render
+  # config of renderer `http` can cause unexpected errors
+  http:
     cache@af:bar: # ...
 ```

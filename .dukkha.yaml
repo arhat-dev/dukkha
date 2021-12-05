@@ -1,5 +1,7 @@
+# yaml-language-server: $schema=./docs/generated/schema.json
+
 include:
-- cicd
+- path@echo: cicd
 
 renderers:
 - http:

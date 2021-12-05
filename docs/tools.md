@@ -1,20 +1,35 @@
 # Tools
 
-## Common tool config options
+## Config Declaration
 
-All tools have a `arhat.dev/dukkha/pkg/tools.BaseTool` embedded
+Tools are configured in top-level `tools` config section
 
 ```yaml
 tools:
-  # tool_kind is the kind name of the tool
-  <tool_kind>:
-  - name: <tool_name> # custom tool name
+  <tool-kind>: []
+```
 
-    # set extra environment variables when running this tool
-    env: []
-    # - ENV_NAME=env_value
+Example:
 
-    # cmd to run this tool
-    # e.g. [ssh, remote-host, do, something]
-    cmd: []
+```yaml
+tools:
+  workflow: []
+```
+
+## Common Tool Options
+
+- `name: string`: tool name that can be referenced in cli or task reference
+- `env: []Env`: tool specific env
+- `cmd: []string`: exec strings to run this tool (no env expansion)
+
+Example:
+
+```yaml
+tools:
+  golang:
+  - name: local
+    env:
+    - name: GOSUMDB
+      value: "off"
+    cmd: [go]
 ```

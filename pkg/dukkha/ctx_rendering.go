@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -123,6 +124,17 @@ func lazyEnsuredSubFS(ofs *fshelper.OSFS, subdir string) *fshelper.OSFS {
 	}
 
 	return fshelper.NewOSFS(false, func() (string, error) {
+		pc, _, _, ok := runtime.Caller(2)
+		if ok {
+			callerFunc := runtime.FuncForPC(pc).Name()
+			switch {
+			case strings.HasSuffix(callerFunc, "Abs"):
+				// do nothing but return base dir when calling Abs
+				return ofs.Abs(subdir)
+			default:
+			}
+		}
+
 		_, err := ofs.Stat(subdir)
 		if err == nil {
 			return ofs.Abs(subdir)

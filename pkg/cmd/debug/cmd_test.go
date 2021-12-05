@@ -101,7 +101,8 @@ func prepareDebugCmd(flags []string) (checkFlags func() error, runCmd func() err
 	ctx := dukkha_test.NewTestContext(context.TODO())
 
 	config := conf.NewConfig()
-	err := conf.ReadConfigRecursively(
+	err := conf.Read(
+		ctx,
 		os.DirFS("./testdata"),
 		[]string{"."},
 		false,

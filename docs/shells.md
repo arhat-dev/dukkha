@@ -1,18 +1,20 @@
 # Shells
 
+Define external shells to run scripts using renderer `shell:<shell-name>` or as action
+
 ```yaml
-# shell command to provision a shell to execute your scripts
 shells:
-# reference your shells using `shell:<shell_name>` as renderer
-# or hook action or job action (in workflow run)
 - name: bash
-  # environment variables used when provisioning a shell
+  # extra shell args
   env:
-  - SHELL_ENV_NAME=value
+  - name: ENV_NAME
+    value: env-value
+
   cmd:
   - bash
   - -x
   - -c
+
 - name: python
   cmd@shell: |-
     echo "- $(command -v python3)"

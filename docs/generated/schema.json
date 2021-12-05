@@ -371,7 +371,7 @@
         },
         "include": {
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.conf.IncludeEntry"
           },
           "type": "array"
         },
@@ -1109,6 +1109,43 @@
           "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
         },
         "^values@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.conf.IncludeEntry": {
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "local path to include, can be either directory or file  Path and Text are mutually exclusive",
+          "x-intellij-html-description": "local path to include, can be either directory or file  Path and Text are mutually exclusive"
+        },
+        "text": {
+          "type": "string",
+          "description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive",
+          "x-intellij-html-description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive"
+        }
+      },
+      "preferredOrder": [
+        "path",
+        "text"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^path@.*": {
+          "type": "string",
+          "description": "local path to include, can be either directory or file  Path and Text are mutually exclusive",
+          "x-intellij-html-description": "local path to include, can be either directory or file  Path and Text are mutually exclusive"
+        },
+        "^path@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^text@.*": {
+          "type": "string",
+          "description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive",
+          "x-intellij-html-description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive"
+        },
+        "^text@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

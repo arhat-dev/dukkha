@@ -34,6 +34,12 @@ import (
 	"arhat.dev/dukkha/pkg/cmd/run"
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/renderer/echo"
+	"arhat.dev/dukkha/pkg/renderer/env"
+	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/renderer/shell"
+	"arhat.dev/dukkha/pkg/renderer/tpl"
+	"arhat.dev/dukkha/pkg/renderer/transform"
 )
 
 // NewRootCmd creates the dukkha command with all sub commands added
@@ -88,9 +94,41 @@ func NewRootCmd() *cobra.Command {
 
 			logger := log.Log.WithName("pre-run")
 
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("check working dir: %w", err)
+			}
+
+			_appCtx := dukkha.NewConfigResolvingContext(
+				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
+				createGlobalEnv(appBaseCtx, cwd),
+			)
+
+			// add essential renderers for bootstraping
+			{
+				logger.V("creating essential renderers")
+
+				_appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
+				_appCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
+				_appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
+				_appCtx.AddRenderer(tpl.DefaultName, tpl.NewDefault(tpl.DefaultName))
+				_appCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
+				_appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))
+
+				essentialRenderers := _appCtx.AllRenderers()
+				for name, r := range essentialRenderers {
+					// using default config, no need to resolve fields
+					err = r.Init(_appCtx.RendererCacheFS(name))
+					if err != nil {
+						return fmt.Errorf("initialize essential renderer %q: %w", name, err)
+					}
+				}
+			}
+
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
-			err = conf.ReadConfigRecursively(
+			err = conf.Read(
+				_appCtx,
 				fshelper.NewOSFS(false, os.Getwd),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
@@ -102,16 +140,6 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
-
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("check working dir: %w", err)
-			}
-
-			_appCtx := dukkha.NewConfigResolvingContext(
-				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
-				createGlobalEnv(appBaseCtx, cwd),
-			)
 
 			_appCtx.AddListEnv(os.Environ()...)
 

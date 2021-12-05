@@ -1,4 +1,4 @@
-# `skopeo`
+# skopeo
 
 __NOTE:__ This tool is currently not implemented in `dukkha`.
 
