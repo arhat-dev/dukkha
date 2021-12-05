@@ -101,7 +101,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			realImageNames = append(realImageNames, imageName)
 
-			filePath, err := GetImageIDFileForImageName(rc, imageName)
+			filePath, err := GetImageIDFileForImageName(rc, imageName, true)
 			if err != nil {
 				return err
 			}

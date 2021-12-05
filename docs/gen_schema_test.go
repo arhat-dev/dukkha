@@ -20,7 +20,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 
 	_ "arhat.dev/dukkha/cmd/dukkha/addon" // add types disabled by default
-	_ "arhat.dev/dukkha/pkg/conf"         // add types enabled by default
+	_ "arhat.dev/dukkha/pkg/cmd"          // add types enabled by default
 )
 
 func TestGenerateSchema(t *testing.T) {

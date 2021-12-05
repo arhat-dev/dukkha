@@ -66,7 +66,7 @@ func (c *TaskPush) GetExecSpecs(
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
 				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image, true)
-				imageIDFile, err := GetImageIDFileForImageName(rc, imageName)
+				imageIDFile, err := GetImageIDFileForImageName(rc, imageName, false)
 				if err != nil {
 					return err
 				}

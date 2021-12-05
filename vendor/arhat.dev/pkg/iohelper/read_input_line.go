@@ -3,6 +3,8 @@ package iohelper
 import (
 	"io"
 	"runtime"
+
+	"arhat.dev/pkg/kernelconst"
 )
 
 // ReadInputLine read a line from user input stream (usually the stdin)
@@ -20,12 +22,12 @@ func ReadInputLine(r io.Reader) ([]byte, error) {
 					ret = ret[:len(ret)-1]
 				}
 			case '\n':
-				if runtime.GOOS != "windows" {
+				if runtime.GOOS != kernelconst.Windows {
 					return ret, nil
 				}
 				// otherwise ignore \n
 			case '\r':
-				if runtime.GOOS == "windows" {
+				if runtime.GOOS == kernelconst.Windows {
 					return ret, nil
 				}
 				// otherwise ignore \r

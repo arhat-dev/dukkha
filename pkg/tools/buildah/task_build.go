@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"strings"
 
@@ -33,6 +35,7 @@ func init() {
 				return GetImageIDFileForImageName(
 					rc,
 					templateutils.SetDefaultImageTagIfNoTagSet(rc, imageName, true),
+					false,
 				)
 			}
 		},
@@ -134,12 +137,12 @@ func (c *TaskBuild) createExecSpecs(
 		// FQDN image names
 		budCmd = append(budCmd, "-t", imageName)
 
-		filePath, err := GetImageIDFileForImageName(rc, imageName)
+		imageIDPath, err := GetImageIDFileForImageName(rc, imageName, true)
 		if err != nil {
 			return nil, err
 		}
 
-		imageIDFiles = append(imageIDFiles, filePath)
+		imageIDFiles = append(imageIDFiles, imageIDPath)
 	}
 
 	context := c.Context
@@ -375,13 +378,21 @@ func getLocalManifestName(manifestName string) string {
 	return hex.EncodeToString(md5helper.Sum([]byte(manifestName)))
 }
 
-func GetImageIDFileForImageName(rc dukkha.RenderingContext, imageName string) (string, error) {
+func GetImageIDFileForImageName(rc dukkha.RenderingContext, imageName string, ensureDir bool) (string, error) {
 	const imageIDCacheDir = "buildah/image-id"
 
-	ret, err := rc.GlobalCacheFS(imageIDCacheDir).
-		Abs(getLocalImageName(imageName))
+	cfs := rc.GlobalCacheFS(imageIDCacheDir)
+
+	ret, err := cfs.Abs(getLocalImageName(imageName))
 	if err != nil {
 		return "", err
+	}
+
+	if ensureDir {
+		err = cfs.MkdirAll(".", 0755)
+		if err != nil && !errors.Is(err, fs.ErrExist) {
+			return "", err
+		}
 	}
 
 	return ret, err

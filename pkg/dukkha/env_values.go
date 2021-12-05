@@ -20,12 +20,14 @@ type GlobalEnvValues interface {
 	GitTag() string
 	GitDefaultBranch() string
 	GitCommit() string
+	GitValues() map[string]utils.LazyValue
 
 	HostKernel() string
 	HostKernelVersion() string
 	HostArch() string
 	HostOS() string
 	HostOSVersion() string
+	HostValues() map[string]utils.LazyValue
 }
 
 type EnvValues interface {
@@ -138,6 +140,16 @@ func (c *envValues) CacheDir() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
 }
 
+func (c *envValues) GitValues() map[string]utils.LazyValue {
+	return map[string]utils.LazyValue{
+		"branch":         c.globalEnv[constant.ENV_GIT_BRANCH],
+		"worktree_clean": c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN],
+		"tag":            c.globalEnv[constant.ENV_GIT_TAG],
+		"default_branch": c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH],
+		"commit":         c.globalEnv[constant.ENV_GIT_COMMIT],
+	}
+}
+
 func (c *envValues) GitBranch() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_BRANCH])
 }
@@ -156,6 +168,16 @@ func (c *envValues) GitDefaultBranch() string {
 
 func (c *envValues) GitCommit() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_COMMIT])
+}
+
+func (c *envValues) HostValues() map[string]utils.LazyValue {
+	return map[string]utils.LazyValue{
+		"arch":           c.globalEnv[constant.ENV_HOST_ARCH],
+		"kernel":         c.globalEnv[constant.ENV_HOST_KERNEL],
+		"kernel_version": c.globalEnv[constant.ENV_HOST_KERNEL_VERSION],
+		"os":             c.globalEnv[constant.ENV_HOST_OS],
+		"os_version":     c.globalEnv[constant.ENV_HOST_OS_VERSION],
+	}
 }
 
 func (c *envValues) HostArch() string {

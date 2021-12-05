@@ -1,7 +1,6 @@
 package pathhelper
 
 import (
-	"os"
 	"strings"
 )
 
@@ -47,7 +46,13 @@ func Clean(path string, sep byte) string {
 		}
 		return originalPath + "."
 	}
-	rooted := os.IsPathSeparator(path[0])
+
+	isPathSeparator := IsUnixSlash
+	if sep == WindowsPathSeparator {
+		isPathSeparator = IsWindowsSlash
+	}
+
+	rooted := isPathSeparator(path[0])
 
 	// Invariants:
 	//	reading from path; r is index of next byte to process.
@@ -64,20 +69,20 @@ func Clean(path string, sep byte) string {
 
 	for r < n {
 		switch {
-		case os.IsPathSeparator(path[r]):
+		case isPathSeparator(path[r]):
 			// empty path element
 			r++
-		case path[r] == '.' && (r+1 == n || os.IsPathSeparator(path[r+1])):
+		case path[r] == '.' && (r+1 == n || isPathSeparator(path[r+1])):
 			// . element
 			r++
-		case path[r] == '.' && path[r+1] == '.' && (r+2 == n || os.IsPathSeparator(path[r+2])):
+		case path[r] == '.' && path[r+1] == '.' && (r+2 == n || isPathSeparator(path[r+2])):
 			// .. element: remove to last separator
 			r += 2
 			switch {
 			case out.w > dotdot:
 				// can backtrack
 				out.w--
-				for out.w > dotdot && !os.IsPathSeparator(out.index(out.w)) {
+				for out.w > dotdot && !isPathSeparator(out.index(out.w)) {
 					out.w--
 				}
 			case !rooted:
@@ -96,7 +101,7 @@ func Clean(path string, sep byte) string {
 				out.append(sep)
 			}
 			// copy element
-			for ; r < n && !os.IsPathSeparator(path[r]); r++ {
+			for ; r < n && !isPathSeparator(path[r]); r++ {
 				out.append(path[r])
 			}
 		}

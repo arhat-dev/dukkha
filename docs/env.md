@@ -6,10 +6,12 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go), [p
 
 ## Usage
 
-For `env` renderer: Use like unix shell env (e.g. `${SOME_ENV}`)
-For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
+- For renderer `env`, `shell`, and action `shell`: Use like unix shell env (e.g. `${SOME_ENV}`)
+- For `tpl` renderer: available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
+
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `dukkha`, example usage: `{{ dukkha.WorkDir }}`
 
 - `DUKKHA_WORKDIR`
   - Description: The absolute directory path in which you invoked `dukkha`
@@ -24,6 +26,8 @@ For `tpl` renderer: Available under `env` object (e.g. `{{ env.SOME_ENV }}`)
   - Customization: Set `bootstrap.cache_dir` in your config file
 
 ## `git` Repo Information
+
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `git`, example usage: `{{ git.branch }}`
 
 - `GIT_BRANCH`
   - Description: Current working branch name
@@ -80,6 +84,8 @@ All time related values are based on local time
 
 ## Host System Information
 
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `host`, example usage: `{{ host.kernel }}`
+
 - `HOST_KERNEL`
   - Description: Kernel name of the host system running `dukkha`
   - Default Value: value of golang `runtime.GOOS`
@@ -115,7 +121,9 @@ All time related values are based on local time
 
 ## Task Execution Information
 
-__NOTE:__ Environment variables in this section are only available for your tasks and tools.
+__NOTE:__ Environment variables in this section are only available for tasks and tools
+
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`
 
 - `MATRIX_<upper-case-matrix-spec-key>`
   - Description: Matrix value

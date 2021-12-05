@@ -26,12 +26,6 @@ import (
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/renderer/echo"
-	"arhat.dev/dukkha/pkg/renderer/env"
-	"arhat.dev/dukkha/pkg/renderer/file"
-	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/tpl"
-	"arhat.dev/dukkha/pkg/renderer/transform"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -47,11 +41,11 @@ type Config struct {
 	// Global options only have limited rendering suffix support
 	Global GlobalConfig `yaml:"global"`
 
-	// Include other files using path relative to DUKKHA_WORKDIR
-	// only local path (and path glob) is supported.
+	// Include other files using path relative to current file
+	// only local path is supported
 	//
-	// no rendering suffix support for this field
-	Include []string `yaml:"include"`
+	// With path glob pattern '*' and '**' support
+	Include []*IncludeEntry `yaml:"include"`
 
 	// Shells for command execution
 	Shells []*tools.ShellTool `yaml:"shells"`
@@ -78,12 +72,6 @@ func (c *Config) Merge(a *Config) error {
 
 	c.Shells = append(c.Shells, a.Shells...)
 
-	if c.Renderers == nil {
-		c.Renderers = a.Renderers
-	} else {
-		c.Renderers = append(c.Renderers, a.Renderers...)
-	}
-
 	err = c.Tools.Merge(&a.Tools)
 	if err != nil {
 		return err
@@ -102,42 +90,85 @@ func (c *Config) Merge(a *Config) error {
 	return nil
 }
 
-// Resolve resolves all top level dukkha config
-// to gain an overview of all tools and tasks
-// nolint:gocyclo
-func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
+func (c *Config) resolveRenderers(appCtx dukkha.ConfigResolvingContext) error {
 	logger := log.Log.WithName("config")
 
-	// step 1: create essential renderers to initialize renderers
-	{
-		logger.V("creating essential renderers")
+	logger.D("resolving to gain renderers overview")
+	err := c.ResolveFields(appCtx, 1, "renderers")
+	if err != nil {
+		return fmt.Errorf("gain overview of renderers: %w", err)
+	}
 
-		// TODO: let user decide what renderers to use
-		// 		 resolve renderers first?
-		appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
-		appCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
-		appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
-		appCtx.AddRenderer(tpl.DefaultName, tpl.NewDefault(tpl.DefaultName))
-		appCtx.AddRenderer("template", tpl.NewDefault(tpl.DefaultName))
-		appCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
-		appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))
-		appCtx.AddRenderer("transform", transform.NewDefault(transform.DefaultName))
+	logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
+	for i, g := range c.Renderers {
+		logger := logger.WithFields(log.Int("index", i))
 
-		essentialRenderers := appCtx.AllRenderers()
-		logger.D("initializing essential renderers",
-			log.Int("count", len(essentialRenderers)),
-		)
+		logger.D("resolving renderer group")
 
-		for name, r := range essentialRenderers {
-			// using default config, no need to resolve fields
-			err := r.Init(appCtx.RendererCacheFS(name))
+		// renderers in the same group should shall be resolved all at once
+		// without knowning each other
+
+		err = g.ResolveFields(appCtx, -1)
+		if err != nil {
+			return fmt.Errorf("resolving renderer group #%d: %w", i, err)
+		}
+
+		for name, r := range g.Renderers {
+			err = r.Init(appCtx.RendererCacheFS(name))
 			if err != nil {
-				return fmt.Errorf("initializing essential renderer %q: %w", name, err)
+				return fmt.Errorf("initializing renderer %q: %w", name, err)
+			}
+
+			appCtx.AddRenderer(name, g.Renderers[name])
+			if len(r.Alias()) != 0 {
+				appCtx.AddRenderer(r.Alias(), g.Renderers[name])
 			}
 		}
 	}
 
-	// step 2: resolve global config (except Values), ensure cache dir exists
+	return nil
+}
+
+func (c *Config) resolveShells(appCtx dukkha.ConfigResolvingContext) error {
+	logger := log.Log.WithName("config")
+
+	err := c.ResolveFields(appCtx, 1, "shells")
+	if err != nil {
+		return fmt.Errorf("resolving overview of shells: %w", err)
+	}
+	logger.V("resolved shell config overview", log.Any("result", c.Shells))
+
+	logger.D("resolving shells", log.Int("count", len(c.Shells)))
+	for i, v := range c.Shells {
+		logger := logger.WithFields(
+			log.Any("shell", v.Name()),
+			log.Int("index", i),
+		)
+
+		logger.D("resolving shell config fields")
+		err := v.ResolveFields(appCtx, -1)
+		if err != nil {
+			return fmt.Errorf("resolving shell %q #%d config: %w", v.Name(), i, err)
+		}
+
+		err = v.InitBaseTool(string(v.Name()), appCtx.ToolCacheFS(v), v)
+		if err != nil {
+			return fmt.Errorf("initializing shell %q", v.Name())
+		}
+
+		logger.V("adding shell")
+		appCtx.AddShell(string(v.Name()), c.Shells[i])
+	}
+
+	return nil
+}
+
+// Resolve resolves all top level dukkha config
+// to gain an overview of all tools and tasks
+func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
+	logger := log.Log.WithName("config")
+
+	// step 1: resolve global config (except Values)
 	{
 		logger.D("resolving global config")
 		err := c.ResolveFields(appCtx, 1, "global")
@@ -169,46 +200,7 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		appCtx.(di.CacheDirSetter).SetCacheDir(cacheDir)
 	}
 
-	// NOTE: resolving renderers requires dukkha cache dir to been set
-	// step 3: resolve renderers
-	{
-		logger.D("resolving to gain renderers overview")
-		err := c.ResolveFields(appCtx, 1, "renderers")
-		if err != nil {
-			return fmt.Errorf("gain overview of renderers: %w", err)
-		}
-
-		logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
-		for i, g := range c.Renderers {
-			logger := logger.WithFields(log.Int("index", i))
-
-			logger.D("resolving renderer group")
-
-			// renderers in the same group should shall be resolved all at once
-			// without knowning each other
-
-			err = g.ResolveFields(appCtx, -1)
-			if err != nil {
-				return fmt.Errorf("resolving renderer group #%d: %w", i, err)
-			}
-
-			for name, r := range g.Renderers {
-				err = r.Init(appCtx.RendererCacheFS(name))
-				if err != nil {
-					return fmt.Errorf("initializing renderer %q: %w", name, err)
-				}
-
-				appCtx.AddRenderer(name, g.Renderers[name])
-				if len(r.Alias()) != 0 {
-					appCtx.AddRenderer(r.Alias(), g.Renderers[name])
-				}
-			}
-		}
-
-		logger.D("resolved all renderers", log.Int("count", len(appCtx.AllRenderers())))
-	}
-
-	// step 4: resolve global Values
+	// step 2: resolve global Values
 	{
 		logger.D("resolving global values")
 
@@ -231,45 +223,12 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 	}
 
-	// step 5: resolve shells
-	{
-		logger.D("resolving shell config overview")
-
-		err := c.ResolveFields(appCtx, 1, "shells")
-		if err != nil {
-			return fmt.Errorf("resolving overview of shells: %w", err)
-		}
-		logger.V("resolved shell config overview", log.Any("result", c.Shells))
-
-		logger.D("resolving shells", log.Int("count", len(c.Shells)))
-		for i, v := range c.Shells {
-			logger := logger.WithFields(
-				log.Any("shell", v.Name()),
-				log.Int("index", i),
-			)
-
-			logger.D("resolving shell config fields")
-			err := v.ResolveFields(appCtx, -1)
-			if err != nil {
-				return fmt.Errorf("resolving shell %q #%d config: %w", v.Name(), i, err)
-			}
-
-			err = v.InitBaseTool(string(v.Name()), appCtx.ToolCacheFS(v), v)
-			if err != nil {
-				return fmt.Errorf("initializing shell %q", v.Name())
-			}
-
-			logger.V("adding shell")
-			appCtx.AddShell(string(v.Name()), c.Shells[i])
-		}
-	}
-
 	// save some time if the command is not interacting with tasks
 	if !needTasks {
 		return nil
 	}
 
-	// step 6: resolve tools and tasks
+	// step 3: resolve tools and tasks
 	logger.D("resolving tools overview")
 	err := c.ResolveFields(appCtx, 2, "tools")
 	if err != nil {

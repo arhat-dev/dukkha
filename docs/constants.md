@@ -1,23 +1,22 @@
 # Constants
 
-Predefined values in `dukkha` to ease multi-platform task execution
+Wellknown values in `dukkha` to ease cross-platform task execution
 
 ## System Kernel
 
-- `aix`
-- `android`
-- `darwin`
-- `dragonfly`
-- `freebsd`
-- `illumos`
-- `ios`
-- `js`
+- `windows`
 - `linux`
+- `darwin`
+- `freebsd`
 - `netbsd`
 - `openbsd`
-- `plan9`
 - `solaris`
-- `windows`
+- `illumos`
+- `js`
+- `aix`
+- `android`
+- `ios`
+- `plan9`
 
 __NOTE:__ These values are the same as golang `GOOS` values
 
@@ -25,13 +24,35 @@ __NOTE:__ These values are the same as golang `GOOS` values
 
 - `x86`
 - `amd64`
+- `amd64v1` (alias of amd64)
+- `amd64v2` (2009+)
+- `amd64v3` (2015+)
+- `amd64v4` (avx512 extension)
+- `arm64`
 - `armv5`
 - `armv6`
 - `armv7`
-- `arm64`
-- `ppc64le`
+- `mips`
+- `mipssf`
+- `mipsle`
+- `mipslesf`
+- `mips64`
+- `mips64sf`
 - `mips64le`
+- `mips64lesf`
+- `ppc`
+- `ppcsf`
+- `ppcle`
+- `ppclesf`
+- `ppc64`
+- `ppc64le`
+- `ppc64v8`
+- `ppc64v8le`
+- `ppc64v9`
+- `ppc64v9le`
 - `riscv64`
+- `s390x`
+- `ia64`
 
 ## Libc
 

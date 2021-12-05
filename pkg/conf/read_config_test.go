@@ -1,22 +1,36 @@
 package conf
 
 import (
+	"context"
 	"io/fs"
 	"testing"
 	"testing/fstest"
 
+	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
-func TestReadConfigRecursively(t *testing.T) {
+func TestRead(t *testing.T) {
 	var (
 		testIncludeEmptyConfig = newConfig(func(c *Config) {
-			c.Include = []string{
-				"empty.yaml",
-				"empty-dir",
-				// include self is ok, but will be ignored
-				"include.yaml",
+			c.Include = []*IncludeEntry{
+				{
+					Path: "empty.yaml",
+				},
+				{
+					Path: "empty-dir",
+				},
+				{
+					// include self is ok, should be ignored
+					Path: "include.yaml",
+				},
+			}
+
+			for _, inc := range c.Include {
+				_ = rs.Init(inc, nil)
 			}
 		})
 	)
@@ -112,7 +126,9 @@ func TestReadConfigRecursively(t *testing.T) {
 			visitedPaths := make(map[string]struct{})
 			mergedConfig := NewConfig()
 
-			err := ReadConfigRecursively(
+			rc := dukkha_test.NewTestContext(context.Background())
+			err := Read(
+				rc,
 				testFS,
 				test.configPaths,
 				test.ignoreFileNotExist,

@@ -36,36 +36,18 @@ A typical build automation tool only takes one or two from the above at the same
 
 ### Task Execution Features
 
-- Declarative task definition, context aware and customizable tool invocation.
-  - Tools know context values of its task execution, and can adapt itself for special case handling like cross compiling.
+- Declarative task definition, context aware tool invocation.
+  - Tools have access to task related values, and can adapt itself for all use cases (e.g. cross compiling).
 
-- Embedded shell environment, you can completely forget external shells with dukkha
-  - Predictable command execution made esay, no more worries about when will the environment variables get set, you gain total control.
+- Embedded cross-platform bash environment, you can completely forget external shells with dukkha
+  - Predictable command execution made esay, gain full control on when and how the arguments get evaluated.
 
-- Customizable task matrix execution everywhere
-  - Use command line option `--matrix` (`-m`) controls which vectors are chosen.
+  __NOTE:__ You can still use external shells as long as you configure them in `shells` section.
 
-    ```yaml
-    matrix:
-      # add your matrix spec
-      kernel: [linux, windows]
-      arch: [amd64, arm64]
-      my-mat-entry: [foo, bar]
+- Matrix execution for every task
+  - Use command line option `--matrix` (`-m`) to control which vectors are chosen.
 
-      # and exclude some
-      exclude: # `exclude` is reserved
-      # match certain matrix entry
-      - { kernel: [windows], arch: [amd64] }
-      # partial matching is supported as well
-      - arch: arm64
-
-      # and include extra matrix, regardless of what `exclude` says
-      include: # `include` is reserved field
-      - { kernel: [linux], arch: [x86, riscv64] }
-      - { kernel: [darwin], arch: [arm64] }
-    ```
-
-  __NOTE:__ matrix values are currently limited to strings.
+  __NOTE:__ Vectors are currently limited to string values.
 
 - Shell completion for defined tools, tasks and task matrix
   - Run `dukkha completion --help` for instructions
@@ -74,6 +56,8 @@ A typical build automation tool only takes one or two from the above at the same
   - Automatically enabled when stdout/stderr is not a tty
   - Can be manually enabled by setting flag `--translate-ansi-stream` and `--retain-ansi-style` when running task
   - This functionality is largely based on [`github.com/aoldershaw/ansi`](https://github.com/aoldershaw/ansi)
+
+__NOTE:__ You can find more details in [docs](./docs)
 
 ## How it looks?
 
