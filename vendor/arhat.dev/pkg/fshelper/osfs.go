@@ -3,6 +3,7 @@ package fshelper
 import (
 	"io/fs"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -11,7 +12,6 @@ import (
 
 	"arhat.dev/pkg/kernelconst"
 	"arhat.dev/pkg/pathhelper"
-	"arhat.dev/pkg/wellknownerrors"
 	"github.com/bmatcuk/doublestar/v4"
 )
 
@@ -44,13 +44,20 @@ func NewOSFS(
 
 // OSFS is a context aware filesystem abstration for afero.FS and io/fs.FS
 type OSFS struct {
-	strict bool
-	getCwd func() (string, error)
+	strict    bool
+	getCwd    func() (string, error)
+	lookupFHS func(string) (string, error)
 }
 
 // SetStrict sets strict mode to require io/fs.FS path value
-func (ofs *OSFS) SetStrict(s bool) {
+func (ofs *OSFS) SetStrict(s bool) *OSFS {
 	ofs.strict = s
+	return ofs
+}
+
+func (ofs *OSFS) SetWindowsFHSLookup(lookup func(path string) (string, error)) *OSFS {
+	ofs.lookupFHS = lookup
+	return ofs
 }
 
 // getRealPath of name by joining current working dir when name is relative path
@@ -77,7 +84,7 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, err error) {
 		// on windows it has different meaning
 		// - /foo is driver relative, should be relative to current working dir's driver
 		// - /c/foo is absolute path in driver c
-		// - /cygdrive/c/foo is like /c/foo, but in cygpath style
+		// - /cygdrive/c/foo is the same as /c/foo, but with extra /cygdrive prefix
 		// - /usr/foo is the path inside msys2/mingw64/cygwin root
 
 		cwd, err = ofs.getCwd()
@@ -85,10 +92,15 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, err error) {
 			return "", "", err
 		}
 
-		rpath, err = pathhelper.AbsWindowsPath(cwd, name, func() (string, error) {
-			// TODO: lookup fhs root
-			return "", wellknownerrors.ErrNotSupported
-		})
+		lookupFHS := ofs.lookupFHS
+		if lookupFHS == nil {
+			lookupFHS = func(path string) (string, error) {
+				ret, err := exec.Command("cygpath", "-w", path).CombinedOutput()
+				return string(ret), err
+			}
+		}
+
+		rpath, err = pathhelper.AbsWindowsPath(cwd, name, lookupFHS)
 
 		return "", rpath, err
 	}

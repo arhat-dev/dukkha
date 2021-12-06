@@ -4,7 +4,12 @@ import (
 	"strings"
 )
 
-// IsWindowsAbs reports whether the path is absolute.
+// IsWindowsAbs reports whether the path is absolute on windows
+// the path is considered absolute as following cases
+// - reserved windows names (e.g. COM1)
+// - starts with `\\<some-host>\<share>` (UNC path)
+// - starts with `C:\` (driver absolute path)
+// - starts with `\` or `/`
 func IsWindowsAbs(path string) (b bool) {
 	if IsReservedWindowsName(path) {
 		return true
@@ -17,32 +22,40 @@ func IsWindowsAbs(path string) (b bool) {
 	if path == "" {
 		return false
 	}
+
 	return IsWindowsSlash(path[0])
 }
 
 // AbsWindowsPath returns absolute path of path with custom cwd
-// the argument path SHOULD be relative path, that is:
-// 	on windows: not start with `[a-zA-Z]:/` or `\\`
-// 	on unix: not start with `/`
+// cwd SHOULD be a windows absolute path
+// path SHOULD be a relative path (not starting with `[a-zA-Z]:` or `\\`)
 //
 // It tries to handle three different styles all at once:
-// 	- windows style (`\\`, `[a-zA-Z]:/`)
+// 	- windows native style:
+// 		- `foo\bar` and `foo/bar` as path relative
+// 		- `\foo` and `/foo` as driver relative
 // 	- cygpath style absolute path (`/cygdrive/c`)
 // 	- golang io/fs style absolute path for windows (`/[a-zA-Z]/`, e.g. /c/foo)
 func AbsWindowsPath(
 	cwd, path string,
-	getFHSRoot func() (string, error), // root of dirs like /usr, /root
+	getFHSPath func(p string) (string, error),
 ) (string, error) {
 	if len(path) == 0 {
-		return cwd, nil
+		return CleanWindowsPath(cwd), nil
 	}
-
-	// non absolute path
 
 	if path[0] != '/' {
-		// non potential relative path for windows
+		if IsWindowsAbs(path) {
+			return path, nil
+		}
+
+		// starts with:
+		// 	`\` (ONLY can be driver relative)
+		// 	other (ONLY can be relative path)
 		return JoinWindowsPath(cwd, path), nil
 	}
+
+	// starts with `/`
 
 	// cygpath or driver relative path
 
@@ -69,14 +82,16 @@ func AbsWindowsPath(
 	}
 
 	if isFHS {
-		// TODO: lookup root path of cygwin/mingw64/msys2
-		root, err := getFHSRoot()
+		// lookup actual windows absolute path
+		// usually done by executing `cygpath -w $path`
+		ret, err := getFHSPath(path)
 		if err != nil {
 			return "", err
 		}
 
-		return JoinWindowsPath(root, path[1:]), nil
+		return CleanWindowsPath(ret), nil
 	}
 
+	// no fhs, in golang path style
 	return ConvertFSPathToWindowsPath(cwd[:volumeNameLen(cwd)], path), nil
 }

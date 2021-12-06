@@ -9,7 +9,7 @@ func JoinUnixPath(elem ...string) string {
 	// If there's a bug here, fix the logic in ./path_plan9.go too.
 	for i, e := range elem {
 		if e != "" {
-			return path.Clean(strings.Join(elem[i:], string(UnixPathSeparator)))
+			return path.Clean(strings.Join(elem[i:], string(UnixSlash)))
 		}
 	}
 	return ""
@@ -36,12 +36,12 @@ func joinNonEmpty(elem []string) string {
 				break
 			}
 		}
-		return CleanWindowsPath(elem[0] + strings.Join(elem[i:], string(WindowsPathSeparator)))
+		return CleanWindowsPath(elem[0] + strings.Join(elem[i:], string(WindowsSlash)))
 	}
 	// The following logic prevents Join from inadvertently creating a
 	// UNC path on Windows. Unless the first element is a UNC path, Join
 	// shouldn't create a UNC path. See golang.org/issue/9167.
-	p := CleanWindowsPath(strings.Join(elem, string(WindowsPathSeparator)))
+	p := CleanWindowsPath(strings.Join(elem, string(WindowsSlash)))
 	if !isUNC(p) {
 		return p
 	}
@@ -52,9 +52,9 @@ func joinNonEmpty(elem []string) string {
 	}
 	// head + tail == UNC, but joining two non-UNC paths should not result
 	// in a UNC path. Undo creation of UNC path.
-	tail := CleanWindowsPath(strings.Join(elem[1:], string(WindowsPathSeparator)))
-	if head[len(head)-1] == WindowsPathSeparator {
+	tail := CleanWindowsPath(strings.Join(elem[1:], string(WindowsSlash)))
+	if head[len(head)-1] == WindowsSlash {
 		return head + tail
 	}
-	return head + string(WindowsPathSeparator) + tail
+	return head + string(WindowsSlash) + tail
 }

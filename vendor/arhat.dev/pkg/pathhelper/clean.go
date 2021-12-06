@@ -5,11 +5,11 @@ import (
 )
 
 func CleanUnixPath(p string) string {
-	return Clean(p, UnixPathSeparator)
+	return Clean(p, UnixSlash)
 }
 
 func CleanWindowsPath(p string) string {
-	return Clean(p, WindowsPathSeparator)
+	return Clean(p, WindowsSlash)
 }
 
 // Clean returns the shortest path name equivalent to path
@@ -48,7 +48,7 @@ func Clean(path string, sep byte) string {
 	}
 
 	isPathSeparator := IsUnixSlash
-	if sep == WindowsPathSeparator {
+	if sep == WindowsSlash {
 		isPathSeparator = IsWindowsSlash
 	}
 

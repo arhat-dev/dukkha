@@ -1,8 +1,8 @@
 package pathhelper
 
 const (
-	WindowsPathSeparator = '\\'
-	UnixPathSeparator    = '/'
+	WindowsSlash = '\\'
+	UnixSlash    = '/'
 )
 
 const (

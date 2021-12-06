@@ -7,7 +7,7 @@ func ConvertFSPathToWindowsPath(defaultVolumeName, path string) string {
 	if len(path) == 0 || path[0] != '/' {
 		// path relative path (e.g. foo)
 		// or absolute path (e.g. \\foo, c:/foo)
-		return path
+		return CleanWindowsPath(path)
 	}
 
 	// absolute fs path
@@ -16,11 +16,11 @@ func ConvertFSPathToWindowsPath(defaultVolumeName, path string) string {
 	if len(path) == 1 {
 		// is `/`, drive relative path, windows can handle this
 		if len(defaultVolumeName) == 0 {
-			return path
+			return CleanWindowsPath(path)
 		}
 
 		if isWindowsDiskVolumeName(defaultVolumeName) && !IsWindowsSlash(defaultVolumeName[len(defaultVolumeName)-1]) {
-			defaultVolumeName += string(WindowsPathSeparator)
+			defaultVolumeName += string(WindowsSlash)
 		}
 
 		return JoinWindowsPath(defaultVolumeName, path)
@@ -31,11 +31,11 @@ func ConvertFSPathToWindowsPath(defaultVolumeName, path string) string {
 
 	if !IsWindowsDiskDesignatorChar(path[1]) || len(path) == 2 || path[2] != '/' {
 		if len(defaultVolumeName) == 0 {
-			return path
+			return CleanWindowsPath(path)
 		}
 
 		if isWindowsDiskVolumeName(defaultVolumeName) && !IsWindowsSlash(defaultVolumeName[len(defaultVolumeName)-1]) {
-			defaultVolumeName += string(WindowsPathSeparator)
+			defaultVolumeName += string(WindowsSlash)
 		}
 
 		return JoinWindowsPath(defaultVolumeName, path[1:])
