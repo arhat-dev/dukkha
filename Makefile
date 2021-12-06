@@ -36,7 +36,7 @@ tidy: dukkha
 
 .PHONY: test
 test: dukkha
-	./build/dukkha run golang local test dukkha
+	./build/dukkha run workflow local run test
 
 # optional private scripts
 -include private/scripts.mk

@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.8.2-0.20211205065941-c4a8f6909eb4
+	arhat.dev/pkg v0.8.2-0.20211206190239-d99b5d4f489f
 	arhat.dev/rs v0.8.4
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
@@ -43,5 +43,5 @@ require (
 replace (
 	github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
 	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
-	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211130091406-e24905e79288
+	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211206190311-677e30e7aed8
 )

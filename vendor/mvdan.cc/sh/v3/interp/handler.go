@@ -183,53 +183,6 @@ func findFile(dir, file string, _ []string) (string, error) {
 	return checkStat(dir, file, false)
 }
 
-func driveLetter(c byte) bool {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-}
-
-// splitList is like filepath.SplitList, but always using the unix path
-// list separator ':'. On Windows, it also makes sure not to split
-// [A-Z]:[/\].
-func splitList(path string) []string {
-	if path == "" {
-		return []string{""}
-	}
-
-	list := filepath.SplitList(path)
-	if runtime.GOOS != "windows" {
-		return list
-	}
-
-	// on windows, handle both ';' and ':' separator
-
-	if len(list) != 1 {
-		// was separated by ';'
-		return list
-	}
-
-	// maybe separated by ':', give it a try
-	list = strings.Split(path, ":")
-
-	// join "C", "/foo" into "C:/foo"
-	var fixed []string
-	for i := 0; i < len(list); i++ {
-		s := list[i]
-		switch {
-		case len(s) != 1, !driveLetter(s[0]):
-		case i+1 >= len(list):
-			// last element
-		case strings.IndexAny(list[i+1], `/\`) != 0:
-			// next element doesn't start with / or \
-		default:
-			fixed = append(fixed, s+":"+list[i+1])
-			i++
-			continue
-		}
-		fixed = append(fixed, s)
-	}
-	return fixed
-}
-
 // LookPath is deprecated. See LookPathDir.
 func LookPath(env expand.Environ, file string) (string, error) {
 	return LookPathDir(env.Get("PWD").String(), env, file)
@@ -241,67 +194,16 @@ func LookPath(env expand.Environ, file string) (string, error) {
 //
 // If no error is returned, the returned path must be valid.
 func LookPathDir(cwd string, env expand.Environ, file string) (string, error) {
-	return lookPathDir(cwd, env, file, findExecutable)
+	return lookPathDir(runtime.GOOS, cwd, file, env.Get("PATH").String(), env.Get("PATHEXT").String(), findExecutable)
 }
 
 // findAny defines a function to pass to lookPathDir.
 type findAny = func(dir string, file string, exts []string) (string, error)
 
-func lookPathDir(cwd string, env expand.Environ, file string, find findAny) (string, error) {
-	if find == nil {
-		panic("no find function found")
-	}
-
-	pathList := splitList(env.Get("PATH").String())
-	chars := `/`
-	if runtime.GOOS == "windows" {
-		chars = `:\/`
-	}
-	exts := pathExts(env)
-	if strings.ContainsAny(file, chars) {
-		return find(cwd, file, exts)
-	}
-	for _, elem := range pathList {
-		var path string
-		switch elem {
-		case "", ".":
-			// otherwise "foo" won't be "./foo"
-			path = "." + string(filepath.Separator) + file
-		default:
-			path = filepath.Join(elem, file)
-		}
-		if f, err := find(cwd, path, exts); err == nil {
-			return f, nil
-		}
-	}
-	return "", fmt.Errorf("%q: executable file not found in $PATH", file)
-}
-
 // scriptFromPathDir is similar to LookPathDir, with the difference that it looks
 // for both executable and non-executable files.
 func scriptFromPathDir(cwd string, env expand.Environ, file string) (string, error) {
-	return lookPathDir(cwd, env, file, findFile)
-}
-
-func pathExts(env expand.Environ) []string {
-	if runtime.GOOS != "windows" {
-		return nil
-	}
-	pathext := env.Get("PATHEXT").String()
-	if pathext == "" {
-		return []string{".com", ".exe", ".bat", ".cmd", ""}
-	}
-	var exts []string
-	for _, e := range strings.Split(strings.ToLower(pathext), `;`) {
-		if e == "" {
-			continue
-		}
-		if e[0] != '.' {
-			e = "." + e
-		}
-		exts = append(exts, e)
-	}
-	return exts
+	return lookPathDir(runtime.GOOS, cwd, file, env.Get("PATH").String(), env.Get("PATHEXT").String(), findFile)
 }
 
 // OpenHandlerFunc is a handler which opens files. It is

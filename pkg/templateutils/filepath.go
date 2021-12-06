@@ -2,12 +2,7 @@ package templateutils
 
 import (
 	"path/filepath"
-	"runtime"
 
-	"arhat.dev/pkg/pathhelper"
-	"arhat.dev/pkg/wellknownerrors"
-
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
@@ -77,17 +72,5 @@ func (f *filepathNS) Glob(in interface{}) ([]string, error) {
 }
 
 func (f *filepathNS) Abs(in interface{}) (string, error) {
-	path := conv.ToString(in)
-	if filepath.IsAbs(path) {
-		return path, nil
-	}
-
-	if runtime.GOOS != constant.KERNEL_WINDOWS {
-		return filepath.Join(f.rc.WorkDir(), path), nil
-	}
-
-	return pathhelper.AbsWindowsPath(f.rc.WorkDir(), path, func() (string, error) {
-		// TODO: get fhs root
-		return "", wellknownerrors.ErrNotSupported
-	})
+	return f.rc.FS().Abs(conv.ToString(in))
 }

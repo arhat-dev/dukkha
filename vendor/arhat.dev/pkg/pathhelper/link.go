@@ -21,7 +21,7 @@ func EvalLink(linkFile, linkTo string) string {
 		actualDir = path.Dir(linkFile)
 	)
 
-	idx := strings.IndexByte(remainder, UnixPathSeparator)
+	idx := strings.IndexByte(remainder, UnixSlash)
 	for idx != -1 && actualDir != "." {
 		upperDir, remainder = remainder[:idx], remainder[idx+1:]
 
@@ -29,7 +29,7 @@ func EvalLink(linkFile, linkTo string) string {
 			break
 		}
 
-		idx = strings.IndexByte(remainder, UnixPathSeparator)
+		idx = strings.IndexByte(remainder, UnixSlash)
 		actualDir = path.Dir(actualDir)
 	}
 

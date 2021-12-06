@@ -6,24 +6,24 @@ import (
 
 type CharMatchFunc func(byte) bool
 
-// IsWindowsPathSeparator returns true when c is colon or semi-colon
-func IsWindowsPathSeparator(c byte) bool {
-	return c == ':' || c == ';'
+// IsWindowsPathListSeparator returns true when c is colon or semi-colon
+func IsWindowsPathListSeparator(c byte) bool {
+	return c == UnixPathListSeparator || c == WindowsPathListSeparator
 }
 
-// IsUnixPathSeparator returns true when c is colon
-func IsUnixPathSeparator(c byte) bool {
-	return c == ':'
+// IsUnixPathListSeparator returns true when c is colon
+func IsUnixPathListSeparator(c byte) bool {
+	return c == UnixPathListSeparator
 }
 
 // IsWindowsSlash returns true when c is slash or back slash
 func IsWindowsSlash(c byte) bool {
-	return c == '\\' || c == '/'
+	return c == WindowsSlash || c == UnixSlash
 }
 
 // IsUnixSlash returns true when c is slash
 func IsUnixSlash(c byte) bool {
-	return c == '/'
+	return c == UnixSlash
 }
 
 // IsWindowsDiskDesignatorChar returns true when c matches [a-zA-Z]
