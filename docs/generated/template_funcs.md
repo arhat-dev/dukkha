@@ -24,7 +24,7 @@
 - `biggest(interface {}, ...interface {}) int64`
 - `bool(interface {}) bool`
 - `buildCustomCert(string, string) (sprig.certificate, error)`
-- `camelcase(string) string`
+- `camelcase(interface {}) (string, error)`
 - `cat(...interface {}) string`
 - `ceil(interface {}) float64`
 - `chunk(int, interface {}) [][]interface {}`
@@ -32,7 +32,7 @@
 - `coalesce(...interface {}) interface {}`
 - `compact(interface {}) []interface {}`
 - `concat(...interface {}) interface {}`
-- `contains(string, string) bool`
+- `contains(string, interface {}) bool`
 - `date(string, interface {}) string`
 - `dateInZone(string, interface {}, string) string`
 - `dateModify(string, time.Time) time.Time`
@@ -75,8 +75,8 @@
 - `getHostByName(string) string`
 - `has(interface {}, string) bool`
 - `hasKey(map[string]interface {}, string) bool`
-- `hasPrefix(string, string) bool`
-- `hasSuffix(string, string) bool`
+- `hasPrefix(string, interface {}) bool`
+- `hasSuffix(string, interface {}) bool`
 - `htmlDate(interface {}) string`
 - `htmlDateInZone(interface {}, string) string`
 - `htpasswd(string, string) string`
@@ -91,7 +91,7 @@
 - `jq(string, string) (string, error)`
 - `jqBytes(string, []uint8) (string, error)`
 - `jqObject(interface {}, interface {}) (interface {}, error)`
-- `kebabcase(string) string`
+- `kebabcase(interface {}) (string, error)`
 - `keys(...map[string]interface {}) ([]string, error)`
 - `kindIs(string, interface {}) bool`
 - `kindOf(interface {}) string`
@@ -186,12 +186,12 @@
 - `shellQuote(interface {}) string`
 - `shuffle(string) string`
 - `slice(...interface {}) []interface {}`
-- `snakecase(string) string`
+- `snakecase(interface {}) (string, error)`
 - `sort(...interface {}) ([]interface {}, error)`
 - `sortAlpha(interface {}) []string`
-- `split(string, string) []string`
+- `split(string, interface {}) []string`
 - `splitList(string, string) []string`
-- `splitN(string, string, int) []string`
+- `splitN(string, int, interface {}) []string`
 - `splitn(string, int, string) map[string]string`
 - `squote(interface {}) string`
 - `sub(interface {}, interface {}) interface {}`
@@ -212,7 +212,7 @@
 - `toUpper(interface {}) string`
 - `toYaml(interface {}) string`
 - `totp(interface {}, ...interface {}) (string, error)`
-- `trim(string, string) string`
+- `trim(string, interface {}) string`
 - `trimAll(string, string) string`
 - `trimPrefix(string, string) string`
 - `trimSpace(interface {}) string`
@@ -456,7 +456,6 @@
 - `strings.ShellQuote(interface {}) string`
 - `strings.Slug(interface {}) string`
 - `strings.SnakeCase(interface {}) (string, error)`
-- `strings.Sort(interface {}) ([]string, error)`
 - `strings.Split(string, interface {}) []string`
 - `strings.SplitN(string, int, interface {}) []string`
 - `strings.Squote(interface {}) string`
