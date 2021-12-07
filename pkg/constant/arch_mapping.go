@@ -3,6 +3,8 @@ package constant
 import (
 	"reflect"
 	"strings"
+
+	"arhat.dev/pkg/archconst"
 )
 
 func GetArch(platform, mArch string) (string, bool) {
@@ -53,7 +55,7 @@ func GetDockerHubArch(mArch, mKernel string) (string, bool) {
 // Ref:
 // for GNU values: https://salsa.debian.org/dpkg-team/dpkg/-/blob/main/data/cputable
 var archMapping = map[string]ArchMappingValues{
-	ARCH_X86: {
+	archconst.ARCH_X86: {
 		Alpine: "x86",
 		Debian: "i386",
 		GNU:    "i686",
@@ -68,7 +70,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86",
 	},
-	ARCH_AMD64: {
+	archconst.ARCH_AMD64: {
 		Alpine: "x86_64",
 		Debian: "amd64",
 		GNU:    "x86_64",
@@ -83,7 +85,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
-	ARCH_AMD64_V1: {
+	archconst.ARCH_AMD64_V1: {
 		Alpine: "x86_64",
 		Debian: "amd64",
 		GNU:    "x86_64",
@@ -98,7 +100,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
-	ARCH_AMD64_V2: {
+	archconst.ARCH_AMD64_V2: {
 		Alpine: "x86_64",
 		Debian: "amd64",
 		GNU:    "x86_64",
@@ -113,7 +115,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
-	ARCH_AMD64_V3: {
+	archconst.ARCH_AMD64_V3: {
 		Alpine: "x86_64",
 		Debian: "amd64",
 		GNU:    "x86_64",
@@ -128,7 +130,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
-	ARCH_AMD64_V4: {
+	archconst.ARCH_AMD64_V4: {
 		Alpine: "x86_64",
 		Debian: "amd64",
 		GNU:    "x86_64",
@@ -143,7 +145,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86_64",
 	},
-	ARCH_ARM_V5: {
+	archconst.ARCH_ARM_V5: {
 		Alpine: "armv5l",
 		Debian: "armel",
 		GNU:    "arm",
@@ -158,7 +160,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "armv5",
 	},
-	ARCH_ARM_V6: {
+	archconst.ARCH_ARM_V6: {
 		Alpine: "armhf",
 		Debian: "armel",
 		GNU:    "arm",
@@ -173,7 +175,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "armv6",
 	},
-	ARCH_ARM_V7: {
+	archconst.ARCH_ARM_V7: {
 		Alpine: "armv7",
 		Debian: "armhf",
 		GNU:    "arm",
@@ -188,7 +190,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "armv7",
 	},
-	ARCH_ARM64: {
+	archconst.ARCH_ARM64: {
 		Alpine: "aarch64",
 		Debian: "arm64",
 		GNU:    "aarch64",
@@ -203,7 +205,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "aarch64",
 	},
-	ARCH_PPC: {
+	archconst.ARCH_PPC: {
 		Alpine: "",
 		Debian: "powerpc",
 		GNU:    "powerpc",
@@ -218,7 +220,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC_SF: {
+	archconst.ARCH_PPC_SF: {
 		Alpine: "",
 		Debian: "powerpc",
 		GNU:    "powerpc",
@@ -233,7 +235,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC_LE: {
+	archconst.ARCH_PPC_LE: {
 		Alpine: "",
 		Debian: "powerpcel",
 		GNU:    "powerpcle",
@@ -248,7 +250,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC_LE_SF: {
+	archconst.ARCH_PPC_LE_SF: {
 		Alpine: "",
 		Debian: "powerpcel",
 		GNU:    "powerpcle",
@@ -264,7 +266,7 @@ var archMapping = map[string]ArchMappingValues{
 		LLVM: "",
 	},
 
-	ARCH_PPC64: {
+	archconst.ARCH_PPC64: {
 		Alpine: "ppc64",
 		Debian: "ppc64",
 		GNU:    "powerpc64",
@@ -279,7 +281,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC64_LE: {
+	archconst.ARCH_PPC64_LE: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",
@@ -294,7 +296,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "ppc64le",
 	},
-	ARCH_PPC64_V8: {
+	archconst.ARCH_PPC64_V8: {
 		Alpine: "ppc64",
 		Debian: "ppc64",
 		GNU:    "powerpc64",
@@ -309,7 +311,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC64_V8_LE: {
+	archconst.ARCH_PPC64_V8_LE: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",
@@ -324,7 +326,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "ppc64le",
 	},
-	ARCH_PPC64_V9: {
+	archconst.ARCH_PPC64_V9: {
 		Alpine: "ppc64",
 		Debian: "ppc64",
 		GNU:    "powerpc64",
@@ -339,7 +341,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_PPC64_V9_LE: {
+	archconst.ARCH_PPC64_V9_LE: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",
@@ -355,7 +357,7 @@ var archMapping = map[string]ArchMappingValues{
 		LLVM: "ppc64le",
 	},
 
-	ARCH_MIPS: {
+	archconst.ARCH_MIPS: {
 		Alpine: "mips",
 		Debian: "mips",
 		GNU:    "mips",
@@ -370,7 +372,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS_SF: {
+	archconst.ARCH_MIPS_SF: {
 		Alpine: "mips",
 		Debian: "mips",
 		GNU:    "mips",
@@ -385,7 +387,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS_LE: {
+	archconst.ARCH_MIPS_LE: {
 		Alpine: "mipsel",
 		Debian: "mipsel",
 		GNU:    "mipsel",
@@ -400,7 +402,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS_LE_SF: {
+	archconst.ARCH_MIPS_LE_SF: {
 		Alpine: "mipsel",
 		Debian: "mipsel",
 		GNU:    "mipsel",
@@ -415,7 +417,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS64: {
+	archconst.ARCH_MIPS64: {
 		Alpine: "mips64",
 		Debian: "mips64",
 		GNU:    "mips64",
@@ -430,7 +432,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS64_SF: {
+	archconst.ARCH_MIPS64_SF: {
 		Alpine: "mips64",
 		Debian: "mips64",
 		GNU:    "mips64",
@@ -445,7 +447,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_MIPS64_LE: {
+	archconst.ARCH_MIPS64_LE: {
 		Alpine: "mips64el",
 		Debian: "mips64el",
 		GNU:    "mips64el",
@@ -460,7 +462,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "mips64el",
 	},
-	ARCH_MIPS64_LE_SF: {
+	archconst.ARCH_MIPS64_LE_SF: {
 		Alpine: "mips64el",
 		Debian: "mips64el",
 		GNU:    "mips64el",
@@ -476,7 +478,7 @@ var archMapping = map[string]ArchMappingValues{
 		LLVM: "mips64el",
 	},
 
-	ARCH_RISCV_64: {
+	archconst.ARCH_RISCV_64: {
 		Alpine: "riscv64",
 		Debian: "riscv64",
 		GNU:    "riscv64",
@@ -490,7 +492,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	ARCH_S390X: {
+	archconst.ARCH_S390X: {
 		Alpine: "s390x",
 		Debian: "s390x",
 		GNU:    "s390x",
@@ -506,7 +508,7 @@ var archMapping = map[string]ArchMappingValues{
 		LLVM: "systemz",
 	},
 
-	ARCH_IA64: {
+	archconst.ARCH_IA64: {
 		Alpine: "",
 		Debian: "ia64",
 		GNU:    "ia64",

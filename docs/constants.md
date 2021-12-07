@@ -54,6 +54,11 @@ __NOTE:__ These values are the same as golang `GOOS` values
 - `s390x`
 - `ia64`
 
+__NOTE:__ These values are defined in package [arhat.dev/pkg/archconst][https://github.com/arhat-dev/go-pkg/blob/master/archconst/values.go]
+
+- `sf` means softfloat, defaults to hardfloat if available in that cpu arch
+- `le` means little endian, defaults to arch default (e.g. `arm64` implies little endian, but `ppc64` implies big endian)
+
 ## Libc
 
 - `gnu`

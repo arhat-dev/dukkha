@@ -3,54 +3,55 @@ package constant
 import (
 	"testing"
 
+	"arhat.dev/pkg/archconst"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
 	// TODO: update this map when changing arch.go
 	requiredArchMappingValues = map[string]string{
-		ARCH_X86: "x86",
+		archconst.ARCH_X86: "x86",
 
-		ARCH_AMD64: "amd64",
+		archconst.ARCH_AMD64: "amd64",
 
-		ARCH_AMD64_V1: "amd64v1",
-		ARCH_AMD64_V2: "amd64v2",
-		ARCH_AMD64_V3: "amd64v3",
-		ARCH_AMD64_V4: "amd64v4",
+		archconst.ARCH_AMD64_V1: "amd64v1",
+		archconst.ARCH_AMD64_V2: "amd64v2",
+		archconst.ARCH_AMD64_V3: "amd64v3",
+		archconst.ARCH_AMD64_V4: "amd64v4",
 
-		ARCH_ARM64: "arm64",
+		archconst.ARCH_ARM64: "arm64",
 
-		ARCH_ARM_V5: "armv5",
-		ARCH_ARM_V6: "armv6",
-		ARCH_ARM_V7: "armv7",
+		archconst.ARCH_ARM_V5: "armv5",
+		archconst.ARCH_ARM_V6: "armv6",
+		archconst.ARCH_ARM_V7: "armv7",
 
-		ARCH_MIPS:       "mips",
-		ARCH_MIPS_SF:    "mipssf",
-		ARCH_MIPS_LE:    "mipsle",
-		ARCH_MIPS_LE_SF: "mipslesf",
+		archconst.ARCH_MIPS:       "mips",
+		archconst.ARCH_MIPS_SF:    "mipssf",
+		archconst.ARCH_MIPS_LE:    "mipsle",
+		archconst.ARCH_MIPS_LE_SF: "mipslesf",
 
-		ARCH_MIPS64:       "mips64",
-		ARCH_MIPS64_SF:    "mips64sf",
-		ARCH_MIPS64_LE:    "mips64le",
-		ARCH_MIPS64_LE_SF: "mips64lesf",
+		archconst.ARCH_MIPS64:       "mips64",
+		archconst.ARCH_MIPS64_SF:    "mips64sf",
+		archconst.ARCH_MIPS64_LE:    "mips64le",
+		archconst.ARCH_MIPS64_LE_SF: "mips64lesf",
 
-		ARCH_PPC:       "ppc",
-		ARCH_PPC_SF:    "ppcsf",
-		ARCH_PPC_LE:    "ppcle",
-		ARCH_PPC_LE_SF: "ppclesf",
+		archconst.ARCH_PPC:       "ppc",
+		archconst.ARCH_PPC_SF:    "ppcsf",
+		archconst.ARCH_PPC_LE:    "ppcle",
+		archconst.ARCH_PPC_LE_SF: "ppclesf",
 
-		ARCH_PPC64:       "ppc64",
-		ARCH_PPC64_LE:    "ppc64le",
-		ARCH_PPC64_V8:    "ppc64v8",
-		ARCH_PPC64_V8_LE: "ppc64v8le",
-		ARCH_PPC64_V9:    "ppc64v9",
-		ARCH_PPC64_V9_LE: "ppc64v9le",
+		archconst.ARCH_PPC64:       "ppc64",
+		archconst.ARCH_PPC64_LE:    "ppc64le",
+		archconst.ARCH_PPC64_V8:    "ppc64v8",
+		archconst.ARCH_PPC64_V8_LE: "ppc64v8le",
+		archconst.ARCH_PPC64_V9:    "ppc64v9",
+		archconst.ARCH_PPC64_V9_LE: "ppc64v9le",
 
-		ARCH_RISCV_64: "riscv64",
+		archconst.ARCH_RISCV_64: "riscv64",
 
-		ARCH_S390X: "s390x",
+		archconst.ARCH_S390X: "s390x",
 
-		ARCH_IA64: "ia64",
+		archconst.ARCH_IA64: "ia64",
 	}
 )
 
