@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.16
 
 require (
-	arhat.dev/pkg v0.8.2-0.20211206190239-d99b5d4f489f
+	arhat.dev/pkg v0.8.2-0.20211207101538-1105059b6245
 	arhat.dev/rs v0.8.4
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
@@ -16,7 +16,7 @@ require (
 	github.com/h2non/filetype v1.1.3
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
-	github.com/itchyny/gojq v0.12.5
+	github.com/itchyny/gojq v0.12.6
 	github.com/klauspost/compress v1.13.6
 	github.com/minio/minio-go/v7 v7.0.16
 	github.com/muesli/termenv v0.9.0
@@ -30,9 +30,9 @@ require (
 	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.7.0
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
-	golang.org/x/net v0.0.0-20211111160137-58aab5ef257a
-	golang.org/x/sys v0.0.0-20211110154304-99a53858aa08
+	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/tools v0.1.7
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
@@ -43,5 +43,5 @@ require (
 replace (
 	github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
 	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
-	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211206190311-677e30e7aed8
+	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211206194200-3911a95bee92
 )

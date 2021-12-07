@@ -24,8 +24,9 @@ import (
 	"os/exec"
 	"time"
 
+	"arhat.dev/pkg/versionhelper"
+
 	"arhat.dev/dukkha/pkg/cmd"
-	"arhat.dev/dukkha/pkg/version"
 
 	_ "arhat.dev/dukkha/cmd/dukkha/addon"
 )
@@ -34,7 +35,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	rootCmd := cmd.NewRootCmd()
-	rootCmd.AddCommand(version.NewVersionCmd())
+	rootCmd.AddCommand(versionhelper.NewVersionCmd(os.Stdout))
 
 	err := rootCmd.Execute()
 	if err != nil {

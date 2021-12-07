@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"arhat.dev/pkg/archconst"
+
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -37,7 +39,7 @@ func TestCreateBuildEnv(t *testing.T) {
 				Value: test.mKernel,
 			}, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_ARCH,
-				Value: constant.ARCH_AMD64,
+				Value: archconst.ARCH_AMD64,
 			})
 
 			assert.EqualValues(t, expected, createBuildEnv(rc, CGOSepc{}))
@@ -53,50 +55,50 @@ func TestCreateBuildEnv(t *testing.T) {
 		goamd64 string
 		goppc64 string
 	}{
-		{mArch: constant.ARCH_X86, goarch: "386"},
-		{mArch: constant.ARCH_AMD64, goarch: "amd64"},
+		{mArch: archconst.ARCH_X86, goarch: "386"},
+		{mArch: archconst.ARCH_AMD64, goarch: "amd64"},
 
-		{mArch: constant.ARCH_AMD64_V1, goarch: "amd64", goamd64: "v1"},
-		{mArch: constant.ARCH_AMD64_V2, goarch: "amd64", goamd64: "v2"},
-		{mArch: constant.ARCH_AMD64_V3, goarch: "amd64", goamd64: "v3"},
-		{mArch: constant.ARCH_AMD64_V4, goarch: "amd64", goamd64: "v4"},
+		{mArch: archconst.ARCH_AMD64_V1, goarch: "amd64", goamd64: "v1"},
+		{mArch: archconst.ARCH_AMD64_V2, goarch: "amd64", goamd64: "v2"},
+		{mArch: archconst.ARCH_AMD64_V3, goarch: "amd64", goamd64: "v3"},
+		{mArch: archconst.ARCH_AMD64_V4, goarch: "amd64", goamd64: "v4"},
 
-		{mArch: constant.ARCH_ARM64, goarch: "arm64"},
+		{mArch: archconst.ARCH_ARM64, goarch: "arm64"},
 
-		{mArch: constant.ARCH_ARM_V5, goarch: "arm", goarm: "5"},
-		{mArch: constant.ARCH_ARM_V6, goarch: "arm", goarm: "6"},
-		{mArch: constant.ARCH_ARM_V7, goarch: "arm", goarm: "7"},
+		{mArch: archconst.ARCH_ARM_V5, goarch: "arm", goarm: "5"},
+		{mArch: archconst.ARCH_ARM_V6, goarch: "arm", goarm: "6"},
+		{mArch: archconst.ARCH_ARM_V7, goarch: "arm", goarm: "7"},
 
-		{mArch: constant.ARCH_MIPS, goarch: "mips", gomips: "hardfloat"},
-		{mArch: constant.ARCH_MIPS_SF, goarch: "mips", gomips: "softfloat"},
-		{mArch: constant.ARCH_MIPS_LE, goarch: "mipsle", gomips: "hardfloat"},
-		{mArch: constant.ARCH_MIPS_LE_SF, goarch: "mipsle", gomips: "softfloat"},
+		{mArch: archconst.ARCH_MIPS, goarch: "mips", gomips: "hardfloat"},
+		{mArch: archconst.ARCH_MIPS_SF, goarch: "mips", gomips: "softfloat"},
+		{mArch: archconst.ARCH_MIPS_LE, goarch: "mipsle", gomips: "hardfloat"},
+		{mArch: archconst.ARCH_MIPS_LE_SF, goarch: "mipsle", gomips: "softfloat"},
 
-		{mArch: constant.ARCH_MIPS64, goarch: "mips64", gomips: "hardfloat"},
-		{mArch: constant.ARCH_MIPS64_SF, goarch: "mips64", gomips: "softfloat"},
-		{mArch: constant.ARCH_MIPS64_LE, goarch: "mips64le", gomips: "hardfloat"},
-		{mArch: constant.ARCH_MIPS64_LE_SF, goarch: "mips64le", gomips: "softfloat"},
+		{mArch: archconst.ARCH_MIPS64, goarch: "mips64", gomips: "hardfloat"},
+		{mArch: archconst.ARCH_MIPS64_SF, goarch: "mips64", gomips: "softfloat"},
+		{mArch: archconst.ARCH_MIPS64_LE, goarch: "mips64le", gomips: "hardfloat"},
+		{mArch: archconst.ARCH_MIPS64_LE_SF, goarch: "mips64le", gomips: "softfloat"},
 
 		// ppc not supported
-		// {mArch: constant.ARCH_PPC, goarch: ""},
-		// {mArch: constant.ARCH_PPC_SF, goarch: ""},
-		// {mArch: constant.ARCH_PPC_LE, goarch: ""},
-		// {mArch: constant.ARCH_PPC_LE_SF, goarch: ""},
+		// {mArch: archconst.ARCH_PPC, goarch: ""},
+		// {mArch: archconst.ARCH_PPC_SF, goarch: ""},
+		// {mArch: archconst.ARCH_PPC_LE, goarch: ""},
+		// {mArch: archconst.ARCH_PPC_LE_SF, goarch: ""},
 
-		{mArch: constant.ARCH_PPC64, goarch: "ppc64"},
-		{mArch: constant.ARCH_PPC64_LE, goarch: "ppc64le"},
-		{mArch: constant.ARCH_PPC64_V8, goarch: "ppc64", goppc64: "power8"},
-		{mArch: constant.ARCH_PPC64_V8_LE, goarch: "ppc64le", goppc64: "power8"},
-		{mArch: constant.ARCH_PPC64_V9, goarch: "ppc64", goppc64: "power9"},
-		{mArch: constant.ARCH_PPC64_V9_LE, goarch: "ppc64le", goppc64: "power9"},
+		{mArch: archconst.ARCH_PPC64, goarch: "ppc64"},
+		{mArch: archconst.ARCH_PPC64_LE, goarch: "ppc64le"},
+		{mArch: archconst.ARCH_PPC64_V8, goarch: "ppc64", goppc64: "power8"},
+		{mArch: archconst.ARCH_PPC64_V8_LE, goarch: "ppc64le", goppc64: "power8"},
+		{mArch: archconst.ARCH_PPC64_V9, goarch: "ppc64", goppc64: "power9"},
+		{mArch: archconst.ARCH_PPC64_V9_LE, goarch: "ppc64le", goppc64: "power9"},
 
-		{mArch: constant.ARCH_RISCV_64, goarch: "riscv64"},
+		{mArch: archconst.ARCH_RISCV_64, goarch: "riscv64"},
 
-		{mArch: constant.ARCH_S390X, goarch: "s390x"},
+		{mArch: archconst.ARCH_S390X, goarch: "s390x"},
 
 		{mArch: "some-custom-goarch", goarch: "some-custom-goarch"},
 
-		// {mArch: constant.ARCH_IA64, goarch: "ia64"},
+		// {mArch: archconst.ARCH_IA64, goarch: "ia64"},
 	}
 
 	for _, test := range goarchTests {
