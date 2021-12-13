@@ -5,19 +5,17 @@ workflow:run:
   - task: golang:test(dukkha, {})
   # test shell PATH lookup
   # if any issue, fix it in https://github.com/arhat-dev/sh/tree/dukkha
-  - shell: |-
-      set -x
+  - shell@file: cicd/test/fixtures/001-path-lookup-native.sh
 
-      command -v cygpath || echo "cygpath not found"
-      command -v dukkha || echo "dukkha not found"
-
-      make dukkha
-
-      ./build/dukkha render <<EOF
-      tpl@tpl: |-
-        {{- eval.Shell "command -v dukkha" -}}
-      shell@shell: command -v dukkha
-      EOF
+  - if@tpl: &not_windows |-
+      {{- ne host.kernel "windows" | toString -}}
+    task: |-
+      golang:build(dukkha, {
+        kernel: [windows],
+        arch: [x86, amd64]
+      })
+  - if@tpl: *not_windows
+    shell@file: cicd/test/fixtures/002-path-lookup-in-wine64.sh
 
 - name: report
   matrix:

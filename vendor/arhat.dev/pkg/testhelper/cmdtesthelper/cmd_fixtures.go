@@ -1,4 +1,4 @@
-package testhelper
+package cmdtesthelper
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/pkg/matrixhelper"
+	"arhat.dev/pkg/testhelper"
 )
 
 const (
@@ -55,7 +56,7 @@ func TestCmdFixtures(t *testing.T,
 	) (*CmdTestCase, *CmdTestCheckSpec),
 	prepareRun func(flags []string) (checkFlags func() error, runCmd func() error, _ error),
 ) {
-	TestFixtures(t, dir,
+	testhelper.TestFixtures(t, dir,
 		func() interface{} { return rs.Init(&CmdTestCase{}, nil) },
 		func() interface{} { return rs.Init(&CmdTestCheckSpec{}, nil) },
 		func(t *testing.T, spec, exp interface{}) {
@@ -153,7 +154,7 @@ func TestCmdFixtures(t *testing.T,
 						assert.EqualValues(t, len(specNew.Stdin), n)
 					}()
 
-					HijackStandardStreams(stdin, stdout, stderr, func() {
+					testhelper.HijackStandardStreams(stdin, stdout, stderr, func() {
 						defer func() {
 							_ = stdout.Close()
 							_ = stderr.Close()

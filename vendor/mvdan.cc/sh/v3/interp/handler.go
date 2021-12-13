@@ -194,7 +194,7 @@ func LookPath(env expand.Environ, file string) (string, error) {
 //
 // If no error is returned, the returned path must be valid.
 func LookPathDir(cwd string, env expand.Environ, file string) (string, error) {
-	return lookPathDir(runtime.GOOS, cwd, file, env.Get("PATH").String(), env.Get("PATHEXT").String(), findExecutable)
+	return lookPathDir(runtime.GOOS, cwd, file, env, findExecutable)
 }
 
 // findAny defines a function to pass to lookPathDir.
@@ -203,7 +203,7 @@ type findAny = func(dir string, file string, exts []string) (string, error)
 // scriptFromPathDir is similar to LookPathDir, with the difference that it looks
 // for both executable and non-executable files.
 func scriptFromPathDir(cwd string, env expand.Environ, file string) (string, error) {
-	return lookPathDir(runtime.GOOS, cwd, file, env.Get("PATH").String(), env.Get("PATHEXT").String(), findFile)
+	return lookPathDir(runtime.GOOS, cwd, file, env, findFile)
 }
 
 // OpenHandlerFunc is a handler which opens files. It is

@@ -99,15 +99,15 @@ func (c *envValues) MatrixFilter() *matrix.Filter {
 }
 
 func (c *envValues) MatrixArch() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_ARCH])
+	return getValueOrEmpty(c.env[constant.ENV_MATRIX_ARCH])
 }
 
 func (c *envValues) MatrixKernel() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_KERNEL])
+	return getValueOrEmpty(c.env[constant.ENV_MATRIX_KERNEL])
 }
 
 func (c *envValues) MatrixLibc() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_LIBC])
+	return getValueOrEmpty(c.env[constant.ENV_MATRIX_LIBC])
 }
 
 func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
@@ -133,11 +133,11 @@ func (c *envValues) AddListEnv(env ...string) {
 }
 
 func (c *envValues) WorkDir() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKDIR])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_DUKKHA_WORKDIR])
 }
 
 func (c *envValues) CacheDir() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
 }
 
 func (c *envValues) GitValues() map[string]utils.LazyValue {
@@ -151,23 +151,23 @@ func (c *envValues) GitValues() map[string]utils.LazyValue {
 }
 
 func (c *envValues) GitBranch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_BRANCH])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_GIT_BRANCH])
 }
 
 func (c *envValues) GitWorkTreeClean() bool {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN]) == "true"
+	return getValueOrEmpty(c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN]) == "true"
 }
 
 func (c *envValues) GitTag() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_TAG])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_GIT_TAG])
 }
 
 func (c *envValues) GitDefaultBranch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH])
 }
 
 func (c *envValues) GitCommit() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_COMMIT])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_GIT_COMMIT])
 }
 
 func (c *envValues) HostValues() map[string]utils.LazyValue {
@@ -181,26 +181,26 @@ func (c *envValues) HostValues() map[string]utils.LazyValue {
 }
 
 func (c *envValues) HostArch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_ARCH])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_HOST_ARCH])
 }
 
 func (c *envValues) HostKernel() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_HOST_KERNEL])
 }
 
 func (c *envValues) HostKernelVersion() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL_VERSION])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_HOST_KERNEL_VERSION])
 }
 
 func (c *envValues) HostOS() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_HOST_OS])
 }
 
 func (c *envValues) HostOSVersion() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS_VERSION])
+	return getValueOrEmpty(c.globalEnv[constant.ENV_HOST_OS_VERSION])
 }
 
-func getValueOrDefault(v utils.LazyValue) string {
+func getValueOrEmpty(v utils.LazyValue) string {
 	if v == nil {
 		return ""
 	}

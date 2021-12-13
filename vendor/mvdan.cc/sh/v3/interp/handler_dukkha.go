@@ -13,6 +13,7 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/pathhelper"
+	"mvdan.cc/sh/v3/expand"
 )
 
 // dukkha specific handler related functions
@@ -86,7 +87,7 @@ func DukkhaExecHandler(killTimeout time.Duration) ExecHandlerFunc {
 	}
 }
 
-func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny) (string, error) {
+func lookPathDir(goos, cwd, target string, env expand.Environ, find findAny) (string, error) {
 	if find == nil {
 		panic("no find function found")
 	}
@@ -95,14 +96,14 @@ func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny
 	if goos == "windows" {
 		chars = `:\/`
 	}
-	exts := pathExts(goos, pathExtEnv)
+	exts := pathExts(goos, env.Get("PATHEXT").String())
 
 	// paths like `./`, `../`, `/`
 	if strings.ContainsAny(target, chars) {
 		return find(cwd, target, exts)
 	}
 
-	pathList := splitPathList(goos, cwd, target, pathListEnv, pathExtEnv)
+	pathList := splitPathList(goos, cwd, target, env)
 	for _, elem := range pathList {
 		var path string
 		switch elem {
@@ -123,7 +124,7 @@ func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny
 
 // splitPathList normalize PATH list as absolute paths
 // both ; and : are treated as path separator on windows
-func splitPathList(goos, cwd, target, pathListEnv, pathExtEnv string) []string {
+func splitPathList(goos, cwd, target string, env expand.Environ) []string {
 	isWindows := goos == "windows"
 
 	isSlash := pathhelper.IsUnixSlash
@@ -131,8 +132,8 @@ func splitPathList(goos, cwd, target, pathListEnv, pathExtEnv string) []string {
 		isSlash = pathhelper.IsWindowsSlash
 	}
 
-	// only split semi-colon on windows
-	list := pathhelper.SplitList(pathListEnv, true, isWindows, isSlash)
+	// split both colon and semi-colon on windows
+	list := pathhelper.SplitList(env.Get("PATH").String(), true, isWindows, isSlash)
 
 	for i, v := range list {
 		if filepath.IsAbs(v) {
@@ -145,7 +146,8 @@ func splitPathList(goos, cwd, target, pathListEnv, pathExtEnv string) []string {
 		}
 
 		const (
-			cygpathBin = "cygpath"
+			cygpathBin  = "cygpath"
+			winepathBin = "winepath"
 		)
 
 		if target == cygpathBin {
@@ -155,37 +157,73 @@ func splitPathList(goos, cwd, target, pathListEnv, pathExtEnv string) []string {
 			continue
 		}
 
-		var err error
-		list[i], err = pathhelper.AbsWindowsPath(cwd, v, func(path string) (string, error) {
+		// here we ignore the returned error since it's always nil
+		list[i], _ = pathhelper.AbsWindowsPath(cwd, v, func(path string) (string, error) {
 			// find root path of the fhs root using cygpath
 			// but first lookup cygpath itself
-			cygpath, err := lookPathDir(goos, cwd, cygpathBin, pathListEnv, pathExtEnv, findExecutable)
-			if err != nil {
-				return "", err
-			}
-
-			// NOTE for some environments:
-			// 	 github action windows:
-			//		there is `cygpath` at C:\Program Files\Git\usr\bin\cygpath
-			// 		when running inside gitbash (set `shell: bash`)
-
-			output, err2 := exec.Command(cygpath, "-w", path).CombinedOutput()
+			cygpath, err2 := lookPathDir(goos, cwd, cygpathBin, env, findExecutable)
 			if err2 == nil {
-				return strings.TrimSpace(string(output)), nil
+				// NOTE for some environments:
+				// 	 github action windows:
+				//		`cygpath` at C:\Program Files\Git\usr\bin\cygpath
+
+				var buf strings.Builder
+				cmd := exec.Cmd{
+					Path:   cygpath,
+					Args:   []string{"-w", path},
+					Env:    execEnv(env),
+					Dir:    cwd,
+					Stdin:  nil,
+					Stdout: &buf,
+					Stderr: &buf,
+				}
+
+				err2 = exechelper.StartNoLookPath(&cmd)
+				if err2 == nil {
+					err2 = cmd.Wait()
+				}
+
+				if err2 == nil {
+					return strings.TrimSpace(buf.String()), nil
+				}
 			}
+
+			// cygpath missing not working
+
+			// try winepath
+			winepath, err2 := lookPathDir(goos, cwd, winepathBin, env, findExecutable)
+			if err2 == nil {
+				var buf strings.Builder
+				cmd := exec.Cmd{
+					Path:   winepath,
+					Args:   []string{"-w", path},
+					Env:    execEnv(env),
+					Dir:    cwd,
+					Stdin:  nil,
+					Stdout: &buf,
+					Stderr: &buf,
+				}
+
+				err2 = exechelper.StartNoLookPath(&cmd)
+				if err2 == nil {
+					err2 = cmd.Wait()
+				}
+
+				if err2 == nil {
+					return strings.TrimSpace(buf.String()), nil
+				}
+			}
+
+			// winepath missing or not working
 
 			switch {
 			case os.Getenv("GITHUB_ACTIONS") == "true":
-				// github action has msys2 installed without PATH added
-				return `C:\msys64`, nil
+				// github action has msys2 installed
+				return pathhelper.JoinWindowsPath(`C:\msys64`, path), nil
 			default:
-				// TODO: other defaults?
-				return "", err2
+				return pathhelper.ConvertFSPathToWindowsPath(filepath.VolumeName(cwd), path), nil
 			}
 		})
-
-		// error can only happen when looking up fhs root
-		_ = err
 	}
 
 	return list

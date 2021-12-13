@@ -1,8 +1,9 @@
 arhat.dev/pkg v0.7.3-0.20211031112332-ffefabe6bd30/go.mod h1:zPTNrA/tEoOUSpFQFyr7McM3LO8WQRhwNcULbcAM+ms=
 arhat.dev/pkg v0.7.3/go.mod h1:QmcFSZKUYOlgbtw6b0zDJXE3Fo4aJWDuS/6xg2imu/Y=
 arhat.dev/pkg v0.8.0/go.mod h1:WN2MoK4tM/DcZqzRPzS1cKiG2N+FcPBQJ8qK5F5CXB4=
-arhat.dev/pkg v0.9.0 h1:HN1o65TwYWdRPhto2udVSIvnsdfcadpYvoK0tvtizys=
-arhat.dev/pkg v0.9.0/go.mod h1:ryOrbbzylvx74vRouXtT5QhTNv+4XUOW8/0eRjDRegU=
+arhat.dev/pkg v0.9.1-0.20211213213832-6b96d077aaa2/go.mod h1:ryOrbbzylvx74vRouXtT5QhTNv+4XUOW8/0eRjDRegU=
+arhat.dev/pkg v0.9.1-0.20211213221029-462a333001bb h1:nlykDENzak3ZAPo0eM5y4I4aINpZpR0mo6p71Vj517A=
+arhat.dev/pkg v0.9.1-0.20211213221029-462a333001bb/go.mod h1:ryOrbbzylvx74vRouXtT5QhTNv+4XUOW8/0eRjDRegU=
 arhat.dev/rs v0.6.0/go.mod h1:surZ9C155JBuWQ0vflZamAccyxNpL9Fn/hRNUmoAYzQ=
 arhat.dev/rs v0.7.0/go.mod h1:sJXVt9WQKBYdyiOwxBWBvGOYoDPqljtvPgOZ6ira9Y0=
 arhat.dev/rs v0.8.1/go.mod h1:FSH7DwQleSft5CudV8SGKPgEjZLsRPD3T13j5clQkQI=
@@ -61,8 +62,8 @@ github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02 h1:JXGyALZeC5GOIeB
 github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02/go.mod h1:oZaL7+2R1XEeSSQNvmdqrr3B96+FIJZDKO3lakRFwss=
 github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191 h1:XJ/EVFZGeFdm53hHOO7t5EP1ghFdX89KghiDkuUxD28=
 github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191/go.mod h1:QquiGW1TWJ/+xC933AiiKO09ggryYteH+gBbLhmf3Z0=
-github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211207154312-078c9f3707fe h1:zwhpzv65Jrq0UxgYpWSfomAZ8jtPm18R7rmZ9sm8hCU=
-github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211207154312-078c9f3707fe/go.mod h1:An2MITFImt6IzRPX9wwqp7r0jJi7i0eyz7ohnMbz/3Q=
+github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211213215015-9d541ef1442e h1:/byULcJXzLCUFWzPcSJPdIVEQuU/NGyx/qXxTVJMXLM=
+github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211213215015-9d541ef1442e/go.mod h1:9xF9KLW3Lsc3t1IQQhXw+5+k8cBNS7a5Hzbf2y+P2rU=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=

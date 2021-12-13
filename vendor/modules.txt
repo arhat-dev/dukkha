@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.9.0
+# arhat.dev/pkg v0.9.1-0.20211213221029-462a333001bb
 ## explicit
 arhat.dev/pkg/archconst
 arhat.dev/pkg/cpuhelper
@@ -15,6 +15,7 @@ arhat.dev/pkg/rshelper
 arhat.dev/pkg/sha256helper
 arhat.dev/pkg/sorthelper
 arhat.dev/pkg/testhelper
+arhat.dev/pkg/testhelper/cmdtesthelper
 arhat.dev/pkg/textquery
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/versionhelper
@@ -269,7 +270,7 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# mvdan.cc/sh/v3 v3.4.1 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211207154312-078c9f3707fe
+# mvdan.cc/sh/v3 v3.4.1 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211213215015-9d541ef1442e
 ## explicit
 mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
@@ -277,4 +278,4 @@ mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed
 # github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
-# mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211207154312-078c9f3707fe
+# mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20211213215015-9d541ef1442e

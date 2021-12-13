@@ -55,6 +55,7 @@ func (ofs *OSFS) SetStrict(s bool) *OSFS {
 	return ofs
 }
 
+// SetWindowsFHSLookup sets custom handler for unix style path
 func (ofs *OSFS) SetWindowsFHSLookup(lookup func(path string) (string, error)) *OSFS {
 	ofs.lookupFHS = lookup
 	return ofs
@@ -96,7 +97,16 @@ func (ofs *OSFS) getRealPath(name string) (cwd, rpath string, err error) {
 		if lookupFHS == nil {
 			lookupFHS = func(path string) (string, error) {
 				ret, err := exec.Command("cygpath", "-w", path).CombinedOutput()
-				return string(ret), err
+				if err == nil {
+					return strings.TrimSpace(string(ret)), nil
+				}
+
+				ret, err = exec.Command("winepath", "-w", path).CombinedOutput()
+				if err == nil {
+					return strings.TrimSpace(string(ret)), nil
+				}
+
+				return pathhelper.ConvertFSPathToWindowsPath(filepath.VolumeName(cwd), path), nil
 			}
 		}
 

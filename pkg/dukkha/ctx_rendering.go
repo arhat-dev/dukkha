@@ -284,7 +284,7 @@ func (c *contextRendering) Get(name string) expand.Variable {
 func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	visited := make(map[string]struct{})
 
-	for k, v := range c.globalEnv {
+	for k, v := range c.envValues.globalEnv {
 		visited[k] = struct{}{}
 
 		if !do(k, createVariable(v.Get())) {
@@ -292,7 +292,7 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 		}
 	}
 
-	for k, v := range c.env {
+	for k, v := range c.envValues.env {
 		// do not override
 		if _, ok := visited[k]; ok {
 			continue

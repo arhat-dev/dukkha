@@ -65,33 +65,5 @@ func AbsWindowsPath(
 		return ConvertFSPathToWindowsPath("", strings.TrimPrefix(path, "/cygdrive")), nil
 	}
 
-	// filter common prefixes used in FHS
-	// ref: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
-
-	isFHS := false
-	for _, posixPrefix := range []string{
-		"/bin", "/boot", "/dev", "/etc", "/home",
-		"/lib", "/lib64", "/lib32", "/media", "/mnt",
-		"/opt", "/proc", "/root", "/run", "/sbin",
-		"/srv", "/sys", "/tmp", "/usr", "/var",
-	} {
-		if strings.HasPrefix(path, posixPrefix) {
-			isFHS = true
-			break
-		}
-	}
-
-	if isFHS {
-		// lookup actual windows absolute path
-		// usually done by executing `cygpath -w $path`
-		ret, err := getFHSPath(path)
-		if err != nil {
-			return "", err
-		}
-
-		return CleanWindowsPath(ret), nil
-	}
-
-	// no fhs, in golang path style
-	return ConvertFSPathToWindowsPath(cwd[:volumeNameLen(cwd)], path), nil
+	return getFHSPath(path)
 }
