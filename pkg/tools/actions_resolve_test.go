@@ -32,6 +32,7 @@ func (r *TestResolvable) DoAfterFieldsResolved(
 }
 
 func TestResolveActions_steps(t *testing.T) {
+	t.Parallel()
 
 	type CheckSpec struct {
 		rs.BaseField

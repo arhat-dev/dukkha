@@ -22,6 +22,8 @@ func (*canceledContext) Err() error                    { return fmt.Errorf("canc
 func (*canceledContext) Value(interface{}) interface{} { return nil }
 
 func TestContext_SetCustomParent(t *testing.T) {
+	t.Parallel()
+
 	_ctx := NewConfigResolvingContext(context.Background(), nil, nil)
 
 	ctx := _ctx.WithCustomParent(&canceledContext{})

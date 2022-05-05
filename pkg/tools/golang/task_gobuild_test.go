@@ -13,6 +13,8 @@ import (
 )
 
 func TestTaskBuild_GetExecSpecs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
 			Name: "Default Build Task",

@@ -24,9 +24,9 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 		archconst.ARCH_PPC64:       "",
 		archconst.ARCH_PPC64_LE:    "",
 		archconst.ARCH_PPC64_V8:    "power8",
-		archconst.ARCH_PPC64_V8_LE: "power8",
+		archconst.ARCH_PPC64_LE_V8: "power8",
 		archconst.ARCH_PPC64_V9:    "power9",
-		archconst.ARCH_PPC64_V9_LE: "power9",
+		archconst.ARCH_PPC64_LE_V9: "power9",
 
 		archconst.ARCH_MIPS:         "",
 		archconst.ARCH_MIPS_SF:      "softfloat",
@@ -69,9 +69,9 @@ func GetOciArchVariant(mArch string) (string, bool) {
 		archconst.ARCH_PPC64:       "",
 		archconst.ARCH_PPC64_LE:    "",
 		archconst.ARCH_PPC64_V8:    "power8",
-		archconst.ARCH_PPC64_V8_LE: "power8",
+		archconst.ARCH_PPC64_LE_V8: "power8",
 		archconst.ARCH_PPC64_V9:    "power9",
-		archconst.ARCH_PPC64_V9_LE: "power9",
+		archconst.ARCH_PPC64_LE_V9: "power9",
 
 		archconst.ARCH_MIPS:         "",
 		archconst.ARCH_MIPS_SF:      "softfloat",

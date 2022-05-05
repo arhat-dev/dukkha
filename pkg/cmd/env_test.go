@@ -12,6 +12,8 @@ import (
 )
 
 func TestCreateGlobalEnv(t *testing.T) {
+	t.Parallel()
+
 	globalEnv := createGlobalEnv(context.TODO(), ".")
 
 	now := time.Now().Local()

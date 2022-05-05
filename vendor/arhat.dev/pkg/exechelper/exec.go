@@ -48,7 +48,7 @@ const (
 	DefaultExitCodeOnError = 128
 )
 
-type resizeFunc func(cols, rows uint32) error
+type resizeFunc func(cols, rows uint16) error
 
 type Cmd struct {
 	ExecCmd *exec.Cmd
@@ -62,7 +62,7 @@ type Cmd struct {
 }
 
 // Resize tty windows if was created with tty enabled
-func (c *Cmd) Resize(cols, rows uint32) error {
+func (c *Cmd) Resize(cols, rows uint16) error {
 	if c.doResize != nil {
 		return c.doResize(cols, rows)
 	}

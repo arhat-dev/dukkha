@@ -1,16 +1,21 @@
 global:
   default_git_branch: master
   env:
-  - name: GO_VERSION
-    value: "1.17"
+  - name: PROFILE_DIR
+    value@tpl: |-
+      {{- filepath.Join dukkha.WorkDir "build" "test-profile" -}}
   values:
     cmd:
-      run_container@http|template: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/templates/cmd-run-container.yml
+      run_ctr@presets?str|tpl: templates/run-ctr.yml
 
 renderers:
-  http:
-    enable_cache: true
-    cache_max_age: 5h
+- http:presets:
+    alias: presets
+    cache:
+      enabled: true
+      timeout: 2h
+    base_url: https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master
+
   env:
     enable_exec: true
 
@@ -22,10 +27,14 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@template|http|template: |-
-      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
-      {{- /* line sep */ -}}
-      golang/cmd-in-ctr.yml
+    cmd@tpl#use-spec:
+      template: |-
+        {{- include "golang.cmd.ctr" . -}}
+      include:
+      - text@presets?str: templates/image/flavored-tag.tpl
+      - text@presets?str: golang/cmd/ctr.yml
+      variables:
+        version: "1.17"
 
 workflow:run:
 - name: tidy
@@ -41,47 +50,43 @@ workflow:run:
 
 - name: lint
   matrix:
-    linter:
-    - editorconfig-checker
-    - shellcheck
-    - yamllint
-    - golangci-lint
-
+    include:
+    - tool: [editorconfig-checker]
+      config:
+      - __@presets#cached-file?str: tools/editorconfig-checker/config.json
+    - tool: [shellcheck]
+    - tool: [yamllint]
+      config:
+      - __@presets#cached-file?str: tools/yamllint/config.yaml
+    - tool: [golangci-lint]
+      config:
+      - __@presets#cached-file?str: tools/golangci-lint/config.yaml
   jobs:
-  - shell@template|http|template: |-
-      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
-      {{- /* line join*/ -}}
-      linter/{{- matrix.linter -}}.tpl
-    env:
-    - name@template: |-
-        {{- matrix.linter | strings.SnakeCase | strings.ToUpper -}}_VERSION
-      value@template: |-
-        {{- matrix.version | default "" -}}
+  - cmd@presets?str|tpl#use-spec: tools/presets.tpl
 
 - name: test
   jobs:
   - task: golang:test(rs, {})
-  # only run sonarqube on linux and darwin during CI
-  - shell@template|http|template: |-
-      https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
-      {{- if eq env.HOST_KERNEL "linux" "darwin" -}}
-        linter/sonar-scanner.tpl
-      {{- else -}}
-        empty.yml
-      {{- end -}}
+  - task: golang:test(benchmark, {})
+
+- name: report
+  matrix:
+    tool:
+    - sonar-scanner
+  jobs:
+  # only run sonar scan on linux and darwin during CI
+  - cmd@presets?str|tpl#use-spec: tools/presets.tpl
     continue_on_error: true
 
 golang:test:
 - name: rs
-  __@template|http: |-
-    https://raw.githubusercontent.com/arhat-dev/dukkha-presets/master/
-    {{- /* line sep */ -}}
-    golang/test/pkg.yml
-  env:
-  - name: PROFILE_DIR
-    value: build/test-profile
+  __@tpl#use-spec:
+    template: |-
+      {{- include "golang.test.pkg" . -}}
+    include:
+    - text@presets?str: golang/test/pkg.yml
   matrix:
-    pkg@template: |-
+    pkg@tpl: |-
       {{-
         eval.Shell "go list ./..."
         | removePrefix (eval.Shell "go list -m" | trimSuffix "\n")
@@ -92,9 +97,6 @@ golang:test:
     - shell: mkdir -p ${PROFILE_DIR}
 
 - name: benchmark
-  env:
-  - name: PROFILE_DIR
-    value: build/test-profile
   matrix:
     pkg:
     - ./
@@ -106,7 +108,7 @@ golang:test:
     enabled: true
   race: true
   profile:
-    output_dir: build/test-profile
+    output_dir@env: ${PROFILE_DIR}
     coverage:
       enabled: true
     memory:
@@ -115,7 +117,7 @@ golang:test:
       enabled: true
   benchmark:
     enabled: true
-  json_output_file@template: |-
-    {{ .Env.PROFILE_DIR }}/result-benchmark.json
+  json_output_file@tpl: |-
+    {{- filepath.Join env.PROFILE_DIR "result-benchmark.json" -}}
   verbose: true
   path: ./

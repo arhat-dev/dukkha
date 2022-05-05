@@ -7,6 +7,8 @@ import (
 )
 
 func TestAddPrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -33,6 +35,8 @@ func TestAddPrefix(t *testing.T) {
 }
 
 func TestRemovePrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -59,6 +63,8 @@ func TestRemovePrefix(t *testing.T) {
 }
 
 func TestAddSuffix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -85,6 +91,8 @@ func TestAddSuffix(t *testing.T) {
 }
 
 func TestRemoveSuffix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 

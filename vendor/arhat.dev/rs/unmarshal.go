@@ -441,6 +441,7 @@ func unmarshalArray(
 	return nil
 }
 
+// when keepOld is set to true, append data from in to original slice
 func unmarshalSlice(
 	rc RenderingHandler,
 	yamlKey string,

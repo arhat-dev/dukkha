@@ -43,9 +43,9 @@ var (
 		archconst.ARCH_PPC64:       "ppc64",
 		archconst.ARCH_PPC64_LE:    "ppc64le",
 		archconst.ARCH_PPC64_V8:    "ppc64v8",
-		archconst.ARCH_PPC64_V8_LE: "ppc64v8le",
+		archconst.ARCH_PPC64_LE_V8: "ppc64lev8",
 		archconst.ARCH_PPC64_V9:    "ppc64v9",
-		archconst.ARCH_PPC64_V9_LE: "ppc64v9le",
+		archconst.ARCH_PPC64_LE_V9: "ppc64lev9",
 
 		archconst.ARCH_RISCV_64: "riscv64",
 
@@ -56,6 +56,8 @@ var (
 )
 
 func TestArchMapping(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		mappingFunc func(mArch string) (string, bool)

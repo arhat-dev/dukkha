@@ -16,6 +16,8 @@ import (
 )
 
 func TestConfig(t *testing.T) {
+	t.Parallel()
+
 	testhelper.TestFixtures(t, "./fixtures",
 		func() interface{} { return conf.NewConfig() },
 		func() interface{} { return conf.NewConfig() },

@@ -19,7 +19,7 @@ func clearOSArgs() {
 }
 
 func TestMain(t *testing.T) {
-	_ = t
+	t.Parallel()
 
 	clearOSArgs()
 

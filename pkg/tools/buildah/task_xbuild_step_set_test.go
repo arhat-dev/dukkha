@@ -9,6 +9,8 @@ import (
 )
 
 func Test_kvArgs(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		flag    string
 		entries []*dukkha.EnvEntry

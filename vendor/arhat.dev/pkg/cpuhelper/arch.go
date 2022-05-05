@@ -1,6 +1,7 @@
 package cpuhelper
 
 import (
+	"runtime"
 	"strconv"
 	"unsafe"
 
@@ -13,6 +14,7 @@ func LittleEndian() bool {
 	return *(*byte)(unsafe.Pointer(&x)) == 0x04
 }
 
+// Bits returns number of bits in a int for current platform
 func Bits() int {
 	return strconv.IntSize
 }
@@ -32,42 +34,21 @@ func fallback(v, def string) string {
 	return v
 }
 
-func ArchByCPUFeatures() string {
-	if !cpu.Initialized {
-		return ""
-	}
-
+// ArchByCPUFeatures detects runtime cpu arch (value defined in package arhat.dev/pkg/archconst)
+// by inspecting cpu features
+//
+// return value MAY be empty string if detection failed or unable to determine specific arch value
+// supported archs are:
+// - amd64v{1,2,3,4}
+// - arm64
+// - armv{6, 7} (linux only)
+// - s390x
+// - ppc64{, le}v{8, 9}
+// - mips64{, le}
+func ArchByCPUFeatures(data CPU) string {
 	switch {
-	case cpu.X86.HasSSE2: // amd64
-		// Microarchitecture levels
-		// Ref: https://en.wikipedia.org/wiki/X86-64
-		switch {
-		case cpu.X86.HasAVX512F,
-			cpu.X86.HasAVX512VL,
-			cpu.X86.HasAVX512DQ,
-			cpu.X86.HasAVX512CD,
-			cpu.X86.HasAVX512BW:
-			return archconst.ARCH_AMD64_V4
-		case cpu.X86.HasAVX2,
-			cpu.X86.HasAVX,
-			cpu.X86.HasBMI1,
-			cpu.X86.HasBMI2,
-			cpu.X86.HasFMA,
-			cpu.X86.HasOSXSAVE:
-			return archconst.ARCH_AMD64_V3
-		case cpu.X86.HasCX16,
-			cpu.X86.HasPOPCNT,
-			cpu.X86.HasSSE3,
-			cpu.X86.HasSSE41,
-			cpu.X86.HasSSE42,
-			cpu.X86.HasSSSE3:
-			return archconst.ARCH_AMD64_V2
-		}
-
-		return archconst.ARCH_AMD64_V1
 	case cpu.ARM64.HasFP, cpu.ARM64.HasASIMD: // arm64
 		return archconst.ARCH_ARM64
-	case cpu.MIPS64X.HasMSA:
 	case cpu.ARM.HasNEON:
 		// neon can only be found in armv7 and later
 		// only optional in cortex-a5,a7 when implementing vfpv4-d16
@@ -82,18 +63,46 @@ func ArchByCPUFeatures() string {
 		return archconst.ARCH_ARM_V6
 		// it's hard to tell the differences between from this point,
 		// leave armv5,armv6 unhandled
+		// case cpu.ARM.HasVFP:
+		// 	// vfp can only be found in armv5 and later
+		// 	return archconst.ARCH_ARM_V5
 	case cpu.S390X.HasZARCH:
 		return archconst.ARCH_S390X
-	// case cpu.ARM.HasVFP:
-	// 	// vfp can only be found in armv5 and later
-	// 	return archconst.ARCH_ARM_V5
-	case cpu.PPC64.IsPOWER8:
-		return selectEndian(archconst.ARCH_PPC64_V8_LE, archconst.ARCH_PPC64_V8)
 	case cpu.PPC64.IsPOWER9:
-		return selectEndian(archconst.ARCH_PPC64_V9_LE, archconst.ARCH_PPC64_V9)
+		return selectEndian(archconst.ARCH_PPC64_LE_V9, archconst.ARCH_PPC64_V9)
+	case cpu.PPC64.IsPOWER8:
+		return selectEndian(archconst.ARCH_PPC64_LE_V8, archconst.ARCH_PPC64_V8)
 	case cpu.MIPS64X.HasMSA:
 		return selectEndian(archconst.ARCH_MIPS64_LE, archconst.ARCH_MIPS64)
 	}
 
-	return ""
+	if data == nil {
+		data = Detect()
+	}
+
+	switch t := data.(type) {
+	case X86:
+		switch t.MicroArch() {
+		case 4:
+			if runtime.GOOS != "darwin" {
+				return archconst.ARCH_AMD64_V3
+			}
+
+			return archconst.ARCH_AMD64_V4
+		case 3:
+			return archconst.ARCH_AMD64_V3
+		case 2:
+			return archconst.ARCH_AMD64_V2
+		case 1:
+			return archconst.ARCH_AMD64_V1
+		default:
+			if t.Features.HasAll(X86Feature_SSE) {
+				return archconst.ARCH_AMD64_V1
+			} else {
+				return archconst.ARCH_X86
+			}
+		}
+	default:
+		return ""
+	}
 }

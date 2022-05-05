@@ -998,14 +998,14 @@ func (e *ConstTerm) writeTo(s *strings.Builder) {
 		e.Array.writeTo(s)
 	} else if e.Number != "" {
 		s.WriteString(e.Number)
-	} else if e.Str != "" {
-		s.WriteString(strconv.Quote(e.Str))
 	} else if e.Null {
 		s.WriteString("null")
 	} else if e.True {
 		s.WriteString("true")
 	} else if e.False {
 		s.WriteString("false")
+	} else {
+		s.WriteString(strconv.Quote(e.Str))
 	}
 }
 
@@ -1015,7 +1015,7 @@ func (e *ConstTerm) toValue() interface{} {
 	} else if e.Array != nil {
 		return e.Array.toValue()
 	} else if e.Number != "" {
-		return normalizeNumbers(json.Number(e.Number))
+		return normalizeNumber(json.Number(e.Number))
 	} else if e.Null {
 		return nil
 	} else if e.True {

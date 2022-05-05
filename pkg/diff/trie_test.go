@@ -14,6 +14,8 @@ var (
 )
 
 func TestNode_Unmarshal(t *testing.T) {
+	t.Parallel()
+
 	type CheckSpec struct {
 		Key []string `yaml:"key"`
 		// Value is the expected yaml.Node.Value

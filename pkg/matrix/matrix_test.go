@@ -10,6 +10,8 @@ import (
 )
 
 func TestMatrixConfig_GenerateEntries(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		in   Spec
@@ -182,6 +184,8 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 }
 
 func TestSpec_GenerateEntries_Fixture(t *testing.T) {
+	t.Parallel()
+
 	type testInputSpec struct {
 		rs.BaseField
 

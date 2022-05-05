@@ -15,6 +15,8 @@ import (
 )
 
 func TestDriver_RenderYaml(t *testing.T) {
+	t.Parallel()
+
 	t.Run("TLS Basic Auth", func(t *testing.T) {
 		expectPassword := true
 		srv := httptest.NewUnstartedServer(http.HandlerFunc(

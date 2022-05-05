@@ -10,6 +10,8 @@ import (
 )
 
 func TestTaskSign(t *testing.T) {
+	t.Parallel()
+
 	type Expected struct {
 		rs.BaseField
 

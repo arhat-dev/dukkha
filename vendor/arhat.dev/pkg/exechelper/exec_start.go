@@ -7,7 +7,8 @@ import (
 	"unsafe"
 )
 
-// StartNoLookPath starts cmd without path looking up path with extensions (special behaivor on windows in original stdlib)
+// StartNoLookPath is an alternative to os/exec.Cmd.Start()
+// it starts cmd without looking up path with extensions on windows
 func StartNoLookPath(cmd *exec.Cmd) error {
 	c := (*execCmd)(unsafe.Pointer(cmd))
 

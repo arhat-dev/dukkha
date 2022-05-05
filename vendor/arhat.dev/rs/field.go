@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// BaseField is a helper struct type implementing Field interface
+// it serves as a cache storage for encoding/decoding
 type BaseField struct {
 	// fields with `_` prefix are supposed to be initialized
 	// after init()

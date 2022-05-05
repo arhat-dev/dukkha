@@ -102,13 +102,16 @@ func getGOMIPS(mArch string) string {
 }
 
 func getGOPPC64(mArch string) string {
-	if !strings.HasPrefix(mArch, "ppc64v") {
+	// ppc64{, le}{, v8, v9}
+
+	if len(mArch) == 0 ||
+		!strings.HasPrefix(mArch, "ppc64") ||
+		!strings.HasSuffix(mArch[:len(mArch)-1], "v") {
 		return ""
 	}
 
 	// power8 or power9
-	return "power" + strings.TrimSuffix(
-		strings.TrimPrefix(mArch, "ppc64v"), "le")
+	return "power" + mArch[len(mArch)-1:]
 }
 
 type buildOptions struct {

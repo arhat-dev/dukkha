@@ -26,6 +26,8 @@ var (
 )
 
 func TestKernelMapping(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		mappingFunc func(mKernel string) (string, bool)

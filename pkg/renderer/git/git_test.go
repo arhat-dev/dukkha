@@ -9,6 +9,8 @@ import (
 var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestFetchSpec(t *testing.T) {
+	t.Parallel()
+
 	// TODO: enable fetch test
 	t.SkipNow()
 

@@ -47,9 +47,9 @@ __NOTE:__ These values are the same as golang `GOOS` values
 - `ppc64`
 - `ppc64le`
 - `ppc64v8`
-- `ppc64v8le`
+- `ppc64lev8`
 - `ppc64v9`
-- `ppc64v9le`
+- `ppc64lev9`
 - `riscv64`
 - `s390x`
 - `ia64`

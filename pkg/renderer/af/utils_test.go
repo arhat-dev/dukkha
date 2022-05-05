@@ -30,6 +30,8 @@ func NewAlwaysFailSeeker(r io.Reader, err error) io.ReadSeeker {
 }
 
 func TestPrepareSeekRestore(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Reader Error", func(t *testing.T) {
 		_, err := prepareSeekRestore(NewAlwaysFailSeeker(nil, io.ErrClosedPipe))
 		assert.ErrorIs(t, err, io.ErrClosedPipe)
@@ -61,6 +63,8 @@ func TestPrepareSeekRestore(t *testing.T) {
 }
 
 func TestBufferedReaderAt_ReadAt(t *testing.T) {
+	t.Parallel()
+
 	const (
 		testData = "test-data"
 	)

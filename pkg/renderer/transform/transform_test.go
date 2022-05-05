@@ -18,6 +18,8 @@ import (
 var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestDriver_RenderYaml(t *testing.T) {
+	t.Parallel()
+
 	type TestSpec struct {
 		rs.BaseField
 

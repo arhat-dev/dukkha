@@ -10,6 +10,8 @@ import (
 )
 
 func TestHandleTaskMatrixCompletion(t *testing.T) {
+	t.Parallel()
+
 	type Result struct {
 		candidates []string
 		directive  cobra.ShellCompDirective

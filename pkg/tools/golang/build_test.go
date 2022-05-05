@@ -15,6 +15,8 @@ import (
 )
 
 func TestCreateBuildEnv(t *testing.T) {
+	t.Parallel()
+
 	goosTests := []struct {
 		mKernel string
 
@@ -88,9 +90,9 @@ func TestCreateBuildEnv(t *testing.T) {
 		{mArch: archconst.ARCH_PPC64, goarch: "ppc64"},
 		{mArch: archconst.ARCH_PPC64_LE, goarch: "ppc64le"},
 		{mArch: archconst.ARCH_PPC64_V8, goarch: "ppc64", goppc64: "power8"},
-		{mArch: archconst.ARCH_PPC64_V8_LE, goarch: "ppc64le", goppc64: "power8"},
+		{mArch: archconst.ARCH_PPC64_LE_V8, goarch: "ppc64le", goppc64: "power8"},
 		{mArch: archconst.ARCH_PPC64_V9, goarch: "ppc64", goppc64: "power9"},
-		{mArch: archconst.ARCH_PPC64_V9_LE, goarch: "ppc64le", goppc64: "power9"},
+		{mArch: archconst.ARCH_PPC64_LE_V9, goarch: "ppc64le", goppc64: "power9"},
 
 		{mArch: archconst.ARCH_RISCV_64, goarch: "riscv64"},
 

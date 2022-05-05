@@ -20,7 +20,7 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/creack/pty"
+	"arhat.dev/pty"
 )
 
 func startCmdWithTty(cmd *exec.Cmd) (
@@ -36,8 +36,8 @@ func startCmdWithTty(cmd *exec.Cmd) (
 		return
 	}
 
-	doResize = func(cols, rows uint32) error {
-		return pty.Setsize(f, &pty.Winsize{
+	doResize = func(cols, rows uint16) error {
+		return pty.Setsize(f, pty.Winsize{
 			Cols: uint16(cols), Rows: uint16(rows),
 		})
 	}

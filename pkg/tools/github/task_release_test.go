@@ -7,6 +7,8 @@ import (
 )
 
 func TestTaskRelease_GetExecSpecs(t *testing.T) {
+	t.Parallel()
+
 	// toolCmd := []string{"gh"}
 	testCases := []tests.ExecSpecGenerationTestCase{}
 	tests.RunTaskExecSpecGenerationTests(t, nil, testCases)

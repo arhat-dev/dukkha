@@ -7056,8 +7056,8 @@
       }
     },
     "arhat.dev.rs.AnyObjectMap": {
-      "description": "a `map[string]interface{}` equivalent with rendering suffix support",
-      "x-intellij-html-description": "a <code>map[string]interface{}</code> equivalent with rendering suffix support"
+      "description": "a `map[string]any` equivalent with rendering suffix support",
+      "x-intellij-html-description": "a <code>map[string]any</code> equivalent with rendering suffix support"
     },
     "time.Duration": {
       "type": "integer",

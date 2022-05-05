@@ -16,6 +16,8 @@ import (
 )
 
 func TestTwoTierCache(t *testing.T) {
+	t.Parallel()
+
 	const (
 		cachedData = "test-data"
 

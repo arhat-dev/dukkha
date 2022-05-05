@@ -17,6 +17,8 @@ import (
 )
 
 func TestGenerateTemplateFuncDocs(t *testing.T) {
+	t.Parallel()
+
 	ctx := dukkha_test.NewTestContext(context.TODO())
 	tpl, err := templateutils.CreateTemplate(ctx).ParseFiles("template_funcs.tpl")
 

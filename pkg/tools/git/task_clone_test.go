@@ -14,6 +14,8 @@ import (
 )
 
 func TestTaskClone_GetExecSpecs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
 			Name: "Invalid Empty",

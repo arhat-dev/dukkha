@@ -10,6 +10,7 @@ import (
 )
 
 func TestInternalTypes(t *testing.T) {
+	t.Parallel()
 
 	ctx := dukkha.NewConfigResolvingContext(context.TODO(), nil, nil)
 

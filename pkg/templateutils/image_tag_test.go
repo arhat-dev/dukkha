@@ -15,6 +15,8 @@ import (
 )
 
 func TestSetDefaultImageTag(t *testing.T) {
+	t.Parallel()
+
 	testMatrix := map[string][]string{
 		constant.ENV_GIT_BRANCH:         {"eXtream/branch"},
 		constant.ENV_GIT_DEFAULT_BRANCH: {"eXtream/branch", "different-branch"},
@@ -115,6 +117,8 @@ func TestSetDefaultImageTag(t *testing.T) {
 }
 
 func TestHasTag(t *testing.T) {
+	t.Parallel()
+
 	t.Run("HasTag", func(t *testing.T) {
 		for _, s := range []string{
 			"local:latest",

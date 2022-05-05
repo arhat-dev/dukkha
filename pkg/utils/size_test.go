@@ -8,6 +8,8 @@ import (
 )
 
 func TestSize_UnmarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string

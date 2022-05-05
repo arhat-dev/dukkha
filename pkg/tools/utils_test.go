@@ -9,6 +9,8 @@ import (
 )
 
 func TestSeparateBaseAndImpl(t *testing.T) {
+	t.Parallel()
+
 	forBase, forImpl := separateBaseAndImpl("base.", []string{"base.foo", "bar"})
 
 	assert.EqualValues(t, []string{"foo"}, forBase)
@@ -16,6 +18,8 @@ func TestSeparateBaseAndImpl(t *testing.T) {
 }
 
 func TestGetTagNamesToResolve(t *testing.T) {
+	t.Parallel()
+
 	expectedTagNames := []string{
 		"a",
 		"bar",

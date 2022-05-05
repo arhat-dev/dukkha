@@ -13,6 +13,8 @@ import (
 )
 
 func TestLcpp(t *testing.T) {
+	t.Parallel()
+
 	for _, test := range []struct {
 		list     []string
 		expected string

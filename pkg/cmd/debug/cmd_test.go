@@ -7,24 +7,25 @@ import (
 	"strings"
 	"testing"
 
-	"arhat.dev/pkg/testhelper"
-
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/pkg/testhelper/cmdtesthelper"
 
 	_ "arhat.dev/dukkha/cmd/dukkha/addon"
 )
 
 func TestDebugCmd(t *testing.T) {
-	testhelper.TestCmdFixtures(t, "./fixtures", map[string][]string{
+	t.Parallel()
+
+	cmdtesthelper.TestCmdFixtures(t, "./fixtures", map[string][]string{
 		"-H": {
-			testhelper.OmitThisFlag,
-			testhelper.OmitFlagValue,
+			cmdtesthelper.OmitThisFlag,
+			cmdtesthelper.OmitFlagValue,
 		},
 		"-P": {
-			testhelper.OmitThisFlag,
+			cmdtesthelper.OmitThisFlag,
 			"TEST_PREFIX",
 		},
 	}, genNewDebugCmdFlags, prepareDebugCmd)
@@ -34,7 +35,11 @@ var (
 	matchDefaultHeaderLine = regexp.MustCompile(`(?m:^--- # .*\n)`)
 )
 
-func genNewDebugCmdFlags(flagSets [][]string, baseSpec *testhelper.CmdTestCase, baseCheck *testhelper.CmdTestCheckSpec) (*testhelper.CmdTestCase, *testhelper.CmdTestCheckSpec) {
+func genNewDebugCmdFlags(
+	flagSets [][]string,
+	baseSpec *cmdtesthelper.CmdTestCase,
+	baseCheck *cmdtesthelper.CmdTestCheckSpec,
+) (*cmdtesthelper.CmdTestCase, *cmdtesthelper.CmdTestCheckSpec) {
 	var (
 		stdout   = baseCheck.Stdout
 		stderr   = baseCheck.Stderr
@@ -87,9 +92,9 @@ func genNewDebugCmdFlags(flagSets [][]string, baseSpec *testhelper.CmdTestCase, 
 		stderr = strings.ReplaceAll(stderr, defaultHeaderPrefix, newHeaderPrefix)
 	}
 
-	return &testhelper.CmdTestCase{
+	return &cmdtesthelper.CmdTestCase{
 			Flags: sliceutils.NewStrings(baseSpec.Flags, opts...),
-		}, &testhelper.CmdTestCheckSpec{
+		}, &cmdtesthelper.CmdTestCheckSpec{
 			Stdout:   stdout,
 			Stderr:   stderr,
 			BadFlags: badFlags,

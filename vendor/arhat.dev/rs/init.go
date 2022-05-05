@@ -53,7 +53,7 @@ func Init(in Field, opts *Options) Field {
 	return initInterface(in, opts).(Field)
 }
 
-func initInterface(in interface{}, opts *Options) interface{} {
+func initInterface(in any, opts *Options) any {
 	parentVal := reflect.ValueOf(in)
 	parentType := reflect.TypeOf(in)
 

@@ -11,6 +11,8 @@ import (
 )
 
 func TestTaskPush_ManifestHandling(t *testing.T) {
+	t.Parallel()
+
 	const (
 		manifestName = "foo:latest"
 	)

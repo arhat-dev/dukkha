@@ -8,8 +8,20 @@ workflow:run:
   - shell: |-
       set -x
 
-      command -v cygpath || echo "cygpath not found"
-      command -v dukkha || echo "dukkha not found"
+      echo "PATH=${PATH}"
+
+      if command -v cygpath ; then
+        cygpath -w /tmp
+        ls -alh /tmp || true
+      else
+        echo "cygpath not found"
+      fi
+
+      if command -v dukkha ; then
+        :
+      else
+        echo "dukkha not found"
+      fi
 
       make dukkha
 

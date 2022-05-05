@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseMatrixFilter(t *testing.T) {
+	t.Parallel()
+
 	for _, test := range []struct {
 		name    string
 		filters []string

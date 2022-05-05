@@ -16,6 +16,8 @@ import (
 )
 
 func TestHandleRenderingRequestWithRemoteFetch(t *testing.T) {
+	t.Parallel()
+
 	obj := cache.IdentifiableString("test")
 	const cachedData = "test-data"
 	fetchRemoteAlwaysOk := cache.RemoteCacheRefreshFunc(func(obj cache.IdentifiableObject) (io.ReadCloser, error) {

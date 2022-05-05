@@ -9,6 +9,8 @@ import (
 )
 
 func TestANSIWriter(t *testing.T) {
+	t.Parallel()
+
 	const (
 		fakeProgress = "" +
 			"#       10.2%\r" +

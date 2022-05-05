@@ -14,12 +14,16 @@ import (
 var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestNewDriver(t *testing.T) {
+	t.Parallel()
+
 	ret := NewDefault("")
 
 	assert.NotNil(t, ret)
 }
 
 func TestDriver_Render(t *testing.T) {
+	t.Parallel()
+
 	vFalse := false
 	vTrue := true
 

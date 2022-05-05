@@ -10,6 +10,8 @@ import (
 )
 
 func TestLazyValue_Get(t *testing.T) {
+	t.Parallel()
+
 	const (
 		testdata = "test"
 	)

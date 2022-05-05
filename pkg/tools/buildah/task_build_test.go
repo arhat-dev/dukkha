@@ -17,6 +17,8 @@ import (
 )
 
 func TestTaskBuild(t *testing.T) {
+	t.Parallel()
+
 	type Check struct {
 		rs.BaseField
 
@@ -35,6 +37,8 @@ func TestTaskBuild(t *testing.T) {
 }
 
 func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
+	t.Parallel()
+
 	type TestCase struct {
 		rs.BaseField
 

@@ -9,5 +9,5 @@ var (
 	baseFieldStructType = baseFieldPtrType.Elem()
 
 	fieldInterfaceType = reflect.TypeOf((*Field)(nil)).Elem()
-	rawInterfaceType   = reflect.TypeOf((*interface{})(nil)).Elem()
+	rawInterfaceType   = reflect.TypeOf((*any)(nil)).Elem()
 )

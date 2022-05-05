@@ -302,9 +302,8 @@ func tryRender(
 			return nil, fmt.Errorf("failed to apply patch: %w", err)
 		}
 
-		// patch doc is generated from arbitrary yaml data
-		// with built-in interface{}, so we are able to marshal it into
-		// json, and parse as *yaml.Node for further processing
+		// patch doc is generated from arbitrary yaml data from built-in interface{} value
+		// so we are able to marshal it into json with no error, and then parse the json data as *yaml.Node for further processing
 
 		var dataBytes []byte
 		dataBytes, err = json.Marshal(patchedData)
@@ -479,7 +478,7 @@ func resolvePatchSpec(
 	return patchSpec, err
 }
 
-func handleOptionalRenderingSuffixResolving(rc RenderingHandler, n *yaml.Node, resolve *bool) (interface{}, error) {
+func handleOptionalRenderingSuffixResolving(rc RenderingHandler, n *yaml.Node, resolve *bool) (any, error) {
 	n = prepareYamlNode(n)
 	if n == nil {
 		return nil, nil
@@ -500,7 +499,7 @@ func handleOptionalRenderingSuffixResolving(rc RenderingHandler, n *yaml.Node, r
 		return any.NormalizedValue(), nil
 	}
 
-	var ret interface{}
+	var ret any
 	err := n.Decode(&ret)
 	if err != nil {
 		return nil, err

@@ -14,6 +14,8 @@ import (
 )
 
 func TestRead(t *testing.T) {
+	t.Parallel()
+
 	var (
 		testIncludeEmptyConfig = newConfig(func(c *Config) {
 			c.Include = []*IncludeEntry{

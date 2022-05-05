@@ -19,10 +19,14 @@ import (
 var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestNewDriver(t *testing.T) {
+	t.Parallel()
+
 	assert.NotNil(t, NewDefault(""))
 }
 
 func TestDriver_Render(t *testing.T) {
+	t.Parallel()
+
 	d := NewDefault("")
 
 	buf := make([]byte, 32)

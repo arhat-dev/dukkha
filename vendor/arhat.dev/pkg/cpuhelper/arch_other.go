@@ -3,6 +3,6 @@
 
 package cpuhelper
 
-func Arch() string {
-	return ArchByCPUFeatures()
+func Arch(cpu CPU) string {
+	return ArchByCPUFeatures(cpu)
 }

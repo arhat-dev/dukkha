@@ -17,6 +17,7 @@ on:
     branches:
     - master
     - "!deps/**"
+
   push:
     paths-ignore:
     - docs/**
@@ -42,8 +43,12 @@ jobs:
     with:
       # replace installed dukkha
       prepare: |-
+        set -x
+
         make dukkha
         mv build/dukkha "$(command -v dukkha)"
+
+      install_wine: true
       matrix: |-
         {
           "os": [
@@ -52,7 +57,7 @@ jobs:
             "ubuntu-latest"
           ],
           "go": [
-            "1.17.x"
+            "1.18.x"
           ]
         }
     secrets:

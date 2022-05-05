@@ -145,29 +145,11 @@ fmt.Println(&buf)
 Other available helper functions are: `Faint`, `Italic`, `CrossOut`,
 `Underline`, `Overline`, `Reverse`, and `Blink`.
 
-## Screen
+## Positioning
 
 ```go
-// Reset the terminal to its default style, removing any active styles
-termenv.Reset()
-
-// Switch to the altscreen. The former view can be restored with ExitAltScreen()
-termenv.AltScreen()
-
-// Exit the altscreen and return to the former terminal view
-termenv.ExitAltScreen()
-
-// Clear the visible portion of the terminal
-termenv.ClearScreen()
-
 // Move the cursor to a given position
 termenv.MoveCursor(row, column)
-
-// Hide the cursor
-termenv.HideCursor()
-
-// Show the cursor
-termenv.ShowCursor()
 
 // Save the cursor position
 termenv.SaveCursorPosition()
@@ -194,6 +176,28 @@ termenv.CursorNextLine(n)
 // Move the cursor up a given number of lines and place it at the beginning of
 // the line
 termenv.CursorPrevLine(n)
+```
+
+## Screen
+
+```go
+// Reset the terminal to its default style, removing any active styles
+termenv.Reset()
+
+// RestoreScreen restores a previously saved screen state
+termenv.RestoreScreen()
+
+// SaveScreen saves the screen state
+termenv.SaveScreen()
+
+// Switch to the altscreen. The former view can be restored with ExitAltScreen()
+termenv.AltScreen()
+
+// Exit the altscreen and return to the former terminal view
+termenv.ExitAltScreen()
+
+// Clear the visible portion of the terminal
+termenv.ClearScreen()
 
 // Clear the current line
 termenv.ClearLine()
@@ -211,6 +215,28 @@ termenv.InsertLines(n)
 // Delete the given number of lines, pulling any lines in the scrollable region
 // below up
 termenv.DeleteLines(n)
+```
+
+## Session
+
+```go
+// SetWindowTitle sets the terminal window title
+termenv.SetWindowTitle(title)
+
+// SetForegroundColor sets the default foreground color
+termenv.SetForegroundColor(color)
+
+// SetBackgroundColor sets the default background color
+termenv.SetBackgroundColor(color)
+
+// SetCursorColor sets the cursor color
+termenv.SetCursorColor(color)
+
+// Hide the cursor
+termenv.HideCursor()
+
+// Show the cursor
+termenv.ShowCursor()
 ```
 
 ## Mouse
@@ -247,6 +273,52 @@ termenv.EnableMouseAllMotion()
 termenv.DisableMouseAllMotion()
 ```
 
+## Optional Feature Support
+
+| Terminal         | Alt Screen | Query Color Scheme | Query Cursor Position | Set Window Title | Change Cursor Color | Change Default Foreground Setting | Change Default Background Setting |
+| ---------------- | :--------: | :----------------: | :-------------------: | :--------------: | :-----------------: | :-------------------------------: | :-------------------------------: |
+| alacritty        |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| foot             |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| kitty            |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| Konsole          |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ✅                 |                 ✅                 |
+| rxvt             |     ✅      |         ❌          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| screen           |     ✅      |      ⛔[^mux]       |           ✅           |        ✅         |          ❌          |                 ❌                 |                 ✅                 |
+| st               |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| tmux             |     ✅      |      ⛔[^mux]       |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| vte-based[^vte]  |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ❌                 |
+| wezterm          |     ✅      |         ✅          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+| xterm            |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ❌                 |                 ❌                 |
+| Linux Console    |     ✅      |         ❌          |           ✅           |        ⛔         |          ❌          |                 ❌                 |                 ❌                 |
+| Apple Terminal   |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ✅                 |                 ✅                 |
+| iTerm            |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ❌                 |                 ❌                 |
+| Power Shell      |     ✅      |         ❔          |           ❔           |        ❔         |          ❔          |                 ❔                 |                 ❔                 |
+| Windows Terminal |     ✅      |         ❌          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
+
+[^vte]: This covers all vte-based terminals, including Gnome Terminal, guake, Pantheon Terminal, Terminator, Tilix, XFCE Terminal.
+[^mux]: Unavailable as multiplexers (like tmux or screen) can be connected to multiple terminals (with different color settings) at the same time.
+
+You can help improve this list! Check out [how to](ansi_compat.md) and open an issue or pull request.
+
+### Color Support
+
+- 24-bit (RGB): alacritty, foot, iTerm, kitty, Konsole, st, tmux, vte-based, wezterm, Windows Terminal
+- 8-bit (256): rxvt, screen, xterm, Apple Terminal
+- 4-bit (16): Linux Console
+
+## Platform Support
+
+`termenv` works on Unix systems (like Linux, macOS, or BSD) and Windows. While
+terminal applications on Unix support ANSI styling out-of-the-box, on Windows
+you need to enable ANSI processing in your application first:
+
+```go
+    mode, err := termenv.EnableWindowsANSIConsole()
+    if err != nil {
+        panic(err)
+    }
+    defer termenv.RestoreWindowsConsole(mode)
+```
+
 ## Color Chart
 
 ![ANSI color chart](https://github.com/muesli/termenv/raw/master/examples/color-chart/color-chart.png)
@@ -262,3 +334,10 @@ the command-line, which uses `termenv`
 ## License
 
 [MIT](https://github.com/muesli/termenv/raw/master/LICENSE)
+
+## Feedback
+
+Got some feedback or suggestions? Please open an issue or drop me a note!
+
+* [Twitter](https://twitter.com/mueslix)
+* [The Fediverse](https://mastodon.social/@fribbledom)

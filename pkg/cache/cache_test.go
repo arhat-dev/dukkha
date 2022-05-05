@@ -8,6 +8,8 @@ import (
 )
 
 func TestCache_Get(t *testing.T) {
+	t.Parallel()
+
 	const cachedData = "test-data"
 	calledOK := 0
 	fetchDataAlwaysOk := LocalCacheRefreshFunc(func(io IdentifiableObject) ([]byte, error) {

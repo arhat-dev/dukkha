@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseBrackets(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		toExpand  string

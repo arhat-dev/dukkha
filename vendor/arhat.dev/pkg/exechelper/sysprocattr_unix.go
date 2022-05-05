@@ -25,10 +25,10 @@ import (
 
 func getSysProcAttr(tty bool, origin *syscall.SysProcAttr) *syscall.SysProcAttr {
 	if tty {
-		// if using tty in unix, github.com/creack/pty will Setsid, and if we
+		// if using tty in unix, arhat.dev/pty will Setsid, and if we
 		// Setpgid, will fail the process creation
 		//
-		// https://github.com/creack/pty/issues/35#issuecomment-147947212
+		// https://arhat.dev/pty/issues/35#issuecomment-147947212
 		// do not Setpgid if already Setsid
 		if origin != nil {
 			origin.Setpgid = false

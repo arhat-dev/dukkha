@@ -7,6 +7,8 @@ import (
 )
 
 func TestTaskHeaderLineData_json(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		data TaskHeaderLineData

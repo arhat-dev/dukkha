@@ -8,6 +8,8 @@ import (
 )
 
 func TestDiff(t *testing.T) {
+	t.Parallel()
+
 	type TestCase struct {
 		Original *Node `yaml:"original"`
 		Current  *Node `yaml:"current"`

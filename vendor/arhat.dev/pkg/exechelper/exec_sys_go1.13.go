@@ -12,7 +12,6 @@ import (
 	_ "unsafe" // for go:linkname
 )
 
-//go:linkname execCmd os/exec.Cmd
 type execCmd struct {
 	// Path is the path of the command to run.
 	//

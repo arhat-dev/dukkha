@@ -311,7 +311,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	archconst.ARCH_PPC64_V8_LE: {
+	archconst.ARCH_PPC64_LE_V8: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",
@@ -341,7 +341,7 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "",
 	},
-	archconst.ARCH_PPC64_V9_LE: {
+	archconst.ARCH_PPC64_LE_V9: {
 		Alpine: "ppc64le",
 		Debian: "ppc64el",
 		GNU:    "powerpc64le",

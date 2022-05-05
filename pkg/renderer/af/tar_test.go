@@ -59,6 +59,8 @@ func newTarBuf(add func(w *tar.Writer)) io.ReadSeeker {
 }
 
 func TestUntar(t *testing.T) {
+	t.Parallel()
+
 	const (
 		fileContent = "test-data"
 	)

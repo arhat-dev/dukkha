@@ -8,6 +8,8 @@ import (
 )
 
 func TestGenEnvForValues(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		values   map[string]interface{}

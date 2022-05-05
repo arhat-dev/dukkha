@@ -39,9 +39,9 @@ const (
 	ARCH_PPC64_LE = "ppc64le"
 
 	ARCH_PPC64_V8    = "ppc64v8"
-	ARCH_PPC64_V8_LE = "ppc64v8le"
+	ARCH_PPC64_LE_V8 = "ppc64lev8"
 	ARCH_PPC64_V9    = "ppc64v9"
-	ARCH_PPC64_V9_LE = "ppc64v9le"
+	ARCH_PPC64_LE_V9 = "ppc64lev9"
 
 	ARCH_RISCV_64 = "riscv64"
 

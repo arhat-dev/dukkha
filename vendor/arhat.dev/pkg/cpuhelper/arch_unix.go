@@ -12,8 +12,9 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func Arch() string {
-	hostArch := ArchByCPUFeatures()
+// Arch returns runtime cpu arch value as defined in package arhat.dev/pkg/archconst
+func Arch(cpu CPU) string {
+	hostArch := ArchByCPUFeatures(cpu)
 	if len(hostArch) != 0 {
 		return hostArch
 	}
@@ -61,7 +62,7 @@ func Arch() string {
 	case hostArch == "ppc64", hostArch == "powerpc64":
 		return fallback(
 			versionhelper.Arch(), // prefer build time value with micro arch info
-			selectEndian(archconst.ARCH_PPC64_V8_LE, archconst.ARCH_PPC64_V8),
+			selectEndian(archconst.ARCH_PPC64_LE_V8, archconst.ARCH_PPC64_V8),
 		)
 	case hostArch == "ppc", hostArch == "powerpc":
 		return fallback(

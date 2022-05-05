@@ -13,10 +13,14 @@ import (
 var _ dukkha.Renderer = (*Driver)(nil)
 
 func TestNewDriver(t *testing.T) {
+	t.Parallel()
+
 	assert.NotNil(t, NewDefault(""))
 }
 
 func TestDriver_RenderYaml(t *testing.T) {
+	t.Parallel()
+
 	dt.TestFixturesUsingRenderingSuffix(t, "./fixtures",
 		map[string]dukkha.Renderer{
 			"tpl": NewDefault("tpl"),

@@ -8,8 +8,9 @@ import (
 	"arhat.dev/pkg/versionhelper"
 )
 
-func Arch() string {
-	hostArch := ArchByCPUFeatures()
+// Arch returns runtime cpu arch value as defined in package arhat.dev/pkg/archconst
+func Arch(cpu CPU) string {
+	hostArch := ArchByCPUFeatures(cpu)
 	if len(hostArch) != 0 {
 		return hostArch
 	}

@@ -7,6 +7,8 @@ import (
 )
 
 func TestCartesianProduct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		spec     map[string][]string

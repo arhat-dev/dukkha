@@ -11,6 +11,8 @@ import (
 )
 
 func TestTaskCreate(t *testing.T) {
+	t.Parallel()
+
 	type Check struct {
 		rs.BaseField
 

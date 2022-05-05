@@ -30,9 +30,9 @@ func GetAppleArch(mArch string) (string, bool) {
 		archconst.ARCH_PPC64:       "",
 		archconst.ARCH_PPC64_LE:    "",
 		archconst.ARCH_PPC64_V8:    "",
-		archconst.ARCH_PPC64_V8_LE: "",
+		archconst.ARCH_PPC64_LE_V8: "",
 		archconst.ARCH_PPC64_V9:    "",
-		archconst.ARCH_PPC64_V9_LE: "",
+		archconst.ARCH_PPC64_LE_V9: "",
 
 		archconst.ARCH_MIPS:         "",
 		archconst.ARCH_MIPS_SF:      "",
@@ -76,9 +76,9 @@ func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
 		archconst.ARCH_PPC64:       "",
 		archconst.ARCH_PPC64_LE:    "",
 		archconst.ARCH_PPC64_V8:    "",
-		archconst.ARCH_PPC64_V8_LE: "",
+		archconst.ARCH_PPC64_LE_V8: "",
 		archconst.ARCH_PPC64_V9:    "",
-		archconst.ARCH_PPC64_V9_LE: "",
+		archconst.ARCH_PPC64_LE_V9: "",
 
 		archconst.ARCH_MIPS:         "",
 		archconst.ARCH_MIPS_SF:      "",

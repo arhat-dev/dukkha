@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"os"
@@ -48,6 +47,7 @@ func (r *Runner) fillExpandConfig(ctx context.Context) {
 			r2 := r.Subshell()
 			r2.stdout = w
 			r2.stmts(ctx, cs.Stmts)
+			r.lastExpandExit = r2.exit
 			return r2.err
 		},
 		ProcSubst: func(ps *syntax.ProcSubst) (string, error) {
@@ -144,7 +144,9 @@ func (r *Runner) updateExpandOpts() {
 	if r.opts[optNoGlob] {
 		r.ecfg.ReadDir = nil
 	} else {
-		r.ecfg.ReadDir = ioutil.ReadDir
+		r.ecfg.ReadDir = func(s string) ([]os.FileInfo, error) {
+			return r.readDirHandler(r.handlerCtx(context.Background()), s)
+		}
 	}
 	r.ecfg.GlobStar = r.opts[optGlobStar]
 	r.ecfg.NullGlob = r.opts[optNullGlob]
@@ -336,6 +338,7 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 			}
 		}
 		args = append(args, left...)
+		r.lastExpandExit = 0
 		fields := r.fields(args...)
 		if len(fields) == 0 {
 			for _, as := range x.Assigns {
@@ -359,6 +362,12 @@ func (r *Runner) cmd(ctx context.Context, cm syntax.Command) {
 					trace.stringf("%s=%s", as.Name.Value, val)
 				}
 				trace.newLineFlush()
+			}
+			// If interpreting the last expansion like $(foo) failed,
+			// and the expansion and assignments otherwise succeeded,
+			// we need to surface that last exit code.
+			if r.exit == 0 {
+				r.exit = r.lastExpandExit
 			}
 			break
 		}
@@ -659,7 +668,7 @@ func (r *Runner) trapCallback(ctx context.Context, callback, name string) {
 	r.handlingTrap = false
 }
 
-// setExit call this function to exit the shell with status
+// exitShell exits the current shell session with the given status code.
 func (r *Runner) exitShell(ctx context.Context, status int) {
 	if status != 0 {
 		r.trapCallback(ctx, r.callbackErr, "error")
@@ -835,6 +844,15 @@ func (s returnStatus) Error() string { return fmt.Sprintf("return status %d", s)
 func (r *Runner) call(ctx context.Context, pos syntax.Pos, args []string) {
 	if r.stop(ctx) {
 		return
+	}
+	if r.callHandler != nil {
+		var err error
+		args, err = r.callHandler(r.handlerCtx(ctx), args)
+		if err != nil {
+			// handler's custom fatal error
+			r.setErr(err)
+			return
+		}
 	}
 	name := args[0]
 	if body := r.Funcs[name]; body != nil {

@@ -28,9 +28,9 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 		archconst.ARCH_PPC64:       "powerpc64-linux-musl",
 		archconst.ARCH_PPC64_LE:    "powerpc64le-linux-musl",
 		archconst.ARCH_PPC64_V8:    "powerpc64-linux-musl",
-		archconst.ARCH_PPC64_V8_LE: "powerpc64le-linux-musl",
+		archconst.ARCH_PPC64_LE_V8: "powerpc64le-linux-musl",
 		archconst.ARCH_PPC64_V9:    "powerpc64-linux-musl",
-		archconst.ARCH_PPC64_V9_LE: "powerpc64le-linux-musl",
+		archconst.ARCH_PPC64_LE_V9: "powerpc64le-linux-musl",
 
 		archconst.ARCH_MIPS:         "mips-linux-musl",
 		archconst.ARCH_MIPS_SF:      "mips-linux-muslsf",
@@ -102,9 +102,9 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			archconst.ARCH_PPC64:       "",
 			archconst.ARCH_PPC64_LE:    "",
 			archconst.ARCH_PPC64_V8:    "",
-			archconst.ARCH_PPC64_V8_LE: "",
+			archconst.ARCH_PPC64_LE_V8: "",
 			archconst.ARCH_PPC64_V9:    "",
-			archconst.ARCH_PPC64_V9_LE: "",
+			archconst.ARCH_PPC64_LE_V9: "",
 		}[mArch]
 
 		return v, ok
@@ -136,9 +136,9 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			archconst.ARCH_PPC64:       "",
 			archconst.ARCH_PPC64_LE:    "",
 			archconst.ARCH_PPC64_V8:    "",
-			archconst.ARCH_PPC64_V8_LE: "",
+			archconst.ARCH_PPC64_LE_V8: "",
 			archconst.ARCH_PPC64_V9:    "",
-			archconst.ARCH_PPC64_V9_LE: "",
+			archconst.ARCH_PPC64_LE_V9: "",
 
 			archconst.ARCH_MIPS:         "",
 			archconst.ARCH_MIPS_SF:      "",
@@ -173,9 +173,9 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 			archconst.ARCH_PPC64:       "powerpc64-linux-gnu",
 			archconst.ARCH_PPC64_LE:    "powerpc64le-linux-gnu",
 			archconst.ARCH_PPC64_V8:    "powerpc64-linux-gnu",
-			archconst.ARCH_PPC64_V8_LE: "powerpc64le-linux-gnu",
+			archconst.ARCH_PPC64_LE_V8: "powerpc64le-linux-gnu",
 			archconst.ARCH_PPC64_V9:    "powerpc64-linux-gnu",
-			archconst.ARCH_PPC64_V9_LE: "powerpc64le-linux-gnu",
+			archconst.ARCH_PPC64_LE_V9: "powerpc64le-linux-gnu",
 
 			archconst.ARCH_MIPS:         "mips-linux-gnu",
 			archconst.ARCH_MIPS_SF:      "mips-linux-gnu",

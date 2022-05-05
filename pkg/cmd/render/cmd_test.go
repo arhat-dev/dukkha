@@ -26,6 +26,7 @@ import (
 )
 
 func TestCmd(t *testing.T) {
+	t.Parallel()
 
 	type TestSpec struct {
 		rs.BaseField

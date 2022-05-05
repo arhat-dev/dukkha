@@ -17,6 +17,8 @@ import (
 )
 
 func TestParseOneLineSpec(t *testing.T) {
+	t.Parallel()
+
 	for _, test := range []struct {
 		line     string
 		expected *inputSpec

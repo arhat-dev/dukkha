@@ -7,6 +7,8 @@ import (
 )
 
 func TestTaskExecOptions(t *testing.T) {
+	t.Parallel()
+
 	opts := CreateTaskExecOptions(1, 10).(*taskExecOpts)
 	assert.Equal(t, opts.id, 1)
 	assert.Equal(t, opts.seq, -1)

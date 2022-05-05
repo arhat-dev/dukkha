@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/pathhelper"
+	"mvdan.cc/sh/v3/expand"
 )
 
 // dukkha specific handler related functions
@@ -86,7 +88,7 @@ func DukkhaExecHandler(killTimeout time.Duration) ExecHandlerFunc {
 	}
 }
 
-func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny) (string, error) {
+func lookPathDir(goos, cwd, target string, env expand.Environ, find findAny) (string, error) {
 	if find == nil {
 		panic("no find function found")
 	}
@@ -95,22 +97,21 @@ func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny
 	if goos == "windows" {
 		chars = `:\/`
 	}
-	exts := pathExts(goos, pathExtEnv)
+	exts := pathExts(goos, env.Get("PATHEXT").String())
 
-	// paths like `./`, `../`, `/`
+	// paths like `./foo`, `../foo`, `/foo`, `foo/bar`
 	if strings.ContainsAny(target, chars) {
 		return find(cwd, target, exts)
 	}
 
-	pathList := splitPathList(goos, cwd, target, pathListEnv, pathExtEnv)
-	for _, elem := range pathList {
+	for _, dir := range splitPathList(goos, cwd, target, env) {
 		var path string
-		switch elem {
+		switch dir {
 		case "", ".":
 			// otherwise "foo" won't be "./foo"
 			path = "." + string(filepath.Separator) + target
 		default:
-			path = filepath.Join(elem, target)
+			path = filepath.Join(dir, target)
 		}
 
 		if f, err := find(cwd, path, exts); err == nil {
@@ -119,76 +120,6 @@ func lookPathDir(goos, cwd, target, pathListEnv, pathExtEnv string, find findAny
 	}
 
 	return "", fmt.Errorf("%q: executable file not found in $PATH", target)
-}
-
-// splitPathList normalize PATH list as absolute paths
-// both ; and : are treated as path separator on windows
-func splitPathList(goos, cwd, target, pathListEnv, pathExtEnv string) []string {
-	isWindows := goos == "windows"
-
-	isSlash := pathhelper.IsUnixSlash
-	if isWindows {
-		isSlash = pathhelper.IsWindowsSlash
-	}
-
-	// only split semi-colon on windows
-	list := pathhelper.SplitList(pathListEnv, true, isWindows, isSlash)
-
-	for i, v := range list {
-		if filepath.IsAbs(v) {
-			continue
-		}
-
-		if !isWindows {
-			list[i] = pathhelper.JoinUnixPath(cwd, v)
-			continue
-		}
-
-		const (
-			cygpathBin = "cygpath"
-		)
-
-		if target == cygpathBin {
-			list[i], _ = pathhelper.AbsWindowsPath(cwd, v, func(path string) (string, error) {
-				return "", nil
-			})
-			continue
-		}
-
-		var err error
-		list[i], err = pathhelper.AbsWindowsPath(cwd, v, func(path string) (string, error) {
-			// find root path of the fhs root using cygpath
-			// but first lookup cygpath itself
-			cygpath, err := lookPathDir(goos, cwd, cygpathBin, pathListEnv, pathExtEnv, findExecutable)
-			if err != nil {
-				return "", err
-			}
-
-			// NOTE for some environments:
-			// 	 github action windows:
-			//		there is `cygpath` at C:\Program Files\Git\usr\bin\cygpath
-			// 		when running inside gitbash (set `shell: bash`)
-
-			output, err2 := exec.Command(cygpath, "-w", path).CombinedOutput()
-			if err2 == nil {
-				return strings.TrimSpace(string(output)), nil
-			}
-
-			switch {
-			case os.Getenv("GITHUB_ACTIONS") == "true":
-				// github action has msys2 installed without PATH added
-				return `C:\msys64`, nil
-			default:
-				// TODO: other defaults?
-				return "", err2
-			}
-		})
-
-		// error can only happen when looking up fhs root
-		_ = err
-	}
-
-	return list
 }
 
 func pathExts(goos, pathExtEnv string) []string {
@@ -203,7 +134,7 @@ func pathExts(goos, pathExtEnv string) []string {
 
 	var exts []string
 	for _, e := range strings.Split(strings.ToLower(pathExtEnv), `;`) {
-		if e == "" {
+		if len(e) == 0 {
 			continue
 		}
 		if e[0] != '.' {
@@ -214,4 +145,238 @@ func pathExts(goos, pathExtEnv string) []string {
 
 	// allow no extension at last
 	return append(exts, "")
+}
+
+// splitPathList normalize PATH list as absolute paths
+// parameter target is the file we are looking for
+//
+// both ; and : are treated as path separator on windows
+func splitPathList(goos, cwd, target string, env expand.Environ) []string {
+	isWindows := goos == "windows"
+
+	isSlash := pathhelper.IsUnixSlash
+	if isWindows {
+		isSlash = pathhelper.IsWindowsSlash
+	}
+
+	// split both colon and semi-colon on windows
+	dirList := pathhelper.SplitList(env.Get("PATH").String(), true, isWindows /* semi colon sep */, isSlash)
+
+	const BAD = "\n" // just a invalid char for path string (both windows and posix)
+	var (
+		// absolute path of `uname`, `cygpath`, `winepath`
+		uname, cygpath, winepath string
+		// output of `uname -s`
+		uname_s string
+	)
+
+	for i, thisDir := range dirList {
+		if !isWindows {
+			// unix path
+
+			if path.IsAbs(thisDir) {
+				continue
+			}
+
+			dirList[i] = pathhelper.JoinUnixPath(cwd, thisDir)
+			continue
+		}
+
+		// windows can be one of following conditions:
+		// - native windows, thus windows path
+		// - cygwin with unix path on windows
+		// - wine with window path on darwin/linux
+		// - cygwin inside wine
+
+		if pathhelper.IsWindowsAbs(thisDir) {
+			continue
+		}
+
+		const (
+			unameBin    = "uname"
+			cygpathBin  = "cygpath"
+			winepathBin = "winepath"
+		)
+
+		// special case `uname`, `cygpath` and `winepath` to avoid infinite loop when there is
+		// unix path in PATH list
+		switch target {
+		case cygpathBin, winepathBin, unameBin:
+			dirList[i], _ = pathhelper.AbsWindowsPath(cwd, thisDir, func(path string) (string, error) {
+				return "", nil
+			})
+
+			continue
+		}
+
+		// here we ignore the returned error since it's always nil
+		dirList[i], _ = pathhelper.AbsWindowsPath(cwd, thisDir, func(path string) (ret string, err2 error) {
+		UNAME:
+			switch {
+			case uname_s == "": // uname -s not set
+				switch uname {
+				case "":
+					uname, err2 = lookPathDir(goos, cwd, unameBin, env, findExecutable)
+					if err2 != nil {
+						uname, uname_s = BAD, BAD
+						goto WINE
+					}
+				case BAD: // there is no `uname`
+					uname_s = BAD
+					goto WINE
+				}
+
+				// uname bin exists
+				uname_s, err2 = run_uname_s(cwd, uname, env)
+				if err2 != nil {
+					uname_s = BAD
+					goto WINE
+				}
+
+				// check uname_s again
+				goto UNAME
+			case uname_s == BAD:
+				goto WINE
+			case strings.HasPrefix(uname_s, "CYGWIN_NT") ||
+				strings.HasPrefix(uname_s, "MINGW32_NT") ||
+				strings.HasPrefix(uname_s, "MINGW64_NT"):
+				goto CYGWIN
+			default:
+				// TODO: this case seems impossible: detected uname -s on windows and is not cygwin
+				//       merge with `case uname_s == BAD` ?
+				goto WINE
+			}
+
+		CYGWIN:
+			// lookup and cache cygpath for this split
+			switch cygpath {
+			case "":
+				cygpath, err2 = lookPathDir(goos, cwd, cygpathBin, env, findExecutable)
+				if err2 != nil {
+					// TODO: fallback to default cygpath for some environments:
+					// 	 github actions windows virtual environment:
+					//		(bash) `cygpath` at C:\Program Files\Git\usr\bin\cygpath.exe
+					cygpath = BAD
+					goto WINE
+				}
+			case BAD:
+				goto WINE
+			}
+
+			// there is `cygpath`
+			ret, err2 = run_cygpath_w(cwd, cygpath, path, env)
+			if err2 == nil {
+				return
+			}
+
+			// errored, try winepath anyway
+
+		WINE:
+			// lookup and cache winepath for this split
+			switch winepath {
+			case "":
+				winepath, err2 = lookPathDir(goos, cwd, winepathBin, env, findExecutable)
+				if err2 != nil {
+					winepath = BAD
+					goto FALLBACK
+				}
+			case BAD:
+				goto FALLBACK
+			}
+
+			// there is `winepath`
+			ret, err2 = run_winepath_w(cwd, winepath, path, env)
+			if err2 == nil {
+				return
+			}
+
+		FALLBACK:
+
+			// both cygpath and winepath are missing or not working
+
+			switch {
+			case os.Getenv("GITHUB_ACTIONS") == "true":
+				// github action has msys2 installed
+				return pathhelper.JoinWindowsPath(`C:\msys64`, path), nil
+			default:
+				return pathhelper.ConvertFSPathToWindowsPath(filepath.VolumeName(cwd), path), nil
+			}
+		})
+	}
+
+	return dirList
+}
+
+func run_cygpath_w(cwd, bin, target string, env expand.Environ) (string, error) {
+	var buf strings.Builder
+
+	cmd := exec.Cmd{
+		Path:   bin,
+		Args:   []string{bin, "-w", target},
+		Env:    execEnv(env),
+		Dir:    cwd,
+		Stdin:  nil,
+		Stdout: &buf,
+		Stderr: &buf,
+	}
+
+	err := exechelper.StartNoLookPath(&cmd)
+	if err == nil {
+		err = cmd.Wait()
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(buf.String()), nil
+}
+
+func run_winepath_w(cwd, bin, target string, env expand.Environ) (string, error) {
+	var buf strings.Builder
+
+	cmd := exec.Cmd{
+		Path:   bin,
+		Args:   []string{bin, "-w", target},
+		Env:    execEnv(env),
+		Dir:    cwd,
+		Stdin:  nil,
+		Stdout: &buf,
+		Stderr: &buf,
+	}
+
+	err := exechelper.StartNoLookPath(&cmd)
+	if err == nil {
+		err = cmd.Wait()
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(buf.String()), nil
+}
+
+func run_uname_s(cwd, bin string, env expand.Environ) (string, error) {
+	var buf strings.Builder
+	cmd := exec.Cmd{
+		Path:   bin,
+		Args:   []string{bin, "-s"},
+		Env:    execEnv(env),
+		Dir:    cwd,
+		Stdin:  nil,
+		Stdout: &buf,
+		Stderr: &buf,
+	}
+
+	err := exechelper.StartNoLookPath(&cmd)
+	if err == nil {
+		err = cmd.Wait()
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(buf.String()), nil
 }
