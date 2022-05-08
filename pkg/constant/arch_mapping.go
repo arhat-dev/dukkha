@@ -70,6 +70,21 @@ var archMapping = map[string]ArchMappingValues{
 
 		LLVM: "x86",
 	},
+	archconst.ARCH_X86_SF: {
+		Alpine: "x86",
+		Debian: "i386",
+		GNU:    "i686",
+
+		Golang: "386",
+		Docker: "386",
+		OCI:    "386",
+
+		Qemu: "i386",
+
+		DockerHub: "i386",
+
+		LLVM: "x86",
+	},
 	archconst.ARCH_AMD64: {
 		Alpine: "x86_64",
 		Debian: "amd64",
@@ -202,6 +217,37 @@ var archMapping = map[string]ArchMappingValues{
 		Qemu: "aarch64",
 
 		DockerHub: "arm64v8",
+
+		LLVM: "aarch64",
+	},
+	archconst.ARCH_ARM64_V8: {
+		Alpine: "aarch64",
+		Debian: "arm64",
+		GNU:    "aarch64",
+
+		Golang: "arm64",
+		Docker: "arm64",
+		OCI:    "arm64",
+
+		Qemu: "aarch64",
+
+		DockerHub: "arm64v8",
+
+		LLVM: "aarch64",
+	},
+	// TODO: revise once standardized
+	archconst.ARCH_ARM64_V9: {
+		Alpine: "aarch64",
+		Debian: "arm64",
+		GNU:    "aarch64",
+
+		Golang: "arm64",
+		Docker: "arm64",
+		OCI:    "arm64",
+
+		Qemu: "aarch64",
+
+		DockerHub: "arm64v9",
 
 		LLVM: "aarch64",
 	},

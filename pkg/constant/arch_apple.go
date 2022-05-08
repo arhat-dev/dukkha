@@ -16,7 +16,8 @@ func GetAppleArch(mArch string) (string, bool) {
 		// arm64 for m1 chip, arm64e for A12 - before m1
 		archconst.ARCH_ARM64: "arm64",
 
-		archconst.ARCH_X86: "",
+		archconst.ARCH_X86:    "",
+		archconst.ARCH_X86_SF: "",
 
 		archconst.ARCH_ARM_V5: "",
 		archconst.ARCH_ARM_V6: "",
@@ -62,7 +63,8 @@ func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
 
 		archconst.ARCH_ARM64: "arm64-apple-darwin",
 
-		archconst.ARCH_X86: "",
+		archconst.ARCH_X86:    "",
+		archconst.ARCH_X86_SF: "",
 
 		archconst.ARCH_ARM_V5: "",
 		archconst.ARCH_ARM_V6: "",

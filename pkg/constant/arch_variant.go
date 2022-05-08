@@ -9,7 +9,9 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 		archconst.ARCH_ARM_V7: "v7",
 		archconst.ARCH_ARM64:  "v8",
 
-		archconst.ARCH_X86:      "",
+		archconst.ARCH_X86:    "",
+		archconst.ARCH_X86_SF: "",
+
 		archconst.ARCH_AMD64:    "",
 		archconst.ARCH_AMD64_V1: "v1",
 		archconst.ARCH_AMD64_V2: "v2",
@@ -54,7 +56,9 @@ func GetOciArchVariant(mArch string) (string, bool) {
 
 		archconst.ARCH_ARM64: "v8",
 
-		archconst.ARCH_X86:      "",
+		archconst.ARCH_X86:    "",
+		archconst.ARCH_X86_SF: "",
+
 		archconst.ARCH_AMD64:    "",
 		archconst.ARCH_AMD64_V1: "v1",
 		archconst.ARCH_AMD64_V2: "v2",

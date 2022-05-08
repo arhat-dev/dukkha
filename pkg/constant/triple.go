@@ -8,7 +8,9 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 	// NOTE: some arch value in triple name is different from alpine arch
 	// 		 so we cannot do the same conversion as GNU/LLVM triple does
 	v, ok := map[string]string{
-		archconst.ARCH_X86:      "i686-linux-musl",
+		archconst.ARCH_X86:    "i686-linux-musl",
+		archconst.ARCH_X86_SF: "i686-linux-musl",
+
 		archconst.ARCH_AMD64:    "x86_64-linux-musl",
 		archconst.ARCH_AMD64_V1: "x86_64-linux-musl",
 		archconst.ARCH_AMD64_V2: "x86_64-linux-musl",
@@ -61,7 +63,9 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		// https://packages.debian.org/buster/musl-dev
 		// check list of files
 		v, ok := map[string]string{
-			archconst.ARCH_X86:      "i386-linux-musl",
+			archconst.ARCH_X86:    "i386-linux-musl",
+			archconst.ARCH_X86_SF: "i386-linux-musl",
+
 			archconst.ARCH_AMD64:    "x86_64-linux-musl",
 			archconst.ARCH_AMD64_V1: "x86_64-linux-musl",
 			archconst.ARCH_AMD64_V2: "x86_64-linux-musl",
@@ -112,7 +116,8 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		v, ok := map[string]string{
 			// https://packages.debian.org/buster/mingw-w64-i686-dev
 			// check list of files
-			archconst.ARCH_X86: "i686-w64-mingw32",
+			archconst.ARCH_X86:    "i686-w64-mingw32",
+			archconst.ARCH_X86_SF: "i686-w64-mingw32",
 			// https://packages.debian.org/buster/mingw-w64-x86-64-dev
 			// check list of files
 			archconst.ARCH_AMD64:    "x86_64-w64-mingw32",
@@ -158,7 +163,9 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 		fallthrough
 	default:
 		v, ok := map[string]string{
-			archconst.ARCH_X86:      "i686-linux-gnu",
+			archconst.ARCH_X86:    "i686-linux-gnu",
+			archconst.ARCH_X86_SF: "i686-linux-gnu",
+
 			archconst.ARCH_AMD64:    "x86_64-linux-gnu",
 			archconst.ARCH_AMD64_V1: "x86_64-linux-gnu",
 			archconst.ARCH_AMD64_V2: "x86_64-linux-gnu",

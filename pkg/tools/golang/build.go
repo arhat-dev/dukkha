@@ -3,6 +3,7 @@ package golang
 import (
 	"strings"
 
+	"arhat.dev/pkg/archconst"
 	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
@@ -26,11 +27,12 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		})
 	}
 
-	goarch, _ := constant.GetGolangArch(v.MatrixArch())
+	mArch := v.MatrixArch()
+	goarch, _ := constant.GetGolangArch(mArch)
 	switch {
 	case len(goarch) != 0:
-	case len(v.MatrixArch()) != 0:
-		goarch = v.MatrixArch()
+	case len(mArch) != 0:
+		goarch = mArch
 	}
 
 	if len(goarch) != 0 {
@@ -40,60 +42,101 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		})
 	}
 
-	if gomips := getGOMIPS(v.MatrixArch()); len(gomips) != 0 {
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOMIPS",
-			Value: gomips,
-		}, &dukkha.EnvEntry{
-			Name:  "GOMIPS64",
-			Value: gomips,
-		})
-	} else if goarm := getGOARM(v.MatrixArch()); len(goarm) != 0 {
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOARM",
-			Value: goarm,
-		})
-	} else if goamd64 := getGOAMD64(v.MatrixArch()); len(goamd64) != 0 {
+	switch {
+	case strings.HasPrefix(mArch, archconst.ARCH_AMD64):
 		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOAMD64",
-			Value: goamd64,
+			Value: getGOAMD64(mArch),
 		})
-	} else if goppc64 := getGOPPC64(v.MatrixArch()); len(goppc64) != 0 {
+	case strings.HasPrefix(mArch, archconst.ARCH_X86):
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GO386",
+			Value: getGO386(mArch),
+		})
+	case strings.HasPrefix(mArch, archconst.ARCH_ARM64): // MUST be prior to ARCH_ARM
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOARM64",
+			Value: getGOARM64(mArch),
+		})
+	case strings.HasPrefix(mArch, archconst.ARCH_ARM):
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOARM",
+			Value: getGOARM(mArch),
+		})
+	case strings.HasPrefix(mArch, archconst.ARCH_MIPS64): // MUST be prior to ARCH_MIPS
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOMIPS64",
+			Value: getGOMIPS64(mArch),
+		})
+	case strings.HasPrefix(mArch, archconst.ARCH_MIPS):
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GOMIPS",
+			Value: getGOMIPS(mArch),
+		})
+	case strings.HasPrefix(mArch, archconst.ARCH_PPC64):
 		env = append(env, &dukkha.EnvEntry{
 			Name:  "GOPPC64",
-			Value: goppc64,
+			Value: getGOPPC64(mArch),
 		})
 	}
 
 	return append(env, cgoSpec.getEnv(
-		v.HostKernel() != v.MatrixKernel() || v.HostArch() != v.MatrixArch(),
-		v.MatrixKernel(), v.MatrixArch(),
-		v.HostOS(),
-		v.MatrixLibc(),
+		v.HostKernel() != v.MatrixKernel() || v.HostArch() != mArch, /* doing cross compile */
+		v.MatrixKernel(), /* target kernel */
+		mArch,            /* target arch */
+		v.HostOS(),       /* host os */
+		v.MatrixLibc(),   /* target libc */
 	)...)
 }
 
-func getGOAMD64(mArch string) string {
-	if strings.HasPrefix(mArch, "amd64v") {
-		return strings.TrimPrefix(mArch, "amd64")
-	}
-
-	return ""
-}
-
-func getGOARM(mArch string) string {
-	if strings.HasPrefix(mArch, "armv") {
-		return strings.TrimPrefix(mArch, "armv")
-	}
-
-	return ""
-}
-
-func getGOMIPS(mArch string) string {
-	if !strings.HasPrefix(mArch, "mips") {
+func getGO386(mArch string) string {
+	if !strings.HasPrefix(mArch, "x86") {
 		return ""
 	}
 
+	if strings.HasSuffix(mArch, "sf") {
+		return "softfloat"
+	}
+
+	return "sse2"
+}
+
+func getGOAMD64(mArch string) string {
+	microArch := strings.TrimPrefix(mArch, "amd64")
+	if len(microArch) == 0 {
+		return "v1"
+	}
+
+	return microArch
+}
+
+func getGOARM(mArch string) string {
+	level := strings.TrimPrefix(strings.TrimPrefix(mArch, "arm"), "v")
+	if len(level) == 0 {
+		return "7"
+	}
+
+	return level
+}
+
+func getGOARM64(mArch string) string {
+	level := strings.TrimPrefix(strings.TrimPrefix(mArch, "arm64"), "v")
+	if len(level) == 0 {
+		return "8"
+	}
+
+	return level
+}
+
+func getGOMIPS(mArch string) string {
+	if strings.HasSuffix(mArch, "sf") {
+		return "softfloat"
+	}
+
+	return "hardfloat"
+}
+
+func getGOMIPS64(mArch string) string {
 	if strings.HasSuffix(mArch, "sf") {
 		return "softfloat"
 	}
@@ -104,14 +147,13 @@ func getGOMIPS(mArch string) string {
 func getGOPPC64(mArch string) string {
 	// ppc64{, le}{, v8, v9}
 
-	if len(mArch) == 0 ||
-		!strings.HasPrefix(mArch, "ppc64") ||
-		!strings.HasSuffix(mArch[:len(mArch)-1], "v") {
-		return ""
+	isa := strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(mArch, "ppc64"), "le"), "v")
+	if len(isa) == 0 {
+		return "power8"
 	}
 
 	// power8 or power9
-	return "power" + mArch[len(mArch)-1:]
+	return "power" + isa
 }
 
 type buildOptions struct {

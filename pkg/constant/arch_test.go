@@ -10,7 +10,8 @@ import (
 var (
 	// TODO: update this map when changing arch.go
 	requiredArchMappingValues = map[string]string{
-		archconst.ARCH_X86: "x86",
+		archconst.ARCH_X86:    "x86",
+		archconst.ARCH_X86_SF: "x86sf",
 
 		archconst.ARCH_AMD64: "amd64",
 

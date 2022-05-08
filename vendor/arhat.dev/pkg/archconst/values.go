@@ -5,8 +5,8 @@ package archconst
 //
 // arch name is required, usually a valid GOARCH value (exceptions: `x86`)
 // when {endian variant} not set, default endian is assumed
-// when `sf` absent, hard float support is assumed
-// if there is no micro arch specified, the lowest micro arch is assumed
+// when `sf` absent, hard float support is assumed (unless micro arch indicates soft float)
+// if there is no micro arch specified, the lowest micro arch is assumed (exception: `arm` is `armv7`)
 //
 // example `mips`:
 // - `mipsle` -> [arch name] = mips, {endian variant} = little-endian (le) as original mips uses big-endian
@@ -41,6 +41,8 @@ const (
 	/*
 		ARM
 	*/
+
+	ARCH_ARM = "arm" // alias of armv7
 
 	ARCH_ARM_V5 = "armv5"
 	ARCH_ARM_V6 = "armv6"
@@ -78,8 +80,9 @@ const (
 		PowerPC
 	*/
 
-	ARCH_PPC       = "ppc"
-	ARCH_PPC_SF    = "ppcsf"
+	ARCH_PPC    = "ppc"
+	ARCH_PPC_SF = "ppcsf"
+
 	ARCH_PPC_LE    = "ppcle"
 	ARCH_PPC_LE_SF = "ppclesf"
 
