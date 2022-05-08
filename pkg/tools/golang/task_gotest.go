@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"arhat.dev/pkg/byteshelper"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/rs"
@@ -71,34 +72,23 @@ func (c *TaskTest) GetExecSpecs(
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		// get package prefix to be trimed
-		const targetReplaceModuleName = "<MODULE_NAME>"
-		steps = append(steps, dukkha.TaskExecSpec{
-			StdoutAsReplace:          targetReplaceModuleName,
-			FixStdoutValueForReplace: bytes.TrimSpace,
-
-			Chdir:       c.Chdir,
-			Command:     []string{constant.DUKKHA_TOOL_CMD, "list", "-m"},
-			IgnoreError: false,
-		})
-
 		// get a list of packages to be tested
 		const (
-			listFormat                     = `{{ .ImportPath }}`
-			targetReplacePackages          = "<GO_PACKAGES>"
+			targetReplaceABSPackageDirs    = "<GO_ABS_PACKAGE_DIRS>"
 			targetReplaceGoListErrorResult = "<GO_LIST_ERROR_RESULT>"
 		)
 		steps = append(steps, dukkha.TaskExecSpec{
-			StdoutAsReplace: targetReplacePackages,
+			StdoutAsReplace: targetReplaceABSPackageDirs,
 			StderrAsReplace: targetReplaceGoListErrorResult,
 
-			Chdir:       c.Chdir,
-			Command:     []string{constant.DUKKHA_TOOL_CMD, "list", "-f", listFormat, c.Path},
+			Chdir: c.Chdir,
+			Command: []string{
+				constant.DUKKHA_TOOL_CMD, "list", "-f", `{{ .Dir }}`, c.Path,
+			},
 			IgnoreError: true,
 		})
 
-		// copy values and do not reference task fields
-		// since they are generated dynamically
+		// copy values and do not reference task fields as they are generated dynamically
 		toolCmd := []string{constant.DUKKHA_TOOL_CMD}
 
 		_fs, err := rc.FS().Sub(c.Chdir)
@@ -132,13 +122,7 @@ func (c *TaskTest) GetExecSpecs(
 				replace dukkha.ReplaceEntries,
 				stdin io.Reader, stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				moduleNameBytes, ok := replace[targetReplaceModuleName]
-				if !ok {
-					return nil, fmt.Errorf("unexpected no module name set")
-				}
-				moduleName := string(moduleNameBytes.Data)
-
-				stdoutResult, ok := replace[targetReplacePackages]
+				stdoutResult, ok := replace[targetReplaceABSPackageDirs]
 				if ok && stdoutResult.Err == nil {
 					// found packages to be tested, test these packages
 					var (
@@ -146,23 +130,16 @@ func (c *TaskTest) GetExecSpecs(
 						runSteps     []dukkha.TaskExecSpec
 					)
 
-					pkgsToTest := strings.Split(string(stdoutResult.Data), "\n")
-					for _, pkg := range pkgsToTest {
-						pkg = strings.TrimSpace(pkg)
-						if len(pkg) == 0 {
+					for _, absPkgDir := range strings.Split(byteshelper.ToString(&stdoutResult.Data), "\n") {
+						absPkgDir = strings.TrimSpace(absPkgDir)
+						if len(absPkgDir) == 0 {
 							continue
-						}
-						pkgRelPath := strings.TrimPrefix(pkg, moduleName)
-						if strings.HasPrefix(pkgRelPath, "/") {
-							pkgRelPath = "." + pkgRelPath
-						} else {
-							pkgRelPath = "./" + pkgRelPath
 						}
 
 						builtTestExecutable, subCompileSteps := generateCompileSpecs(
 							c.CacheFS,
 							cwdFS,
-							buildEnv, compileArgs, pkgRelPath,
+							buildEnv, compileArgs, absPkgDir,
 							toolCmd,
 						)
 
@@ -176,7 +153,7 @@ func (c *TaskTest) GetExecSpecs(
 							toolCmd,
 							runCmdPrefix,
 							runArgs,
-							pkgRelPath,
+							absPkgDir,
 							jsonOutputFile,
 						)
 
@@ -208,12 +185,12 @@ func (c *TaskTest) GetExecSpecs(
 	return steps, err
 }
 
-func getGoTestCompileResultReplaceKey(pkgRelPath string) string {
-	return fmt.Sprintf("<GO_TEST_COMPILE_RESULT:%s>", hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath))))
+func getGoTestCompileResultReplaceKey(pkgDir string) string {
+	return fmt.Sprintf("<GO_TEST_COMPILE_RESULT:%s>", hex.EncodeToString(md5helper.Sum([]byte(pkgDir))))
 }
 
-func getBuiltTestExecutablePath(pkgRelPath string) string {
-	return hex.EncodeToString(md5helper.Sum([]byte(pkgRelPath))) + ".test"
+func getBuiltTestExecutablePath(pkgDir string) string {
+	return hex.EncodeToString(md5helper.Sum([]byte(pkgDir))) + ".test"
 }
 
 // compile one package for testing at a time
@@ -222,7 +199,7 @@ func generateCompileSpecs(
 	cwdFS *fshelper.OSFS, // cwdfs with current workdir in target path
 	buildEnv dukkha.Env,
 	args []string,
-	pkgRelPath string,
+	pkgDir string,
 
 	// options
 	toolCmd []string,
@@ -230,7 +207,7 @@ func generateCompileSpecs(
 	var steps []dukkha.TaskExecSpec
 
 	builtTestExecutable, err := cacheFS.Abs(
-		getBuiltTestExecutablePath(pkgRelPath),
+		getBuiltTestExecutablePath(pkgDir),
 	)
 	if err != nil {
 		panic(err)
@@ -264,12 +241,12 @@ func generateCompileSpecs(
 	}
 
 	steps = append(steps, dukkha.TaskExecSpec{
-		StdoutAsReplace: getGoTestCompileResultReplaceKey(pkgRelPath),
+		StdoutAsReplace: getGoTestCompileResultReplaceKey(pkgDir),
 		ShowStdout:      true,
 
 		EnvSuggest:  buildEnv,
 		Chdir:       chdir,
-		Command:     append(compileCmd, pkgRelPath),
+		Command:     append(compileCmd, pkgDir),
 		IgnoreError: false,
 	},
 		dukkha.TaskExecSpec{
@@ -304,7 +281,7 @@ func generateRunSpecs(
 
 	cmdPrefix []string,
 	args []string,
-	pkgRelPath string,
+	absPkgDir string,
 	jsonOutputFile string,
 ) []dukkha.TaskExecSpec {
 	var steps []dukkha.TaskExecSpec
@@ -313,11 +290,7 @@ func generateRunSpecs(
 	switch {
 	case len(workdir) == 0:
 		// use same default workdir as go test (the pakcage dir)
-		var err error
-		workdir, err = cwdFS.Abs(pkgRelPath)
-		if err != nil {
-			panic(err)
-		}
+		workdir = absPkgDir
 	case filepath.IsAbs(workdir):
 		// just use it
 	default:
@@ -334,7 +307,7 @@ func generateRunSpecs(
 
 	stdoutReplaceKey := ""
 	if len(jsonOutputFile) != 0 {
-		stdoutReplaceKey = getTestRunResultReplaceKey(pkgRelPath)
+		stdoutReplaceKey = getTestRunResultReplaceKey(absPkgDir)
 	}
 
 	// check if compiled test file exists
@@ -353,7 +326,7 @@ func generateRunSpecs(
 			//
 			// and we need to skip this package
 
-			compileResult, ok := replace[getGoTestCompileResultReplaceKey(pkgRelPath)]
+			compileResult, ok := replace[getGoTestCompileResultReplaceKey(absPkgDir)]
 			if ok && bytes.Contains(compileResult.Data, []byte("no test files")) {
 				// no test
 				return nil, nil
@@ -384,7 +357,7 @@ func generateRunSpecs(
 						return nil, fmt.Errorf("test output not found")
 					}
 
-					resultKey := getGoToolTest2JsonResultReplaceKey(pkgRelPath)
+					resultKey := getGoToolTest2JsonResultReplaceKey(absPkgDir)
 					return []dukkha.TaskExecSpec{
 						{
 							StdoutAsReplace: resultKey,

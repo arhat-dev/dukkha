@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.18
 
 require (
-	arhat.dev/pkg v0.9.1-0.20220505192731-eb1eb8af6fd6
+	arhat.dev/pkg v0.9.1-0.20220508100501-6263c1118a32
 	arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2
@@ -30,7 +30,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.8.0
-	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
+	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
@@ -47,7 +47,7 @@ replace (
 )
 
 require (
-	arhat.dev/pty v0.0.0-20220504004423-753a677282df // indirect
+	arhat.dev/pty v0.1.0 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect

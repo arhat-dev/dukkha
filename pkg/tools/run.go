@@ -151,7 +151,7 @@ func doRun(
 					stdoutValue = es.FixStdoutValueForReplace(stdoutValue)
 				}
 
-				replace[es.StdoutAsReplace] = &dukkha.ReplaceEntry{
+				replace[es.StdoutAsReplace] = dukkha.ReplaceEntry{
 					Data: stdoutValue,
 					Err:  err,
 				}
@@ -163,7 +163,7 @@ func doRun(
 					stderrValue = es.FixStderrValueForReplace(stderrValue)
 				}
 
-				replace[es.StderrAsReplace] = &dukkha.ReplaceEntry{
+				replace[es.StderrAsReplace] = dukkha.ReplaceEntry{
 					Data: stderrValue,
 					Err:  err,
 				}

@@ -1,6 +1,7 @@
-# arhat.dev/pkg v0.9.1-0.20220505192731-eb1eb8af6fd6
+# arhat.dev/pkg v0.9.1-0.20220508100501-6263c1118a32
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
+arhat.dev/pkg/byteshelper
 arhat.dev/pkg/cpuhelper
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
@@ -21,7 +22,7 @@ arhat.dev/pkg/tlshelper
 arhat.dev/pkg/versionhelper
 arhat.dev/pkg/wellknownerrors
 arhat.dev/pkg/yamlhelper
-# arhat.dev/pty v0.0.0-20220504004423-753a677282df
+# arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
 # arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005
@@ -239,7 +240,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
+# golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
 ## explicit; go 1.17
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt

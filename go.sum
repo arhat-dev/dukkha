@@ -1,7 +1,7 @@
-arhat.dev/pkg v0.9.1-0.20220505192731-eb1eb8af6fd6 h1:nbHCrnkfpKwCeS2oktXK1uGO8Rbgm0mMd/mNlYa4e3o=
-arhat.dev/pkg v0.9.1-0.20220505192731-eb1eb8af6fd6/go.mod h1:Y8znM6QpFnuMxoHU6PYIGbev2Cu5n7AcYmlq7YWlfHg=
-arhat.dev/pty v0.0.0-20220504004423-753a677282df h1:sdvAolIIUO6EaoqjpCOPAK5+DgveDtYqND89zF/YIEs=
-arhat.dev/pty v0.0.0-20220504004423-753a677282df/go.mod h1:U1xkO+BRGZT4fjImSnlQPGfCgmFPlex9dTMUvce9e/Q=
+arhat.dev/pkg v0.9.1-0.20220508100501-6263c1118a32 h1:MUjAIvXRMiZ1lsY2NWdahUlx0PqxAlAoK+RxKjC/U3Y=
+arhat.dev/pkg v0.9.1-0.20220508100501-6263c1118a32/go.mod h1:t2pIPj2Dg1jvV4gRlwZabaXUp/wMoR7M2zVno7vLK6c=
+arhat.dev/pty v0.1.0 h1:KUH0pR7+lCvX+GTcRrkEE7TOw8t1UMMiiUJyFi+Fizo=
+arhat.dev/pty v0.1.0/go.mod h1:U1xkO+BRGZT4fjImSnlQPGfCgmFPlex9dTMUvce9e/Q=
 arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005 h1:6NpU51Al+uaGrDaaEXtKA8f1fjRc5H0lwQb6sawE+/s=
 arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005/go.mod h1:V/TOxwDKOZhADW47hu7hxamExdXeWlaIhaJQgOHYY7k=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -329,8 +329,8 @@ golang.org/x/crypto v0.0.0-20200414173820-0848c9571904/go.mod h1:LzIPMQfyMNhhGPh
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b/go.mod h1:T9bdIzuCu7OtxOm1hfPfRQxPLYneinmdGuTeoZ9dtd4=
 golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
-golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f h1:OeJjE6G4dgCY4PIXvIRQbE8+RX+uXZyGhUy/ksMGJoc=
-golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122 h1:NvGWuYG8dkDHFSKksI1P9faiVJ9rayE6l0+ouWVIDs8=
+golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=

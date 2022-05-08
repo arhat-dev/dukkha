@@ -46,7 +46,7 @@ func (s TaskExecStage) String() string {
 // one of `tools.TaskExecRequest`, `[]dukkha.TaskExecSpec`
 type RunTaskOrRunCmd interface{}
 
-type ReplaceEntries map[string]*ReplaceEntry
+type ReplaceEntries map[string]ReplaceEntry
 
 type ReplaceEntry struct {
 	Data []byte
