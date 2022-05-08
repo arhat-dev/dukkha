@@ -5,23 +5,17 @@ workflow:run:
   - task: golang:test(dukkha, {})
   # test shell PATH lookup
   # if any issue, fix it in https://github.com/arhat-dev/sh/tree/dukkha
-  - shell: |-
+  - name: test path lookup under cygwin
+    if@tpl: |-
+      {{- eq matrix.kernel "windows" -}}
+
+    shell: |-
       set -x
 
       echo "PATH=${PATH}"
 
-      if command -v cygpath ; then
-        cygpath -w /tmp
-        ls -alh /tmp || true
-      else
-        echo "cygpath not found"
-      fi
-
-      if command -v dukkha ; then
-        :
-      else
-        echo "dukkha not found"
-      fi
+      command -v cygpath
+      command -v dukkha
 
       make dukkha
 
@@ -29,6 +23,35 @@ workflow:run:
       tpl@tpl: |-
         {{- eval.Shell "command -v dukkha" -}}
       shell@shell: command -v dukkha
+      EOF
+
+  - name: test path lookup under wine64
+    if@tpl: |-
+      {{- ne matrix.kernel "windows" -}}
+    shell: |-
+      set -x
+
+      make dukkha
+
+      ./build/dukkha run golang local build dukkha -m kernel=windows -m arch=amd64
+
+      wine64 ./build/dukkha.windows.amd64.exe render <<EOF
+      __@shell: command -v winepath
+      EOF
+
+  - name: test path lookup under wine32
+    # macos doesn't support running i386 wine
+    if@tpl: |-
+      {{- eq matrix.kernel "linux" -}}
+    shell: |-
+      set -x
+
+      # already built ./build/dukkha in previous step
+
+      ./build/dukkha run golang local build dukkha -m kernel=windows -m arch=x86
+
+      wine ./build/dukkha.windows.x86.exe render <<EOF
+      __@shell: command -v winepath
       EOF
 
 - name: report
