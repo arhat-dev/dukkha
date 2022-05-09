@@ -1,6 +1,7 @@
 package constant
 
 import (
+	"fmt"
 	"testing"
 
 	. "arhat.dev/pkg/archconst"
@@ -9,8 +10,8 @@ import (
 
 func TestSimpleArch(t *testing.T) {
 	for _, test := range []struct {
-		arch     ArchValue
-		expected ArchValue
+		arch     string
+		expected string
 	}{
 		{ARCH_AMD64, ARCH_AMD64},
 		{ARCH_AMD64_V1, ARCH_AMD64},
@@ -37,6 +38,36 @@ func TestSimpleArch(t *testing.T) {
 	} {
 		t.Run(string(test.arch), func(t *testing.T) {
 			assert.EqualValues(t, test.expected, SimpleArch(test.arch))
+		})
+	}
+}
+
+func TestCrossPlatform(t *testing.T) {
+	for _, test := range []struct {
+		hostKernel, hostArch, targetKernel, targetArch string
+
+		ret bool
+	}{
+		// same kernel, same arch name => true
+		{KERNEL_LINUX, ARCH_AMD64, KERNEL_LINUX, ARCH_AMD64_V2, false},
+		{KERNEL_LINUX, ARCH_AMD64_V1, KERNEL_LINUX, ARCH_AMD64_V2, false},
+		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_LINUX, ARCH_AMD64_V2, false},
+		{KERNEL_LINUX, ARCH_AMD64_V3, KERNEL_LINUX, ARCH_AMD64_V2, false},
+		{KERNEL_LINUX, ARCH_MIPS64, KERNEL_LINUX, ARCH_MIPS64_SF, false},
+		{KERNEL_LINUX, ARCH_PPC64_LE, KERNEL_LINUX, ARCH_PPC64_LE_V9, false},
+
+		// different kernel => true
+		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_FREEBSD, ARCH_AMD64_V2, true},
+
+		// different arch => true
+		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_FREEBSD, ARCH_ARM64, true},
+
+		// different endian => true
+		{KERNEL_LINUX, ARCH_MIPS64, KERNEL_FREEBSD, ARCH_MIPS64_LE, true},
+	} {
+		name := fmt.Sprintf("%s/%s-%s/%s", test.hostKernel, test.hostArch, test.targetKernel, test.targetArch)
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, test.ret, CrossPlatform(test.targetKernel, test.targetArch, test.hostKernel, test.hostArch))
 		})
 	}
 }

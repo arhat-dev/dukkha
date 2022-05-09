@@ -372,7 +372,7 @@ func GetDebianTripleName(mArch string, targetKernel, targetLibc string) (v strin
 func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 	_ = targetKernel
 
-	arch, ok := GetArch(PLATFORM_GNU, mArch)
+	arch, ok := GetArch(Platform_GNU, mArch)
 	if !ok {
 		return "", false
 	}
@@ -412,7 +412,7 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 
 // ref: https://llvm.org/doxygen/Triple_8h_source.html
 func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
-	arch, ok := GetArch(PLATFORM_LLVM, mArch)
+	arch, ok := GetArch(Platform_LLVM, mArch)
 	if !ok {
 		return "", false
 	}

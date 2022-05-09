@@ -5,15 +5,16 @@ import "arhat.dev/pkg/archconst"
 func GetDockerArchVariant(mArch string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_ARM:
-		return "v7", true
+		return "", true
 	case archconst.ARCH_ARM_V5:
 		return "v5", true
 	case archconst.ARCH_ARM_V6:
 		return "v6", true
 	case archconst.ARCH_ARM_V7:
 		return "v7", true
+
 	case archconst.ARCH_ARM64:
-		return "v8", true
+		return "", true
 	case archconst.ARCH_ARM64_V8:
 		return "v8", true
 	case archconst.ARCH_ARM64_V9:
@@ -25,6 +26,7 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 		return "", true
 
 	case archconst.ARCH_AMD64:
+		// TODO: set v1?
 		return "", true
 	case archconst.ARCH_AMD64_V1:
 		return "v1", true
@@ -65,6 +67,7 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 		return "", true
 	case archconst.ARCH_MIPS_LE_SF:
 		return "softfloat", true
+
 	case archconst.ARCH_MIPS64:
 		return "", true
 	case archconst.ARCH_MIPS64_SF:
@@ -90,15 +93,16 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 func GetOciArchVariant(mArch string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_ARM:
-		return "v7", true
+		return "", true
 	case archconst.ARCH_ARM_V5:
 		return "v5", true
 	case archconst.ARCH_ARM_V6:
 		return "v6", true
 	case archconst.ARCH_ARM_V7:
 		return "v7", true
+
 	case archconst.ARCH_ARM64:
-		return "v8", true
+		return "", true
 	case archconst.ARCH_ARM64_V8:
 		return "v8", true
 	case archconst.ARCH_ARM64_V9:
@@ -110,6 +114,7 @@ func GetOciArchVariant(mArch string) (string, bool) {
 		return "", true
 
 	case archconst.ARCH_AMD64:
+		// TODO: set v1?
 		return "", true
 	case archconst.ARCH_AMD64_V1:
 		return "v1", true
@@ -150,6 +155,7 @@ func GetOciArchVariant(mArch string) (string, bool) {
 		return "", true
 	case archconst.ARCH_MIPS_LE_SF:
 		return "softfloat", true
+
 	case archconst.ARCH_MIPS64:
 		return "", true
 	case archconst.ARCH_MIPS64_SF:

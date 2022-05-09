@@ -250,6 +250,7 @@
 - `archconv.GNUTripleName(string, ...string) string`
 - `archconv.GolangArch(string) string`
 - `archconv.GolangOS(string) string`
+- `archconv.HF(string) string`
 - `archconv.HardFloadArch(string) string`
 - `archconv.LLVMArch(string) string`
 - `archconv.LLVMTripleName(string, ...string) string`
@@ -309,6 +310,7 @@
 - `crypto.SHA512_256(interface {}) string`
 - `crypto.WPAPSK(interface {}, interface {}) (string, error)`
 - `dukkha.CacheDir() string`
+- `dukkha.CrossPlatform(...string) bool`
 - `dukkha.Set(string, interface {}) (interface {}, error)`
 - `dukkha.SetValue(string, interface {}) (interface {}, error)`
 - `dukkha.WorkDir() string`

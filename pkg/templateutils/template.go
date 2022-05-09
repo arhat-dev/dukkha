@@ -55,28 +55,28 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
 		Funcs(map[string]interface{}{
-			"strings": func() *_stringsNS { return stringsNS },
+			"strings": func() stringsNS { return stringsNS{} },
 
-			"replaceAll": stringsNS.ReplaceAll,
-			"title":      stringsNS.Title,
-			"toUpper":    stringsNS.ToUpper,
-			"toLower":    stringsNS.ToLower,
-			"trimSpace":  stringsNS.TrimSpace,
-			"indent":     stringsNS.Indent,
-			"quote":      stringsNS.Quote,
-			"shellQuote": stringsNS.ShellQuote,
-			"squote":     stringsNS.Squote,
+			"replaceAll": stringsNS{}.ReplaceAll,
+			"title":      stringsNS{}.Title,
+			"toUpper":    stringsNS{}.ToUpper,
+			"toLower":    stringsNS{}.ToLower,
+			"trimSpace":  stringsNS{}.TrimSpace,
+			"indent":     stringsNS{}.Indent,
+			"quote":      stringsNS{}.Quote,
+			"shellQuote": stringsNS{}.ShellQuote,
+			"squote":     stringsNS{}.Squote,
 
-			"contains":  stringsNS.Contains,
-			"hasPrefix": stringsNS.HasPrefix,
-			"hasSuffix": stringsNS.HasSuffix,
-			"split":     stringsNS.Split,
-			"splitN":    stringsNS.SplitN,
-			"trim":      stringsNS.Trim,
+			"contains":  stringsNS{}.Contains,
+			"hasPrefix": stringsNS{}.HasPrefix,
+			"hasSuffix": stringsNS{}.HasSuffix,
+			"split":     stringsNS{}.Split,
+			"splitN":    stringsNS{}.SplitN,
+			"trim":      stringsNS{}.Trim,
 
-			"kebabcase": stringsNS.KebabCase,
-			"snakecase": stringsNS.SnakeCase,
-			"camelcase": stringsNS.CamelCase,
+			"kebabcase": stringsNS{}.KebabCase,
+			"snakecase": stringsNS{}.SnakeCase,
+			"camelcase": stringsNS{}.CamelCase,
 		}).
 		Funcs(map[string]interface{}{
 			"filepath": func() filepathNS { return createFilePathNS(rc) },

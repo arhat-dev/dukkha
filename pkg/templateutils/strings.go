@@ -14,11 +14,9 @@ import (
 	gompstrings "arhat.dev/dukkha/third_party/gomplate/strings"
 )
 
-var stringsNS = &_stringsNS{}
+type stringsNS struct{}
 
-type _stringsNS struct{}
-
-func (f *_stringsNS) Abbrev(args ...interface{}) (string, error) {
+func (stringsNS) Abbrev(args ...interface{}) (string, error) {
 	str := ""
 	offset := 0
 	maxWidth := 0
@@ -40,23 +38,23 @@ func (f *_stringsNS) Abbrev(args ...interface{}) (string, error) {
 	return goutils.AbbreviateFull(str, offset, maxWidth)
 }
 
-func (f *_stringsNS) ReplaceAll(old, new string, s interface{}) string {
+func (stringsNS) ReplaceAll(old, new string, s interface{}) string {
 	return strings.ReplaceAll(conv.ToString(s), old, new)
 }
 
-func (f *_stringsNS) Contains(substr string, s interface{}) bool {
+func (stringsNS) Contains(substr string, s interface{}) bool {
 	return strings.Contains(conv.ToString(s), substr)
 }
 
-func (f *_stringsNS) HasPrefix(prefix string, s interface{}) bool {
+func (stringsNS) HasPrefix(prefix string, s interface{}) bool {
 	return strings.HasPrefix(conv.ToString(s), prefix)
 }
 
-func (f *_stringsNS) HasSuffix(suffix string, s interface{}) bool {
+func (stringsNS) HasSuffix(suffix string, s interface{}) bool {
 	return strings.HasSuffix(conv.ToString(s), suffix)
 }
 
-func (f *_stringsNS) Repeat(count int, s interface{}) (string, error) {
+func (stringsNS) Repeat(count int, s interface{}) (string, error) {
 	if count < 0 {
 		return "", errors.Errorf("negative count %d", count)
 	}
@@ -67,47 +65,47 @@ func (f *_stringsNS) Repeat(count int, s interface{}) (string, error) {
 	return strings.Repeat(str, count), nil
 }
 
-func (f *_stringsNS) Split(sep string, s interface{}) []string {
+func (stringsNS) Split(sep string, s interface{}) []string {
 	return strings.Split(conv.ToString(s), sep)
 }
 
-func (f *_stringsNS) SplitN(sep string, n int, s interface{}) []string {
+func (stringsNS) SplitN(sep string, n int, s interface{}) []string {
 	return strings.SplitN(conv.ToString(s), sep, n)
 }
 
-func (f *_stringsNS) Trim(cutset string, s interface{}) string {
+func (stringsNS) Trim(cutset string, s interface{}) string {
 	return strings.Trim(conv.ToString(s), cutset)
 }
 
-func (f *_stringsNS) TrimPrefix(cutset string, s interface{}) string {
+func (stringsNS) TrimPrefix(cutset string, s interface{}) string {
 	return strings.TrimPrefix(conv.ToString(s), cutset)
 }
 
-func (f *_stringsNS) TrimSuffix(cutset string, s interface{}) string {
+func (stringsNS) TrimSuffix(cutset string, s interface{}) string {
 	return strings.TrimSuffix(conv.ToString(s), cutset)
 }
 
-func (f *_stringsNS) Title(s interface{}) string {
+func (stringsNS) Title(s interface{}) string {
 	return strings.Title(conv.ToString(s))
 }
 
-func (f *_stringsNS) ToUpper(s interface{}) string {
+func (stringsNS) ToUpper(s interface{}) string {
 	return strings.ToUpper(conv.ToString(s))
 }
 
-func (f *_stringsNS) ToLower(s interface{}) string {
+func (stringsNS) ToLower(s interface{}) string {
 	return strings.ToLower(conv.ToString(s))
 }
 
-func (f *_stringsNS) TrimSpace(s interface{}) string {
+func (stringsNS) TrimSpace(s interface{}) string {
 	return strings.TrimSpace(conv.ToString(s))
 }
 
-func (f *_stringsNS) Trunc(length int, s interface{}) string {
+func (stringsNS) Trunc(length int, s interface{}) string {
 	return gompstrings.Trunc(length, conv.ToString(s))
 }
 
-func (f *_stringsNS) Indent(args ...interface{}) (string, error) {
+func (stringsNS) Indent(args ...interface{}) (string, error) {
 	input := conv.ToString(args[len(args)-1])
 	indent := " "
 	width := 1
@@ -135,15 +133,15 @@ func (f *_stringsNS) Indent(args ...interface{}) (string, error) {
 	return gompstrings.Indent(width, indent, input), nil
 }
 
-func (f *_stringsNS) Slug(in interface{}) string {
+func (stringsNS) Slug(in interface{}) string {
 	return slug.Make(conv.ToString(in))
 }
 
-func (f *_stringsNS) Quote(in interface{}) string {
+func (stringsNS) Quote(in interface{}) string {
 	return fmt.Sprintf("%q", conv.ToString(in))
 }
 
-func (f *_stringsNS) ShellQuote(in interface{}) string {
+func (stringsNS) ShellQuote(in interface{}) string {
 	val := reflect.ValueOf(in)
 	switch val.Kind() {
 	case reflect.Array, reflect.Slice:
@@ -160,21 +158,21 @@ func (f *_stringsNS) ShellQuote(in interface{}) string {
 	return gompstrings.ShellQuote(conv.ToString(in))
 }
 
-func (f *_stringsNS) Squote(in interface{}) string {
+func (stringsNS) Squote(in interface{}) string {
 	s := conv.ToString(in)
 	s = strings.ReplaceAll(s, `'`, `''`)
 	return fmt.Sprintf("'%s'", s)
 }
 
-func (f *_stringsNS) SnakeCase(in interface{}) (string, error) {
+func (stringsNS) SnakeCase(in interface{}) (string, error) {
 	return gompstrings.SnakeCase(conv.ToString(in)), nil
 }
 
-func (f *_stringsNS) CamelCase(in interface{}) (string, error) {
+func (stringsNS) CamelCase(in interface{}) (string, error) {
 	return gompstrings.CamelCase(conv.ToString(in)), nil
 }
 
-func (f *_stringsNS) KebabCase(in interface{}) (string, error) {
+func (stringsNS) KebabCase(in interface{}) (string, error) {
 	str := conv.ToString(in)
 	if len(str) == 0 {
 		return str, nil
@@ -183,7 +181,7 @@ func (f *_stringsNS) KebabCase(in interface{}) (string, error) {
 	return gompstrings.KebabCase(str), nil
 }
 
-func (f *_stringsNS) WordWrap(args ...interface{}) (string, error) {
+func (stringsNS) WordWrap(args ...interface{}) (string, error) {
 	if len(args) == 0 || len(args) > 3 {
 		return "", errors.Errorf("expected 1, 2, or 3 args, got %d", len(args))
 	}
@@ -206,7 +204,7 @@ func (f *_stringsNS) WordWrap(args ...interface{}) (string, error) {
 }
 
 // RuneCount - like len(s), but for runes
-func (f *_stringsNS) RuneCount(args ...interface{}) (int, error) {
+func (stringsNS) RuneCount(args ...interface{}) (int, error) {
 	s := ""
 	for _, arg := range args {
 		s += conv.ToString(arg)

@@ -3,6 +3,7 @@ package templateutils
 import (
 	"fmt"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
@@ -14,6 +15,36 @@ func createDukkhaNS(rc dukkha.RenderingContext) dukkhaNS {
 
 type dukkhaNS struct {
 	rc dukkha.RenderingContext
+}
+
+// CrossPlatform checks if doing cross platform job by comparing
+// arg[0]/matrix.kernel with arg[1]/host.kernel
+// arg[2]/matrix.arch with arg[3]/host.arch
+func (ns dukkhaNS) CrossPlatform(args ...string) bool {
+	var (
+		hostKernel, hostArch     string
+		targetKernel, targetArch string
+	)
+
+	switch len(args) {
+	case 0:
+		targetKernel, targetArch = ns.rc.MatrixKernel(), ns.rc.MatrixArch()
+		hostKernel, hostArch = ns.rc.HostKernel(), ns.rc.HostArch()
+	case 1:
+		targetKernel, targetArch = args[0], ns.rc.MatrixArch()
+		hostKernel, hostArch = ns.rc.HostKernel(), ns.rc.HostArch()
+	case 2:
+		targetKernel, targetArch = args[0], ns.rc.MatrixArch()
+		hostKernel, hostArch = args[1], ns.rc.HostArch()
+	case 3:
+		targetKernel, targetArch = args[0], args[2]
+		hostKernel, hostArch = args[1], ns.rc.HostArch()
+	default:
+		targetKernel, targetArch = args[0], args[2]
+		hostKernel, hostArch = args[1], args[3]
+	}
+
+	return constant.CrossPlatform(targetKernel, targetArch, hostKernel, hostArch)
 }
 
 // CacheDir get DUKKHA_CACHE_DIR

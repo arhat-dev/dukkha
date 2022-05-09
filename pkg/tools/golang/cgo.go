@@ -96,8 +96,7 @@ func (c CGOSepc) getEnv(
 
 	if doingCrossCompiling {
 		switch hostOS {
-		case constant.OS_DEBIAN,
-			constant.OS_UBUNTU:
+		case constant.Platform_Debian, constant.Platform_Ubuntu:
 			var tripleName string
 			switch mKernel {
 			case constant.KERNEL_LINUX:
@@ -115,14 +114,14 @@ func (c CGOSepc) getEnv(
 				cc = tripleName + "-gcc"
 				cxx = tripleName + "-g++"
 			}
-		case constant.OS_ALPINE:
+		case constant.Platform_Alpine:
 			tripleName, _ := constant.GetAlpineTripleName(mArch)
 
 			if len(tripleName) != 0 {
 				cc = tripleName + "-gcc"
 				cxx = tripleName + "-g++"
 			}
-		case constant.OS_MACOS:
+		case constant.Platform_MacOS:
 			switch mKernel {
 			case constant.KERNEL_DARWIN:
 				// cc = "clang"

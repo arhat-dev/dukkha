@@ -7,9 +7,10 @@ import (
 
 type archconvNS struct{}
 
-func (ns archconvNS) SimpleArch(arch string) string {
-	return constant.SimpleArch(arch)
-}
+func (ns archconvNS) SimpleArch(arch string) string { return constant.SimpleArch(arch) }
+
+// HF is an alias of HardFloadArch
+func (ns archconvNS) HF(arch string) string { return ns.HardFloadArch(arch) }
 
 // HardFloadArch returns hard-float version of arch
 func (ns archconvNS) HardFloadArch(arch string) string {
