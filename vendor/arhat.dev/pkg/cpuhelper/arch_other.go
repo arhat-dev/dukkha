@@ -3,6 +3,8 @@
 
 package cpuhelper
 
-func Arch(cpu CPU) string {
+import "arhat.dev/pkg/archconst"
+
+func Arch(cpu CPU) archconst.ArchValue {
 	return ArchByCPUFeatures(cpu)
 }

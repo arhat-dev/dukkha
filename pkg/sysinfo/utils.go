@@ -1,7 +1,9 @@
 package sysinfo
 
-import "arhat.dev/pkg/cpuhelper"
+import (
+	"arhat.dev/pkg/cpuhelper"
+)
 
 func Arch() string {
-	return cpuhelper.Arch(nil)
+	return string(cpuhelper.Arch(nil))
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // Arch returns runtime cpu arch value as defined in package arhat.dev/pkg/archconst
-func Arch(cpu CPU) string {
+func Arch(cpu CPU) archconst.ArchValue {
 	hostArch := ArchByCPUFeatures(cpu)
 	if len(hostArch) != 0 {
 		return hostArch
@@ -17,12 +17,12 @@ func Arch(cpu CPU) string {
 
 	kernel32dll, err := syscall.LoadDLL("kernel32.dll")
 	if err != nil {
-		return versionhelper.Arch()
+		return Arch(versionhelper.Arch())
 	}
 
 	procGetNativeSystemInfo, err := kernel32dll.FindProc("GetNativeSystemInfo")
 	if err != nil {
-		return versionhelper.Arch()
+		return Arch(versionhelper.Arch())
 	}
 
 	type systemInfo struct {
@@ -57,7 +57,7 @@ func Arch(cpu CPU) string {
 	r1, _, err := procGetNativeSystemInfo.Call(uintptr(unsafe.Pointer(&info)))
 	if r1 != 0 {
 		_ = err
-		return versionhelper.Arch()
+		return Arch(versionhelper.Arch())
 	}
 
 	cpuArch := uint(info.wProcessorArchitecture)
@@ -68,7 +68,7 @@ func Arch(cpu CPU) string {
 		return archconst.ARCH_X86
 	case PROCESSOR_ARCHITECTURE_ARM:
 		// usually armv7, can be armv6/armv5
-		return versionhelper.Arch()
+		return Arch(versionhelper.Arch())
 	case PROCESSOR_ARCHITECTURE_ARM64:
 		return archconst.ARCH_ARM64
 	case PROCESSOR_ARCHITECTURE_IA64:
@@ -76,6 +76,6 @@ func Arch(cpu CPU) string {
 	case PROCESSOR_ARCHITECTURE_AMD64:
 		return archconst.ARCH_AMD64_V1
 	default:
-		return versionhelper.Arch()
+		return archconst.ArchValue(versionhelper.Arch())
 	}
 }

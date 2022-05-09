@@ -84,8 +84,6 @@ All time related values are based on local time
 
 ## Host System Information
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `host`, example usage: `{{ host.kernel }}`
-
 - `HOST_KERNEL`
   - Description: Kernel name of the host system running `dukkha`
   - Default Value: value of golang `runtime.GOOS`
@@ -119,12 +117,28 @@ __NOTE for renderer `tpl`:__ Environment variables in this section are also avai
     - Example Values: see [`System Arch` section in docs/constants.md](./constants.md#system-arch)
   - Customization: Not Supported
 
+- `HOST_ARCH_SIMPLE`
+  - Description: like `HOST_ARCH` but with cpu micro arch generalized
+  - Default Value: `{{- archconv.Simple env.HOST_ARCH -}}`
+    - Example Values:
+      - `amd64` (for `amd64v{1, 2, 3, 4}`)
+      - `arm64` (for `arm64v{8, 9}`)
+      - `armv5` (kept)
+      - `armv6` (kept)
+      - `armv7` (for `arm` and `armv7`)
+  - Customization: Not Supported
+
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `host`, examples:
+
+- `{{ host.kernel }}` to get value of env HOST_KERNEL
+- `{{ host.arch_simple }}` to get value of env HOST_ARCH_SIMPLE
+
 ## Task Execution Information
 
 __NOTE:__ Environment variables in this section are only available for tasks and tools
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`
-
 - `MATRIX_<upper-case-matrix-spec-key>`
   - Description: Matrix value
   - Example Names: `MATRIX_KERNEL` for `matrix.kernel`, `MATRIX_FOO_DATA` for `matrix.foo_data`
+
+__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`

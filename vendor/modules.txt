@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.9.1-0.20220508112119-832497b03882
+# arhat.dev/pkg v0.9.1-0.20220509120353-ae9f6bd1ddc6
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper
@@ -15,6 +15,7 @@ arhat.dev/pkg/pathhelper
 arhat.dev/pkg/rshelper
 arhat.dev/pkg/sha256helper
 arhat.dev/pkg/sorthelper
+arhat.dev/pkg/stringhelper
 arhat.dev/pkg/testhelper
 arhat.dev/pkg/testhelper/cmdtesthelper
 arhat.dev/pkg/textquery

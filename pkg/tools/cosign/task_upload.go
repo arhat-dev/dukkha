@@ -101,7 +101,7 @@ func (c *TaskUpload) GetExecSpecs(
 
 		ociArch, ok := constant.GetOciArch(rc.MatrixArch())
 		if !ok {
-			ociArch = rc.MatrixArch()
+			ociArch = string(rc.MatrixArch())
 		}
 
 		ociVariant, _ := constant.GetOciArchVariant(rc.MatrixArch())

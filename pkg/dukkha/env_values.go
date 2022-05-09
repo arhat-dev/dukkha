@@ -173,6 +173,7 @@ func (c *envValues) GitCommit() string {
 func (c *envValues) HostValues() map[string]utils.LazyValue {
 	return map[string]utils.LazyValue{
 		"arch":           c.globalEnv[constant.ENV_HOST_ARCH],
+		"arch_simple":    c.globalEnv[constant.ENV_HOST_ARCH_SIMPLE],
 		"kernel":         c.globalEnv[constant.ENV_HOST_KERNEL],
 		"kernel_version": c.globalEnv[constant.ENV_HOST_KERNEL_VERSION],
 		"os":             c.globalEnv[constant.ENV_HOST_OS],

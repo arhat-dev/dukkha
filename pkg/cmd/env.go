@@ -29,6 +29,8 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 		return name + "," + version
 	})
 
+	hostArch := utils.NewLazyValue(sysinfo.Arch)
+
 	return map[string]utils.LazyValue{
 		constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),
 
@@ -54,7 +56,10 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 			return nameAndVer[strings.IndexByte(nameAndVer, ',')+1:]
 		}),
 
-		constant.ENV_HOST_ARCH:  utils.NewLazyValue(sysinfo.Arch),
+		constant.ENV_HOST_ARCH: hostArch,
+		constant.ENV_HOST_ARCH_SIMPLE: utils.NewLazyValue(func() string {
+			return constant.SimpleArch(hostArch.Get())
+		}),
 		constant.ENV_GIT_BRANCH: GitBranch(ctx, cwd),
 		constant.ENV_GIT_COMMIT: GitCommit(ctx, cwd),
 		constant.ENV_GIT_TAG:    GitTag(ctx, cwd),

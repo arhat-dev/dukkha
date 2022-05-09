@@ -39,6 +39,7 @@ func TestCreateGlobalEnv(t *testing.T) {
 		"HOST_KERNEL":         runtime.GOOS,
 		"HOST_KERNEL_VERSION": "",
 		"HOST_ARCH":           "",
+		"HOST_ARCH_SIMPLE":    "",
 
 		"DUKKHA_WORKDIR": "",
 	}

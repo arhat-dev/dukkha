@@ -4,8 +4,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
-	"arhat.dev/pkg/archconst"
 )
 
 // values should be set at build time using ldflags
@@ -23,33 +21,26 @@ func Version() string {
 	var sb strings.Builder
 	sb.WriteString("branch: ")
 	sb.WriteString(Branch())
-	sb.WriteString("\n")
 
-	sb.WriteString("commit: ")
+	sb.WriteString("\ncommit: ")
 	sb.WriteString(Commit())
-	sb.WriteString("\n")
 
-	sb.WriteString("tag: ")
+	sb.WriteString("\ntag: ")
 	sb.WriteString(Tag())
-	sb.WriteString("\n")
 
-	sb.WriteString("arch: ")
+	sb.WriteString("\narch: ")
 	sb.WriteString(Arch())
-	sb.WriteString("\n")
 
-	sb.WriteString("goVersion: ")
+	sb.WriteString("\ngoVersion: ")
 	sb.WriteString(GoVersion())
-	sb.WriteString("\n")
 
-	sb.WriteString("buildTime: ")
+	sb.WriteString("\nbuildTime: ")
 	sb.WriteString(buildTime)
-	sb.WriteString("\n")
 
-	sb.WriteString("workTreeClean: ")
+	sb.WriteString("\nworkTreeClean: ")
 	sb.WriteString(worktreeClean)
-	sb.WriteString("\n")
 
-	sb.WriteString("goCompilerPlatform: ")
+	sb.WriteString("\ngoCompilerPlatform: ")
 	sb.WriteString(GoCompilerPlatform())
 	sb.WriteString("\n")
 
@@ -66,23 +57,15 @@ func Commit() string {
 	return commit
 }
 
-// Tag the tag name of the source code
+// Tag is the tag name from the VCS of source code
 func Tag() string {
 	return tag
 }
 
-// Arch returns cpu arch with default micro arch applied if missing
+// Arch returns cpu arch set at build time
+// usually contains more detain than runtime.GOARCH, such as armv7 instead of arm
 func Arch() string {
-	switch arch {
-	case archconst.ARCH_AMD64:
-		return archconst.ARCH_AMD64_V1
-	case archconst.ARCH_PPC64:
-		return archconst.ARCH_PPC64_V8
-	case archconst.ARCH_PPC64_LE:
-		return archconst.ARCH_PPC64_LE_V8
-	default:
-		return arch
-	}
+	return arch
 }
 
 func GoVersion() string {

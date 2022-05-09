@@ -3,94 +3,170 @@ package constant
 import "arhat.dev/pkg/archconst"
 
 func GetDockerArchVariant(mArch string) (string, bool) {
-	v, ok := map[string]string{
-		archconst.ARCH_ARM_V5: "v5",
-		archconst.ARCH_ARM_V6: "v6",
-		archconst.ARCH_ARM_V7: "v7",
-		archconst.ARCH_ARM64:  "v8",
+	switch mArch {
+	case archconst.ARCH_ARM:
+		return "v7", true
+	case archconst.ARCH_ARM_V5:
+		return "v5", true
+	case archconst.ARCH_ARM_V6:
+		return "v6", true
+	case archconst.ARCH_ARM_V7:
+		return "v7", true
+	case archconst.ARCH_ARM64:
+		return "v8", true
+	case archconst.ARCH_ARM64_V8:
+		return "v8", true
+	case archconst.ARCH_ARM64_V9:
+		return "v9", true
 
-		archconst.ARCH_X86:    "",
-		archconst.ARCH_X86_SF: "",
+	case archconst.ARCH_X86:
+		return "", true
+	case archconst.ARCH_X86_SF:
+		return "", true
 
-		archconst.ARCH_AMD64:    "",
-		archconst.ARCH_AMD64_V1: "v1",
-		archconst.ARCH_AMD64_V2: "v2",
-		archconst.ARCH_AMD64_V3: "v3",
-		archconst.ARCH_AMD64_V4: "v4",
+	case archconst.ARCH_AMD64:
+		return "", true
+	case archconst.ARCH_AMD64_V1:
+		return "v1", true
+	case archconst.ARCH_AMD64_V2:
+		return "v2", true
+	case archconst.ARCH_AMD64_V3:
+		return "v3", true
+	case archconst.ARCH_AMD64_V4:
+		return "v4", true
 
-		archconst.ARCH_PPC:       "",
-		archconst.ARCH_PPC_SF:    "softfloat",
-		archconst.ARCH_PPC_LE:    "",
-		archconst.ARCH_PPC_LE_SF: "softfloat",
+	case archconst.ARCH_PPC:
+		return "", true
+	case archconst.ARCH_PPC_SF:
+		return "softfloat", true
+	case archconst.ARCH_PPC_LE:
+		return "", true
+	case archconst.ARCH_PPC_LE_SF:
+		return "softfloat", true
 
-		archconst.ARCH_PPC64:       "",
-		archconst.ARCH_PPC64_LE:    "",
-		archconst.ARCH_PPC64_V8:    "power8",
-		archconst.ARCH_PPC64_LE_V8: "power8",
-		archconst.ARCH_PPC64_V9:    "power9",
-		archconst.ARCH_PPC64_LE_V9: "power9",
+	case archconst.ARCH_PPC64:
+		return "", true
+	case archconst.ARCH_PPC64_LE:
+		return "", true
+	case archconst.ARCH_PPC64_V8:
+		return "power8", true
+	case archconst.ARCH_PPC64_LE_V8:
+		return "power8", true
+	case archconst.ARCH_PPC64_V9:
+		return "power9", true
+	case archconst.ARCH_PPC64_LE_V9:
+		return "power9", true
 
-		archconst.ARCH_MIPS:         "",
-		archconst.ARCH_MIPS_SF:      "softfloat",
-		archconst.ARCH_MIPS_LE:      "",
-		archconst.ARCH_MIPS_LE_SF:   "softfloat",
-		archconst.ARCH_MIPS64:       "",
-		archconst.ARCH_MIPS64_SF:    "softfloat",
-		archconst.ARCH_MIPS64_LE:    "",
-		archconst.ARCH_MIPS64_LE_SF: "softfloat",
+	case archconst.ARCH_MIPS:
+		return "", true
+	case archconst.ARCH_MIPS_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS_LE:
+		return "", true
+	case archconst.ARCH_MIPS_LE_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS64:
+		return "", true
+	case archconst.ARCH_MIPS64_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS64_LE:
+		return "", true
+	case archconst.ARCH_MIPS64_LE_SF:
+		return "softfloat", true
 
-		archconst.ARCH_RISCV_64: "",
-		archconst.ARCH_S390X:    "",
+	case archconst.ARCH_RISCV64:
+		return "", true
+	case archconst.ARCH_S390X:
+		return "", true
 
-		archconst.ARCH_IA64: "",
-	}[mArch]
-
-	return v, ok
+	case archconst.ARCH_IA64:
+		return "", true
+	default:
+		return "", false
+	}
 }
 
+// currently it's the same as docker arch variant
 func GetOciArchVariant(mArch string) (string, bool) {
-	v, ok := map[string]string{
-		archconst.ARCH_ARM_V5: "v5",
-		archconst.ARCH_ARM_V6: "v6",
-		archconst.ARCH_ARM_V7: "v7",
+	switch mArch {
+	case archconst.ARCH_ARM:
+		return "v7", true
+	case archconst.ARCH_ARM_V5:
+		return "v5", true
+	case archconst.ARCH_ARM_V6:
+		return "v6", true
+	case archconst.ARCH_ARM_V7:
+		return "v7", true
+	case archconst.ARCH_ARM64:
+		return "v8", true
+	case archconst.ARCH_ARM64_V8:
+		return "v8", true
+	case archconst.ARCH_ARM64_V9:
+		return "v9", true
 
-		archconst.ARCH_ARM64: "v8",
+	case archconst.ARCH_X86:
+		return "", true
+	case archconst.ARCH_X86_SF:
+		return "", true
 
-		archconst.ARCH_X86:    "",
-		archconst.ARCH_X86_SF: "",
+	case archconst.ARCH_AMD64:
+		return "", true
+	case archconst.ARCH_AMD64_V1:
+		return "v1", true
+	case archconst.ARCH_AMD64_V2:
+		return "v2", true
+	case archconst.ARCH_AMD64_V3:
+		return "v3", true
+	case archconst.ARCH_AMD64_V4:
+		return "v4", true
 
-		archconst.ARCH_AMD64:    "",
-		archconst.ARCH_AMD64_V1: "v1",
-		archconst.ARCH_AMD64_V2: "v2",
-		archconst.ARCH_AMD64_V3: "v3",
-		archconst.ARCH_AMD64_V4: "v4",
+	case archconst.ARCH_PPC:
+		return "", true
+	case archconst.ARCH_PPC_SF:
+		return "softfloat", true
+	case archconst.ARCH_PPC_LE:
+		return "", true
+	case archconst.ARCH_PPC_LE_SF:
+		return "softfloat", true
 
-		archconst.ARCH_PPC:       "",
-		archconst.ARCH_PPC_SF:    "softfloat",
-		archconst.ARCH_PPC_LE:    "",
-		archconst.ARCH_PPC_LE_SF: "softfloat",
+	case archconst.ARCH_PPC64:
+		return "", true
+	case archconst.ARCH_PPC64_LE:
+		return "", true
+	case archconst.ARCH_PPC64_V8:
+		return "power8", true
+	case archconst.ARCH_PPC64_LE_V8:
+		return "power8", true
+	case archconst.ARCH_PPC64_V9:
+		return "power9", true
+	case archconst.ARCH_PPC64_LE_V9:
+		return "power9", true
 
-		archconst.ARCH_PPC64:       "",
-		archconst.ARCH_PPC64_LE:    "",
-		archconst.ARCH_PPC64_V8:    "power8",
-		archconst.ARCH_PPC64_LE_V8: "power8",
-		archconst.ARCH_PPC64_V9:    "power9",
-		archconst.ARCH_PPC64_LE_V9: "power9",
+	case archconst.ARCH_MIPS:
+		return "", true
+	case archconst.ARCH_MIPS_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS_LE:
+		return "", true
+	case archconst.ARCH_MIPS_LE_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS64:
+		return "", true
+	case archconst.ARCH_MIPS64_SF:
+		return "softfloat", true
+	case archconst.ARCH_MIPS64_LE:
+		return "", true
+	case archconst.ARCH_MIPS64_LE_SF:
+		return "softfloat", true
 
-		archconst.ARCH_MIPS:         "",
-		archconst.ARCH_MIPS_SF:      "softfloat",
-		archconst.ARCH_MIPS_LE:      "",
-		archconst.ARCH_MIPS_LE_SF:   "softfloat",
-		archconst.ARCH_MIPS64:       "",
-		archconst.ARCH_MIPS64_SF:    "softfloat",
-		archconst.ARCH_MIPS64_LE:    "",
-		archconst.ARCH_MIPS64_LE_SF: "softfloat",
+	case archconst.ARCH_RISCV64:
+		return "", true
+	case archconst.ARCH_S390X:
+		return "", true
 
-		archconst.ARCH_RISCV_64: "",
-		archconst.ARCH_S390X:    "",
-
-		archconst.ARCH_IA64: "",
-	}[mArch]
-
-	return v, ok
+	case archconst.ARCH_IA64:
+		return "", true
+	default:
+		return "", false
+	}
 }

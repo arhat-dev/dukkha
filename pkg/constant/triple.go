@@ -7,52 +7,92 @@ import "arhat.dev/pkg/archconst"
 func GetAlpineTripleName(mArch string) (string, bool) {
 	// NOTE: some arch value in triple name is different from alpine arch
 	// 		 so we cannot do the same conversion as GNU/LLVM triple does
-	v, ok := map[string]string{
-		archconst.ARCH_X86:    "i686-linux-musl",
-		archconst.ARCH_X86_SF: "i686-linux-musl",
+	switch mArch {
+	case archconst.ARCH_X86:
+		return "i686-linux-musl", true
+	case archconst.ARCH_X86_SF:
+		return "i686-linux-musl", true
 
-		archconst.ARCH_AMD64:    "x86_64-linux-musl",
-		archconst.ARCH_AMD64_V1: "x86_64-linux-musl",
-		archconst.ARCH_AMD64_V2: "x86_64-linux-musl",
-		archconst.ARCH_AMD64_V3: "x86_64-linux-musl",
-		archconst.ARCH_AMD64_V4: "x86_64-linux-musl",
+	case archconst.ARCH_AMD64:
+		return "x86_64-linux-musl", true
+	case archconst.ARCH_AMD64_V1:
+		return "x86_64-linux-musl", true
+	case archconst.ARCH_AMD64_V2:
+		return "x86_64-linux-musl", true
+	case archconst.ARCH_AMD64_V3:
+		return "x86_64-linux-musl", true
+	case archconst.ARCH_AMD64_V4:
+		return "x86_64-linux-musl", true
 
-		archconst.ARCH_ARM_V5: "armv5l-linux-musleabi",
-		archconst.ARCH_ARM_V6: "armv6-linux-musleabihf",
-		archconst.ARCH_ARM_V7: "armv7l-linux-musleabihf",
-		archconst.ARCH_ARM64:  "aarch64-linux-musl",
+	case archconst.ARCH_ARM:
+		return "armv7l-linux-musleabihf", true
+	case archconst.ARCH_ARM_V5:
+		return "armv5l-linux-musleabi", true
+	case archconst.ARCH_ARM_V6:
+		return "armv6-linux-musleabihf", true
+	case archconst.ARCH_ARM_V7:
+		return "armv7l-linux-musleabihf", true
 
-		archconst.ARCH_PPC:       "powerpc-linux-musl",
-		archconst.ARCH_PPC_SF:    "powerpc-linux-muslsf",
-		archconst.ARCH_PPC_LE:    "powerpcle-linux-musl",
-		archconst.ARCH_PPC_LE_SF: "powerpcle-linux-muslsf",
+	case archconst.ARCH_ARM64:
+		return "aarch64-linux-musl", true
+	case archconst.ARCH_ARM64_V8:
+		return "aarch64-linux-musl", true
+	case archconst.ARCH_ARM64_V9:
+		return "aarch64-linux-musl", true
 
-		archconst.ARCH_PPC64:       "powerpc64-linux-musl",
-		archconst.ARCH_PPC64_LE:    "powerpc64le-linux-musl",
-		archconst.ARCH_PPC64_V8:    "powerpc64-linux-musl",
-		archconst.ARCH_PPC64_LE_V8: "powerpc64le-linux-musl",
-		archconst.ARCH_PPC64_V9:    "powerpc64-linux-musl",
-		archconst.ARCH_PPC64_LE_V9: "powerpc64le-linux-musl",
+	case archconst.ARCH_PPC:
+		return "powerpc-linux-musl", true
+	case archconst.ARCH_PPC_SF:
+		return "powerpc-linux-muslsf", true
+	case archconst.ARCH_PPC_LE:
+		return "powerpcle-linux-musl", true
+	case archconst.ARCH_PPC_LE_SF:
+		return "powerpcle-linux-muslsf", true
 
-		archconst.ARCH_MIPS:         "mips-linux-musl",
-		archconst.ARCH_MIPS_SF:      "mips-linux-muslsf",
-		archconst.ARCH_MIPS_LE:      "mipsel-linux-musl",
-		archconst.ARCH_MIPS_LE_SF:   "mipsel-linux-muslsf",
-		archconst.ARCH_MIPS64:       "mips64-linux-musl",
-		archconst.ARCH_MIPS64_SF:    "mips64-linux-musln32sf",
-		archconst.ARCH_MIPS64_LE:    "mips64el-linux-musl",
-		archconst.ARCH_MIPS64_LE_SF: "mips64el-linux-musln32sf",
+	case archconst.ARCH_PPC64:
+		return "powerpc64-linux-musl", true
+	case archconst.ARCH_PPC64_LE:
+		return "powerpc64le-linux-musl", true
+	case archconst.ARCH_PPC64_V8:
+		return "powerpc64-linux-musl", true
+	case archconst.ARCH_PPC64_LE_V8:
+		return "powerpc64le-linux-musl", true
+	case archconst.ARCH_PPC64_V9:
+		return "powerpc64-linux-musl", true
+	case archconst.ARCH_PPC64_LE_V9:
+		return "powerpc64le-linux-musl", true
 
-		archconst.ARCH_RISCV_64: "riscv64-linux-musl",
-		archconst.ARCH_S390X:    "s390x-linux-musl",
+	case archconst.ARCH_MIPS:
+		return "mips-linux-musl", true
+	case archconst.ARCH_MIPS_SF:
+		return "mips-linux-muslsf", true
+	case archconst.ARCH_MIPS_LE:
+		return "mipsel-linux-musl", true
+	case archconst.ARCH_MIPS_LE_SF:
+		return "mipsel-linux-muslsf", true
+	case archconst.ARCH_MIPS64:
+		return "mips64-linux-musl", true
+	case archconst.ARCH_MIPS64_SF:
+		return "mips64-linux-musln32sf", true
+	case archconst.ARCH_MIPS64_LE:
+		return "mips64el-linux-musl", true
+	case archconst.ARCH_MIPS64_LE_SF:
+		return "mips64el-linux-musln32sf", true
 
-		archconst.ARCH_IA64: "",
-	}[mArch]
+	case archconst.ARCH_RISCV64:
+		return "riscv64-linux-musl", true
 
-	return v, ok
+	case archconst.ARCH_S390X:
+		return "s390x-linux-musl", true
+
+	case archconst.ARCH_IA64:
+		return "", true
+	default:
+		return "", false
+	}
 }
 
-func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
+func GetDebianTripleName(mArch string, targetKernel, targetLibc string) (v string, ok bool) {
 	// TODO: adjust triple name according to target kernel
 	_ = targetKernel
 
@@ -62,149 +102,267 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 	case LIBC_MUSL:
 		// https://packages.debian.org/buster/musl-dev
 		// check list of files
-		v, ok := map[string]string{
-			archconst.ARCH_X86:    "i386-linux-musl",
-			archconst.ARCH_X86_SF: "i386-linux-musl",
+		switch mArch {
+		case archconst.ARCH_X86:
+			return "i386-linux-musl", true
+		case archconst.ARCH_X86_SF:
+			return "i386-linux-musl", true
 
-			archconst.ARCH_AMD64:    "x86_64-linux-musl",
-			archconst.ARCH_AMD64_V1: "x86_64-linux-musl",
-			archconst.ARCH_AMD64_V2: "x86_64-linux-musl",
-			archconst.ARCH_AMD64_V3: "x86_64-linux-musl",
-			archconst.ARCH_AMD64_V4: "x86_64-linux-musl",
+		case archconst.ARCH_AMD64:
+			return "x86_64-linux-musl", true
+		case archconst.ARCH_AMD64_V1:
+			return "x86_64-linux-musl", true
+		case archconst.ARCH_AMD64_V2:
+			return "x86_64-linux-musl", true
+		case archconst.ARCH_AMD64_V3:
+			return "x86_64-linux-musl", true
+		case archconst.ARCH_AMD64_V4:
+			return "x86_64-linux-musl", true
 
-			archconst.ARCH_ARM_V5: "arm-linux-musleabi",
-			archconst.ARCH_ARM_V6: "arm-linux-musleabi",
-			archconst.ARCH_ARM_V7: "arm-linux-musleabihf",
-			archconst.ARCH_ARM64:  "aarch64-linux-musl",
+		case archconst.ARCH_ARM:
+			return "arm-linux-musleabihf", true
+		case archconst.ARCH_ARM_V5:
+			return "arm-linux-musleabi", true
+		case archconst.ARCH_ARM_V6:
+			return "arm-linux-musleabi", true
+		case archconst.ARCH_ARM_V7:
+			return "arm-linux-musleabihf", true
 
-			archconst.ARCH_MIPS:         "mips-linux-musl",
-			archconst.ARCH_MIPS_SF:      "mips-linux-musl",
-			archconst.ARCH_MIPS_LE:      "mipsel-linux-musl",
-			archconst.ARCH_MIPS_LE_SF:   "mipsel-linux-musl",
-			archconst.ARCH_MIPS64:       "mips64-linux-musl",
-			archconst.ARCH_MIPS64_SF:    "mips64-linux-musl",
-			archconst.ARCH_MIPS64_LE:    "mips64el-linux-musl",
-			archconst.ARCH_MIPS64_LE_SF: "mips64el-linux-musl",
+		case archconst.ARCH_ARM64:
+			return "aarch64-linux-musl", true
+		case archconst.ARCH_ARM64_V8:
+			return "aarch64-linux-musl", true
+		case archconst.ARCH_ARM64_V9:
+			return "aarch64-linux-musl", true
 
-			archconst.ARCH_S390X: "s390x-linux-musl",
+		case archconst.ARCH_MIPS:
+			return "mips-linux-musl", true
+		case archconst.ARCH_MIPS_SF:
+			return "mips-linux-musl", true
+		case archconst.ARCH_MIPS_LE:
+			return "mipsel-linux-musl", true
+		case archconst.ARCH_MIPS_LE_SF:
+			return "mipsel-linux-musl", true
+		case archconst.ARCH_MIPS64:
+			return "mips64-linux-musl", true
+		case archconst.ARCH_MIPS64_SF:
+			return "mips64-linux-musl", true
+		case archconst.ARCH_MIPS64_LE:
+			return "mips64el-linux-musl", true
+		case archconst.ARCH_MIPS64_LE_SF:
+			return "mips64el-linux-musl", true
 
-			// http://ftp.ports.debian.org/debian-ports/pool-riscv64/main/m/musl/
-			// download one musl-dev package
-			// list package contents with following commands
-			//
-			// $ ar -x musl-dev_1.2.2-3_riscv64.deb
-			// $ tar -tvf data.tar.xz
-			archconst.ARCH_RISCV_64: "riscv64-linux-musl",
+		case archconst.ARCH_S390X:
+			return "s390x-linux-musl", true
 
-			archconst.ARCH_IA64: "",
+		// http://ftp.ports.debian.org/debian-ports/pool-riscv64/main/m/musl/
+		// download one musl-dev package
+		// list package contents with following commands
+		//
+		// $ ar -x musl-dev_1.2.2-3_riscv64.deb
+		// $ tar -tvf data.tar.xz
+		case archconst.ARCH_RISCV64:
+			return "riscv64-linux-musl", true
 
-			archconst.ARCH_PPC:       "",
-			archconst.ARCH_PPC_SF:    "",
-			archconst.ARCH_PPC_LE:    "",
-			archconst.ARCH_PPC_LE_SF: "",
+		case archconst.ARCH_IA64:
+			return "", true
 
-			archconst.ARCH_PPC64:       "",
-			archconst.ARCH_PPC64_LE:    "",
-			archconst.ARCH_PPC64_V8:    "",
-			archconst.ARCH_PPC64_LE_V8: "",
-			archconst.ARCH_PPC64_V9:    "",
-			archconst.ARCH_PPC64_LE_V9: "",
-		}[mArch]
+		case archconst.ARCH_PPC:
+			return "", true
+		case archconst.ARCH_PPC_SF:
+			return "", true
+		case archconst.ARCH_PPC_LE:
+			return "", true
+		case archconst.ARCH_PPC_LE_SF:
+			return "", true
 
-		return v, ok
+		case archconst.ARCH_PPC64:
+			return "", true
+		case archconst.ARCH_PPC64_LE:
+			return "", true
+		case archconst.ARCH_PPC64_V8:
+			return "", true
+		case archconst.ARCH_PPC64_LE_V8:
+			return "", true
+		case archconst.ARCH_PPC64_V9:
+			return "", true
+		case archconst.ARCH_PPC64_LE_V9:
+			return "", true
+		default:
+			return "", false
+		}
 	case LIBC_MSVC:
-		v, ok := map[string]string{
-			// https://packages.debian.org/buster/mingw-w64-i686-dev
-			// check list of files
-			archconst.ARCH_X86:    "i686-w64-mingw32",
-			archconst.ARCH_X86_SF: "i686-w64-mingw32",
-			// https://packages.debian.org/buster/mingw-w64-x86-64-dev
-			// check list of files
-			archconst.ARCH_AMD64:    "x86_64-w64-mingw32",
-			archconst.ARCH_AMD64_V1: "x86_64-w64-mingw32",
-			archconst.ARCH_AMD64_V2: "x86_64-w64-mingw32",
-			archconst.ARCH_AMD64_V3: "x86_64-w64-mingw32",
-			archconst.ARCH_AMD64_V4: "x86_64-w64-mingw32",
+		switch mArch {
+		// https://packages.debian.org/buster/mingw-w64-i686-dev
+		// check list of files
+		case archconst.ARCH_X86:
+			return "i686-w64-mingw32", true
+		case archconst.ARCH_X86_SF:
+			return "i686-w64-mingw32", true
+		// https://packages.debian.org/buster/mingw-w64-x86-64-dev
+		// check list of files
+		case archconst.ARCH_AMD64:
+			return "x86_64-w64-mingw32", true
+		case archconst.ARCH_AMD64_V1:
+			return "x86_64-w64-mingw32", true
+		case archconst.ARCH_AMD64_V2:
+			return "x86_64-w64-mingw32", true
+		case archconst.ARCH_AMD64_V3:
+			return "x86_64-w64-mingw32", true
+		case archconst.ARCH_AMD64_V4:
+			return "x86_64-w64-mingw32", true
 
-			archconst.ARCH_IA64: "",
+		case archconst.ARCH_IA64:
+			return "", true
 
-			archconst.ARCH_ARM_V5: "",
-			archconst.ARCH_ARM_V6: "",
-			archconst.ARCH_ARM_V7: "",
-			archconst.ARCH_ARM64:  "",
+		case archconst.ARCH_ARM:
+			return "", true
+		case archconst.ARCH_ARM_V5:
+			return "", true
+		case archconst.ARCH_ARM_V6:
+			return "", true
+		case archconst.ARCH_ARM_V7:
+			return "", true
 
-			archconst.ARCH_PPC:       "",
-			archconst.ARCH_PPC_SF:    "",
-			archconst.ARCH_PPC_LE:    "",
-			archconst.ARCH_PPC_LE_SF: "",
+		case archconst.ARCH_ARM64:
+			return "", true
+		case archconst.ARCH_ARM64_V8:
+			return "", true
+		case archconst.ARCH_ARM64_V9:
+			return "", true
 
-			archconst.ARCH_PPC64:       "",
-			archconst.ARCH_PPC64_LE:    "",
-			archconst.ARCH_PPC64_V8:    "",
-			archconst.ARCH_PPC64_LE_V8: "",
-			archconst.ARCH_PPC64_V9:    "",
-			archconst.ARCH_PPC64_LE_V9: "",
+		case archconst.ARCH_PPC:
+			return "", true
+		case archconst.ARCH_PPC_SF:
+			return "", true
+		case archconst.ARCH_PPC_LE:
+			return "", true
+		case archconst.ARCH_PPC_LE_SF:
+			return "", true
 
-			archconst.ARCH_MIPS:         "",
-			archconst.ARCH_MIPS_SF:      "",
-			archconst.ARCH_MIPS_LE:      "",
-			archconst.ARCH_MIPS_LE_SF:   "",
-			archconst.ARCH_MIPS64:       "",
-			archconst.ARCH_MIPS64_SF:    "",
-			archconst.ARCH_MIPS64_LE:    "",
-			archconst.ARCH_MIPS64_LE_SF: "",
+		case archconst.ARCH_PPC64:
+			return "", true
+		case archconst.ARCH_PPC64_LE:
+			return "", true
+		case archconst.ARCH_PPC64_V8:
+			return "", true
+		case archconst.ARCH_PPC64_LE_V8:
+			return "", true
+		case archconst.ARCH_PPC64_V9:
+			return "", true
+		case archconst.ARCH_PPC64_LE_V9:
+			return "", true
 
-			archconst.ARCH_RISCV_64: "",
-			archconst.ARCH_S390X:    "",
-		}[mArch]
+		case archconst.ARCH_MIPS:
+			return "", true
+		case archconst.ARCH_MIPS_SF:
+			return "", true
+		case archconst.ARCH_MIPS_LE:
+			return "", true
+		case archconst.ARCH_MIPS_LE_SF:
+			return "", true
+		case archconst.ARCH_MIPS64:
+			return "", true
+		case archconst.ARCH_MIPS64_SF:
+			return "", true
+		case archconst.ARCH_MIPS64_LE:
+			return "", true
+		case archconst.ARCH_MIPS64_LE_SF:
+			return "", true
 
-		return v, ok
+		case archconst.ARCH_RISCV64:
+			return "", true
+		case archconst.ARCH_S390X:
+			return "", true
+		default:
+			return "", false
+		}
+
 	case LIBC_GNU:
 		fallthrough
 	default:
-		v, ok := map[string]string{
-			archconst.ARCH_X86:    "i686-linux-gnu",
-			archconst.ARCH_X86_SF: "i686-linux-gnu",
+		switch mArch {
+		case archconst.ARCH_X86:
+			return "i686-linux-gnu", true
+		case archconst.ARCH_X86_SF:
+			return "i686-linux-gnu", true
 
-			archconst.ARCH_AMD64:    "x86_64-linux-gnu",
-			archconst.ARCH_AMD64_V1: "x86_64-linux-gnu",
-			archconst.ARCH_AMD64_V2: "x86_64-linux-gnu",
-			archconst.ARCH_AMD64_V3: "x86_64-linux-gnu",
-			archconst.ARCH_AMD64_V4: "x86_64-linux-gnu",
+		case archconst.ARCH_AMD64:
+			return "x86_64-linux-gnu", true
+		case archconst.ARCH_AMD64_V1:
+			return "x86_64-linux-gnu", true
+		case archconst.ARCH_AMD64_V2:
+			return "x86_64-linux-gnu", true
+		case archconst.ARCH_AMD64_V3:
+			return "x86_64-linux-gnu", true
+		case archconst.ARCH_AMD64_V4:
+			return "x86_64-linux-gnu", true
 
-			archconst.ARCH_ARM_V5: "arm-linux-gnueabi",
-			archconst.ARCH_ARM_V6: "arm-linux-gnueabi",
-			archconst.ARCH_ARM_V7: "arm-linux-gnueabihf",
-			archconst.ARCH_ARM64:  "aarch64-linux-gnu",
+		case archconst.ARCH_ARM:
+			return "arm-linux-gnueabihf", true
+		case archconst.ARCH_ARM_V5:
+			return "arm-linux-gnueabi", true
+		case archconst.ARCH_ARM_V6:
+			return "arm-linux-gnueabi", true
+		case archconst.ARCH_ARM_V7:
+			return "arm-linux-gnueabihf", true
 
-			archconst.ARCH_PPC64:       "powerpc64-linux-gnu",
-			archconst.ARCH_PPC64_LE:    "powerpc64le-linux-gnu",
-			archconst.ARCH_PPC64_V8:    "powerpc64-linux-gnu",
-			archconst.ARCH_PPC64_LE_V8: "powerpc64le-linux-gnu",
-			archconst.ARCH_PPC64_V9:    "powerpc64-linux-gnu",
-			archconst.ARCH_PPC64_LE_V9: "powerpc64le-linux-gnu",
+		case archconst.ARCH_ARM64:
+			return "aarch64-linux-gnu", true
+		case archconst.ARCH_ARM64_V8:
+			return "aarch64-linux-gnu", true
+		case archconst.ARCH_ARM64_V9:
+			return "aarch64-linux-gnu", true
 
-			archconst.ARCH_MIPS:         "mips-linux-gnu",
-			archconst.ARCH_MIPS_SF:      "mips-linux-gnu",
-			archconst.ARCH_MIPS_LE:      "mipsel-linux-gnu",
-			archconst.ARCH_MIPS_LE_SF:   "mipsel-linux-gnu",
-			archconst.ARCH_MIPS64:       "mips64-linux-gnuabi64",
-			archconst.ARCH_MIPS64_SF:    "mips64-linux-gnuabi64",
-			archconst.ARCH_MIPS64_LE:    "mips64el-linux-gnuabi64",
-			archconst.ARCH_MIPS64_LE_SF: "mips64el-linux-gnuabi64",
+		case archconst.ARCH_PPC64:
+			return "powerpc64-linux-gnu", true
+		case archconst.ARCH_PPC64_LE:
+			return "powerpc64le-linux-gnu", true
+		case archconst.ARCH_PPC64_V8:
+			return "powerpc64-linux-gnu", true
+		case archconst.ARCH_PPC64_LE_V8:
+			return "powerpc64le-linux-gnu", true
+		case archconst.ARCH_PPC64_V9:
+			return "powerpc64-linux-gnu", true
+		case archconst.ARCH_PPC64_LE_V9:
+			return "powerpc64le-linux-gnu", true
 
-			archconst.ARCH_RISCV_64: "riscv64-linux-gnu",
-			archconst.ARCH_S390X:    "s390x-linux-gnu",
+		case archconst.ARCH_MIPS:
+			return "mips-linux-gnu", true
+		case archconst.ARCH_MIPS_SF:
+			return "mips-linux-gnu", true
+		case archconst.ARCH_MIPS_LE:
+			return "mipsel-linux-gnu", true
+		case archconst.ARCH_MIPS_LE_SF:
+			return "mipsel-linux-gnu", true
+		case archconst.ARCH_MIPS64:
+			return "mips64-linux-gnuabi64", true
+		case archconst.ARCH_MIPS64_SF:
+			return "mips64-linux-gnuabi64", true
+		case archconst.ARCH_MIPS64_LE:
+			return "mips64el-linux-gnuabi64", true
+		case archconst.ARCH_MIPS64_LE_SF:
+			return "mips64el-linux-gnuabi64", true
 
-			archconst.ARCH_IA64: "",
+		case archconst.ARCH_RISCV64:
+			return "riscv64-linux-gnu", true
+		case archconst.ARCH_S390X:
+			return "s390x-linux-gnu", true
 
-			archconst.ARCH_PPC:       "",
-			archconst.ARCH_PPC_SF:    "",
-			archconst.ARCH_PPC_LE:    "",
-			archconst.ARCH_PPC_LE_SF: "",
-		}[mArch]
+		case archconst.ARCH_IA64:
+			return "", true
 
-		return v, ok
+		case archconst.ARCH_PPC:
+			return "", true
+		case archconst.ARCH_PPC_SF:
+			return "", true
+		case archconst.ARCH_PPC_LE:
+			return "", true
+		case archconst.ARCH_PPC_LE_SF:
+			return "", true
+		default:
+			return "", false
+		}
 	}
 }
 
@@ -214,7 +372,7 @@ func GetDebianTripleName(mArch, targetKernel, targetLibc string) (string, bool) 
 func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 	_ = targetKernel
 
-	arch, ok := GetArch("gnu", mArch)
+	arch, ok := GetArch(PLATFORM_GNU, mArch)
 	if !ok {
 		return "", false
 	}
@@ -225,7 +383,7 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		switch mArch {
 		case archconst.ARCH_ARM_V5, archconst.ARCH_ARM_V6:
 			abi = "musleabi"
-		case archconst.ARCH_ARM_V7:
+		case archconst.ARCH_ARM_V7, archconst.ARCH_ARM:
 			abi = "musleabihf"
 		default:
 			abi = "musl"
@@ -239,7 +397,7 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		switch mArch {
 		case archconst.ARCH_ARM_V5, archconst.ARCH_ARM_V6:
 			abi = "gnueabi"
-		case archconst.ARCH_ARM_V7:
+		case archconst.ARCH_ARM_V7, archconst.ARCH_ARM:
 			abi = "gnueabihf"
 		case archconst.ARCH_MIPS64, archconst.ARCH_MIPS64_SF,
 			archconst.ARCH_MIPS64_LE, archconst.ARCH_MIPS64_LE_SF:
@@ -254,7 +412,7 @@ func GetGNUTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 
 // ref: https://llvm.org/doxygen/Triple_8h_source.html
 func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
-	arch, ok := GetArch("llvm", mArch)
+	arch, ok := GetArch(PLATFORM_LLVM, mArch)
 	if !ok {
 		return "", false
 	}
@@ -297,7 +455,7 @@ func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		switch mArch {
 		case archconst.ARCH_ARM_V5, archconst.ARCH_ARM_V6:
 			abi = "musleabi"
-		case archconst.ARCH_ARM_V7:
+		case archconst.ARCH_ARM_V7, archconst.ARCH_ARM:
 			abi = "musleabihf"
 		default:
 			abi = "musl"
@@ -316,7 +474,7 @@ func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 		switch mArch {
 		case archconst.ARCH_ARM_V5, archconst.ARCH_ARM_V6:
 			abi = "gnueabi"
-		case archconst.ARCH_ARM_V7:
+		case archconst.ARCH_ARM_V7, archconst.ARCH_ARM:
 			abi = "gnueabihf"
 		case archconst.ARCH_MIPS64, archconst.ARCH_MIPS64_SF,
 			archconst.ARCH_MIPS64_LE, archconst.ARCH_MIPS64_LE_SF:

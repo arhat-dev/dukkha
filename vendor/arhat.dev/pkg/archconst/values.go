@@ -1,5 +1,8 @@
 package archconst
 
+// ArchValue is a typed string for cpu arch values
+type ArchValue string
+
 // Arch values
 // format: [arch name]{endian variant}{`sf` (soft float mark)}{micro arch}
 //
@@ -102,10 +105,10 @@ const (
 		RISCV64
 	*/
 
-	ARCH_RISCV_64 = "riscv64"
+	ARCH_RISCV64 = "riscv64"
 
 	/*
-		S390X (64bit S390)
+		S390X
 	*/
 
 	ARCH_S390X = "s390x"

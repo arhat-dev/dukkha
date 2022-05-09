@@ -250,12 +250,14 @@
 - `archconv.GNUTripleName(string, ...string) string`
 - `archconv.GolangArch(string) string`
 - `archconv.GolangOS(string) string`
+- `archconv.HardFloadArch(string) string`
 - `archconv.LLVMArch(string) string`
 - `archconv.LLVMTripleName(string, ...string) string`
 - `archconv.OciArch(string) string`
 - `archconv.OciArchVariant(string) string`
 - `archconv.OciOS(string) string`
 - `archconv.QemuArch(string) string`
+- `archconv.SimpleArch(string) string`
 - `coll.Append(interface {}, interface {}) ([]interface {}, error)`
 - `coll.Dict(...interface {}) (map[string]interface {}, error)`
 - `coll.Flatten(...interface {}) ([]interface {}, error)`

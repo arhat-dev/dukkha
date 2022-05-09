@@ -19,7 +19,7 @@ func Bits() int {
 	return strconv.IntSize
 }
 
-func selectEndian(little, big string) string {
+func selectEndian(little, big archconst.ArchValue) archconst.ArchValue {
 	if LittleEndian() {
 		return little
 	}
@@ -27,7 +27,7 @@ func selectEndian(little, big string) string {
 	return big
 }
 
-func fallback(v, def string) string {
+func fallback[S ~string](v, def S) S {
 	if len(v) == 0 {
 		return def
 	}
@@ -45,7 +45,7 @@ func fallback(v, def string) string {
 // - s390x
 // - ppc64{, le}v{8, 9}
 // - mips64{, le}
-func ArchByCPUFeatures(data CPU) string {
+func ArchByCPUFeatures(data CPU) archconst.ArchValue {
 	switch {
 	case cpu.ARM64.HasFP, cpu.ARM64.HasASIMD: // arm64
 		return archconst.ARCH_ARM64

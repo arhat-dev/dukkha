@@ -8,8 +8,8 @@ import (
 
 // Dukkha runtime specific template funcs
 
-func createDukkhaNS(rc dukkha.RenderingContext) *dukkhaNS {
-	return &dukkhaNS{rc: rc}
+func createDukkhaNS(rc dukkha.RenderingContext) dukkhaNS {
+	return dukkhaNS{rc: rc}
 }
 
 type dukkhaNS struct {
@@ -17,22 +17,22 @@ type dukkhaNS struct {
 }
 
 // CacheDir get DUKKHA_CACHE_DIR
-func (ns *dukkhaNS) CacheDir() string {
+func (ns dukkhaNS) CacheDir() string {
 	return ns.rc.CacheDir()
 }
 
 // WorkDir get DUKKHA_WORKDIR
-func (ns *dukkhaNS) WorkDir() string {
+func (ns dukkhaNS) WorkDir() string {
 	return ns.rc.WorkDir()
 }
 
 // Set is an alias of SetValue
-func (ns *dukkhaNS) Set(key string, v interface{}) (interface{}, error) {
+func (ns dukkhaNS) Set(key string, v interface{}) (interface{}, error) {
 	return ns.SetValue(key, v)
 }
 
 // SetValue set global value
-func (ns *dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {
+func (ns dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {
 	var err error
 	// parse yaml/json doc when v is string or bytes
 	switch t := v.(type) {

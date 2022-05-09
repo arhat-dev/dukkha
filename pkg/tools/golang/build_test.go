@@ -102,7 +102,7 @@ func TestCreateBuildEnv(t *testing.T) {
 		{mArch: archconst.ARCH_PPC64_V9, goarch: "ppc64", goppc64: "power9"},
 		{mArch: archconst.ARCH_PPC64_LE_V9, goarch: "ppc64le", goppc64: "power9"},
 
-		{mArch: archconst.ARCH_RISCV_64, goarch: "riscv64"},
+		{mArch: archconst.ARCH_RISCV64, goarch: "riscv64"},
 
 		{mArch: archconst.ARCH_S390X, goarch: "s390x"},
 

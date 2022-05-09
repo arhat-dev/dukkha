@@ -79,20 +79,20 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"camelcase": stringsNS.CamelCase,
 		}).
 		Funcs(map[string]interface{}{
-			"filepath": func() *filepathNS { return createFilePathNS(rc) },
-			"strconv":  func() *_strconvNS { return strconvNS },
-			"dukkha":   func() *dukkhaNS { return createDukkhaNS(rc) },
-			"os":       func() *osNS { return createOSNS(rc) },
-			"archconv": func() *_archconvNS { return archconvNS },
+			"filepath": func() filepathNS { return createFilePathNS(rc) },
+			"strconv":  func() strconvNS { return strconvNS{} },
+			"dukkha":   func() dukkhaNS { return createDukkhaNS(rc) },
+			"os":       func() osNS { return createOSNS(rc) },
+			"archconv": func() archconvNS { return archconvNS{} },
 			"git":      rc.GitValues,
 			"host":     rc.HostValues,
 			// eval shell and template
-			"eval":   func() *evalNS { return createEvalNS(rc) },
+			"eval":   func() evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,
 			"values": rc.Values,
 			"matrix": func() map[string]string { return rc.MatrixFilter().AsEntry() },
 			// state task execution
-			"state": func() *stateNS { return createStateNS(rc) },
+			"state": func() stateNS { return createStateNS(rc) },
 			// for transform renderer
 			"VALUE": func() interface{} {
 				vg, ok := rc.(di.VALUEGetter)

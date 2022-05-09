@@ -6,96 +6,172 @@ import "arhat.dev/pkg/archconst"
 
 // TODO: determine apple arch
 func GetAppleArch(mArch string) (string, bool) {
-	v, ok := map[string]string{
-		archconst.ARCH_AMD64:    "x86_64",
-		archconst.ARCH_AMD64_V1: "x86_64",
-		archconst.ARCH_AMD64_V2: "x86_64",
-		archconst.ARCH_AMD64_V3: "x86_64",
-		archconst.ARCH_AMD64_V4: "x86_64",
+	switch mArch {
+	case archconst.ARCH_AMD64:
+		return "x86_64", true
+	case archconst.ARCH_AMD64_V1:
+		return "x86_64", true
+	case archconst.ARCH_AMD64_V2:
+		return "x86_64", true
+	case archconst.ARCH_AMD64_V3:
+		return "x86_64", true
+	case archconst.ARCH_AMD64_V4:
+		return "x86_64", true
 
-		// arm64 for m1 chip, arm64e for A12 - before m1
-		archconst.ARCH_ARM64: "arm64",
+	// arm64 for m1 chip, arm64e for A12 - before m1
+	case archconst.ARCH_ARM64:
+		return "arm64", true
+	case archconst.ARCH_ARM64_V8:
+		return "arm64", true
+	case archconst.ARCH_ARM64_V9:
+		return "arm64", true
 
-		archconst.ARCH_X86:    "",
-		archconst.ARCH_X86_SF: "",
+	case archconst.ARCH_X86:
+		return "", true
+	case archconst.ARCH_X86_SF:
+		return "", true
 
-		archconst.ARCH_ARM_V5: "",
-		archconst.ARCH_ARM_V6: "",
-		archconst.ARCH_ARM_V7: "",
+	case archconst.ARCH_ARM:
+		return "", true
+	case archconst.ARCH_ARM_V5:
+		return "", true
+	case archconst.ARCH_ARM_V6:
+		return "", true
+	case archconst.ARCH_ARM_V7:
+		return "", true
 
-		archconst.ARCH_PPC:       "",
-		archconst.ARCH_PPC_SF:    "",
-		archconst.ARCH_PPC_LE:    "",
-		archconst.ARCH_PPC_LE_SF: "",
+	case archconst.ARCH_PPC:
+		return "", true
+	case archconst.ARCH_PPC_SF:
+		return "", true
+	case archconst.ARCH_PPC_LE:
+		return "", true
+	case archconst.ARCH_PPC_LE_SF:
+		return "", true
 
-		archconst.ARCH_PPC64:       "",
-		archconst.ARCH_PPC64_LE:    "",
-		archconst.ARCH_PPC64_V8:    "",
-		archconst.ARCH_PPC64_LE_V8: "",
-		archconst.ARCH_PPC64_V9:    "",
-		archconst.ARCH_PPC64_LE_V9: "",
+	case archconst.ARCH_PPC64:
+		return "", true
+	case archconst.ARCH_PPC64_LE:
+		return "", true
+	case archconst.ARCH_PPC64_V8:
+		return "", true
+	case archconst.ARCH_PPC64_LE_V8:
+		return "", true
+	case archconst.ARCH_PPC64_V9:
+		return "", true
+	case archconst.ARCH_PPC64_LE_V9:
+		return "", true
 
-		archconst.ARCH_MIPS:         "",
-		archconst.ARCH_MIPS_SF:      "",
-		archconst.ARCH_MIPS_LE:      "",
-		archconst.ARCH_MIPS_LE_SF:   "",
-		archconst.ARCH_MIPS64:       "",
-		archconst.ARCH_MIPS64_SF:    "",
-		archconst.ARCH_MIPS64_LE:    "",
-		archconst.ARCH_MIPS64_LE_SF: "",
+	case archconst.ARCH_MIPS:
+		return "", true
+	case archconst.ARCH_MIPS_SF:
+		return "", true
+	case archconst.ARCH_MIPS_LE:
+		return "", true
+	case archconst.ARCH_MIPS_LE_SF:
+		return "", true
+	case archconst.ARCH_MIPS64:
+		return "", true
+	case archconst.ARCH_MIPS64_SF:
+		return "", true
+	case archconst.ARCH_MIPS64_LE:
+		return "", true
+	case archconst.ARCH_MIPS64_LE_SF:
+		return "", true
 
-		archconst.ARCH_RISCV_64: "",
-		archconst.ARCH_S390X:    "",
+	case archconst.ARCH_RISCV64:
+		return "", true
+	case archconst.ARCH_S390X:
+		return "", true
 
-		archconst.ARCH_IA64: "",
-	}[mArch]
-
-	return v, ok
+	case archconst.ARCH_IA64:
+		return "", true
+	default:
+		return "", false
+	}
 }
 
 func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
-	v, ok := map[string]string{
-		archconst.ARCH_AMD64:    "x86_64-apple-darwin",
-		archconst.ARCH_AMD64_V1: "x86_64-apple-darwin",
-		archconst.ARCH_AMD64_V2: "x86_64-apple-darwin",
-		archconst.ARCH_AMD64_V3: "x86_64-apple-darwin",
-		archconst.ARCH_AMD64_V4: "x86_64-apple-darwin",
+	switch mArch {
+	case archconst.ARCH_AMD64:
+		return "x86_64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_AMD64_V1:
+		return "x86_64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_AMD64_V2:
+		return "x86_64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_AMD64_V3:
+		return "x86_64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_AMD64_V4:
+		return "x86_64-apple-darwin" + darwinVersion, true
 
-		archconst.ARCH_ARM64: "arm64-apple-darwin",
+	case archconst.ARCH_ARM64:
+		return "arm64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_ARM64_V8:
+		return "arm64-apple-darwin" + darwinVersion, true
+	case archconst.ARCH_ARM64_V9:
+		return "arm64-apple-darwin" + darwinVersion, true
 
-		archconst.ARCH_X86:    "",
-		archconst.ARCH_X86_SF: "",
+	case archconst.ARCH_X86:
+		return "", true
+	case archconst.ARCH_X86_SF:
+		return "", true
 
-		archconst.ARCH_ARM_V5: "",
-		archconst.ARCH_ARM_V6: "",
-		archconst.ARCH_ARM_V7: "",
+	case archconst.ARCH_ARM:
+		return "", true
+	case archconst.ARCH_ARM_V5:
+		return "", true
+	case archconst.ARCH_ARM_V6:
+		return "", true
+	case archconst.ARCH_ARM_V7:
+		return "", true
 
-		archconst.ARCH_PPC:       "",
-		archconst.ARCH_PPC_SF:    "",
-		archconst.ARCH_PPC_LE:    "",
-		archconst.ARCH_PPC_LE_SF: "",
+	case archconst.ARCH_PPC:
+		return "", true
+	case archconst.ARCH_PPC_SF:
+		return "", true
+	case archconst.ARCH_PPC_LE:
+		return "", true
+	case archconst.ARCH_PPC_LE_SF:
+		return "", true
 
-		archconst.ARCH_PPC64:       "",
-		archconst.ARCH_PPC64_LE:    "",
-		archconst.ARCH_PPC64_V8:    "",
-		archconst.ARCH_PPC64_LE_V8: "",
-		archconst.ARCH_PPC64_V9:    "",
-		archconst.ARCH_PPC64_LE_V9: "",
+	case archconst.ARCH_PPC64:
+		return "", true
+	case archconst.ARCH_PPC64_LE:
+		return "", true
+	case archconst.ARCH_PPC64_V8:
+		return "", true
+	case archconst.ARCH_PPC64_LE_V8:
+		return "", true
+	case archconst.ARCH_PPC64_V9:
+		return "", true
+	case archconst.ARCH_PPC64_LE_V9:
+		return "", true
 
-		archconst.ARCH_MIPS:         "",
-		archconst.ARCH_MIPS_SF:      "",
-		archconst.ARCH_MIPS_LE:      "",
-		archconst.ARCH_MIPS_LE_SF:   "",
-		archconst.ARCH_MIPS64:       "",
-		archconst.ARCH_MIPS64_SF:    "",
-		archconst.ARCH_MIPS64_LE:    "",
-		archconst.ARCH_MIPS64_LE_SF: "",
+	case archconst.ARCH_MIPS:
+		return "", true
+	case archconst.ARCH_MIPS_SF:
+		return "", true
+	case archconst.ARCH_MIPS_LE:
+		return "", true
+	case archconst.ARCH_MIPS_LE_SF:
+		return "", true
+	case archconst.ARCH_MIPS64:
+		return "", true
+	case archconst.ARCH_MIPS64_SF:
+		return "", true
+	case archconst.ARCH_MIPS64_LE:
+		return "", true
+	case archconst.ARCH_MIPS64_LE_SF:
+		return "", true
 
-		archconst.ARCH_RISCV_64: "",
-		archconst.ARCH_S390X:    "",
+	case archconst.ARCH_RISCV64:
+		return "", true
+	case archconst.ARCH_S390X:
+		return "", true
 
-		archconst.ARCH_IA64: "",
-	}[mArch]
-
-	return v + darwinVersion, ok
+	case archconst.ARCH_IA64:
+		return "", true
+	default:
+		return "", false
+	}
 }
