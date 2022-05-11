@@ -55,12 +55,12 @@ func (f *FetchSpec) fetchRemote(sshConfig *ssh.Spec) (io.ReadCloser, error) {
 		stdin  io.Writer
 		stdout = &gitWireReader{}
 
-		stderr = &bytes.Buffer{}
+		stderr bytes.Buffer
 	)
 
 	session.Stdin, stdin = iohelper.Pipe()
 	stdout.reader, session.Stdout = iohelper.Pipe()
-	session.Stderr = stderr
+	session.Stderr = &stderr
 
 	err = session.Setenv("GIT_PROTOCOL", "version=2")
 	if err != nil {

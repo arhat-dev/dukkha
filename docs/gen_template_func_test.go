@@ -27,8 +27,8 @@ func TestGenerateTemplateFuncDocs(t *testing.T) {
 	}
 
 	tfs := collectTemplateFuncs()
-	buf := &bytes.Buffer{}
-	if !assert.NoError(t, tpl.ExecuteTemplate(buf, "template_funcs.tpl", tfs)) {
+	var buf bytes.Buffer
+	if !assert.NoError(t, tpl.ExecuteTemplate(&buf, "template_funcs.tpl", tfs)) {
 		return
 	}
 
@@ -45,6 +45,12 @@ func collectTemplateFuncs() []*templateFunc {
 
 	tpl := templateutils.CreateTemplate(ctx)
 
+	replacer := strings.NewReplacer(
+		"templateutils.String", "String",
+		"templateutils.Bytes", "Bytes",
+		"interface {}", "any",
+	)
+
 	var ret []*templateFunc
 	for k, v := range tpl.GetExecFuncs() {
 		vt := v.Type()
@@ -53,7 +59,7 @@ func collectTemplateFuncs() []*templateFunc {
 			// is a func
 			ret = append(ret, &templateFunc{
 				Name: k,
-				Func: vt.String(),
+				Func: replacer.Replace(vt.String()),
 			})
 			continue
 		}
@@ -83,7 +89,7 @@ func collectTemplateFuncs() []*templateFunc {
 
 			ret = append(ret, &templateFunc{
 				Name: k + "." + m.Name,
-				Func: reflect.FuncOf(fin, fout, ft.IsVariadic()).String(),
+				Func: replacer.Replace(reflect.FuncOf(fin, fout, ft.IsVariadic()).String()),
 			})
 		}
 	}

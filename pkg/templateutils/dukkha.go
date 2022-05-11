@@ -9,18 +9,14 @@ import (
 
 // Dukkha runtime specific template funcs
 
-func createDukkhaNS(rc dukkha.RenderingContext) dukkhaNS {
-	return dukkhaNS{rc: rc}
-}
+func createDukkhaNS(rc dukkha.RenderingContext) dukkhaNS { return dukkhaNS{rc: rc} }
 
-type dukkhaNS struct {
-	rc dukkha.RenderingContext
-}
+type dukkhaNS struct{ rc dukkha.RenderingContext }
 
 // CrossPlatform checks if doing cross platform job by comparing
 // arg[0]/matrix.kernel with arg[1]/host.kernel
 // arg[2]/matrix.arch with arg[3]/host.arch
-func (ns dukkhaNS) CrossPlatform(args ...string) bool {
+func (ns dukkhaNS) CrossPlatform(args ...String) bool {
 	var (
 		hostKernel, hostArch     string
 		targetKernel, targetArch string
@@ -31,36 +27,30 @@ func (ns dukkhaNS) CrossPlatform(args ...string) bool {
 		targetKernel, targetArch = ns.rc.MatrixKernel(), ns.rc.MatrixArch()
 		hostKernel, hostArch = ns.rc.HostKernel(), ns.rc.HostArch()
 	case 1:
-		targetKernel, targetArch = args[0], ns.rc.MatrixArch()
+		targetKernel, targetArch = toString(args[0]), ns.rc.MatrixArch()
 		hostKernel, hostArch = ns.rc.HostKernel(), ns.rc.HostArch()
 	case 2:
-		targetKernel, targetArch = args[0], ns.rc.MatrixArch()
-		hostKernel, hostArch = args[1], ns.rc.HostArch()
+		targetKernel, targetArch = toString(args[0]), ns.rc.MatrixArch()
+		hostKernel, hostArch = toString(args[1]), ns.rc.HostArch()
 	case 3:
-		targetKernel, targetArch = args[0], args[2]
-		hostKernel, hostArch = args[1], ns.rc.HostArch()
+		targetKernel, targetArch = toString(args[0]), toString(args[2])
+		hostKernel, hostArch = toString(args[1]), ns.rc.HostArch()
 	default:
-		targetKernel, targetArch = args[0], args[2]
-		hostKernel, hostArch = args[1], args[3]
+		targetKernel, targetArch = toString(args[0]), toString(args[2])
+		hostKernel, hostArch = toString(args[1]), toString(args[3])
 	}
 
 	return constant.CrossPlatform(targetKernel, targetArch, hostKernel, hostArch)
 }
 
-// CacheDir get DUKKHA_CACHE_DIR
-func (ns dukkhaNS) CacheDir() string {
-	return ns.rc.CacheDir()
-}
+// CacheDir gets DUKKHA_CACHE_DIR
+func (ns dukkhaNS) CacheDir() string { return ns.rc.CacheDir() }
 
-// WorkDir get DUKKHA_WORKDIR
-func (ns dukkhaNS) WorkDir() string {
-	return ns.rc.WorkDir()
-}
+// WorkDir gets DUKKHA_WORKDIR
+func (ns dukkhaNS) WorkDir() string { return ns.rc.WorkDir() }
 
 // Set is an alias of SetValue
-func (ns dukkhaNS) Set(key string, v interface{}) (interface{}, error) {
-	return ns.SetValue(key, v)
-}
+func (ns dukkhaNS) Set(key string, v interface{}) (interface{}, error) { return ns.SetValue(key, v) }
 
 // SetValue set global value
 func (ns dukkhaNS) SetValue(key string, v interface{}) (interface{}, error) {

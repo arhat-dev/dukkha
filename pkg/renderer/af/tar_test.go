@@ -46,8 +46,11 @@ func addTarSymLink(w *tar.Writer, name, target string) error {
 }
 
 func newTarBuf(add func(w *tar.Writer)) io.ReadSeeker {
-	buf := &bytes.Buffer{}
-	w := tar.NewWriter(buf)
+	var (
+		buf bytes.Buffer
+		rd  bytes.Reader
+	)
+	w := tar.NewWriter(&buf)
 
 	add(w)
 	err := w.Close()
@@ -55,7 +58,9 @@ func newTarBuf(add func(w *tar.Writer)) io.ReadSeeker {
 		panic(err)
 	}
 
-	return io.NewSectionReader(bytes.NewReader(buf.Bytes()), 0, int64(buf.Len()))
+	n := buf.Len()
+	rd.Reset(buf.Next(n))
+	return io.NewSectionReader(&rd, 0, int64(n))
 }
 
 func TestUntar(t *testing.T) {

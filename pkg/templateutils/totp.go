@@ -7,43 +7,21 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
-	"reflect"
 	"strings"
 	"time"
 )
 
 // args: token, optional<code length>, optional<time value>
-func totpTemplateFunc(tokenVal interface{}, args ...interface{}) (string, error) {
+func totpTemplateFunc(tokenVal String, args ...interface{}) (string, error) {
 	var (
-		token  string
-		t      time.Time
 		length int
+		t      time.Time
 	)
 
-	switch tt := tokenVal.(type) {
-	case string:
-		token = tt
-	case []byte:
-		token = string(tt)
-	default:
-		return "", fmt.Errorf("invalid token value type: %q", tt)
-	}
+	token := toString(tokenVal)
 
 	if len(args) != 0 {
-		switch at := args[0].(type) {
-		case string, []byte:
-		case int, int8, int16, int32, int64:
-			length = int(reflect.ValueOf(at).Int())
-		case uint, uint8, uint16, uint32, uint64, uintptr:
-			length = int(reflect.ValueOf(at).Uint())
-		case float32, float64:
-			length = int(reflect.ValueOf(at).Float())
-		default:
-			return "", fmt.Errorf(
-				"invalid code length arg value type %T",
-				at,
-			)
-		}
+		length = int(toUint64(args[0]))
 	}
 
 	if len(args) > 1 {
@@ -71,7 +49,11 @@ func totpTemplateFunc(tokenVal interface{}, args ...interface{}) (string, error)
 		case *time.Time:
 			if at == nil {
 				t = time.Now()
+			} else {
+				t = *at
 			}
+		case nil:
+			t = time.Now()
 		default:
 			return "", fmt.Errorf("invalid time arg value type: %T", at)
 		}

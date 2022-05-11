@@ -2,6 +2,7 @@ package archconst
 
 import "arhat.dev/pkg/stringhelper"
 
+// Spec of a cpu arch
 type Spec struct {
 	Name         ArchValue
 	MicroArch    string
@@ -11,43 +12,43 @@ type Spec struct {
 
 // String is a wrapper of Format for Spec s
 func (s Spec) String() (ret string) {
-	ret, _ = Format(string(s.Name), s.LittleEndian, s.SoftFloat, s.MicroArch)
+	ret, _ = Format[string, byte](s.Name, s.LittleEndian, s.SoftFloat, s.MicroArch)
 	return
 }
 
-// Split arch value into arch name and variant info
+// Parse arch value into arch Spec
 //
 // if the provided arch value is unknown to this package, it returns the arch value as name, along with
 // littleEndian = false, softfloat = false, microArch = ""
-func Split[T ~string](arch T) (s Spec, ok bool) {
+func Parse[B ~byte, T stringhelper.String[B]](arch T) (s Spec, ok bool) {
 	ok = true
 	switch {
-	case stringhelper.HasPrefix(arch, ARCH_AMD64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_AMD64):
 		s.Name, s.MicroArch = ARCH_AMD64, "v1"
 		goto AssumeLittleEndian
-	case stringhelper.HasPrefix(arch, ARCH_X86):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_X86):
 		s.Name, s.MicroArch = ARCH_X86, ""
 		goto AssumeLittleEndian
-	case stringhelper.HasPrefix(arch, ARCH_ARM64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_ARM64):
 		s.Name, s.MicroArch = ARCH_ARM64, "v8"
 		goto AssumeLittleEndian
-	case stringhelper.HasPrefix(arch, ARCH_ARM):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_ARM):
 		s.Name, s.MicroArch = ARCH_ARM, "v7"
 		s.LittleEndian, s.SoftFloat = true, true
-		arch = arch[len(s.Name):]
-		if stringhelper.HasPrefix(arch, "be") {
+		arch = stringhelper.SliceStart[B](arch, len(s.Name))
+		if stringhelper.HasPrefix[B, byte, T, string](arch, "be") {
 			// armbe...
 			s.LittleEndian = false
-			arch = arch[2:]
+			arch = stringhelper.SliceStart[B](arch, 2)
 		}
 
-		if stringhelper.HasPrefix(arch, "sf") {
+		if stringhelper.HasPrefix[B, byte, T, string](arch, "sf") {
 			// not meaningful, as `arm` uses micro level to identify hard float support
-			arch = arch[2:]
+			arch = stringhelper.SliceStart[B](arch, 2)
 		}
 
 		if len(arch) != 0 {
-			s.MicroArch = string(arch)
+			s.MicroArch = stringhelper.Convert[string, B](arch)
 		}
 
 		switch s.MicroArch {
@@ -57,70 +58,72 @@ func Split[T ~string](arch T) (s Spec, ok bool) {
 		}
 
 		return
-	case stringhelper.HasPrefix(arch, ARCH_MIPS64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_MIPS64):
 		s.Name, s.MicroArch = ARCH_MIPS64, ""
 		goto AssumeBigEndian
-	case stringhelper.HasPrefix(arch, ARCH_MIPS):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_MIPS):
 		s.Name, s.MicroArch = ARCH_MIPS, ""
 		goto AssumeBigEndian
-	case stringhelper.HasPrefix(arch, ARCH_PPC64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_PPC64):
 		s.Name, s.MicroArch = ARCH_PPC64, "v8"
 		goto AssumeBigEndian
-	case stringhelper.HasPrefix(arch, ARCH_PPC):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_PPC):
 		s.Name, s.MicroArch = ARCH_PPC, ""
 		goto AssumeBigEndian
-	case stringhelper.HasPrefix(arch, ARCH_RISCV64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_RISCV64):
 		s.Name, s.MicroArch = ARCH_RISCV64, ""
 		goto AssumeLittleEndian
-	case stringhelper.HasPrefix(arch, ARCH_S390X):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_S390X):
 		s.Name, s.MicroArch = ARCH_S390X, ""
 		goto AssumeBigEndian
-	case stringhelper.HasPrefix(arch, ARCH_IA64):
+	case stringhelper.HasPrefix[B, byte, T, string](arch, ARCH_IA64):
 		s.Name, s.MicroArch = ARCH_RISCV64, ""
 		goto AssumeLittleEndian
 	default:
-		s.Name = ArchValue(arch)
+		s.Name = stringhelper.Convert[ArchValue, B](arch)
 		ok = false
 		return
 	}
 
 AssumeBigEndian:
 	s.LittleEndian = false
-	arch = arch[len(s.Name):]
-	if stringhelper.HasPrefix(arch, "le") {
+	arch = stringhelper.SliceStart[B](arch, len(s.Name))
+	if stringhelper.HasPrefix[B, byte, T, string](arch, "le") {
 		s.LittleEndian = true
-		arch = arch[2:]
+		arch = stringhelper.SliceStart[B](arch, 2)
 	}
 
 	goto AssumeHardFloat
 
 AssumeLittleEndian:
 	s.LittleEndian = true
-	arch = arch[len(s.Name):]
-	if stringhelper.HasPrefix(arch, "be") {
+	arch = stringhelper.SliceStart[B](arch, len(s.Name))
+	if stringhelper.HasPrefix[B, byte, T, string](arch, "be") {
 		s.LittleEndian = false
-		arch = arch[2:]
+		arch = stringhelper.SliceStart[B](arch, 2)
 	}
 
 AssumeHardFloat:
-	if stringhelper.HasPrefix(arch, "sf") {
+	if stringhelper.HasPrefix[B, byte, T, string](arch, "sf") {
 		s.SoftFloat = true
-		arch = arch[2:]
+		arch = stringhelper.SliceStart[B](arch, 2)
 	}
 
 	if len(arch) != 0 {
-		s.MicroArch = string(arch)
+		s.MicroArch = stringhelper.Convert[string, B](arch)
 	}
 
 	return
 }
 
 // Format arch value with name and variant info
-func Format[T ~string](name T, littleEndian, softfloat bool, microArch string) (_ T, ok bool) {
-	switch name {
+func Format[R ~string, B ~byte, T stringhelper.String[B]](name T, littleEndian, softfloat bool, microArch string) (_ R, ok bool) {
+	nameStr := stringhelper.Convert[R, B](name)
+
+	switch nameStr {
 	case ARCH_ARM: // default little-endian & micro arch indicates soft-float
 		if !littleEndian {
-			name += "be"
+			nameStr += "be"
 		}
 
 		if softfloat {
@@ -128,37 +131,37 @@ func Format[T ~string](name T, littleEndian, softfloat bool, microArch string) (
 			case "v5":
 			case "v6":
 			case "v7":
-				name += "sf"
+				nameStr += "sf"
 			default:
 				// TODO: what ?
 			}
 		}
 
-		return name + T(microArch), true
+		return nameStr + R(microArch), true
 	case ARCH_AMD64, ARCH_X86, ARCH_ARM64, ARCH_RISCV64: // default little-endian & hard-float
 		if !littleEndian {
-			name += "be"
+			nameStr += "be"
 		}
 
 		ok = true
 	case ARCH_MIPS64, ARCH_MIPS, ARCH_PPC64, ARCH_PPC, ARCH_S390X: // default big endian & hard-float
 		if littleEndian {
-			name += "le"
+			nameStr += "le"
 		}
 
 		ok = true
 	case ARCH_IA64: // selectable endianness & hard-float => assume little-endian
 		ok = true
 		if !littleEndian {
-			name += "be"
+			nameStr += "be"
 		}
 	default: // unknown arch name
-		return name, false
+		return nameStr, false
 	}
 
 	if softfloat {
-		name += "sf"
+		nameStr += "sf"
 	}
 
-	return name + T(microArch), ok
+	return nameStr + R(microArch), ok
 }

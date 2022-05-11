@@ -174,10 +174,10 @@ func TestMatrixConfig_GenerateEntries(t *testing.T) {
 			assert.EqualValues(
 				t,
 				test.expected,
-				test.in.GenerateEntries(&Filter{
+				test.in.GenerateEntries("", "", Filter{
 					match:  test.matchFilter,
 					ignore: test.ignoreFilter,
-				}, "", ""),
+				}),
 			)
 		})
 	}
@@ -214,10 +214,10 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 			), -1)
 			assert.NoError(t, err)
 
-			actual := spec.Spec.GenerateEntries(&Filter{
+			actual := spec.Spec.GenerateEntries("", "", Filter{
 				match:  spec.MatchFilter,
 				ignore: spec.IgnoreFilter,
-			}, "", "")
+			})
 
 			assert.EqualValues(t, exp, &actual)
 		},

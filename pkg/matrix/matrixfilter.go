@@ -4,8 +4,8 @@ import (
 	"strings"
 )
 
-func ParseMatrixFilter(arr []string) *Filter {
-	ret := NewFilter(make(map[string][]string))
+func ParseMatrixFilter(arr []string) (ret Filter) {
+	ret = NewFilter(nil)
 
 	for _, v := range arr {
 		if idx := strings.Index(v, "!="); idx > 0 {

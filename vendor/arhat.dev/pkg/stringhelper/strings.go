@@ -1,23 +1,30 @@
 package stringhelper
 
-func HasPrefix[S ~string](s, prefix S) bool {
-	return len(s) >= len(prefix) && s[0:len(prefix)] == prefix
+import (
+	"strings"
+	"unsafe"
+)
+
+func HasPrefix[B1, B2 ~byte, S1 String[B1], S2 String[B2]](s S1, prefix S2) bool {
+	return strings.HasPrefix(*(*string)(unsafe.Pointer(&s)), *(*string)(unsafe.Pointer(&prefix)))
 }
 
-func HasSuffix[S ~string](s, suffix S) bool {
-	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
+func HasSuffix[B1, B2 ~byte, S1 String[B1], S2 String[B2]](s S1, suffix S2) bool {
+	return strings.HasSuffix(*(*string)(unsafe.Pointer(&s)), *(*string)(unsafe.Pointer(&suffix)))
 }
 
-func TrimPrefix[S ~string](s, prefix S) S {
-	if HasPrefix(s, prefix) {
-		return s[len(prefix):]
+func TrimPrefix[B1, B2 ~byte, S1 String[B1], S2 String[B2]](s S1, prefix S2) S1 {
+	if HasPrefix[B1, B2](s, prefix) {
+		return SliceStart[B1](s, len(prefix))
 	}
+
 	return s
 }
 
-func TrimSuffix[S ~string](s, suffix S) S {
-	if HasSuffix(s, suffix) {
-		return s[:len(s)-len(suffix)]
+func TrimSuffix[B1, B2 ~byte, S1 String[B1], S2 String[B2]](s S1, suffix S2) S1 {
+	if HasSuffix[B1, B2](s, suffix) {
+		return SliceEnd[B1](s, len(s)-len(suffix))
 	}
+
 	return s
 }

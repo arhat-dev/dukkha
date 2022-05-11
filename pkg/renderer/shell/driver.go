@@ -63,9 +63,9 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	buf := &bytes.Buffer{}
+	var buf bytes.Buffer
 	runner, err := templateutils.CreateEmbeddedShellRunner(
-		rc.WorkDir(), rc, nil, buf, os.Stderr,
+		rc.WorkDir(), rc, nil, &buf, os.Stderr,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(

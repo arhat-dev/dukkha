@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/multierr"
 
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/output"
@@ -331,18 +332,26 @@ func CreateTaskMatrixContext(
 	mCtx := req.Context.DeriveNew()
 
 	// set default matrix filter for referenced hook tasks
-	mFilter := make(map[string][]string)
+	mFilter := matrix.NewFilter(nil)
 	for k, v := range ms {
-		mFilter[k] = []string{v}
+		mFilter.AddMatch(k, v)
 	}
 
-	mCtx.SetMatrixFilter(matrix.NewFilter(mFilter))
+	mCtx.SetMatrixFilter(mFilter)
 
 	for k, v := range ms {
+		name := "MATRIX_" + strings.ToUpper(k)
 		mCtx.AddEnv(true, &dukkha.EnvEntry{
-			Name:  "MATRIX_" + strings.ToUpper(k),
+			Name:  name,
 			Value: v,
 		})
+
+		if name == constant.ENV_MATRIX_ARCH {
+			mCtx.AddEnv(true, &dukkha.EnvEntry{
+				Name:  constant.ENV_MATRIX_ARCH_SIMPLE,
+				Value: constant.SimpleArch(v),
+			})
+		}
 	}
 
 	existingPrefix := mCtx.OutputPrefix()

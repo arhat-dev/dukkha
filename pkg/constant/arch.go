@@ -14,22 +14,46 @@ import (
 // - armv{5, 6, 7} are kept as is
 // - arm => armv7
 func SimpleArch(arch string) string {
-	s, ok := Split(arch)
+	s, ok := Parse[byte](arch)
 	if !ok {
 		// unknown
 		return arch
 	}
 
 	switch s.Name {
-	case ARCH_AMD64, ARCH_ARM64, ARCH_PPC64:
-		s.MicroArch = ""
 	case ARCH_ARM:
 		if len(s.MicroArch) == 0 {
 			s.MicroArch = "v7"
 		}
+	default:
+		s.MicroArch = ""
 	}
 
 	return s.String()
+}
+
+// HardFloadArch returns hardfloat version of arch
+func HardFloadArch(arch string) string {
+	spec, ok := Parse[byte](arch)
+	if !ok {
+		// unknown, assume hardfloat arch
+		return string(arch)
+	}
+
+	spec.SoftFloat = false
+	return spec.String()
+}
+
+// SoftFloadArch returns hardfloat version of arch
+func SoftFloadArch(arch string) string {
+	spec, ok := Parse[byte](arch)
+	if !ok {
+		// unknown, assume softfloat arch
+		return string(arch)
+	}
+
+	spec.SoftFloat = true
+	return spec.String()
 }
 
 func CrossPlatform(
@@ -37,7 +61,7 @@ func CrossPlatform(
 	hostKernel, hostArch string,
 ) bool {
 	var (
-		hostARCH, targetARCH Spec
+		host, target Spec
 
 		ok bool
 	)
@@ -46,25 +70,30 @@ func CrossPlatform(
 		return true
 	}
 
-	targetARCH, ok = Split(targetArch)
+	target, ok = Parse[byte](targetArch)
 	if !ok {
 		// is cross platform if not a exact match (for unknown arch)
 		return targetArch != hostArch
 	}
 
-	hostARCH, ok = Split(hostArch)
+	host, ok = Parse[byte](hostArch)
 	if !ok {
 		// is cross platform if not a exact match (for unknown arch)
 		return targetArch != hostArch
 	}
 
-	// check cpu compatibility, ignore softfloat and micro arch
+	// check cpu compatibility
 	// TODO: check micro arch compatibility?
 
-	if hostARCH.Name != targetARCH.Name || hostARCH.LittleEndian != targetARCH.LittleEndian {
+	if host.Name != target.Name || host.LittleEndian != target.LittleEndian {
 		return true
 	}
 
+	if host.SoftFloat {
+		return !target.SoftFloat
+	}
+
+	// here we assume hardfloat host supports softfloat target
 	return false
 }
 

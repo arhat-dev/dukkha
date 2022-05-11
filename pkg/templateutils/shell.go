@@ -15,17 +15,23 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/iohelper"
+	"arhat.dev/pkg/stringhelper"
 )
 
 // ExpandEnv expand environment variable in unix style (`$FOO`, `${BAR}`)
 // if enableExec is set to ture, also supports arbitrary command execution
 // using `$(do something)`
 func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (string, error) {
+	var rd strings.Reader
+	rd.Reset(toExpand)
+
 	parser := syntax.NewParser(
 		syntax.Variant(syntax.LangBash),
 	)
 
-	word, err := parser.Document(strings.NewReader(toExpand))
+	word, err := parser.Document(&rd)
 	if err != nil {
 		return "", fmt.Errorf("invalid text for env expansion: %w", err)
 	}
@@ -35,7 +41,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 		syntax.Indent(2),
 	)
 
-	config := &expand.Config{
+	config := expand.Config{
 		Env: rc,
 		// reassemble back-quoted string and $() by default
 		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
@@ -81,9 +87,9 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	}
 
 	if enableExec {
-		stdout := &bytes.Buffer{}
+		var stdout bytes.Buffer
 		runner, err := CreateEmbeddedShellRunner(
-			rc.WorkDir(), rc, nil, stdout, os.Stderr,
+			rc.WorkDir(), rc, nil, &stdout, os.Stderr,
 		)
 		if err != nil {
 			return "", fmt.Errorf("creating shell runner for env: %w", err)
@@ -122,19 +128,20 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 		}
 	}
 
-	return expand.Document(config, word)
+	return expand.Document(&config, word)
 }
 
 var errSkipBackquotedCmdSubst = errors.New("skip CmdSubSt")
 
 func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
-	buf := &bytes.Buffer{}
-	err2 := printer.Print(buf, cs)
+	var buf bytes.Buffer
+
+	err2 := printer.Print(&buf, cs)
 	if err2 != nil {
 		return "", fmt.Errorf("rebuild evaluation commands: %w", err2)
 	}
 
-	rawCmd := string(buf.Next(buf.Len()))
+	rawCmd := stringhelper.Convert[string, byte](buf.Next(buf.Len()))
 
 	// printed rawCmd is always in `$()` format
 	switch {
@@ -148,11 +155,10 @@ func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (strin
 }
 
 func CreateEmbeddedShellRunner(
-	workdir string,
+	workdir string, // workdir may be different from rc.WorkDir
 	rc dukkha.RenderingContext,
 	stdin io.Reader,
-	stdout io.Writer,
-	stderr io.Writer,
+	stdout, stderr io.Writer,
 ) (*interp.Runner, error) {
 	runner, err := interp.New(
 		interp.Env(rc),
@@ -226,4 +232,67 @@ func ExecCmdAsTemplateFuncCall(
 	}
 
 	return t.Execute(stdout, values)
+}
+
+func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHandlerFunc {
+	defaultCmdExecHandler := interp.DukkhaExecHandler(0)
+
+	return func(
+		ctx context.Context,
+		args []string,
+	) error {
+		if !strings.HasPrefix(args[0], "tpl:") {
+			err := defaultCmdExecHandler(ctx, args)
+			if err != nil {
+				return fmt.Errorf("exec: %q: %w", strings.Join(args, " "), err)
+			}
+
+			return nil
+		}
+
+		// has `tpl:` prefix, execute as a template func
+
+		hc := interp.HandlerCtx(ctx)
+
+		var pipeReader io.Reader
+		if hc.Stdin != stdin {
+			// piped context
+			pipeReader = hc.Stdin
+		}
+
+		return ExecCmdAsTemplateFuncCall(
+			rc,
+			pipeReader,
+			hc.Stdout,
+			append(
+				[]string{strings.TrimPrefix(args[0], "tpl:")},
+				args[1:]...,
+			),
+		)
+	}
+}
+
+func fileOpenHandler(
+	ctx context.Context,
+	path string,
+	flag int,
+	perm fs.FileMode,
+) (io.ReadWriteCloser, error) {
+	const devNullPath = "/dev/null"
+
+	if path == devNullPath {
+		return iohelper.NewDevNull(), nil
+	}
+
+	hc := interp.HandlerCtx(ctx)
+	osfs := fshelper.NewOSFS(false, func() (string, error) {
+		return hc.Dir, nil
+	})
+
+	f, err := osfs.OpenFile(path, flag, perm)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.(*os.File), nil
 }

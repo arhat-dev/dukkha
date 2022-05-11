@@ -4,71 +4,29 @@ import (
 	"path/filepath"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
-type filepathNS struct {
-	rc dukkha.RenderingContext
+func createFilePathNS(rc dukkha.RenderingContext) filepathNS { return filepathNS{rc: rc} }
+
+type filepathNS struct{ rc dukkha.RenderingContext }
+
+func (filepathNS) Base(p String) string               { return filepath.Base(toString(p)) }
+func (filepathNS) Clean(p String) string              { return filepath.Clean(toString(p)) }
+func (filepathNS) Dir(p String) string                { return filepath.Dir(toString(p)) }
+func (filepathNS) Ext(p String) string                { return filepath.Ext(toString(p)) }
+func (filepathNS) FromSlash(p String) string          { return filepath.FromSlash(toString(p)) }
+func (filepathNS) IsAbs(p String) bool                { return filepath.IsAbs(toString(p)) }
+func (filepathNS) Join(elem ...String) string         { return filepath.Join(toStrings(elem...)...) }
+func (filepathNS) Split(p String) (dir, file string)  { return filepath.Split(toString(p)) }
+func (filepathNS) ToSlash(p String) string            { return filepath.ToSlash(toString(p)) }
+func (filepathNS) VolumeName(p String) string         { return filepath.VolumeName(toString(p)) }
+func (ns filepathNS) Glob(p String) ([]string, error) { return ns.rc.FS().Glob(toString(p)) }
+func (ns filepathNS) Abs(p String) (string, error)    { return ns.rc.FS().Abs(toString(p)) }
+
+func (filepathNS) Match(pattern, name String) (matched bool, err error) {
+	return filepath.Match(toString(pattern), toString(name))
 }
 
-func createFilePathNS(rc dukkha.RenderingContext) filepathNS {
-	return filepathNS{rc: rc}
-}
-
-func (f filepathNS) Base(in interface{}) string {
-	return filepath.Base(conv.ToString(in))
-}
-
-func (f filepathNS) Clean(in interface{}) string {
-	return filepath.Clean(conv.ToString(in))
-}
-
-func (f filepathNS) Dir(in interface{}) string {
-	return filepath.Dir(conv.ToString(in))
-}
-
-func (f filepathNS) Ext(in interface{}) string {
-	return filepath.Ext(conv.ToString(in))
-}
-
-func (f filepathNS) FromSlash(in interface{}) string {
-	return filepath.FromSlash(conv.ToString(in))
-}
-
-func (f filepathNS) IsAbs(in interface{}) bool {
-	return filepath.IsAbs(conv.ToString(in))
-}
-
-func (f filepathNS) Join(elem ...interface{}) string {
-	s := conv.ToStrings(elem...)
-	return filepath.Join(s...)
-}
-
-func (f filepathNS) Match(pattern, name interface{}) (matched bool, err error) {
-	return filepath.Match(conv.ToString(pattern), conv.ToString(name))
-}
-
-func (f filepathNS) Rel(basepath, targpath interface{}) (string, error) {
-	return filepath.Rel(conv.ToString(basepath), conv.ToString(targpath))
-}
-
-func (f filepathNS) Split(in interface{}) []string {
-	dir, file := filepath.Split(conv.ToString(in))
-	return []string{dir, file}
-}
-
-func (f filepathNS) ToSlash(in interface{}) string {
-	return filepath.ToSlash(conv.ToString(in))
-}
-
-func (f filepathNS) VolumeName(in interface{}) string {
-	return filepath.VolumeName(conv.ToString(in))
-}
-
-func (f filepathNS) Glob(in interface{}) ([]string, error) {
-	return f.rc.FS().Glob(conv.ToString(in))
-}
-
-func (f filepathNS) Abs(in interface{}) (string, error) {
-	return f.rc.FS().Abs(conv.ToString(in))
+func (filepathNS) Rel(basepath, targpath String) (string, error) {
+	return filepath.Rel(toString(basepath), toString(targpath))
 }

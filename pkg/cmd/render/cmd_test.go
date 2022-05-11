@@ -94,8 +94,8 @@ func TestCmd(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			stdout := &bytes.Buffer{}
-			err = run(appCtx, opts, spec.Sources, stdout)
+			var stdout bytes.Buffer
+			err = run(appCtx, opts, spec.Sources, &stdout)
 
 			if spec.BadSource {
 				assert.Error(t, err)
@@ -122,7 +122,7 @@ func TestCmd(t *testing.T) {
 			for _, file := range spec.OutputFiles {
 				switch file {
 				case "-":
-					actualPart, err2 := parseYaml(yaml.NewDecoder(stdout))
+					actualPart, err2 := parseYaml(yaml.NewDecoder(&stdout))
 
 					assert.NoError(t, err2)
 

@@ -143,7 +143,7 @@ func (act *Action) genTaskActionSpecs(
 	}
 
 	if ref.MatrixFilter != nil {
-		ctx.SetMatrixFilter(ref.MatrixFilter)
+		ctx.SetMatrixFilter(*ref.MatrixFilter)
 	}
 
 	tool, ok := ctx.GetTool(ref.ToolKey())

@@ -141,4 +141,8 @@ __NOTE:__ Environment variables in this section are only available for tasks and
   - Description: Matrix value
   - Example Names: `MATRIX_KERNEL` for `matrix.kernel`, `MATRIX_FOO_DATA` for `matrix.foo_data`
 
+- `MATRIX_ARCH_SIMPLE`
+  - Description: same as `HOST_ARCH_SIMPLE`, but for `MATRIX_ARCH`
+  - Default Value: `{{- archconv.SimpleArch matrix.arch -}}`
+
 __NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`

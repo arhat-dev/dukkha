@@ -2,18 +2,17 @@
 
 - `abbrev(int, string) string`
 - `abbrevboth(int, int, string) string`
-- `add(...interface {}) interface {}`
-- `add1(interface {}) int64`
-- `add1f(interface {}) float64`
-- `addPrefix(...string) string`
-- `addSuffix(...string) string`
-- `addf(...interface {}) float64`
+- `add(...any) any`
+- `add1(any) int64`
+- `add1f(any) float64`
+- `addPrefix(...String) string`
+- `addSuffix(...String) string`
+- `addf(...any) float64`
 - `adler32sum(string) string`
-- `ago(interface {}) string`
-- `all(...interface {}) bool`
-- `any(...interface {}) bool`
-- `append(interface {}, interface {}) ([]interface {}, error)`
-- `appendFile(string, []uint8) error`
+- `ago(any) string`
+- `all(...any) bool`
+- `any(...any) bool`
+- `append(any, any) ([]any, error)`
 - `atoi(string) int`
 - `b32dec(string) string`
 - `b32enc(string) string`
@@ -21,138 +20,138 @@
 - `b64enc(string) string`
 - `base(string) string`
 - `bcrypt(string) string`
-- `biggest(interface {}, ...interface {}) int64`
-- `bool(interface {}) bool`
+- `biggest(any, ...any) int64`
+- `bool(any) bool`
 - `buildCustomCert(string, string) (sprig.certificate, error)`
-- `camelcase(interface {}) (string, error)`
-- `cat(...interface {}) string`
-- `ceil(interface {}) float64`
-- `chunk(int, interface {}) [][]interface {}`
+- `camelcase(String) string`
+- `cat(...any) string`
+- `ceil(any) float64`
+- `chunk(int, any) [][]any`
 - `clean(string) string`
-- `coalesce(...interface {}) interface {}`
-- `compact(interface {}) []interface {}`
-- `concat(...interface {}) interface {}`
-- `contains(string, interface {}) bool`
-- `date(string, interface {}) string`
-- `dateInZone(string, interface {}, string) string`
+- `coalesce(...any) any`
+- `compact(any) []any`
+- `concat(...any) any`
+- `contains(String, String) bool`
+- `date(string, any) string`
+- `dateInZone(string, any, string) string`
 - `dateModify(string, time.Time) time.Time`
-- `date_in_zone(string, interface {}, string) string`
+- `date_in_zone(string, any, string) string`
 - `date_modify(string, time.Time) time.Time`
 - `decryptAES(string, string) (string, error)`
-- `deepCopy(interface {}) interface {}`
-- `deepEqual(interface {}, interface {}) bool`
-- `default(interface {}, interface {}) interface {}`
+- `deepCopy(any) any`
+- `deepEqual(any, any) bool`
+- `default(any, any) any`
 - `derivePassword(uint32, string, string, string, string) string`
-- `dict(...interface {}) (map[string]interface {}, error)`
-- `dig(...interface {}) (interface {}, error)`
+- `dict(...any) (map[string]any, error)`
+- `dig(...any) (any, error)`
 - `dir(string) string`
-- `div(interface {}, interface {}) (interface {}, error)`
-- `divf(interface {}, ...interface {}) float64`
-- `duration(interface {}) string`
-- `durationRound(interface {}) string`
-- `empty(interface {}) bool`
+- `div(any, any) (any, error)`
+- `divf(any, ...any) float64`
+- `duration(any) string`
+- `durationRound(any) string`
+- `empty(any) bool`
 - `encryptAES(string, string) (string, error)`
 - `expandenv(string) string`
 - `ext(string) string`
 - `fail(string) (string, error)`
-- `first(interface {}) interface {}`
-- `flatten(...interface {}) ([]interface {}, error)`
-- `float64(interface {}) float64`
-- `floor(interface {}) float64`
-- `fromJson(string) interface {}`
-- `fromYaml(string) interface {}`
+- `first(any) any`
+- `flatten(...any) ([]any, error)`
+- `float64(any) float64`
+- `floor(any) float64`
+- `fromJson(string) any`
+- `fromYaml(String) any`
 - `genCA(string, int) (sprig.certificate, error)`
 - `genCAWithKey(string, int, string) (sprig.certificate, error)`
 - `genPrivateKey(string) string`
-- `genSelfSignedCert(string, []interface {}, []interface {}, int) (sprig.certificate, error)`
-- `genSelfSignedCertWithKey(string, []interface {}, []interface {}, int, string) (sprig.certificate, error)`
-- `genSignedCert(string, []interface {}, []interface {}, int, sprig.certificate) (sprig.certificate, error)`
-- `genSignedCertWithKey(string, []interface {}, []interface {}, int, sprig.certificate, string) (sprig.certificate, error)`
-- `get(map[string]interface {}, string) interface {}`
+- `genSelfSignedCert(string, []any, []any, int) (sprig.certificate, error)`
+- `genSelfSignedCertWithKey(string, []any, []any, int, string) (sprig.certificate, error)`
+- `genSignedCert(string, []any, []any, int, sprig.certificate) (sprig.certificate, error)`
+- `genSignedCertWithKey(string, []any, []any, int, sprig.certificate, string) (sprig.certificate, error)`
+- `get(map[string]any, string) any`
 - `getBuildahImageIDFile(string) (string, error)`
-- `getDefaultImageTag(string, ...string) string`
-- `getDefaultManifestTag(string, ...string) string`
+- `getDefaultImageTag(String, ...String) string`
+- `getDefaultManifestTag(String, ...String) string`
 - `getHostByName(string) string`
-- `has(interface {}, string) bool`
-- `hasKey(map[string]interface {}, string) bool`
-- `hasPrefix(string, interface {}) bool`
-- `hasSuffix(string, interface {}) bool`
-- `htmlDate(interface {}) string`
-- `htmlDateInZone(interface {}, string) string`
+- `has(any, string) bool`
+- `hasKey(map[string]any, string) bool`
+- `hasPrefix(String, String) bool`
+- `hasSuffix(String, String) bool`
+- `htmlDate(any) string`
+- `htmlDateInZone(any, string) string`
 - `htpasswd(string, string) string`
-- `include(string, interface {}) (string, error)`
-- `indent(...interface {}) (string, error)`
-- `initial(interface {}) []interface {}`
+- `include(string, any) (string, error)`
+- `indent(...any) (string, error)`
+- `initial(any) []any`
 - `initials(string) string`
-- `int(interface {}) int`
-- `int64(interface {}) int64`
+- `int(any) int`
+- `int64(any) int64`
 - `isAbs(string) bool`
-- `join(interface {}, string) (string, error)`
+- `join(any, string) (string, error)`
 - `jq(string, string) (string, error)`
 - `jqBytes(string, []uint8) (string, error)`
-- `jqObject(interface {}, interface {}) (interface {}, error)`
-- `kebabcase(interface {}) (string, error)`
-- `keys(...map[string]interface {}) ([]string, error)`
-- `kindIs(string, interface {}) bool`
-- `kindOf(interface {}) string`
-- `last(interface {}) interface {}`
-- `list(...interface {}) []interface {}`
+- `jqObject(String, any) (any, error)`
+- `kebabcase(String) string`
+- `keys(...map[string]any) ([]string, error)`
+- `kindIs(string, any) bool`
+- `kindOf(any) string`
+- `last(any) any`
+- `list(...any) []any`
 - `lower(string) string`
-- `max(interface {}, ...interface {}) int64`
-- `maxf(interface {}, ...interface {}) float64`
-- `md5sum(string) string`
-- `merge(map[string]interface {}, ...map[string]interface {}) (map[string]interface {}, error)`
-- `mergeOverwrite(map[string]interface {}, ...map[string]interface {}) interface {}`
-- `min(interface {}, ...interface {}) int64`
-- `minf(interface {}, ...interface {}) float64`
-- `mod(interface {}, interface {}) int64`
-- `mul(...interface {}) interface {}`
-- `mulf(interface {}, ...interface {}) float64`
-- `mustAppend(interface {}, interface {}) ([]interface {}, error)`
-- `mustChunk(int, interface {}) ([][]interface {}, error)`
-- `mustCompact(interface {}) ([]interface {}, error)`
+- `max(any, ...any) int64`
+- `maxf(any, ...any) float64`
+- `md5sum(Bytes) string`
+- `merge(map[string]any, ...map[string]any) (map[string]any, error)`
+- `mergeOverwrite(map[string]any, ...map[string]any) any`
+- `min(any, ...any) int64`
+- `minf(any, ...any) float64`
+- `mod(any, any) int64`
+- `mul(...any) any`
+- `mulf(any, ...any) float64`
+- `mustAppend(any, any) ([]any, error)`
+- `mustChunk(int, any) ([][]any, error)`
+- `mustCompact(any) ([]any, error)`
 - `mustDateModify(string, time.Time) (time.Time, error)`
-- `mustDeepCopy(interface {}) (interface {}, error)`
-- `mustFirst(interface {}) (interface {}, error)`
-- `mustFromJson(string) (interface {}, error)`
-- `mustHas(interface {}, interface {}) (bool, error)`
-- `mustInitial(interface {}) ([]interface {}, error)`
-- `mustLast(interface {}) (interface {}, error)`
-- `mustMerge(map[string]interface {}, ...map[string]interface {}) (interface {}, error)`
-- `mustMergeOverwrite(map[string]interface {}, ...map[string]interface {}) (interface {}, error)`
-- `mustPrepend(interface {}, interface {}) ([]interface {}, error)`
-- `mustPush(interface {}, interface {}) ([]interface {}, error)`
+- `mustDeepCopy(any) (any, error)`
+- `mustFirst(any) (any, error)`
+- `mustFromJson(string) (any, error)`
+- `mustHas(any, any) (bool, error)`
+- `mustInitial(any) ([]any, error)`
+- `mustLast(any) (any, error)`
+- `mustMerge(map[string]any, ...map[string]any) (any, error)`
+- `mustMergeOverwrite(map[string]any, ...map[string]any) (any, error)`
+- `mustPrepend(any, any) ([]any, error)`
+- `mustPush(any, any) ([]any, error)`
 - `mustRegexFind(string, string) (string, error)`
 - `mustRegexFindAll(string, string, int) ([]string, error)`
 - `mustRegexMatch(string, string) (bool, error)`
 - `mustRegexReplaceAll(string, string, string) (string, error)`
 - `mustRegexReplaceAllLiteral(string, string, string) (string, error)`
 - `mustRegexSplit(string, string, int) ([]string, error)`
-- `mustRest(interface {}) ([]interface {}, error)`
-- `mustReverse(interface {}) ([]interface {}, error)`
-- `mustSlice(interface {}, ...interface {}) (interface {}, error)`
+- `mustRest(any) ([]any, error)`
+- `mustReverse(any) ([]any, error)`
+- `mustSlice(any, ...any) (any, error)`
 - `mustToDate(string, string) (time.Time, error)`
-- `mustToJson(interface {}) (string, error)`
-- `mustToPrettyJson(interface {}) (string, error)`
-- `mustToRawJson(interface {}) (string, error)`
-- `mustUniq(interface {}) ([]interface {}, error)`
-- `mustWithout(interface {}, ...interface {}) ([]interface {}, error)`
+- `mustToJson(any) (string, error)`
+- `mustToPrettyJson(any) (string, error)`
+- `mustToRawJson(any) (string, error)`
+- `mustUniq(any) ([]any, error)`
+- `mustWithout(any, ...any) ([]any, error)`
 - `must_date_modify(string, time.Time) (time.Time, error)`
 - `nindent(int, string) string`
 - `nospace(string) string`
-- `omit(map[string]interface {}, ...string) map[string]interface {}`
+- `omit(map[string]any, ...string) map[string]any`
 - `osBase(string) string`
 - `osClean(string) string`
 - `osDir(string) string`
 - `osExt(string) string`
 - `osIsAbs(string) bool`
-- `pick(map[string]interface {}, ...string) map[string]interface {}`
-- `pluck(string, ...map[string]interface {}) []interface {}`
+- `pick(map[string]any, ...string) map[string]any`
+- `pluck(string, ...map[string]any) []any`
 - `plural(string, string, int) string`
-- `pow(interface {}, interface {}) interface {}`
-- `prepend(interface {}, interface {}) ([]interface {}, error)`
-- `push(interface {}, interface {}) []interface {}`
-- `quote(interface {}) string`
+- `pow(any, any) any`
+- `prepend(any, any) ([]any, error)`
+- `push(any, any) []any`
+- `quote(String) string`
 - `randAlpha(int) string`
 - `randAlphaNum(int) string`
 - `randAscii(int) string`
@@ -166,200 +165,202 @@
 - `regexReplaceAll(string, string, string) string`
 - `regexReplaceAllLiteral(string, string, string) string`
 - `regexSplit(string, string, int) []string`
-- `rem(interface {}, interface {}) interface {}`
-- `removePrefix(...string) string`
-- `removeSuffix(...string) string`
+- `rem(any, any) any`
+- `removePrefix(...String) string`
+- `removeSuffix(...String) string`
 - `repeat(int, string) string`
 - `replace(string, string, string) string`
-- `replaceAll(string, string, interface {}) string`
-- `rest(interface {}) []interface {}`
-- `reverse(interface {}) ([]interface {}, error)`
-- `round(interface {}, int, ...float64) float64`
+- `replaceAll(String, String, String) string`
+- `rest(any) []any`
+- `reverse(any) ([]any, error)`
+- `round(any, int, ...float64) float64`
 - `semver(string) (*semver.Version, error)`
 - `semverCompare(string, string) (bool, error)`
-- `seq(...interface {}) ([]int64, error)`
-- `set(map[string]interface {}, string, interface {}) map[string]interface {}`
-- `setDefaultImageTag(string, ...string) string`
-- `setDefaultManifestTag(string, ...string) string`
+- `seq(...any) ([]int64, error)`
+- `set(map[string]any, string, any) map[string]any`
+- `setDefaultImageTag(String, ...String) string`
+- `setDefaultManifestTag(String, ...String) string`
 - `sha1sum(string) string`
 - `sha256sum(string) string`
-- `shellQuote(interface {}) string`
+- `shellQuote(String) string`
 - `shuffle(string) string`
-- `slice(...interface {}) []interface {}`
-- `snakecase(interface {}) (string, error)`
-- `sort(...interface {}) ([]interface {}, error)`
-- `sortAlpha(interface {}) []string`
-- `split(string, interface {}) []string`
+- `slice(...any) []any`
+- `snakecase(String) string`
+- `sort(...any) ([]any, error)`
+- `sortAlpha(any) []string`
+- `split(String, String) []string`
 - `splitList(string, string) []string`
-- `splitN(string, int, interface {}) []string`
+- `splitN(String, templateutils.Integer, String) []string`
 - `splitn(string, int, string) map[string]string`
-- `squote(interface {}) string`
-- `sub(interface {}, interface {}) interface {}`
-- `subf(interface {}, ...interface {}) float64`
+- `squote(String) string`
+- `sub(any, any) any`
+- `subf(any, ...any) float64`
 - `substr(int, int, string) string`
 - `swapcase(string) string`
-- `ternary(interface {}, interface {}, bool) interface {}`
-- `title(interface {}) string`
-- `toBytes(interface {}) ([]uint8, error)`
+- `ternary(any, any, bool) any`
+- `title(String) string`
+- `toBytes(any) []uint8`
 - `toDate(string, string) time.Time`
-- `toDecimal(interface {}) int64`
-- `toJson(interface {}) string`
-- `toLower(interface {}) string`
-- `toPrettyJson(interface {}) string`
-- `toRawJson(interface {}) string`
-- `toString(interface {}) string`
-- `toStrings(interface {}) []string`
-- `toUpper(interface {}) string`
-- `toYaml(interface {}) string`
-- `totp(interface {}, ...interface {}) (string, error)`
-- `trim(string, interface {}) string`
+- `toDecimal(any) int64`
+- `toJson(any) string`
+- `toLower(String) string`
+- `toPrettyJson(any) string`
+- `toRawJson(any) string`
+- `toString(any) string`
+- `toStrings(any) []string`
+- `toUpper(String) string`
+- `toYaml(any) string`
+- `totp(String, ...any) (string, error)`
+- `trim(String, String) string`
 - `trimAll(string, string) string`
 - `trimPrefix(string, string) string`
-- `trimSpace(interface {}) string`
+- `trimSpace(String) string`
 - `trimSuffix(string, string) string`
 - `trimall(string, string) string`
 - `trunc(int, string) string`
-- `tuple(...interface {}) []interface {}`
-- `typeIs(string, interface {}) bool`
-- `typeIsLike(string, interface {}) bool`
-- `typeOf(interface {}) string`
-- `uniq(interface {}) ([]interface {}, error)`
+- `tuple(...any) []any`
+- `typeIs(string, any) bool`
+- `typeIsLike(string, any) bool`
+- `typeOf(any) string`
+- `uniq(any) ([]any, error)`
 - `unixEpoch(time.Time) string`
-- `unset(map[string]interface {}, string) map[string]interface {}`
+- `unset(map[string]any, string) map[string]any`
 - `until(int) []int`
 - `untilStep(int, int, int) []int`
 - `untitle(string) string`
 - `upper(string) string`
-- `urlJoin(map[string]interface {}) string`
-- `urlParse(interface {}) (*url.URL, error)`
-- `without(interface {}, ...interface {}) []interface {}`
+- `urlJoin(map[string]any) string`
+- `urlParse(any) (*url.URL, error)`
+- `without(any, ...any) []any`
 - `wrap(int, string) string`
 - `wrapWith(int, string, string) string`
 - `yq(string, string) (string, error)`
 - `yqBytes(string, []uint8) (string, error)`
-- `archconv.AlpineArch(string) string`
-- `archconv.AlpineTripleName(string) string`
-- `archconv.DebianArch(string) string`
-- `archconv.DebianTripleName(string, ...string) string`
-- `archconv.DockerArch(string) string`
-- `archconv.DockerArchVariant(string) string`
-- `archconv.DockerHubArch(string, ...string) string`
+- `archconv.AlpineArch(String) string`
+- `archconv.AlpineTripleName(String) string`
+- `archconv.DebianArch(String) string`
+- `archconv.DebianTripleName(String, ...String) string`
+- `archconv.DockerArch(String) string`
+- `archconv.DockerArchVariant(String) string`
+- `archconv.DockerHubArch(String, ...String) string`
 - `archconv.DockerOS(string) string`
-- `archconv.DockerPlatformArch(string) string`
-- `archconv.GNUArch(string) string`
-- `archconv.GNUTripleName(string, ...string) string`
-- `archconv.GolangArch(string) string`
-- `archconv.GolangOS(string) string`
-- `archconv.HF(string) string`
-- `archconv.HardFloadArch(string) string`
-- `archconv.LLVMArch(string) string`
-- `archconv.LLVMTripleName(string, ...string) string`
-- `archconv.OciArch(string) string`
-- `archconv.OciArchVariant(string) string`
+- `archconv.DockerPlatformArch(String) string`
+- `archconv.GNUArch(String) string`
+- `archconv.GNUTripleName(String, ...String) string`
+- `archconv.GolangArch(String) string`
+- `archconv.GolangOS(String) string`
+- `archconv.HF(String) string`
+- `archconv.HardFloadArch(String) string`
+- `archconv.LLVMArch(String) string`
+- `archconv.LLVMTripleName(String, ...String) string`
+- `archconv.OciArch(String) string`
+- `archconv.OciArchVariant(String) string`
 - `archconv.OciOS(string) string`
-- `archconv.QemuArch(string) string`
-- `archconv.SimpleArch(string) string`
-- `coll.Append(interface {}, interface {}) ([]interface {}, error)`
-- `coll.Dict(...interface {}) (map[string]interface {}, error)`
-- `coll.Flatten(...interface {}) ([]interface {}, error)`
-- `coll.Has(interface {}, string) bool`
-- `coll.Keys(...map[string]interface {}) ([]string, error)`
-- `coll.Merge(map[string]interface {}, ...map[string]interface {}) (map[string]interface {}, error)`
-- `coll.Omit(...interface {}) (map[string]interface {}, error)`
-- `coll.Pick(...interface {}) (map[string]interface {}, error)`
-- `coll.Prepend(interface {}, interface {}) ([]interface {}, error)`
-- `coll.Reverse(interface {}) ([]interface {}, error)`
-- `coll.Slice(...interface {}) []interface {}`
-- `coll.Sort(...interface {}) ([]interface {}, error)`
-- `coll.Uniq(interface {}) ([]interface {}, error)`
-- `coll.Values(...map[string]interface {}) ([]interface {}, error)`
-- `conv.Atoi(interface {}) int`
-- `conv.Bool(interface {}) bool`
-- `conv.Default(interface {}, interface {}) interface {}`
-- `conv.Dict(...interface {}) (map[string]interface {}, error)`
-- `conv.Has(interface {}, string) bool`
-- `conv.Join(interface {}, string) (string, error)`
-- `conv.ParseFloat(interface {}, int) float64`
-- `conv.ParseInt(interface {}, int, int) int64`
-- `conv.ParseUint(interface {}, int, int) uint64`
-- `conv.Slice(...interface {}) []interface {}`
-- `conv.ToBool(interface {}) bool`
-- `conv.ToBools(...interface {}) []bool`
-- `conv.ToFloat64(interface {}) float64`
-- `conv.ToFloat64s(...interface {}) []float64`
-- `conv.ToInt(interface {}) int`
-- `conv.ToInt64(interface {}) int64`
-- `conv.ToInt64s(...interface {}) []int64`
-- `conv.ToInts(...interface {}) []int`
-- `conv.ToString(interface {}) string`
-- `conv.ToStrings(...interface {}) []string`
-- `conv.URL(interface {}) (*url.URL, error)`
-- `crypto.Bcrypt(...interface {}) (string, error)`
-- `crypto.PBKDF2(interface {}, interface {}, interface {}, interface {}, ...string) (string, error)`
+- `archconv.QemuArch(String) string`
+- `archconv.SF(String) string`
+- `archconv.SimpleArch(String) string`
+- `archconv.SoftFloadArch(String) string`
+- `coll.Append(any, any) ([]any, error)`
+- `coll.Dict(...any) (map[string]any, error)`
+- `coll.Flatten(...any) ([]any, error)`
+- `coll.Has(any, string) bool`
+- `coll.Keys(...map[string]any) ([]string, error)`
+- `coll.Merge(map[string]any, ...map[string]any) (map[string]any, error)`
+- `coll.Omit(...any) (map[string]any, error)`
+- `coll.Pick(...any) (map[string]any, error)`
+- `coll.Prepend(any, any) ([]any, error)`
+- `coll.Reverse(any) ([]any, error)`
+- `coll.Slice(...any) []any`
+- `coll.Sort(...any) ([]any, error)`
+- `coll.Uniq(any) ([]any, error)`
+- `coll.Values(...map[string]any) ([]any, error)`
+- `conv.Atoi(any) int`
+- `conv.Bool(any) bool`
+- `conv.Default(any, any) any`
+- `conv.Dict(...any) (map[string]any, error)`
+- `conv.Has(any, string) bool`
+- `conv.Join(any, string) (string, error)`
+- `conv.ParseFloat(any, int) float64`
+- `conv.ParseInt(any, int, int) int64`
+- `conv.ParseUint(any, int, int) uint64`
+- `conv.Slice(...any) []any`
+- `conv.ToBool(any) bool`
+- `conv.ToBools(...any) []bool`
+- `conv.ToFloat64(any) float64`
+- `conv.ToFloat64s(...any) []float64`
+- `conv.ToInt(any) int`
+- `conv.ToInt64(any) int64`
+- `conv.ToInt64s(...any) []int64`
+- `conv.ToInts(...any) []int`
+- `conv.ToString(any) string`
+- `conv.ToStrings(...any) []string`
+- `conv.URL(any) (*url.URL, error)`
+- `crypto.Bcrypt(...any) (string, error)`
+- `crypto.PBKDF2(any, any, any, any, ...string) (string, error)`
 - `crypto.RSADecrypt(string, []uint8) (string, error)`
 - `crypto.RSADecryptBytes(string, []uint8) ([]uint8, error)`
 - `crypto.RSADerivePublicKey(string) (string, error)`
-- `crypto.RSAEncrypt(string, interface {}) ([]uint8, error)`
-- `crypto.RSAGenerateKey(...interface {}) (string, error)`
-- `crypto.SHA1(interface {}) string`
-- `crypto.SHA224(interface {}) string`
-- `crypto.SHA256(interface {}) string`
-- `crypto.SHA384(interface {}) string`
-- `crypto.SHA512(interface {}) string`
-- `crypto.SHA512_224(interface {}) string`
-- `crypto.SHA512_256(interface {}) string`
-- `crypto.WPAPSK(interface {}, interface {}) (string, error)`
+- `crypto.RSAEncrypt(string, any) ([]uint8, error)`
+- `crypto.RSAGenerateKey(...any) (string, error)`
+- `crypto.SHA1(any) string`
+- `crypto.SHA224(any) string`
+- `crypto.SHA256(any) string`
+- `crypto.SHA384(any) string`
+- `crypto.SHA512(any) string`
+- `crypto.SHA512_224(any) string`
+- `crypto.SHA512_256(any) string`
+- `crypto.WPAPSK(any, any) (string, error)`
 - `dukkha.CacheDir() string`
-- `dukkha.CrossPlatform(...string) bool`
-- `dukkha.Set(string, interface {}) (interface {}, error)`
-- `dukkha.SetValue(string, interface {}) (interface {}, error)`
+- `dukkha.CrossPlatform(...String) bool`
+- `dukkha.Set(string, any) (any, error)`
+- `dukkha.SetValue(string, any) (any, error)`
 - `dukkha.WorkDir() string`
-- `eval.Env(...interface {}) (string, error)`
-- `eval.Shell(interface {}, ...interface {}) (string, error)`
-- `eval.Template(interface {}) (string, error)`
-- `file.Exists(interface {}) bool`
-- `file.IsDir(interface {}) bool`
-- `file.Read(interface {}) (string, error)`
-- `file.ReadDir(interface {}) ([]string, error)`
-- `file.Stat(interface {}) (fs.FileInfo, error)`
-- `file.Walk(interface {}) ([]string, error)`
-- `file.Write(interface {}, interface {}) (string, error)`
-- `filepath.Abs(interface {}) (string, error)`
-- `filepath.Base(interface {}) string`
-- `filepath.Clean(interface {}) string`
-- `filepath.Dir(interface {}) string`
-- `filepath.Ext(interface {}) string`
-- `filepath.FromSlash(interface {}) string`
-- `filepath.Glob(interface {}) ([]string, error)`
-- `filepath.IsAbs(interface {}) bool`
-- `filepath.Join(...interface {}) string`
-- `filepath.Match(interface {}, interface {}) (bool, error)`
-- `filepath.Rel(interface {}, interface {}) (string, error)`
-- `filepath.Split(interface {}) []string`
-- `filepath.ToSlash(interface {}) string`
-- `filepath.VolumeName(interface {}) string`
-- `math.Abs(interface {}) interface {}`
-- `math.Add(...interface {}) interface {}`
-- `math.Ceil(interface {}) interface {}`
-- `math.Div(interface {}, interface {}) (interface {}, error)`
-- `math.Floor(interface {}) interface {}`
-- `math.IsFloat(interface {}) bool`
-- `math.IsInt(interface {}) bool`
-- `math.IsNum(interface {}) bool`
-- `math.Max(interface {}, ...interface {}) (interface {}, error)`
-- `math.Min(interface {}, ...interface {}) (interface {}, error)`
-- `math.Mul(...interface {}) interface {}`
-- `math.Pow(interface {}, interface {}) interface {}`
-- `math.Rem(interface {}, interface {}) interface {}`
-- `math.Round(interface {}) interface {}`
-- `math.Seq(...interface {}) ([]int64, error)`
-- `math.Sub(interface {}, interface {}) interface {}`
-- `net.LookupCNAME(interface {}) (string, error)`
-- `net.LookupIP(interface {}) (string, error)`
-- `net.LookupIPs(interface {}) ([]string, error)`
-- `net.LookupSRV(interface {}) (*net.SRV, error)`
-- `net.LookupSRVs(interface {}) ([]*net.SRV, error)`
-- `net.LookupTXT(interface {}) ([]string, error)`
+- `eval.Env(...String) (string, error)`
+- `eval.Shell(String, ...any) (string, error)`
+- `eval.Template(any) (string, error)`
+- `file.Exists(any) bool`
+- `file.IsDir(any) bool`
+- `file.Read(any) (string, error)`
+- `file.ReadDir(any) ([]string, error)`
+- `file.Stat(any) (fs.FileInfo, error)`
+- `file.Walk(any) ([]string, error)`
+- `file.Write(any, any) (string, error)`
+- `filepath.Abs(String) (string, error)`
+- `filepath.Base(String) string`
+- `filepath.Clean(String) string`
+- `filepath.Dir(String) string`
+- `filepath.Ext(String) string`
+- `filepath.FromSlash(String) string`
+- `filepath.Glob(String) ([]string, error)`
+- `filepath.IsAbs(String) bool`
+- `filepath.Join(...String) string`
+- `filepath.Match(String, String) (bool, error)`
+- `filepath.Rel(String, String) (string, error)`
+- `filepath.Split(String) (string, string)`
+- `filepath.ToSlash(String) string`
+- `filepath.VolumeName(String) string`
+- `math.Abs(any) any`
+- `math.Add(...any) any`
+- `math.Ceil(any) any`
+- `math.Div(any, any) (any, error)`
+- `math.Floor(any) any`
+- `math.IsFloat(any) bool`
+- `math.IsInt(any) bool`
+- `math.IsNum(any) bool`
+- `math.Max(any, ...any) (any, error)`
+- `math.Min(any, ...any) (any, error)`
+- `math.Mul(...any) any`
+- `math.Pow(any, any) any`
+- `math.Rem(any, any) any`
+- `math.Round(any) any`
+- `math.Seq(...any) ([]int64, error)`
+- `math.Sub(any, any) any`
+- `net.LookupCNAME(any) (string, error)`
+- `net.LookupIP(any) (string, error)`
+- `net.LookupIPs(any) ([]string, error)`
+- `net.LookupSRV(any) (*net.SRV, error)`
+- `net.LookupSRVs(any) ([]*net.SRV, error)`
+- `net.LookupTXT(any) ([]string, error)`
 - `now.Add(time.Duration) time.Time`
 - `now.AddDate(int, int, int) time.Time`
 - `now.After(time.Time) bool`
@@ -399,32 +400,36 @@
 - `now.Year() int`
 - `now.YearDay() int`
 - `now.Zone() (string, int)`
-- `os.MkdirAll(string) error`
-- `os.ReadFile(string) (string, error)`
-- `os.WriteFile(string, interface {}) error`
-- `path.Base(interface {}) string`
-- `path.Clean(interface {}) string`
-- `path.Dir(interface {}) string`
-- `path.Ext(interface {}) string`
-- `path.IsAbs(interface {}) bool`
-- `path.Join(...interface {}) string`
-- `path.Match(interface {}, interface {}) (bool, error)`
-- `path.Split(interface {}) []string`
-- `random.ASCII(interface {}) (string, error)`
-- `random.Alpha(interface {}) (string, error)`
-- `random.AlphaNum(interface {}) (string, error)`
-- `random.Float(...interface {}) (float64, error)`
-- `random.Item(interface {}) (interface {}, error)`
-- `random.Number(...interface {}) (int64, error)`
-- `random.String(interface {}, ...interface {}) (string, error)`
-- `regexp.Find(interface {}, interface {}) (string, error)`
-- `regexp.FindAll(...interface {}) ([]string, error)`
-- `regexp.Match(interface {}, interface {}) bool`
-- `regexp.QuoteMeta(interface {}) string`
-- `regexp.Replace(interface {}, interface {}, interface {}) string`
-- `regexp.ReplaceLiteral(interface {}, interface {}, interface {}) (string, error)`
-- `regexp.Split(...interface {}) ([]string, error)`
-- `sockaddr.Attr(string, interface {}) (string, error)`
+- `os.AppendFile(String, Bytes, ...any) error`
+- `os.MkdirAll(String, ...any) error`
+- `os.ReadFile(String) (string, error)`
+- `os.Stderr() *os.File`
+- `os.Stdin() *os.File`
+- `os.Stdout() *os.File`
+- `os.WriteFile(String, Bytes, ...any) error`
+- `path.Base(any) string`
+- `path.Clean(any) string`
+- `path.Dir(any) string`
+- `path.Ext(any) string`
+- `path.IsAbs(any) bool`
+- `path.Join(...any) string`
+- `path.Match(any, any) (bool, error)`
+- `path.Split(any) []string`
+- `random.ASCII(any) (string, error)`
+- `random.Alpha(any) (string, error)`
+- `random.AlphaNum(any) (string, error)`
+- `random.Float(...any) (float64, error)`
+- `random.Item(any) (any, error)`
+- `random.Number(...any) (int64, error)`
+- `random.String(any, ...any) (string, error)`
+- `regexp.Find(any, any) (string, error)`
+- `regexp.FindAll(...any) ([]string, error)`
+- `regexp.Match(any, any) bool`
+- `regexp.QuoteMeta(any) string`
+- `regexp.Replace(any, any, any) string`
+- `regexp.ReplaceLiteral(any, any, any) (string, error)`
+- `regexp.Split(...any) ([]string, error)`
+- `sockaddr.Attr(string, any) (string, error)`
 - `sockaddr.Exclude(string, string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
 - `sockaddr.GetAllInterfaces() (sockaddr.IfAddrs, error)`
 - `sockaddr.GetDefaultInterfaces() (sockaddr.IfAddrs, error)`
@@ -445,51 +450,55 @@
 - `sockaddr.Unique(string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
 - `state.Failed() bool`
 - `state.Succeeded() bool`
-- `strconv.Unquote(string) (string, error)`
-- `strings.Abbrev(...interface {}) (string, error)`
-- `strings.CamelCase(interface {}) (string, error)`
-- `strings.Contains(string, interface {}) bool`
-- `strings.HasPrefix(string, interface {}) bool`
-- `strings.HasSuffix(string, interface {}) bool`
-- `strings.Indent(...interface {}) (string, error)`
-- `strings.KebabCase(interface {}) (string, error)`
-- `strings.Quote(interface {}) string`
-- `strings.Repeat(int, interface {}) (string, error)`
-- `strings.ReplaceAll(string, string, interface {}) string`
-- `strings.RuneCount(...interface {}) (int, error)`
-- `strings.ShellQuote(interface {}) string`
-- `strings.Slug(interface {}) string`
-- `strings.SnakeCase(interface {}) (string, error)`
-- `strings.Split(string, interface {}) []string`
-- `strings.SplitN(string, int, interface {}) []string`
-- `strings.Squote(interface {}) string`
-- `strings.Title(interface {}) string`
-- `strings.ToLower(interface {}) string`
-- `strings.ToUpper(interface {}) string`
-- `strings.Trim(string, interface {}) string`
-- `strings.TrimPrefix(string, interface {}) string`
-- `strings.TrimSpace(interface {}) string`
-- `strings.TrimSuffix(string, interface {}) string`
-- `strings.Trunc(int, interface {}) string`
-- `strings.WordWrap(...interface {}) (string, error)`
-- `time.Hour(interface {}) time.Duration`
-- `time.Microsecond(interface {}) time.Duration`
-- `time.Millisecond(interface {}) time.Duration`
-- `time.Minute(interface {}) time.Duration`
-- `time.Nanosecond(interface {}) time.Duration`
+- `strconv.Unquote(String) (string, error)`
+- `strings.Abbrev(...any) (string, error)`
+- `strings.AddPrefix(string, string, string) string`
+- `strings.AddSuffix(string, string, string) string`
+- `strings.CamelCase(String) string`
+- `strings.Contains(String, String) bool`
+- `strings.HasPrefix(String, String) bool`
+- `strings.HasSuffix(String, String) bool`
+- `strings.Indent(...any) (string, error)`
+- `strings.KebabCase(String) string`
+- `strings.Quote(String) string`
+- `strings.RemovePrefix(string, string, string) string`
+- `strings.RemoveSuffix(string, string, string) string`
+- `strings.Repeat(templateutils.Integer, String) (string, error)`
+- `strings.ReplaceAll(String, String, String) string`
+- `strings.RuneCount(...String) (int, error)`
+- `strings.ShellQuote(String) string`
+- `strings.Slug(String) string`
+- `strings.SnakeCase(String) string`
+- `strings.Split(String, String) []string`
+- `strings.SplitN(String, templateutils.Integer, String) []string`
+- `strings.Squote(String) string`
+- `strings.Title(String) string`
+- `strings.ToLower(String) string`
+- `strings.ToUpper(String) string`
+- `strings.Trim(String, String) string`
+- `strings.TrimPrefix(String, String) string`
+- `strings.TrimSpace(String) string`
+- `strings.TrimSuffix(String, String) string`
+- `strings.Trunc(templateutils.Integer, String) string`
+- `strings.WordWrap(...any) (string, error)`
+- `time.Hour(any) time.Duration`
+- `time.Microsecond(any) time.Duration`
+- `time.Millisecond(any) time.Duration`
+- `time.Minute(any) time.Duration`
+- `time.Nanosecond(any) time.Duration`
 - `time.Now() time.Time`
-- `time.Parse(string, interface {}) (time.Time, error)`
-- `time.ParseDuration(interface {}) (time.Duration, error)`
-- `time.ParseInLocation(string, string, interface {}) (time.Time, error)`
-- `time.ParseLocal(string, interface {}) (time.Time, error)`
-- `time.Second(interface {}) time.Duration`
+- `time.Parse(string, any) (time.Time, error)`
+- `time.ParseDuration(any) (time.Duration, error)`
+- `time.ParseInLocation(string, string, any) (time.Time, error)`
+- `time.ParseLocal(string, any) (time.Time, error)`
+- `time.Second(any) time.Duration`
 - `time.Since(time.Time) time.Duration`
-- `time.Unix(interface {}) (time.Time, error)`
+- `time.Unix(any) (time.Time, error)`
 - `time.Until(time.Time) time.Duration`
 - `time.ZoneName() string`
 - `time.ZoneOffset() int`
-- `uuid.IsValid(interface {}) (bool, error)`
+- `uuid.IsValid(any) (bool, error)`
 - `uuid.Nil() (string, error)`
-- `uuid.Parse(interface {}) (uuid.UUID, error)`
+- `uuid.Parse(any) (uuid.UUID, error)`
 - `uuid.V1() (string, error)`
 - `uuid.V4() (string, error)`

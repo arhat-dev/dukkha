@@ -46,7 +46,7 @@ func (v *Vector) Equals(a *Vector) bool {
 	return true
 }
 
-func (v *Vector) IsEmpty() bool {
+func (v *Vector) Empty() bool {
 	if v == nil {
 		return true
 	}

@@ -108,13 +108,13 @@ func newLazyExecVal(
 	onError func() string,
 	onSuccess func(string) string,
 ) utils.LazyValue {
-	buf := &bytes.Buffer{}
+	var buf bytes.Buffer
 	return utils.NewLazyValue(func() string {
 		cmd, err2 := exechelper.Do(exechelper.Spec{
 			Context: ctx,
 			Dir:     dir,
 			Command: command,
-			Stdout:  buf,
+			Stdout:  &buf,
 			Stderr:  io.Discard,
 		})
 		if err2 != nil {

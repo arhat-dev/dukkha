@@ -71,7 +71,8 @@ func ParseTaskReference(taskRef string, defaultToolName ToolName) (*TaskReferenc
 			return nil, fmt.Errorf("invalid matrix arg %q: %w", callArgs[1], err)
 		}
 
-		ref.MatrixFilter = matrix.NewFilter(mf)
+		f := matrix.NewFilter(mf)
+		ref.MatrixFilter = &f
 	}
 
 	return ref, nil

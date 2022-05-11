@@ -3,9 +3,9 @@ package templateutils
 import (
 	"encoding/hex"
 	"fmt"
-	"os"
 
 	"arhat.dev/pkg/md5helper"
+	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
@@ -16,7 +16,7 @@ import (
 	"arhat.dev/dukkha/third_party/gomplate/funcs"
 )
 
-type TemplateFuncFactory func(rc dukkha.RenderingContext) interface{}
+type TemplateFuncFactory func(rc dukkha.RenderingContext) any
 
 var (
 	toolSpecificTemplateFuncs = make(map[string]TemplateFuncFactory)
@@ -33,10 +33,14 @@ func RegisterTemplateFuncs(fm map[string]TemplateFuncFactory) {
 }
 
 func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
-	fm := make(map[string]interface{})
+	fm := make(map[string]any)
 	for k, createTemplateFunc := range toolSpecificTemplateFuncs {
 		fm[k] = createTemplateFunc(rc)
 	}
+
+	var (
+		strNS stringsNS
+	)
 
 	return template.New("tpl").
 		// template func from sprig
@@ -54,31 +58,66 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 		Funcs(funcs.CreateCollFuncs(rc)).
 		Funcs(funcs.CreateUUIDFuncs(rc)).
 		Funcs(funcs.CreateRandomFuncs(rc)).
-		Funcs(map[string]interface{}{
-			"strings": func() stringsNS { return stringsNS{} },
+		Funcs(map[string]any{
+			"strings": func() stringsNS { return strNS },
 
-			"replaceAll": stringsNS{}.ReplaceAll,
-			"title":      stringsNS{}.Title,
-			"toUpper":    stringsNS{}.ToUpper,
-			"toLower":    stringsNS{}.ToLower,
-			"trimSpace":  stringsNS{}.TrimSpace,
-			"indent":     stringsNS{}.Indent,
-			"quote":      stringsNS{}.Quote,
-			"shellQuote": stringsNS{}.ShellQuote,
-			"squote":     stringsNS{}.Squote,
+			"replaceAll": strNS.ReplaceAll,
+			"title":      strNS.Title,
+			"toUpper":    strNS.ToUpper,
+			"toLower":    strNS.ToLower,
+			"trimSpace":  strNS.TrimSpace,
+			"indent":     strNS.Indent,
+			"quote":      strNS.Quote,
+			"shellQuote": strNS.ShellQuote,
+			"squote":     strNS.Squote,
 
-			"contains":  stringsNS{}.Contains,
-			"hasPrefix": stringsNS{}.HasPrefix,
-			"hasSuffix": stringsNS{}.HasSuffix,
-			"split":     stringsNS{}.Split,
-			"splitN":    stringsNS{}.SplitN,
-			"trim":      stringsNS{}.Trim,
+			"contains":  strNS.Contains,
+			"hasPrefix": strNS.HasPrefix,
+			"hasSuffix": strNS.HasSuffix,
+			"split":     strNS.Split,
+			"splitN":    strNS.SplitN,
+			"trim":      strNS.Trim,
 
-			"kebabcase": stringsNS{}.KebabCase,
-			"snakecase": stringsNS{}.SnakeCase,
-			"camelcase": stringsNS{}.CamelCase,
+			"kebabcase": strNS.KebabCase,
+			"snakecase": strNS.SnakeCase,
+			"camelcase": strNS.CamelCase,
+
+			// multi-line string
+
+			"addPrefix": func(args ...String) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = toString(args[0])
+				}
+
+				return strNS.AddPrefix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
+			},
+			"removePrefix": func(args ...String) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = toString(args[0])
+				}
+
+				return strNS.RemovePrefix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
+			},
+			"addSuffix": func(args ...String) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = toString(args[0])
+				}
+
+				return strNS.AddSuffix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
+			},
+			"removeSuffix": func(args ...String) string {
+				sep := "\n"
+				if len(args) == 3 {
+					sep = toString(args[0])
+				}
+
+				return strNS.RemoveSuffix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
+			},
 		}).
-		Funcs(map[string]interface{}{
+		Funcs(map[string]any{
 			"filepath": func() filepathNS { return createFilePathNS(rc) },
 			"strconv":  func() strconvNS { return strconvNS{} },
 			"dukkha":   func() dukkhaNS { return createDukkhaNS(rc) },
@@ -90,11 +129,14 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"eval":   func() evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,
 			"values": rc.Values,
-			"matrix": func() map[string]string { return rc.MatrixFilter().AsEntry() },
+			"matrix": func() map[string]string {
+				mf := rc.MatrixFilter()
+				return mf.AsEntry()
+			},
 			// state task execution
 			"state": func() stateNS { return createStateNS(rc) },
 			// for transform renderer
-			"VALUE": func() interface{} {
+			"VALUE": func() any {
 				vg, ok := rc.(di.VALUEGetter)
 				if ok {
 					return vg.VALUE()
@@ -104,122 +146,66 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			},
 		}).
 		// text processing
-		Funcs(map[string]interface{}{
+		Funcs(map[string]any{
 			"jq":       textquery.JQ,
 			"jqBytes":  textquery.JQBytes,
 			"jqObject": jqObject,
 			"yq":       textquery.YQ,
 			"yqBytes":  textquery.YQBytes,
 
-			"fromYaml": func(v string) interface{} {
-				ret, err := fromYaml(rc, v)
+			"fromYaml": func(v String) any {
+				ret, err := fromYaml(rc, toString(v))
 				if err != nil {
 					panic(err)
 				}
 				return ret
 			},
-			"toYaml": func(v interface{}) string {
+			"toYaml": func(v any) string {
 				data, _ := yaml.Marshal(v)
-				return string(data)
-			},
-
-			"addPrefix": func(args ...string) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = args[0]
-				}
-
-				return AddPrefix(args[len(args)-1], args[len(args)-2], sep)
-			},
-			"removePrefix": func(args ...string) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = args[0]
-				}
-
-				return RemovePrefix(args[len(args)-1], args[len(args)-2], sep)
-			},
-			"addSuffix": func(args ...string) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = args[0]
-				}
-
-				return AddSuffix(args[len(args)-1], args[len(args)-2], sep)
-			},
-			"removeSuffix": func(args ...string) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = args[0]
-				}
-
-				return RemoveSuffix(args[len(args)-1], args[len(args)-2], sep)
+				return stringhelper.Convert[string, byte](data)
 			},
 		}).
 		// dukkha specific template func
-		Funcs(map[string]interface{}{
-			"md5sum": func(s string) string {
-				return hex.EncodeToString(md5helper.Sum([]byte(s)))
+		Funcs(map[string]any{
+			"md5sum": func(s Bytes) string {
+				return hex.EncodeToString(md5helper.Sum(toBytes(s)))
 			},
 
-			"totp": totpTemplateFunc,
+			"totp":    totpTemplateFunc,
+			"toBytes": func(s any) []byte { return toBytes(s) },
 
-			"appendFile": func(filename string, data []byte) error {
-				f, err := rc.FS().OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
-				if err != nil {
-					return err
-				}
-
-				_, err = f.(*os.File).Write(data)
-				return err
-			},
-			"toBytes": func(s interface{}) ([]byte, error) {
-				switch dt := s.(type) {
-				case string:
-					return []byte(dt), nil
-				case []byte:
-					return dt, nil
-				case []rune:
-					return []byte(string(dt)), nil
-				default:
-					return nil, fmt.Errorf(
-						"invalid non string, bytes, nor runes: %T", s,
-					)
-				}
-			},
-
-			"setDefaultImageTag": func(imageName string, flags ...string) string {
+			"setDefaultImageTag": func(imageName String, flags ...String) string {
 				keepKernelInfo := false
 				for _, f := range flags {
-					if f == "keepKernelInfo" {
+					if toString(f) == "keepKernelInfo" {
 						keepKernelInfo = true
 					}
 				}
-				return SetDefaultImageTagIfNoTagSet(rc, imageName, keepKernelInfo)
+				return SetDefaultImageTagIfNoTagSet(rc, toString(imageName), keepKernelInfo)
 			},
-			"setDefaultManifestTag": func(imageName string, flags ...string) string {
-				return SetDefaultManifestTagIfNoTagSet(rc, imageName)
+			"setDefaultManifestTag": func(imageName String, flags ...String) string {
+				return SetDefaultManifestTagIfNoTagSet(rc, toString(imageName))
 			},
 
-			"getDefaultImageTag": func(imageName string, flags ...string) string {
+			"getDefaultImageTag": func(imageName String, flags ...String) string {
 				keepKernelInfo := false
 				for _, f := range flags {
-					if f == "keepKernelInfo" {
+					if toString(f) == "keepKernelInfo" {
 						keepKernelInfo = true
 					}
 				}
-				return GetDefaultImageTag(rc, imageName, keepKernelInfo)
+				return GetDefaultImageTag(rc, toString(imageName), keepKernelInfo)
 			},
-			"getDefaultManifestTag": func(imageName string, flags ...string) string {
-				return GetDefaultManifestTag(rc, imageName)
+			"getDefaultManifestTag": func(imageName String, flags ...String) string {
+				return GetDefaultManifestTag(rc, toString(imageName))
 			},
 		}).
 		Funcs(fm).
-		// placeholder functions to be overridden before Execute
-		Funcs(map[string]interface{}{
-			"var": func() map[string]interface{} { return nil },
+		// placeholder functions to be overridden before template.Execute
+		Funcs(map[string]any{
+			"var": func() map[string]any { return nil },
 			// include like helm include
-			"include": func(name string, data interface{}) (string, error) {
+			"include": func(name string, data any) (string, error) {
 				return "", fmt.Errorf("no implementation")
 			},
 		})

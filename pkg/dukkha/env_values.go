@@ -33,8 +33,8 @@ type GlobalEnvValues interface {
 type EnvValues interface {
 	GlobalEnvValues
 
-	SetMatrixFilter(*matrix.Filter)
-	MatrixFilter() *matrix.Filter
+	SetMatrixFilter(matrix.Filter)
+	MatrixFilter() matrix.Filter
 
 	MatrixArch() string
 	MatrixKernel() string
@@ -46,8 +46,6 @@ type EnvValues interface {
 
 func newEnvValues(globalEnv map[string]utils.LazyValue) *envValues {
 	ret := &envValues{
-		matrixFilter: nil,
-
 		globalEnv: globalEnv,
 
 		env: make(map[string]utils.LazyValue),
@@ -60,7 +58,7 @@ func newEnvValues(globalEnv map[string]utils.LazyValue) *envValues {
 var _ EnvValues = (*envValues)(nil)
 
 type envValues struct {
-	matrixFilter *matrix.Filter
+	matrixFilter matrix.Filter
 
 	globalEnv map[string]utils.LazyValue
 
@@ -70,16 +68,15 @@ type envValues struct {
 
 func (c *envValues) clone() *envValues {
 	newValues := &envValues{
-		matrixFilter: nil,
-		globalEnv:    c.globalEnv,
-		env:          make(map[string]utils.LazyValue),
-		mu:           new(sync.RWMutex),
+		globalEnv: c.globalEnv,
+		env:       make(map[string]utils.LazyValue),
+		mu:        new(sync.RWMutex),
 	}
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if c.matrixFilter != nil {
+	if !c.matrixFilter.Empty() {
 		newValues.matrixFilter = c.matrixFilter.Clone()
 	}
 
@@ -90,11 +87,11 @@ func (c *envValues) clone() *envValues {
 	return newValues
 }
 
-func (c *envValues) SetMatrixFilter(f *matrix.Filter) {
+func (c *envValues) SetMatrixFilter(f matrix.Filter) {
 	c.matrixFilter = f
 }
 
-func (c *envValues) MatrixFilter() *matrix.Filter {
+func (c *envValues) MatrixFilter() matrix.Filter {
 	return c.matrixFilter
 }
 

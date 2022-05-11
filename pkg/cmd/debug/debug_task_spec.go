@@ -73,12 +73,12 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						}
 
 						err2 = task.DoAfterFieldsResolved(mCtx, -1, true, func() error {
-							buf := &bytes.Buffer{}
-							enc := yaml.NewEncoder(buf)
+							var buf bytes.Buffer
+							enc := yaml.NewEncoder(&buf)
 							enc.SetIndent(2)
 							defer func() { _ = enc.Close() }()
 
-							dec := yaml.NewDecoder(buf)
+							dec := yaml.NewDecoder(&buf)
 
 							err = enc.Encode(task)
 							if err != nil {
@@ -108,7 +108,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 								}
 							}
 
-							jenc := json.NewEncoder(buf)
+							jenc := json.NewEncoder(&buf)
 							jenc.SetIndent("", "  ")
 							err = jenc.Encode(data)
 							if err != nil {
@@ -126,7 +126,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 								return err
 							}
 
-							_, err = os.Stdout.ReadFrom(buf)
+							_, err = os.Stdout.ReadFrom(&buf)
 							return err
 						})
 						if err2 != nil {

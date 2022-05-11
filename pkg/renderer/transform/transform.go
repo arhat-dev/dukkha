@@ -126,28 +126,30 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 
 	switch {
 	case op.Template != nil:
-		tplStr := *op.Template
+		var (
+			tplStr = *op.Template
+			tpl    *template.Template
+			buf    bytes.Buffer
+		)
 
-		var tpl *template.Template
 		tpl, err = templateutils.CreateTemplate(rc).Parse(tplStr)
 		if err != nil {
 			return nil, fmt.Errorf("parsing template %q: %w", tplStr, err)
 		}
 
-		buf := &bytes.Buffer{}
-		err = tpl.Execute(buf, rc)
+		err = tpl.Execute(&buf, rc)
 		if err != nil {
 			return nil, fmt.Errorf("executing template %q: %w", tplStr, err)
 		}
 
 		return buf.Next(buf.Len()), nil
 	case op.Shell != nil:
-		script := *op.Shell
-
-		buf := &bytes.Buffer{}
-		var runner *interp.Runner
+		var (
+			buf    bytes.Buffer
+			runner *interp.Runner
+		)
 		runner, err = templateutils.CreateEmbeddedShellRunner(
-			rc.WorkDir(), rc, nil, buf, os.Stderr,
+			rc.WorkDir(), rc, nil, &buf, os.Stderr,
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -160,7 +162,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 			syntax.Variant(syntax.LangBash),
 		)
 
-		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
+		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, *op.Shell)
 		if err != nil {
 			return nil, err
 		}

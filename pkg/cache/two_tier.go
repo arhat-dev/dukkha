@@ -232,10 +232,9 @@ func storeLocalCache(
 	defer func() { _ = f.Close() }()
 
 	var dst io.Writer = f.(*os.File)
-	var buf *bytes.Buffer
+	var buf bytes.Buffer
 	if returnContent {
-		buf = &bytes.Buffer{}
-		dst = io.MultiWriter(dst, buf)
+		dst = io.MultiWriter(dst, &buf)
 	}
 
 	n, err := io.Copy(dst, r)
@@ -243,7 +242,7 @@ func storeLocalCache(
 		return 0, nil, err
 	}
 
-	if buf != nil {
+	if returnContent {
 		return n, buf.Next(buf.Len()), nil
 	}
 

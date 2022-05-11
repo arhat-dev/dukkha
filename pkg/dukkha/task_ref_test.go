@@ -8,6 +8,11 @@ import (
 	"arhat.dev/dukkha/pkg/matrix"
 )
 
+func newMatrixFilter(match map[string][]string) *matrix.Filter {
+	mf := matrix.NewFilter(match)
+	return &mf
+}
+
 func TestParseTaskReference(t *testing.T) {
 	t.Parallel()
 
@@ -80,7 +85,7 @@ func TestParseTaskReference(t *testing.T) {
 				ToolName: "",
 				TaskKind: "bar",
 				TaskName: "something",
-				MatrixFilter: matrix.NewFilter(map[string][]string{
+				MatrixFilter: newMatrixFilter(map[string][]string{
 					"foo": {"bar"},
 					"bar": {"foo", "bar"},
 				}),
@@ -95,7 +100,7 @@ func TestParseTaskReference(t *testing.T) {
 				ToolName: "tool",
 				TaskKind: "bar",
 				TaskName: "something",
-				MatrixFilter: matrix.NewFilter(map[string][]string{
+				MatrixFilter: newMatrixFilter(map[string][]string{
 					"foo": {"bar"},
 					"bar": {"foo", "bar"},
 				}),

@@ -157,13 +157,12 @@ func (t *BaseTask) GetHookExecSpecs(
 	return specs, nil
 }
 
-func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, error) {
-	var ret []matrix.Entry
-	err := t.DoAfterFieldsResolved(rc, -1, true, func() error {
+func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) (ret []matrix.Entry, err error) {
+	err = t.DoAfterFieldsResolved(rc, -1, true, func() error {
 		ret = t.Matrix.GenerateEntries(
-			rc.MatrixFilter(),
 			rc.HostKernel(),
 			rc.HostArch(),
+			rc.MatrixFilter(),
 		)
 
 		return nil
@@ -174,5 +173,5 @@ func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) ([]matrix.Entry, e
 		"BaseTask.matrix",
 	)
 
-	return ret, err
+	return
 }

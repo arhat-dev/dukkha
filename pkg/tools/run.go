@@ -121,31 +121,33 @@ func doRun(
 		)
 
 		var (
-			stdoutBuf *bytes.Buffer
-			stderrBuf *bytes.Buffer
+			stdoutBuf bytes.Buffer
+			stderrBuf bytes.Buffer
+
+			hasStdoutBuf, hasStderrBuf bool
 		)
 		if len(es.StdoutAsReplace) != 0 {
-			stdoutBuf = &bytes.Buffer{}
+			hasStdoutBuf = true
 
 			if es.ShowStdout {
-				stdout = io.MultiWriter(stdout, stdoutBuf)
+				stdout = io.MultiWriter(stdout, &stdoutBuf)
 			} else {
-				stdout = stdoutBuf
+				stdout = &stdoutBuf
 			}
 		}
 
 		if len(es.StderrAsReplace) != 0 {
-			stderrBuf = &bytes.Buffer{}
+			hasStderrBuf = true
 
 			if es.ShowStderr {
-				stderr = io.MultiWriter(stderr, stderrBuf)
+				stderr = io.MultiWriter(stderr, &stderrBuf)
 			} else {
-				stderr = stderrBuf
+				stderr = &stderrBuf
 			}
 		}
 
 		setReplaceEntry := func(err error) {
-			if stdoutBuf != nil {
+			if hasStdoutBuf {
 				stdoutValue := stdoutBuf.Bytes()
 				if es.FixStdoutValueForReplace != nil {
 					stdoutValue = es.FixStdoutValueForReplace(stdoutValue)
@@ -157,7 +159,7 @@ func doRun(
 				}
 			}
 
-			if stderrBuf != nil {
+			if hasStderrBuf {
 				stderrValue := stderrBuf.Bytes()
 				if es.FixStderrValueForReplace != nil {
 					stderrValue = es.FixStderrValueForReplace(stderrValue)

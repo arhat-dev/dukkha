@@ -1,12 +1,12 @@
 package matrix
 
-func NewFilter(match map[string][]string) *Filter {
+func NewFilter(match map[string][]string) Filter {
 	mv := make(map[string]*Vector, len(match))
 	for k, v := range match {
 		mv[k] = NewVector(v...)
 	}
 
-	return &Filter{
+	return Filter{
 		match:  mv,
 		ignore: nil,
 	}
@@ -85,7 +85,7 @@ func (f *Filter) AsEntry() Entry {
 	return ret
 }
 
-func (f *Filter) Clone() *Filter {
+func (f *Filter) Clone() Filter {
 	var (
 		matchFilter  = make(map[string]*Vector, len(f.match))
 		ignoreFilter = make([][2]string, len(f.ignore))
@@ -99,8 +99,12 @@ func (f *Filter) Clone() *Filter {
 		ignoreFilter[i] = [2]string{kv[0], kv[1]}
 	}
 
-	return &Filter{
+	return Filter{
 		match:  matchFilter,
 		ignore: ignoreFilter,
 	}
+}
+
+func (f *Filter) Empty() bool {
+	return f == nil || (len(f.match) == 0 && len(f.ignore) == 0)
 }

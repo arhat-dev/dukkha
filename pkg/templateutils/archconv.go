@@ -2,156 +2,149 @@ package templateutils
 
 import (
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/pkg/archconst"
 )
 
 type archconvNS struct{}
 
-func (ns archconvNS) SimpleArch(arch string) string { return constant.SimpleArch(arch) }
+func (archconvNS) SimpleArch(arch String) string { return constant.SimpleArch(toString(arch)) }
 
 // HF is an alias of HardFloadArch
-func (ns archconvNS) HF(arch string) string { return ns.HardFloadArch(arch) }
+func (archconvNS) HF(arch String) string            { return constant.HardFloadArch(toString(arch)) }
+func (archconvNS) HardFloadArch(arch String) string { return constant.HardFloadArch(toString(arch)) }
 
-// HardFloadArch returns hard-float version of arch
-func (ns archconvNS) HardFloadArch(arch string) string {
-	spec, ok := archconst.Split(arch)
-	if !ok {
-		return string(arch)
-	}
+// SF is an alias of SoftFloadArch
+func (archconvNS) SF(arch String) string            { return constant.SoftFloadArch(toString(arch)) }
+func (archconvNS) SoftFloadArch(arch String) string { return constant.SoftFloadArch(toString(arch)) }
 
-	spec.SoftFloat = false
-	return spec.String()
-}
-
-func (ns archconvNS) AlpineArch(arch string) string {
-	v, _ := constant.GetAlpineArch(arch)
+func (archconvNS) AlpineArch(arch String) string {
+	v, _ := constant.GetAlpineArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) AlpineTripleName(arch string) string {
-	v, _ := constant.GetAlpineTripleName(arch)
+func (archconvNS) AlpineTripleName(arch String) string {
+	v, _ := constant.GetAlpineTripleName(toString(arch))
 	return v
 }
 
-func (ns archconvNS) DebianArch(mArch string) string {
-	v, _ := constant.GetDebianArch(mArch)
+func (archconvNS) DebianArch(arch String) string {
+	v, _ := constant.GetDebianArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) DebianTripleName(mArch string, other ...string) string {
-	targetKernel, targetLibc := "", ""
+func (archconvNS) DebianTripleName(arch String, other ...String) string {
+	var targetKernel, targetLibc string
 	if len(other) > 0 {
-		targetKernel = other[0]
+		targetKernel = toString(other[0])
 	}
 	if len(other) > 1 {
-		targetLibc = other[1]
+		targetLibc = toString(other[1])
 	}
 
-	v, _ := constant.GetDebianTripleName(mArch, targetKernel, targetLibc)
+	v, _ := constant.GetDebianTripleName(toString(arch), targetKernel, targetLibc)
 	return v
 }
 
-func (ns archconvNS) GNUArch(mArch string) string {
-	v, _ := constant.GetGNUArch(mArch)
+func (archconvNS) GNUArch(arch String) string {
+	v, _ := constant.GetGNUArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) GNUTripleName(mArch string, other ...string) string {
-	targetKernel, targetLibc := "", ""
+func (archconvNS) GNUTripleName(arch String, other ...String) string {
+	var targetKernel, targetLibc string
 	if len(other) > 0 {
-		targetKernel = other[0]
+		targetKernel = toString(other[0])
 	}
 	if len(other) > 1 {
-		targetLibc = other[1]
+		targetLibc = toString(other[1])
 	}
 
-	v, _ := constant.GetGNUTripleName(mArch, targetKernel, targetLibc)
+	v, _ := constant.GetGNUTripleName(toString(arch), targetKernel, targetLibc)
 	return v
 }
 
-func (ns archconvNS) QemuArch(mArch string) string {
-	v, _ := constant.GetQemuArch(mArch)
+func (archconvNS) QemuArch(arch String) string {
+	v, _ := constant.GetQemuArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) OciOS(mKernel string) string {
+func (archconvNS) OciOS(mKernel string) string {
 	v, _ := constant.GetOciOS(mKernel)
 	return v
 }
 
-func (ns archconvNS) OciArch(mArch string) string {
-	v, _ := constant.GetOciArch(mArch)
+func (archconvNS) OciArch(arch String) string {
+	v, _ := constant.GetOciArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) OciArchVariant(mArch string) string {
-	v, _ := constant.GetOciArchVariant(mArch)
+func (archconvNS) OciArchVariant(arch String) string {
+	v, _ := constant.GetOciArchVariant(toString(arch))
 	return v
 }
 
-func (ns archconvNS) DockerOS(mKernel string) string {
+func (archconvNS) DockerOS(mKernel string) string {
 	v, _ := constant.GetDockerOS(mKernel)
 	return v
 }
 
-func (ns archconvNS) DockerArch(mArch string) string {
-	v, _ := constant.GetDockerArch(mArch)
+func (archconvNS) DockerArch(arch String) string {
+	v, _ := constant.GetDockerArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) DockerArchVariant(mArch string) string {
-	v, _ := constant.GetDockerArchVariant(mArch)
+func (archconvNS) DockerArchVariant(arch String) string {
+	v, _ := constant.GetDockerArchVariant(toString(arch))
 	return v
 }
 
-func (ns archconvNS) DockerHubArch(mArch string, other ...string) string {
+func (archconvNS) DockerHubArch(arch String, other ...String) string {
 	mKernel := ""
 	if len(other) > 0 {
-		mKernel = other[0]
+		mKernel = toString(other[0])
 	}
 
-	v, _ := constant.GetDockerHubArch(mArch, mKernel)
+	v, _ := constant.GetDockerHubArch(toString(arch), mKernel)
 	return v
 }
 
-func (ns archconvNS) DockerPlatformArch(mArch string) string {
-	arch, ok := constant.GetDockerArch(mArch)
+func (archconvNS) DockerPlatformArch(arch String) string {
+	mArch, ok := constant.GetDockerArch(toString(arch))
 	if !ok {
 		return ""
 	}
 
-	variant, _ := constant.GetDockerArchVariant(mArch)
+	variant, _ := constant.GetDockerArchVariant(toString(arch))
 	if len(variant) != 0 {
-		return arch + "/" + variant
+		return mArch + "/" + variant
 	}
 
-	return arch
+	return mArch
 }
 
-func (ns archconvNS) GolangOS(mKernel string) string {
-	v, _ := constant.GetGolangOS(mKernel)
+func (archconvNS) GolangOS(kernel String) string {
+	v, _ := constant.GetGolangOS(toString(kernel))
 	return v
 }
 
-func (ns archconvNS) GolangArch(mArch string) string {
-	v, _ := constant.GetGolangArch(mArch)
+func (archconvNS) GolangArch(arch String) string {
+	v, _ := constant.GetGolangArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) LLVMArch(mArch string) string {
-	v, _ := constant.GetLLVMArch(mArch)
+func (archconvNS) LLVMArch(arch String) string {
+	v, _ := constant.GetLLVMArch(toString(arch))
 	return v
 }
 
-func (ns archconvNS) LLVMTripleName(mArch string, other ...string) string {
+func (archconvNS) LLVMTripleName(arch String, other ...String) string {
 	targetKernel, targetLibc := "", ""
 	if len(other) > 0 {
-		targetKernel = other[0]
+		targetKernel = toString(other[0])
 	}
 	if len(other) > 1 {
-		targetLibc = other[1]
+		targetLibc = toString(other[1])
 	}
 
-	v, _ := constant.GetLLVMTripleName(mArch, targetKernel, targetLibc)
+	v, _ := constant.GetLLVMTripleName(toString(arch), targetKernel, targetLibc)
 	return v
 }

@@ -29,7 +29,7 @@ func TestAddPrefix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expected, AddPrefix(test.origin, test.prefix, test.sep))
+			assert.Equal(t, test.expected, stringsNS{}.AddPrefix(test.origin, test.prefix, test.sep))
 		})
 	}
 }
@@ -57,7 +57,7 @@ func TestRemovePrefix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expected, RemovePrefix(test.origin, test.prefix, test.sep))
+			assert.Equal(t, test.expected, stringsNS{}.RemovePrefix(test.origin, test.prefix, test.sep))
 		})
 	}
 }
@@ -85,7 +85,7 @@ func TestAddSuffix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expected, AddSuffix(test.origin, test.prefix, test.sep))
+			assert.Equal(t, test.expected, stringsNS{}.AddSuffix(test.origin, test.prefix, test.sep))
 		})
 	}
 }
@@ -113,7 +113,7 @@ func TestRemoveSuffix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expected, RemoveSuffix(test.origin, test.suffix, test.sep))
+			assert.Equal(t, test.expected, stringsNS{}.RemoveSuffix(test.origin, test.suffix, test.sep))
 		})
 	}
 }

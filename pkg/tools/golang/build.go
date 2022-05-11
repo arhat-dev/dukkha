@@ -40,7 +40,7 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		})
 	}
 
-	spec, ok := archconst.Split(mArch)
+	spec, ok := archconst.Parse[byte](mArch)
 	switch spec.Name {
 	case archconst.ARCH_AMD64:
 		env = append(env, &dukkha.EnvEntry{

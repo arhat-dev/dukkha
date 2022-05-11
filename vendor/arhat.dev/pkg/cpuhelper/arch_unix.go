@@ -38,23 +38,23 @@ func Arch(cpu CPU) archconst.ArchValue {
 	switch {
 	case hostArch == "x86_64", hostArch == "i686-64":
 		return archconst.ARCH_AMD64
-	case stringhelper.HasPrefix(hostArch, "armv8"):
+	case stringhelper.HasPrefix[byte, byte](hostArch, "armv8"):
 		if Bits() == 64 {
 			return archconst.ARCH_ARM64
 		}
 
 		return Arch(versionhelper.Arch())
-	case stringhelper.HasPrefix(hostArch, "arm64"),
-		stringhelper.HasPrefix(hostArch, "aarch64"):
+	case stringhelper.HasPrefix[byte, byte](hostArch, "arm64"),
+		stringhelper.HasPrefix[byte, byte](hostArch, "aarch64"):
 		return archconst.ARCH_ARM64
-	case stringhelper.HasPrefix(hostArch, "armv7"):
+	case stringhelper.HasPrefix[byte, byte](hostArch, "armv7"):
 		return archconst.ARCH_ARM_V7
-	case stringhelper.HasPrefix(hostArch, "armv6"):
+	case stringhelper.HasPrefix[byte, byte](hostArch, "armv6"):
 		return archconst.ARCH_ARM_V6
-	case stringhelper.HasPrefix(hostArch, "armv5"):
+	case stringhelper.HasPrefix[byte, byte](hostArch, "armv5"):
 		return archconst.ARCH_ARM_V5
-	case stringhelper.HasPrefix(hostArch, "i686"),
-		stringhelper.HasPrefix(hostArch, "i386"),
+	case stringhelper.HasPrefix[byte, byte](hostArch, "i686"),
+		stringhelper.HasPrefix[byte, byte](hostArch, "i386"),
 		hostArch == "i86pc",
 		hostArch == "x86pc",
 		hostArch == "x86":

@@ -51,7 +51,7 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 				enc.SetIndent("", "  ")
 			}
 
-			buf := &bytes.Buffer{}
+			var buf bytes.Buffer
 			return forEachTask(appCtx, args,
 				func(appCtx dukkha.Context, tool dukkha.Tool, task dukkha.Task, _, _ int) error {
 					matrixSpecs, err := task.GetMatrixSpecs(appCtx)
@@ -115,7 +115,7 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						buf.WriteString("]\n")
 					}
 
-					_, err = os.Stdout.ReadFrom(buf)
+					_, err = os.Stdout.ReadFrom(&buf)
 					return err
 				},
 			)

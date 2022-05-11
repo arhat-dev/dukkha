@@ -38,15 +38,15 @@ func defaultSpecs(hostKernel, hostArch string) []Entry {
 
 // nolint:gocyclo
 func (mc *Spec) GenerateEntries(
-	filter *Filter,
 	hostKernel, hostArch string,
+	filter Filter,
 ) []Entry {
 	if mc == nil {
 		return defaultSpecs(hostKernel, hostArch)
 	}
 
 	hasUserValue := len(mc.Include) != 0 || len(mc.Exclude) != 0
-	hasUserValue = hasUserValue || !mc.Kernel.IsEmpty() || !mc.Arch.IsEmpty() || len(mc.Custom) != 0
+	hasUserValue = hasUserValue || !mc.Kernel.Empty() || !mc.Arch.Empty() || len(mc.Custom) != 0
 
 	if !hasUserValue {
 		return defaultSpecs(hostKernel, hostArch)
@@ -54,11 +54,11 @@ func (mc *Spec) GenerateEntries(
 
 	all := make(map[string][]string)
 
-	if !mc.Kernel.IsEmpty() {
+	if !mc.Kernel.Empty() {
 		all["kernel"] = mc.Kernel.Vector
 	}
 
-	if !mc.Arch.IsEmpty() {
+	if !mc.Arch.Empty() {
 		all["arch"] = mc.Arch.Vector
 	}
 
@@ -79,16 +79,10 @@ func (mc *Spec) GenerateEntries(
 
 	var (
 		matchFilter  []map[string]string
-		ignoreFilter [][2]string
+		ignoreFilter = filter.ignore
 	)
-	if filter != nil {
-		if len(filter.match) != 0 {
-			matchFilter = CartesianProduct(flattenVectorMap(filter.match))
-		}
-
-		if len(filter.ignore) != 0 {
-			ignoreFilter = filter.ignore
-		}
+	if len(filter.match) != 0 {
+		matchFilter = CartesianProduct(flattenVectorMap(filter.match))
 	}
 
 	mat := CartesianProduct(all)

@@ -70,12 +70,12 @@ func RSAGenerateKey(bits int) ([]byte, error) {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(priv),
 	}
-	buf := &bytes.Buffer{}
-	err = pem.Encode(buf, block)
+	var buf bytes.Buffer
+	err = pem.Encode(&buf, block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode generated RSA private key: pem encoding failed: %w", err)
 	}
-	return buf.Bytes(), nil
+	return buf.Next(buf.Len()), nil
 }
 
 // RSADerivePublicKey -

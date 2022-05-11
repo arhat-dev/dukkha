@@ -8,12 +8,10 @@ import (
 	"arhat.dev/rs"
 	"github.com/itchyny/gojq"
 	"gopkg.in/yaml.v3"
-
-	"arhat.dev/dukkha/third_party/gomplate/conv"
 )
 
-func jqObject(query, in interface{}) (interface{}, error) {
-	q, err := gojq.Parse(conv.ToString(query))
+func jqObject(query String, in any) (any, error) {
+	q, err := gojq.Parse(toString(query))
 	if err != nil {
 		return nil, err
 	}
@@ -29,9 +27,9 @@ func jqObject(query, in interface{}) (interface{}, error) {
 	}
 }
 
-func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
+func fromYaml(rc rs.RenderingHandler, v Bytes) (any, error) {
 	out := rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject)
-	err := yaml.Unmarshal([]byte(v), out)
+	err := yaml.Unmarshal(toBytes(v), out)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal yaml data\n\n%s\n\nerr: %w", v, err)
 	}
@@ -47,7 +45,7 @@ func fromYaml(rc rs.RenderingHandler, v string) (interface{}, error) {
 	return out.NormalizedValue(), nil
 }
 
-func genNewVal(key string, value interface{}, ret *map[string]interface{}) error {
+func genNewVal(key string, value any, ret *map[string]any) error {
 	var (
 		thisKey string
 		nextKey string
@@ -80,7 +78,7 @@ func genNewVal(key string, value interface{}, ret *map[string]interface{}) error
 		nextKey = key[dotIdx+1:]
 	}
 
-	newValParent := make(map[string]interface{})
+	newValParent := make(map[string]any)
 	(*ret)[thisKey] = newValParent
 
 	return genNewVal(nextKey, value, &newValParent)
