@@ -10,6 +10,8 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+
+	"arhat.dev/pkg/stringhelper"
 	"mvdan.cc/sh/v3/interp"
 )
 
@@ -119,7 +121,7 @@ func (ns osNS) ReadFile(file String) (string, error) {
 		return "", err
 	}
 
-	return string(data), nil
+	return stringhelper.Convert[string, byte](data), nil
 }
 
 func (ns osNS) WriteFile(file String, d Bytes, args ...interface{}) error {

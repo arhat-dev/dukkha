@@ -20,11 +20,9 @@ workflow:run:
       make dukkha
 
       ./build/dukkha render <<EOF
+      sh@shell: command -v dukkha
       tpl@tpl: |-
         {{- os.Lookup "dukkha" -}}
-        {{- os.Lookup (filepath.Dir "$(command -v dukkha)" | strings.TrimSpace) "dukkha" -}}
-
-      shell@shell: command -v dukkha
       EOF
 
   - name: test path lookup under wine64

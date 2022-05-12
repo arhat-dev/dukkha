@@ -16,7 +16,7 @@ func (filepathNS) Dir(p String) string                { return filepath.Dir(toSt
 func (filepathNS) Ext(p String) string                { return filepath.Ext(toString(p)) }
 func (filepathNS) FromSlash(p String) string          { return filepath.FromSlash(toString(p)) }
 func (filepathNS) IsAbs(p String) bool                { return filepath.IsAbs(toString(p)) }
-func (filepathNS) Join(elem ...String) string         { return filepath.Join(toStrings(elem...)...) }
+func (filepathNS) Join(elem ...String) string         { return filepath.Join(toStrings(elem)...) }
 func (filepathNS) Split(p String) (dir, file string)  { return filepath.Split(toString(p)) }
 func (filepathNS) ToSlash(p String) string            { return filepath.ToSlash(toString(p)) }
 func (filepathNS) VolumeName(p String) string         { return filepath.VolumeName(toString(p)) }

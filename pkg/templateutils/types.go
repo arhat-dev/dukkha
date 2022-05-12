@@ -115,7 +115,7 @@ func toString(s String) string {
 	}
 }
 
-func toStrings(strArr ...String) []string {
+func toStrings(strArr []String) []string {
 	out := make([]string, len(strArr))
 	for i, v := range strArr {
 		out[i] = toString(v)
