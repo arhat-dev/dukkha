@@ -67,7 +67,7 @@ see [docs/examples](./docs/examples)
 
 ### Build from source (not stripped)
 
-Clone and build with `make` and `go` 1.17+
+Clone and build with `make` and `go` 1.18+
 
 ```bash
 git clone https://github.com/arhat-dev/dukkha.git
@@ -76,7 +76,7 @@ cd dukkha
 make dukkha
 ```
 
-Then you can find the built executable at `./build/dukkha`
+Then you can find the built executable inside `./build`
 
 ### Download Pre-built Executables
 
@@ -95,7 +95,7 @@ Then you can find the built executable at `./build/dukkha`
   chmod +x dukkha
   ```
 
-  __NOTE:__ Please refer to [arhat-dev/dukkha-presets golang common matrix](https://github.com/arhat-dev/dukkha-presets/blob/dev/matrix/golang/1.17/common.yml) for `KERNEL` and `ARCH` values
+  __NOTE:__ Please refer to [arhat-dev/dukkha-presets golang common matrix](https://github.com/arhat-dev/dukkha-presets/blob/dev/matrix/golang/1.18/common.yml) for `KERNEL` and `ARCH` values
 
 - Option 2: Download signed artifacts from [releases](https://github.com/arhat-dev/dukkha/releases), then decompress the tarball/zipfile.
 

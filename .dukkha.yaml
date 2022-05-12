@@ -37,7 +37,7 @@ global:
   default_git_branch: master
   env:
   - name: GO_VERSION
-    value: "1.17"
+    value: "1.18"
   values:
     cmd:
       run_ctr@presets?str|tpl: templates/run-ctr.yml
