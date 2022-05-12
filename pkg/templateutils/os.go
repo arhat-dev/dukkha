@@ -113,8 +113,8 @@ func (ns osNS) LookupFile(args ...String) string {
 	return ret
 }
 
-func (ns osNS) ReadFile(filename String) (string, error) {
-	data, err := ns.rc.FS().ReadFile(toString(filename))
+func (ns osNS) ReadFile(file String) (string, error) {
+	data, err := ns.rc.FS().ReadFile(toString(file))
 	if err != nil {
 		return "", err
 	}
@@ -122,7 +122,7 @@ func (ns osNS) ReadFile(filename String) (string, error) {
 	return string(data), nil
 }
 
-func (ns osNS) WriteFile(filename String, d Bytes, args ...interface{}) error {
+func (ns osNS) WriteFile(file String, d Bytes, args ...interface{}) error {
 	perm := fs.FileMode(0640)
 	if len(args) != 0 {
 		if permStr := toString(args[0]); len(permStr) != 0 {
@@ -135,7 +135,7 @@ func (ns osNS) WriteFile(filename String, d Bytes, args ...interface{}) error {
 		}
 	}
 
-	return ns.rc.FS().WriteFile(toString(filename), toBytes(d), perm)
+	return ns.rc.FS().WriteFile(toString(file), toBytes(d), perm)
 }
 
 func (ns osNS) AppendFile(filename String, data Bytes, args ...interface{}) error {
@@ -162,7 +162,7 @@ func (ns osNS) AppendFile(filename String, data Bytes, args ...interface{}) erro
 }
 
 func (ns osNS) MkdirAll(path String, args ...interface{}) error {
-	perm := fs.FileMode(0640)
+	perm := fs.FileMode(0755)
 	if len(args) != 0 {
 		if permStr := toString(args[0]); len(permStr) != 0 {
 			x, err := strconv.ParseUint(permStr, 0, 8)
