@@ -49,21 +49,21 @@ func TestCrossPlatform(t *testing.T) {
 		ret bool
 	}{
 		// same kernel, same arch name => true
-		{KERNEL_LINUX, ARCH_AMD64, KERNEL_LINUX, ARCH_AMD64_V2, false},
-		{KERNEL_LINUX, ARCH_AMD64_V1, KERNEL_LINUX, ARCH_AMD64_V2, false},
-		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_LINUX, ARCH_AMD64_V2, false},
-		{KERNEL_LINUX, ARCH_AMD64_V3, KERNEL_LINUX, ARCH_AMD64_V2, false},
-		{KERNEL_LINUX, ARCH_MIPS64, KERNEL_LINUX, ARCH_MIPS64_SF, false},
-		{KERNEL_LINUX, ARCH_PPC64_LE, KERNEL_LINUX, ARCH_PPC64_LE_V9, false},
+		{KERNEL_Linux, ARCH_AMD64, KERNEL_Linux, ARCH_AMD64_V2, false},
+		{KERNEL_Linux, ARCH_AMD64_V1, KERNEL_Linux, ARCH_AMD64_V2, false},
+		{KERNEL_Linux, ARCH_AMD64_V2, KERNEL_Linux, ARCH_AMD64_V2, false},
+		{KERNEL_Linux, ARCH_AMD64_V3, KERNEL_Linux, ARCH_AMD64_V2, false},
+		{KERNEL_Linux, ARCH_MIPS64, KERNEL_Linux, ARCH_MIPS64_SF, false},
+		{KERNEL_Linux, ARCH_PPC64_LE, KERNEL_Linux, ARCH_PPC64_LE_V9, false},
 
 		// different kernel => true
-		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_FREEBSD, ARCH_AMD64_V2, true},
+		{KERNEL_Linux, ARCH_AMD64_V2, KERNEL_FreeBSD, ARCH_AMD64_V2, true},
 
 		// different arch => true
-		{KERNEL_LINUX, ARCH_AMD64_V2, KERNEL_FREEBSD, ARCH_ARM64, true},
+		{KERNEL_Linux, ARCH_AMD64_V2, KERNEL_FreeBSD, ARCH_ARM64, true},
 
 		// different endian => true
-		{KERNEL_LINUX, ARCH_MIPS64, KERNEL_FREEBSD, ARCH_MIPS64_LE, true},
+		{KERNEL_Linux, ARCH_MIPS64, KERNEL_FreeBSD, ARCH_MIPS64_LE, true},
 	} {
 		name := fmt.Sprintf("%s/%s-%s/%s", test.hostKernel, test.hostArch, test.targetKernel, test.targetArch)
 		t.Run(name, func(t *testing.T) {

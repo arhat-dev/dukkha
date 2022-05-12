@@ -106,7 +106,7 @@ func (c *TaskCreate) GetExecSpecs(
 
 		if len(format) == 0 {
 			switch rc.MatrixKernel() {
-			case constant.KERNEL_WINDOWS:
+			case constant.KERNEL_Windows:
 				format = constant.ArchiveFormat_Zip
 			default:
 				format = constant.ArchiveFormat_Tar

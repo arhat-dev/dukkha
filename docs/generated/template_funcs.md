@@ -401,6 +401,8 @@
 - `now.YearDay() int`
 - `now.Zone() (string, int)`
 - `os.AppendFile(String, Bytes, ...any) error`
+- `os.Lookup(...String) string`
+- `os.LookupFile(...String) string`
 - `os.MkdirAll(String, ...any) error`
 - `os.ReadFile(String) (string, error)`
 - `os.Stderr() *os.File`

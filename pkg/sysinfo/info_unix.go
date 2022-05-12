@@ -15,9 +15,9 @@ import (
 func OSName() string {
 	// TODO: check real name using syscall
 	switch runtime.GOOS {
-	case constant.KERNEL_WINDOWS:
+	case constant.KERNEL_Windows:
 		return "windows"
-	case constant.KERNEL_DARWIN:
+	case constant.KERNEL_Darwin:
 		return "macos"
 	default:
 		return runtime.GOOS

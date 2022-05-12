@@ -43,7 +43,7 @@ replace (
 	// branch master
 	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
 	// branch `dukkha`
-	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220508075757-78047afd4cb7
+	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491
 )
 
 require (

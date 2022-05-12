@@ -21,7 +21,9 @@ workflow:run:
 
       ./build/dukkha render <<EOF
       tpl@tpl: |-
-        {{- eval.Shell "command -v dukkha" -}}
+        {{- os.Lookup "dukkha" -}}
+        {{- os.Lookup (filepath.Dir "$(command -v dukkha)" | strings.TrimSpace) "dukkha" -}}
+
       shell@shell: command -v dukkha
       EOF
 
@@ -36,7 +38,9 @@ workflow:run:
       ./build/dukkha run golang local build dukkha -m kernel=windows -m arch=amd64
 
       wine64 ./build/dukkha.windows.amd64.exe render <<EOF
-      __@shell: command -v winepath
+      sh@shell: command -v winepath
+      tpl@tpl: |-
+        {{- os.Lookup "winepath" -}}
       EOF
 
   - name: test path lookup under wine32
@@ -51,7 +55,9 @@ workflow:run:
       ./build/dukkha run golang local build dukkha -m kernel=windows -m arch=x86
 
       wine ./build/dukkha.windows.x86.exe render <<EOF
-      __@shell: command -v winepath
+      sh@shell: command -v winepath
+      tpl@tpl: |-
+        {{- os.Lookup "winepath" -}}
       EOF
 
 - name: report

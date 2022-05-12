@@ -116,7 +116,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			expected := dukkha.Env{
 				{
 					Name:  "GOOS",
-					Value: constant.KERNEL_LINUX,
+					Value: constant.KERNEL_Linux,
 				},
 				{
 					Name:  "GOARCH",
@@ -182,7 +182,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			rc.AddEnv(true, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_KERNEL,
-				Value: constant.KERNEL_LINUX,
+				Value: constant.KERNEL_Linux,
 			}, &dukkha.EnvEntry{
 				Name:  constant.ENV_MATRIX_ARCH,
 				Value: test.mArch,

@@ -123,8 +123,8 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"dukkha":   func() dukkhaNS { return createDukkhaNS(rc) },
 			"os":       func() osNS { return createOSNS(rc) },
 			"archconv": func() archconvNS { return archconvNS{} },
-			"git":      rc.GitValues,
-			"host":     rc.HostValues,
+			"git":      rc.GitValues,  // git.{tag, branch ...}
+			"host":     rc.HostValues, // host.{arch, arch_simple, kernel ...}
 			// eval shell and template
 			"eval":   func() evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,

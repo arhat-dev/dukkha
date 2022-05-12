@@ -9,19 +9,19 @@ import (
 var (
 	// TODO: update this map when changing kernel.go
 	requiredKernelMappingValues = map[string]string{
-		KERNEL_WINDOWS:    "windows",
-		KERNEL_LINUX:      "linux",
-		KERNEL_DARWIN:     "darwin",
-		KERNEL_FREEBSD:    "freebsd",
-		KERNEL_NETBSD:     "netbsd",
-		KERNEL_OPENBSD:    "openbsd",
-		KERNEL_SOLARIS:    "solaris",
-		KERNEL_ILLUMOS:    "illumos",
-		KERNEL_JAVASCRIPT: "js",
-		KERNEL_AIX:        "aix",
-		KERNEL_ANDROID:    "android",
-		KERNEL_IOS:        "ios",
-		KERNEL_PLAN9:      "plan9",
+		KERNEL_Windows:    "windows",
+		KERNEL_Linux:      "linux",
+		KERNEL_Darwin:     "darwin",
+		KERNEL_FreeBSD:    "freebsd",
+		KERNEL_NetBSD:     "netbsd",
+		KERNEL_OpenBSD:    "openbsd",
+		KERNEL_Solaris:    "solaris",
+		KERNEL_Illumos:    "illumos",
+		KERNEL_JavaScript: "js",
+		KERNEL_Aix:        "aix",
+		KERNEL_Android:    "android",
+		KERNEL_iOS:        "ios",
+		KERNEL_Plan9:      "plan9",
 	}
 )
 

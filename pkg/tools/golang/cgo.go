@@ -99,12 +99,12 @@ func (c CGOSepc) getEnv(
 		case constant.Platform_Debian, constant.Platform_Ubuntu:
 			var tripleName string
 			switch mKernel {
-			case constant.KERNEL_LINUX:
+			case constant.KERNEL_Linux:
 				tripleName, _ = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
-			case constant.KERNEL_DARWIN:
+			case constant.KERNEL_Darwin:
 				// TODO: set darwin version
 				tripleName, _ = constant.GetAppleTripleName(mArch, "")
-			case constant.KERNEL_WINDOWS:
+			case constant.KERNEL_Windows:
 				tripleName, _ = constant.GetDebianTripleName(mArch, mKernel, targetLibc)
 			default:
 				// not set
@@ -123,12 +123,12 @@ func (c CGOSepc) getEnv(
 			}
 		case constant.Platform_MacOS:
 			switch mKernel {
-			case constant.KERNEL_DARWIN:
+			case constant.KERNEL_Darwin:
 				// cc = "clang"
 				// cxx = "clang++"
-			case constant.KERNEL_LINUX:
+			case constant.KERNEL_Linux:
 				// TODO
-			case constant.KERNEL_IOS:
+			case constant.KERNEL_iOS:
 				// TODO
 			}
 		}

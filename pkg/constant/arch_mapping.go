@@ -25,12 +25,12 @@ func GetDockerHubArch(mArch, mKernel string) (string, bool) {
 	arch, ok := GetArch(Platform_DockerHub, mArch)
 
 	switch mKernel {
-	case KERNEL_WINDOWS:
+	case KERNEL_Windows:
 		if !ok {
 			return "", false
 		}
 		return "win" + arch, ok
-	case KERNEL_LINUX:
+	case KERNEL_Linux:
 		fallthrough
 	default:
 		return arch, ok

@@ -34,11 +34,11 @@ type RenderingContext interface {
 	FS() *fshelper.OSFS
 
 	// AddValues will merge provided values into existing values
-	AddValues(values map[string]interface{}) error
+	AddValues(values map[string]any) error
 
 	Env() map[string]utils.LazyValue
 
-	Values() map[string]interface{}
+	Values() map[string]any
 
 	GlobalCacheFS(subdir string) *fshelper.OSFS
 }
@@ -56,7 +56,7 @@ func newContextRendering(
 
 		ifaceTypeHandler: ifaceTypeHandler,
 		renderers:        make(map[string]Renderer),
-		values:           make(map[string]interface{}),
+		values:           make(map[string]any),
 
 		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.WorkDir(), nil
@@ -79,10 +79,10 @@ type contextRendering struct {
 	ifaceTypeHandler rs.InterfaceTypeHandler
 	renderers        map[string]Renderer
 
-	values map[string]interface{}
+	values map[string]any
 
 	// nolint:revive
-	_VALUE interface{}
+	_VALUE any
 
 	fs      *fshelper.OSFS
 	cacheFS *fshelper.OSFS
@@ -165,7 +165,7 @@ func (c *contextRendering) Env() map[string]utils.LazyValue {
 	return c.envValues.env
 }
 
-func (c *contextRendering) AddValues(values map[string]interface{}) error {
+func (c *contextRendering) AddValues(values map[string]any) error {
 	mergedValues, err := rs.MergeMap(c.values, values, false, false)
 	if err != nil {
 		return err
@@ -175,11 +175,11 @@ func (c *contextRendering) AddValues(values map[string]interface{}) error {
 	return nil
 }
 
-func (c *contextRendering) Values() map[string]interface{} {
+func (c *contextRendering) Values() map[string]any {
 	return c.values
 }
 
-func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]byte, error) {
+func (c *contextRendering) RenderYaml(renderer string, rawData any) ([]byte, error) {
 	var attributes []RendererAttribute
 	attrStart := strings.LastIndexByte(renderer, '#')
 	if attrStart != -1 {
@@ -198,7 +198,7 @@ func (c *contextRendering) RenderYaml(renderer string, rawData interface{}) ([]b
 	return v.RenderYaml(c, rawData, attributes)
 }
 
-func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
+func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (any, error) {
 	return c.ifaceTypeHandler.Create(typ, yamlKey)
 }
 
@@ -313,7 +313,7 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 
 const valuesEnvPrefix = "values."
 
-func genEnvFromValues(values map[string]interface{}) (map[string]expand.Variable, error) {
+func genEnvFromValues(values map[string]any) (map[string]expand.Variable, error) {
 	out := make(map[string]expand.Variable)
 	for k, v := range values {
 		err := genEnvFromInterface(valuesEnvPrefix+k, v, &out)
@@ -325,9 +325,9 @@ func genEnvFromValues(values map[string]interface{}) (map[string]expand.Variable
 	return out, nil
 }
 
-func genEnvFromInterface(prefix string, v interface{}, out *map[string]expand.Variable) error {
+func genEnvFromInterface(prefix string, v any, out *map[string]expand.Variable) error {
 	switch t := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		dataBytes, err := json.Marshal(v)
 		if err != nil {
 			return err

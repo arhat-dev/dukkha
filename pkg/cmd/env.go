@@ -71,7 +71,7 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue
 
 func getOSNameAndVersion() (osName, osVersion string) {
 	switch runtime.GOOS {
-	case constant.KERNEL_LINUX:
+	case constant.KERNEL_Linux:
 		osReleaseFile, err2 := os.Open("/etc/os-release")
 		if err2 != nil {
 			break

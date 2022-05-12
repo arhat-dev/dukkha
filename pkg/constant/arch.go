@@ -37,7 +37,7 @@ func HardFloadArch(arch string) string {
 	spec, ok := Parse[byte](arch)
 	if !ok {
 		// unknown, assume hardfloat arch
-		return string(arch)
+		return arch
 	}
 
 	spec.SoftFloat = false
@@ -49,7 +49,7 @@ func SoftFloadArch(arch string) string {
 	spec, ok := Parse[byte](arch)
 	if !ok {
 		// unknown, assume softfloat arch
-		return string(arch)
+		return arch
 	}
 
 	spec.SoftFloat = true

@@ -419,31 +419,31 @@ func GetLLVMTripleName(mArch, targetKernel, targetLibc string) (string, bool) {
 
 	sys := targetKernel
 	switch targetKernel {
-	case KERNEL_WINDOWS:
+	case KERNEL_Windows:
 		sys = "windows"
-	case KERNEL_LINUX:
+	case KERNEL_Linux:
 		sys = "linux"
-	case KERNEL_DARWIN:
+	case KERNEL_Darwin:
 		sys = "darwin"
-	case KERNEL_FREEBSD:
+	case KERNEL_FreeBSD:
 		sys = "freebsd"
-	case KERNEL_NETBSD:
+	case KERNEL_NetBSD:
 		sys = "darwin"
-	case KERNEL_OPENBSD:
+	case KERNEL_OpenBSD:
 		sys = "openbsd"
-	case KERNEL_SOLARIS:
+	case KERNEL_Solaris:
 		sys = "solaris"
-	case KERNEL_ILLUMOS:
+	case KERNEL_Illumos:
 		sys = "illumos"
-	case KERNEL_JAVASCRIPT:
+	case KERNEL_JavaScript:
 		sys = "js"
-	case KERNEL_AIX:
+	case KERNEL_Aix:
 		sys = "aix"
-	case KERNEL_ANDROID:
+	case KERNEL_Android:
 		sys = "android"
-	case KERNEL_IOS:
+	case KERNEL_iOS:
 		sys = "ios"
-	case KERNEL_PLAN9:
+	case KERNEL_Plan9:
 		sys = "plan9"
 	default:
 		// sys = targetKernel

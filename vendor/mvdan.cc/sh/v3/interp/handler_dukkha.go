@@ -88,7 +88,16 @@ func DukkhaExecHandler(killTimeout time.Duration) ExecHandlerFunc {
 	}
 }
 
-func lookPathDir(goos, cwd, target string, env expand.Environ, find findAny) (string, error) {
+func DukkhaFindExecutable(dir string, file string, exts []string) (string, error) {
+	return findExecutable(dir, file, exts)
+}
+
+func DukkhaFindFile(dir string, file string, _ []string) (string, error) {
+	return findFile(dir, file, nil)
+}
+
+// DukkhaLookPathDir lookup absolute path of target
+func DukkhaLookPathDir(goos, cwd, target string, env expand.Environ, find findAny) (string, error) {
 	if find == nil {
 		panic("no find function found")
 	}
@@ -216,7 +225,7 @@ func splitPathList(goos, cwd, target string, env expand.Environ) []string {
 			case uname_s == "": // uname -s not set
 				switch uname {
 				case "":
-					uname, err2 = lookPathDir(goos, cwd, unameBin, env, findExecutable)
+					uname, err2 = DukkhaLookPathDir(goos, cwd, unameBin, env, findExecutable)
 					if err2 != nil {
 						uname, uname_s = BAD, BAD
 						goto WINE
@@ -251,7 +260,7 @@ func splitPathList(goos, cwd, target string, env expand.Environ) []string {
 			// lookup and cache cygpath for this split
 			switch cygpath {
 			case "":
-				cygpath, err2 = lookPathDir(goos, cwd, cygpathBin, env, findExecutable)
+				cygpath, err2 = DukkhaLookPathDir(goos, cwd, cygpathBin, env, findExecutable)
 				if err2 != nil {
 					// TODO: fallback to default cygpath for some environments:
 					// 	 github actions windows virtual environment:
@@ -275,7 +284,7 @@ func splitPathList(goos, cwd, target string, env expand.Environ) []string {
 			// lookup and cache winepath for this split
 			switch winepath {
 			case "":
-				winepath, err2 = lookPathDir(goos, cwd, winepathBin, env, findExecutable)
+				winepath, err2 = DukkhaLookPathDir(goos, cwd, winepathBin, env, findExecutable)
 				if err2 != nil {
 					winepath = BAD
 					goto FALLBACK
