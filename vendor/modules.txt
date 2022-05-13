@@ -108,7 +108,7 @@ github.com/itchyny/timefmt-go
 github.com/json-iterator/go
 # github.com/jtolds/gls v4.20.0+incompatible
 ## explicit
-# github.com/klauspost/compress v1.15.2
+# github.com/klauspost/compress v1.15.4
 ## explicit; go 1.16
 github.com/klauspost/compress
 github.com/klauspost/compress/fse
@@ -133,7 +133,7 @@ github.com/mattn/go-runewidth
 # github.com/minio/md5-simd v1.1.0
 ## explicit; go 1.14
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v7 v7.0.24
+# github.com/minio/minio-go/v7 v7.0.26
 ## explicit; go 1.17
 github.com/minio/minio-go/v7
 github.com/minio/minio-go/v7/pkg/credentials
@@ -241,7 +241,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
+# golang.org/x/crypto v0.0.0-20220511200225-c6db032c6c88
 ## explicit; go 1.17
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -312,7 +312,7 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# mvdan.cc/sh/v3 v3.4.3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491
+# mvdan.cc/sh/v3 v3.5.0 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491
 ## explicit; go 1.18
 mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
