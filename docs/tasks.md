@@ -46,9 +46,9 @@ And `Action` is defined as:
 
 - `name: string`: action name
 - `if: bool`: skip this action when set to false (defaults to true)
-- `task: string`: reference to other task
-  - task reference format: `<tool-kind>{:<tool-name>}:<task-kind>(<another_task_name>{, <matrix-spec> })`
-    - where `<matrix-sepc>` is the task matrix yaml
+- `task: { ref: <task-reference>, matrix_filter: <matrix-spec> }`: reference to other task with optional matrix filter to override inheriented one
+  - `<task-reference>` format: `<tool-kind>{:<tool-name>}:<task-kind>(<another_task_name>)`
+  - `<matrix-sepc>` is the same as `matrix`
 - `cmd: []string`: raw cmd to run
 - `idle: any`: do nothing, serves as a placeholder so you can use rendering suffix for non action operations.
 - `shell: string`: run script in embedded bash.
@@ -110,7 +110,8 @@ workflow:run:
 
     before:matrix:
     # run another task, limit to the same matrix as current matrix
-    - task: workflow:run(bar)
+    - task:
+        ref: workflow:run(bar)
 
     after:matrix:success:
     # do nothing
@@ -143,8 +144,10 @@ workflow:run:
         {{- end -}}
 
     after:success:
-    # run another predefined task, all matrix
-    - task: workflow:run(foo, {})
+    # run another predefined task, full matrix
+    - task:
+        ref: workflow:run(foo)
+        matrix_filter: {}
 
     # run commands/tasks when the task execution failed
     after:failure: []

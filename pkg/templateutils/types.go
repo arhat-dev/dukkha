@@ -110,6 +110,8 @@ func toString(s String) string {
 		return t
 	case fmt.Stringer:
 		return t.String()
+	case nil:
+		return ""
 	default:
 		return fmt.Sprint(t)
 	}

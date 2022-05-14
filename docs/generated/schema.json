@@ -1197,9 +1197,6 @@
     },
     "arhat.dev.dukkha.pkg.matrix.Spec": {
       "properties": {
-        "arch": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector"
-        },
         "exclude": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
@@ -1211,27 +1208,14 @@
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
           },
           "type": "array"
-        },
-        "kernel": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector",
-          "description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set",
-          "x-intellij-html-description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set"
         }
       },
       "preferredOrder": [
         "include",
-        "exclude",
-        "kernel",
-        "arch"
+        "exclude"
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^arch@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector"
-        },
-        "^arch@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
         "^exclude@.*": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
@@ -1248,39 +1232,6 @@
           "type": "array"
         },
         "^include@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
-        "^kernel@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Vector",
-          "description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set",
-          "x-intellij-html-description": "TODO: validate kernel and arch values to ensure \t\t tools get expected value set"
-        },
-        "^kernel@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        }
-      }
-    },
-    "arhat.dev.dukkha.pkg.matrix.Vector": {
-      "properties": {
-        "__": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "preferredOrder": [
-        "__"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^__@.*": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "^__@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
@@ -2292,7 +2243,7 @@
           "x-intellij-html-description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "task": {
-          "type": "string",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskReference",
           "description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
           "x-intellij-html-description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         }
@@ -2382,7 +2333,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^task@.*": {
-          "type": "string",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskReference",
           "description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
           "x-intellij-html-description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
@@ -2553,6 +2504,39 @@
           "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
         },
         "^before@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.TaskReference": {
+      "properties": {
+        "matrix_filter": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "ref": {
+          "type": "string",
+          "description": "<tool-kind>{:<tool-name>}:<task-kind>",
+          "x-intellij-html-description": "<tool-kind>{:<tool-name>}:<task-kind>"
+        }
+      },
+      "preferredOrder": [
+        "ref",
+        "matrix_filter"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^matrix_filter@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix_filter@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^ref@.*": {
+          "type": "string",
+          "description": "<tool-kind>{:<tool-name>}:<task-kind>",
+          "x-intellij-html-description": "<tool-kind>{:<tool-name>}:<task-kind>"
+        },
+        "^ref@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

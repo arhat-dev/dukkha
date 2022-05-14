@@ -6,7 +6,6 @@ import (
 
 	"arhat.dev/pkg/md5helper"
 	"arhat.dev/pkg/stringhelper"
-	"arhat.dev/pkg/textquery"
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
 
@@ -82,6 +81,10 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 			"snakecase": strNS.SnakeCase,
 			"camelcase": strNS.CamelCase,
 
+			"jq":    strNS.JQ,
+			"yq":    strNS.YQ,
+			"jqObj": strNS.JQObj,
+
 			// multi-line string
 
 			"addPrefix": func(args ...String) string {
@@ -145,14 +148,8 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 				return nil
 			},
 		}).
-		// text processing
+		// yaml processing
 		Funcs(map[string]any{
-			"jq":       textquery.JQ,
-			"jqBytes":  textquery.JQBytes,
-			"jqObject": jqObject,
-			"yq":       textquery.YQ,
-			"yqBytes":  textquery.YQBytes,
-
 			"fromYaml": func(v String) any {
 				ret, err := fromYaml(rc, toString(v))
 				if err != nil {

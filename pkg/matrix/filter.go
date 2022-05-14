@@ -1,17 +1,5 @@
 package matrix
 
-func NewFilter(match map[string][]string) Filter {
-	mv := make(map[string]*Vector, len(match))
-	for k, v := range match {
-		mv[k] = NewVector(v...)
-	}
-
-	return Filter{
-		match:  mv,
-		ignore: nil,
-	}
-}
-
 type Filter struct {
 	match  map[string]*Vector
 	ignore [][2]string
@@ -53,9 +41,13 @@ func (f *Filter) Equals(a *Filter) bool {
 }
 
 func (f *Filter) AddMatch(key, value string) {
+	if f.match == nil {
+		f.match = make(map[string]*Vector)
+	}
+
 	vec, ok := f.match[key]
 	if ok {
-		vec.Vector = append(vec.Vector, value)
+		vec.Vec = append(vec.Vec, value)
 	} else {
 		f.match[key] = NewVector(value)
 	}
@@ -75,10 +67,10 @@ func (f *Filter) AsEntry() Entry {
 
 	ret := make(map[string]string, len(f.match))
 	for k, v := range f.match {
-		if len(v.Vector) == 0 {
+		if len(v.Vec) == 0 {
 			ret[k] = ""
 		} else {
-			ret[k] = v.Vector[0]
+			ret[k] = v.Vec[0]
 		}
 	}
 
@@ -92,7 +84,7 @@ func (f *Filter) Clone() Filter {
 	)
 
 	for k, v := range f.match {
-		matchFilter[k] = NewVector(v.Vector...)
+		matchFilter[k] = NewVector(v.Vec...)
 	}
 
 	for i, kv := range f.ignore {

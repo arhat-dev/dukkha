@@ -71,7 +71,7 @@ func TestParseMatrixFilter(t *testing.T) {
 
 			assert.Equal(t, len(test.match), len(mf.match))
 			for k, v := range test.match {
-				assert.EqualValues(t, v.Vector, mf.match[k].Vector)
+				assert.EqualValues(t, v.Vec, mf.match[k].Vec)
 			}
 
 			assert.EqualValues(t, test.ignore, mf.ignore)

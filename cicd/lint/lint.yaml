@@ -39,7 +39,9 @@ workflow:run:
       - *golangci_lint_config
   hooks:
     before:
-    - task: workflow:run(prepare-linter-config, {})
+    - task:
+        ref: workflow:run(prepare-linter-config)
+        matrix_filter: {}
 
   jobs:
   - cmd@presets?str|tpl#use-spec: tools/presets.tpl

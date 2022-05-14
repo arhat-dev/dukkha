@@ -8,20 +8,20 @@ import (
 func flattenVectorMap(m map[string]*Vector) map[string][]string {
 	ret := make(map[string][]string, len(m))
 	for k, v := range m {
-		ret[k] = v.Vector
+		ret[k] = v.Vec
 	}
 
 	return ret
 }
 
 func NewVector(elems ...string) *Vector {
-	return rs.Init(&Vector{Vector: elems}, nil).(*Vector)
+	return rs.Init(&Vector{Vec: elems}, nil).(*Vector)
 }
 
 type Vector struct {
 	rs.BaseField
 
-	Vector []string `yaml:"__"`
+	Vec []string `yaml:"__"`
 }
 
 func (v *Vector) Equals(a *Vector) bool {
@@ -33,12 +33,12 @@ func (v *Vector) Equals(a *Vector) bool {
 		return false
 	}
 
-	if len(a.Vector) != len(v.Vector) {
+	if len(a.Vec) != len(v.Vec) {
 		return false
 	}
 
-	for i, el := range v.Vector {
-		if a.Vector[i] != el {
+	for i, el := range v.Vec {
+		if a.Vec[i] != el {
 			return false
 		}
 	}
@@ -51,7 +51,7 @@ func (v *Vector) Empty() bool {
 		return true
 	}
 
-	return len(v.Vector) == 0
+	return len(v.Vec) == 0
 }
 
 func (v *Vector) UnmarshalYAML(value *yaml.Node) error {
@@ -80,5 +80,5 @@ func (v *Vector) MarshalYAML() (interface{}, error) {
 		return nil, nil
 	}
 
-	return v.Vector, nil
+	return v.Vec, nil
 }

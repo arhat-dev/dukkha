@@ -87,9 +87,8 @@
 - `int64(any) int64`
 - `isAbs(string) bool`
 - `join(any, string) (string, error)`
-- `jq(string, string) (string, error)`
-- `jqBytes(string, []uint8) (string, error)`
-- `jqObject(String, any) (any, error)`
+- `jq(String, Bytes) (string, error)`
+- `jqObj(String, any) (any, error)`
 - `kebabcase(String) string`
 - `keys(...map[string]any) ([]string, error)`
 - `kindIs(string, any) bool`
@@ -234,8 +233,7 @@
 - `without(any, ...any) []any`
 - `wrap(int, string) string`
 - `wrapWith(int, string, string) string`
-- `yq(string, string) (string, error)`
-- `yqBytes(string, []uint8) (string, error)`
+- `yq(String, Bytes) (string, error)`
 - `archconv.AlpineArch(String) string`
 - `archconv.AlpineTripleName(String) string`
 - `archconv.DebianArch(String) string`
@@ -408,6 +406,9 @@
 - `os.Stderr() *os.File`
 - `os.Stdin() *os.File`
 - `os.Stdout() *os.File`
+- `os.UserCacheDir() string`
+- `os.UserConfigDir() string`
+- `os.UserHomeDir() string`
 - `os.WriteFile(String, Bytes, ...any) error`
 - `path.Base(any) string`
 - `path.Clean(any) string`
@@ -454,17 +455,19 @@
 - `state.Succeeded() bool`
 - `strconv.Unquote(String) (string, error)`
 - `strings.Abbrev(...any) (string, error)`
-- `strings.AddPrefix(string, string, string) string`
-- `strings.AddSuffix(string, string, string) string`
+- `strings.AddPrefix(String, String, String) string`
+- `strings.AddSuffix(String, String, String) string`
 - `strings.CamelCase(String) string`
 - `strings.Contains(String, String) bool`
 - `strings.HasPrefix(String, String) bool`
 - `strings.HasSuffix(String, String) bool`
 - `strings.Indent(...any) (string, error)`
+- `strings.JQ(String, Bytes) (string, error)`
+- `strings.JQObj(String, any) (any, error)`
 - `strings.KebabCase(String) string`
 - `strings.Quote(String) string`
-- `strings.RemovePrefix(string, string, string) string`
-- `strings.RemoveSuffix(string, string, string) string`
+- `strings.RemovePrefix(String, String, String) string`
+- `strings.RemoveSuffix(String, String, String) string`
 - `strings.Repeat(templateutils.Integer, String) (string, error)`
 - `strings.ReplaceAll(String, String, String) string`
 - `strings.RuneCount(...String) (int, error)`
@@ -483,6 +486,7 @@
 - `strings.TrimSuffix(String, String) string`
 - `strings.Trunc(templateutils.Integer, String) string`
 - `strings.WordWrap(...any) (string, error)`
+- `strings.YQ(String, Bytes) (string, error)`
 - `time.Hour(any) time.Duration`
 - `time.Microsecond(any) time.Duration`
 - `time.Millisecond(any) time.Duration`

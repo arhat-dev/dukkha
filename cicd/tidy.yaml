@@ -2,8 +2,12 @@ workflow:run:
 # required by ci job
 - name: tidy
   jobs:
-  - task: workflow:run(tidy-go-mod, {})
-  - task: workflow:run(docs, {})
+  - task:
+      ref: workflow:run(tidy-go-mod)
+      matrix_filter: {}
+  - task:
+      ref: workflow:run(docs)
+      matrix_filter: {}
 
 # ensure tidy go mod
 - name: tidy-go-mod

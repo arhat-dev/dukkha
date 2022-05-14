@@ -4,28 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
-	"github.com/itchyny/gojq"
 	"gopkg.in/yaml.v3"
 )
-
-func jqObject(query String, in any) (any, error) {
-	q, err := gojq.Parse(toString(query))
-	if err != nil {
-		return nil, err
-	}
-
-	ret, _, err := textquery.RunQuery(q, in, nil)
-	switch len(ret) {
-	case 0:
-		return nil, err
-	case 1:
-		return ret[0], err
-	default:
-		return ret, err
-	}
-}
 
 func fromYaml(rc rs.RenderingHandler, v Bytes) (any, error) {
 	out := rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject)

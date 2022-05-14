@@ -2,34 +2,46 @@ workflow:run:
 # required by ci
 - name: build-artifacts
   jobs:
-  - task: golang:build(dukkha, {})
+  - task:
+      ref: golang:build(dukkha)
+      matrix_filter: {}
 
 # required by ci
 - name: sign-artifacts
   jobs:
   # generate dukkha.*.sig
-  - task@tpl: |-
-      {{- if eq env.GITHUB_ACTIONS "true" -}}
-        cosign:sign(dukkha, {})
-      {{- else -}}
-        cosign:sign(fake, {})
-      {{- end -}}
+  - task:
+      ref@tpl: |-
+        {{- if eq env.GITHUB_ACTIONS "true" -}}
+          cosign:sign(dukkha)
+        {{- else -}}
+          cosign:sign(fake)
+        {{- end -}}
+      matrix_filter: {}
 
 # upload signed artifacts to ghcr.io
 # required by ci
 - name: upload-artifacts
   jobs:
-  - task: docker:login(ghcr, {})
-  - task: cosign:upload(dukkha, {})
+  - task:
+      ref: docker:login(ghcr)
+      matrix_filter: {}
+  - task:
+      ref: cosign:upload(dukkha)
+      matrix_filter: {}
 
 # required by ci
 - name: create-release
   jobs:
   # generate dukkha.*.{sha256,sha512,md5}
-  - task: workflow:run(gen-artifacts-checksum, {})
+  - task:
+      ref: workflow:run(gen-artifacts-checksum)
+      matrix_filter: {}
   # generate dukkha.*.{tar.gz,zip}
   # using dukkha.*.{,.exe,sha256,sha512,md5,sig} and license.txt
-  - task: archive:create(dukkha, {})
+  - task:
+      ref: archive:create(dukkha)
+      matrix_filter: {}
 
   # generate checksums for archives
   - chdir: build
@@ -39,12 +51,15 @@ workflow:run:
       openssl dgst -md5 *.tar* *.zip > md5.txt
 
   # create github release
-  - task@tpl: |-
-      {{- if eq env.GITHUB_ACTIONS "true" -}}
-        github:release(dukkha, {})
-      {{- else -}}
-        github:release(fake, {})
-      {{- end -}}
+  - task:
+      ref: |-
+        {{- if eq env.GITHUB_ACTIONS "true" -}}
+          github:release(dukkha)
+        {{- else -}}
+          github:release(fake)
+        {{- end -}}
+      matrix_filter: {}
+
     continue_on_error@tpl: |-
       {{- if eq env.GITHUB_ACTIONS "true" -}}
         false

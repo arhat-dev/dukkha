@@ -2,7 +2,9 @@ workflow:run:
 # required by ci job
 - name: test
   jobs:
-  - task: golang:test(dukkha, {})
+  - task:
+      ref: golang:test(dukkha)
+      matrix_filter: {}
   # test shell PATH lookup
   # if any issue, fix it in https://github.com/arhat-dev/sh/tree/dukkha
   - name: test path lookup under cygwin

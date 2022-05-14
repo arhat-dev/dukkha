@@ -47,16 +47,16 @@ type Action struct {
 	// Task reference of this action
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
-	Task string `yaml:"task,omitempty"`
+	Task *TaskReference `yaml:"task,omitempty"`
 
 	// EmbeddedShell using embedded shell
 	//
 	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
 	EmbeddedShell string `yaml:"shell,omitempty"`
 
-	// EmbeddedShell script for this action
+	// ExternalShell script for this action
 	//
-	// Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive
+	// Task, Cmd, ExternalShell, ExternalShell are mutually exclusive
 	ExternalShell map[string]string `yaml:",inline,omitempty"`
 
 	// Cmd execution, not in any shell
@@ -123,8 +123,8 @@ func (act *Action) GenSpecs(
 	case act.Idle != nil:
 		ctx.SetState(dukkha.TaskExecSucceeded)
 		return nil, nil
-	case len(act.Task) != 0:
-		return act.genTaskActionSpecs(ctx, actionID)
+	case act.Task != nil:
+		return act.Task.genTaskExecReq(ctx, actionID, act.ContinueOnError)
 	case len(act.Cmd) != 0:
 		return act.genCmdActionSpecs(ctx, actionID)
 	case len(act.EmbeddedShell) != 0:
@@ -132,36 +132,6 @@ func (act *Action) GenSpecs(
 	default:
 		return act.genExternalShellActionSpecs(ctx, actionID)
 	}
-}
-
-func (act *Action) genTaskActionSpecs(
-	ctx dukkha.TaskExecContext, hookID string,
-) (*TaskExecRequest, error) {
-	ref, err := dukkha.ParseTaskReference(act.Task, ctx.CurrentTool().Name)
-	if err != nil {
-		return nil, fmt.Errorf("%q: invalid task reference %q: %w", hookID, act.Task, err)
-	}
-
-	if ref.MatrixFilter != nil {
-		ctx.SetMatrixFilter(*ref.MatrixFilter)
-	}
-
-	tool, ok := ctx.GetTool(ref.ToolKey())
-	if !ok {
-		return nil, fmt.Errorf("%q: referenced tool %q not found", hookID, ref.ToolKey())
-	}
-
-	tsk, ok := tool.GetTask(ref.TaskKey())
-	if !ok {
-		return nil, fmt.Errorf("%q: referenced task %q not found", hookID, ref.TaskKey())
-	}
-
-	return &TaskExecRequest{
-		Context:     ctx,
-		Tool:        tool,
-		Task:        tsk,
-		IgnoreError: act.ContinueOnError,
-	}, nil
 }
 
 // nolint:unparam

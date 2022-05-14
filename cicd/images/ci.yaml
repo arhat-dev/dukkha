@@ -3,22 +3,32 @@ workflow:run:
 # required by ci job
 - name: build-images
   jobs:
-  - task: buildah:xbuild(dukkha, {})
+  - task:
+      ref: buildah:xbuild(dukkha)
+      matrix_filter: {}
 
 # push built container images
 # required by ci job
 - name: push-images
   jobs:
-  - task: buildah:login(ghcr, {})
-  - task: buildah:push(dukkha, {})
+  - task:
+      ref: buildah:login(ghcr)
+      matrix_filter: {}
+  - task:
+      ref: buildah:push(dukkha)
+      matrix_filter: {}
 
 # sign container images
 # required by ci job
 - name: sign-images
   jobs@tpl: |-
     {{- if and (eq env.GITHUB_ACTIONS "true") env.GIT_TAG -}}
-    - task: docker:login(ghcr, {})
-    - task: cosign:sign-image(dukkha, {})
+    - task:
+        ref: docker:login(ghcr)
+        matrix_filter: {}
+    - task:
+        ref: cosign:sign-image(dukkha)
+        matrix_filter: {}
     {{- else -}}
     - idle: "skip non release job"
     {{- end -}}

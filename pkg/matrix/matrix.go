@@ -18,64 +18,54 @@ type Spec struct {
 	Include []*specItem `yaml:"include,omitempty"`
 	Exclude []*specItem `yaml:"exclude,omitempty"`
 
-	// TODO: validate kernel and arch values to ensure
-	// 		 tools get expected value set
-	Kernel *Vector `yaml:"kernel,omitempty"`
-	Arch   *Vector `yaml:"arch,omitempty"`
-
 	// catch other matrix fields
-	Custom map[string]*Vector `yaml:",inline,omitempty"`
+	Data map[string]*Vector `yaml:",inline,omitempty"`
 }
 
-func defaultSpecs(hostKernel, hostArch string) []Entry {
-	return []Entry{
-		{
-			"kernel": hostKernel,
-			"arch":   hostArch,
-		},
+func (s *Spec) HasUserValue() bool {
+	if s == nil {
+		return false
 	}
+
+	return len(s.Include) != 0 || len(s.Exclude) != 0 || len(s.Data) != 0
 }
 
+func (s *Spec) AsFilter() (ret Filter) {
+	if !s.HasUserValue() {
+		return
+	}
+
+	entries := s.GenerateEntries(Filter{})
+	for _, ent := range entries {
+		for k, v := range ent {
+			ret.AddMatch(k, v)
+		}
+	}
+
+	return
+}
+
+// GenerateEntries generates a set of matrix entries from the spec
 // nolint:gocyclo
-func (mc *Spec) GenerateEntries(
-	hostKernel, hostArch string,
-	filter Filter,
-) []Entry {
-	if mc == nil {
-		return defaultSpecs(hostKernel, hostArch)
-	}
-
-	hasUserValue := len(mc.Include) != 0 || len(mc.Exclude) != 0
-	hasUserValue = hasUserValue || !mc.Kernel.Empty() || !mc.Arch.Empty() || len(mc.Custom) != 0
-
-	if !hasUserValue {
-		return defaultSpecs(hostKernel, hostArch)
+func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
+	if !s.HasUserValue() {
+		return
 	}
 
 	all := make(map[string][]string)
 
-	if !mc.Kernel.Empty() {
-		all["kernel"] = mc.Kernel.Vector
-	}
-
-	if !mc.Arch.Empty() {
-		all["arch"] = mc.Arch.Vector
-	}
-
-	for name := range mc.Custom {
-		all[name] = mc.Custom[name].Vector
+	for name, vec := range s.Data {
+		all[name] = vec.Vec
 	}
 
 	// remove excluded
 	var removeMatchList []map[string]string
-	for _, ex := range mc.Exclude {
+	for _, ex := range s.Exclude {
 		removeMatchList = append(
 			removeMatchList,
 			CartesianProduct(flattenVectorMap(ex.Data))...,
 		)
 	}
-
-	var result []Entry
 
 	var (
 		matchFilter  []map[string]string
@@ -104,26 +94,26 @@ loop:
 
 		if len(matchFilter) == 0 {
 			// no filter, add it
-			result = append(result, spec)
+			ret = append(ret, spec)
 			continue
 		}
 
 		for _, f := range matchFilter {
 			if spec.Match(f) {
-				result = append(result, spec)
+				ret = append(ret, spec)
 				continue loop
 			}
 		}
 	}
 
 	// add included
-	for _, inc := range mc.Include {
+	for _, inc := range s.Include {
 		mat := CartesianProduct(flattenVectorMap(inc.Data))
 	addInclude:
 		for i := range mat {
 			includeEntry := Entry(mat[i])
 
-			for _, spec := range result {
+			for _, spec := range ret {
 				if spec.Equals(includeEntry) {
 					// already included
 					continue addInclude
@@ -137,18 +127,18 @@ loop:
 			}
 
 			if len(matchFilter) == 0 {
-				result = append(result, includeEntry)
+				ret = append(ret, includeEntry)
 				continue
 			}
 
 			for _, f := range matchFilter {
 				if includeEntry.Match(f) {
-					result = append(result, includeEntry)
+					ret = append(ret, includeEntry)
 					continue addInclude
 				}
 			}
 		}
 	}
 
-	return result
+	return
 }

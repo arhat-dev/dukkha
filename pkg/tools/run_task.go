@@ -332,7 +332,7 @@ func CreateTaskMatrixContext(
 	mCtx := req.Context.DeriveNew()
 
 	// set default matrix filter for referenced hook tasks
-	mFilter := matrix.NewFilter(nil)
+	var mFilter matrix.Filter
 	for k, v := range ms {
 		mFilter.AddMatch(k, v)
 	}

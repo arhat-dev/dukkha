@@ -5,8 +5,6 @@ import (
 )
 
 func ParseMatrixFilter(arr []string) (ret Filter) {
-	ret = NewFilter(nil)
-
 	for _, v := range arr {
 		if idx := strings.Index(v, "!="); idx > 0 {
 			ret.AddIgnore(v[:idx], v[idx+2:])

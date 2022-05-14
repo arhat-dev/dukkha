@@ -23,6 +23,109 @@ func (osNS) Stdin() *os.File  { return os.Stdin }
 func (osNS) Stdout() *os.File { return os.Stdout }
 func (osNS) Stderr() *os.File { return os.Stderr }
 
+func (ns osNS) UserHomeDir() (ret string) {
+	env := "HOME"
+	goos, _ := constant.GetGolangOS(ns.rc.HostKernel())
+
+	switch goos {
+	case "windows":
+		env = "USERPROFILE"
+	case "plan9":
+		env = "home"
+	}
+
+	if ret = ns.rc.Get(env).String(); ret != "" {
+		return
+	}
+
+	switch goos {
+	case "android":
+		return "/sdcard"
+	case "ios":
+		return "/"
+	}
+
+	return
+}
+
+func (ns osNS) UserConfigDir() string {
+	goos, _ := constant.GetGolangOS(ns.rc.HostKernel())
+
+	var dir string
+
+	switch goos {
+	case "windows":
+		dir = ns.rc.Get("AppData").String()
+		if dir == "" {
+			return ""
+		}
+
+	case "darwin", "ios":
+		dir = ns.rc.Get("HOME").String()
+		if dir == "" {
+			return ""
+		}
+		dir += "/Library/Application Support"
+
+	case "plan9":
+		dir = ns.rc.Get("home").String()
+		if dir == "" {
+			return ""
+		}
+		dir += "/lib"
+
+	default: // Unix
+		dir = ns.rc.Get("XDG_CONFIG_HOME").String()
+		if dir == "" {
+			dir = ns.rc.Get("HOME").String()
+			if dir == "" {
+				return ""
+			}
+			dir += "/.config"
+		}
+	}
+
+	return dir
+}
+
+func (ns osNS) UserCacheDir() (ret string) {
+	var dir string
+
+	switch runtime.GOOS {
+	case "windows":
+		dir = ns.rc.Get("LocalAppData").String()
+		if dir == "" {
+			return ""
+		}
+
+	case "darwin", "ios":
+		dir = ns.rc.Get("HOME").String()
+		if dir == "" {
+			return ""
+		}
+		dir += "/Library/Caches"
+
+	case "plan9":
+		dir = ns.rc.Get("home").String()
+		if dir == "" {
+			return ""
+		}
+		dir += "/lib/cache"
+
+	default: // Unix
+		dir = ns.rc.Get("XDG_CACHE_HOME").String()
+		if dir == "" {
+			dir = ns.rc.Get("HOME").String()
+			if dir == "" {
+				return ""
+			}
+			dir += "/.cache"
+		}
+	}
+
+	return dir
+}
+
 // Lookup looks up executable by name in PATH list, return empty string if not found
 //
 // NOTE: it will try extra suffices (e.g. `.exe`) on windows

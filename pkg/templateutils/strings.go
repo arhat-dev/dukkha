@@ -8,9 +8,11 @@ import (
 
 	"github.com/Masterminds/goutils"
 	"github.com/gosimple/slug"
+	"github.com/itchyny/gojq"
 	"github.com/pkg/errors"
 
 	gompstrings "arhat.dev/dukkha/third_party/gomplate/strings"
+	"arhat.dev/pkg/textquery"
 )
 
 type stringsNS struct{}
@@ -225,48 +227,98 @@ func (stringsNS) RuneCount(args ...String) (int, error) {
 */
 
 // AddPrefix to each separated string elements
-func (stringsNS) AddPrefix(s, prefix, sep string) string {
-	parts := strings.Split(s, sep)
+func (stringsNS) AddPrefix(s, prefix, sep String) string {
+	pfx := toString(prefix)
+	parts := strings.Split(toString(s), toString(sep))
 	for i, p := range parts {
 		if len(p) == 0 && i == len(parts)-1 {
 			continue
 		}
 
-		parts[i] = prefix + p
+		parts[i] = pfx + toString(p)
 	}
 
-	return strings.Join(parts, sep)
+	return strings.Join(parts, toString(sep))
 }
 
 // RemovePrefix of each separated string elements
-func (stringsNS) RemovePrefix(s, prefix, sep string) string {
-	parts := strings.Split(s, sep)
+func (stringsNS) RemovePrefix(s, prefix, sep String) string {
+	pfx := toString(prefix)
+	parts := strings.Split(toString(s), toString(sep))
 	for i, p := range parts {
-		parts[i] = strings.TrimPrefix(p, prefix)
+		parts[i] = strings.TrimPrefix(p, pfx)
 	}
 
-	return strings.Join(parts, sep)
+	return strings.Join(parts, toString(sep))
 }
 
 // AddSuffix to each separated string elements
-func (stringsNS) AddSuffix(s, suffix, sep string) string {
-	parts := strings.Split(s, sep)
+func (stringsNS) AddSuffix(s, suffix, sep String) string {
+	sfx := toString(suffix)
+	parts := strings.Split(toString(s), toString(sep))
 	for i, p := range parts {
 		if len(p) == 0 && i == len(parts)-1 {
 			continue
 		}
 
-		parts[i] = p + suffix
+		parts[i] = toString(p) + sfx
 	}
 
-	return strings.Join(parts, sep)
+	return strings.Join(parts, toString(sep))
 }
 
-func (stringsNS) RemoveSuffix(s, suffix, sep string) string {
-	parts := strings.Split(s, sep)
+func (stringsNS) RemoveSuffix(s, suffix, sep String) string {
+	sfx := toString(suffix)
+	parts := strings.Split(toString(s), toString(sep))
 	for i, p := range parts {
-		parts[i] = strings.TrimSuffix(p, suffix)
+		parts[i] = strings.TrimSuffix(p, sfx)
 	}
 
-	return strings.Join(parts, sep)
+	return strings.Join(parts, toString(sep))
 }
+
+/*
+
+	End of Multi-Section string processing
+
+*/
+
+/*
+
+	Start of structured string processing
+
+*/
+
+// JQ is jq on json bytes/string
+func (stringsNS) JQ(query String, data Bytes) (string, error) {
+	return textquery.JQBytes(toString(query), toBytes(data))
+}
+
+// YQ is jq on yaml bytes/string
+func (stringsNS) YQ(query String, data Bytes) (string, error) {
+	return textquery.YQBytes(toString(query), toBytes(data))
+}
+
+// JQObj is jq on object
+func (stringsNS) JQObj(query String, obj any) (any, error) {
+	q, err := gojq.Parse(toString(query))
+	if err != nil {
+		return nil, err
+	}
+
+	ret, _, err := textquery.RunQuery(q, obj, nil)
+	switch len(ret) {
+	case 0:
+		return nil, err
+	case 1:
+		return ret[0], err
+	default:
+		return ret, err
+	}
+}
+
+/*
+
+	End of structured string processing
+
+*/

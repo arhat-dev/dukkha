@@ -16,6 +16,12 @@ renderers:
     include:
     - path: cicd/artifacts/bin-name.tpl
 
+# offline mode switch when network connection is not available
+#
+# to activate:
+# - set LOCAL_DUKKHA_PRESETS_PATH to some local dir (a empty value will use ${PWD}/.dukkha/cache/dukkha-presets)
+# - git clone https://github.com/arhat-dev/dukkha-presets "${LOCAL_DUKKHA_PRESETS_PATH}"
+#   or `git clone https://github.com/arhat-dev/dukkha-presets "${PWD}/.dukkha/cache/dukkha-presets"` when LOCAL_DUKKHA_PRESETS_PATH is set to empty
 - file:dukkha-presets:
     alias@tpl: |-
       {{- if env.LOCAL_DUKKHA_PRESETS_PATH -}}
