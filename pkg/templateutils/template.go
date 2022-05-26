@@ -1,18 +1,11 @@
 package templateutils
 
 import (
-	"encoding/hex"
 	"fmt"
-
-	"arhat.dev/pkg/md5helper"
-	"arhat.dev/pkg/stringhelper"
-	"github.com/Masterminds/sprig/v3"
-	"gopkg.in/yaml.v3"
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/golang/text/template"
-	"arhat.dev/dukkha/third_party/gomplate/funcs"
 )
 
 type TemplateFuncFactory func(rc dukkha.RenderingContext) any
@@ -38,96 +31,167 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 	}
 
 	var (
-		strNS stringsNS
+		nsTag    = createTagNS(rc)
+		nsOS     = createOSNS(rc)
+		nsDukkha = createDukkhaNS(rc)
+		nsFS     = createFSNS(rc)
 	)
 
 	return template.New("tpl").
-		// template func from sprig
-		Funcs(template.FuncMap(sprig.TxtFuncMap())).
-		// template func from gomplate
-		Funcs(funcs.CreateNetFuncs(rc)).
-		Funcs(funcs.CreateReFuncs(rc)).
-		Funcs(funcs.CreateConvFuncs(rc)).
-		Funcs(funcs.CreateTimeFuncs(rc)).
-		Funcs(funcs.CreateMathFuncs(rc)).
-		Funcs(funcs.CreateCryptoFuncs(rc)).
-		Funcs(funcs.CreateFileFuncs(rc)).
-		Funcs(funcs.CreatePathFuncs(rc)).
-		Funcs(funcs.CreateSockaddrFuncs(rc)).
-		Funcs(funcs.CreateCollFuncs(rc)).
-		Funcs(funcs.CreateUUIDFuncs(rc)).
-		Funcs(funcs.CreateRandomFuncs(rc)).
+		Funcs(fm). // tool specific functions
 		Funcs(map[string]any{
-			"strings": func() stringsNS { return strNS },
+			"close": close,
 
-			"replaceAll": strNS.ReplaceAll,
-			"title":      strNS.Title,
-			"toUpper":    strNS.ToUpper,
-			"toLower":    strNS.ToLower,
-			"trimSpace":  strNS.TrimSpace,
-			"indent":     strNS.Indent,
-			"quote":      strNS.Quote,
-			"shellQuote": strNS.ShellQuote,
-			"squote":     strNS.Squote,
-
-			"contains":  strNS.Contains,
-			"hasPrefix": strNS.HasPrefix,
-			"hasSuffix": strNS.HasSuffix,
-			"split":     strNS.Split,
-			"splitN":    strNS.SplitN,
-			"trim":      strNS.Trim,
-
-			"kebabcase": strNS.KebabCase,
-			"snakecase": strNS.SnakeCase,
-			"camelcase": strNS.CamelCase,
-
-			"jq":    strNS.JQ,
-			"yq":    strNS.YQ,
-			"jqObj": strNS.JQObj,
-
-			// multi-line string
-
-			"addPrefix": func(args ...String) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = toString(args[0])
-				}
-
-				return strNS.AddPrefix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
-			},
-			"removePrefix": func(args ...String) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = toString(args[0])
-				}
-
-				return strNS.RemovePrefix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
-			},
-			"addSuffix": func(args ...String) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = toString(args[0])
-				}
-
-				return strNS.AddSuffix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
-			},
-			"removeSuffix": func(args ...String) string {
-				sep := "\n"
-				if len(args) == 3 {
-					sep = toString(args[0])
-				}
-
-				return strNS.RemoveSuffix(toString(args[len(args)-1]), toString(args[len(args)-2]), sep)
-			},
-		}).
-		Funcs(map[string]any{
-			"filepath": func() filepathNS { return createFilePathNS(rc) },
-			"strconv":  func() strconvNS { return strconvNS{} },
-			"dukkha":   func() dukkhaNS { return createDukkhaNS(rc) },
-			"os":       func() osNS { return createOSNS(rc) },
 			"archconv": func() archconvNS { return archconvNS{} },
-			"git":      rc.GitValues,  // git.{tag, branch ...}
-			"host":     rc.HostValues, // host.{arch, arch_simple, kernel ...}
+			"path":     func() pathNS { return pathNS{} },
+			"uuid":     func() uuidNS { return uuidNS{} },
+			"re":       func() regexpNS { return regexpNS{} },
+
+			// Math
+
+			"math": func() mathNS { return mathNS{} },
+
+			"seq": mathNS{}.Seq,
+
+			"min": mathNS{}.Min,
+			"max": mathNS{}.Max,
+
+			"mod": mathNS{}.Mod,
+			"add": mathNS{}.Add,
+			"sub": mathNS{}.Sub,
+			"mul": mathNS{}.Mul,
+			"div": mathNS{}.Div,
+
+			"add1":   mathNS{}.Add1,
+			"sub1":   mathNS{}.Sub1,
+			"double": mathNS{}.Double,
+			"half":   mathNS{}.Half,
+
+			// Collections
+
+			"coll": func() collNS { return collNS{} },
+
+			"last":       func(s Slice) any { return must(collNS{}.Index(-1, s)) },
+			"first":      func(s Slice) any { return must(collNS{}.Index(0, s)) },
+			"list":       collNS{}.List,
+			"stringList": collNS{}.Strings,
+			"dict":       collNS{}.MapStringAny,
+			"append":     collNS{}.Append,
+			"prepend":    collNS{}.Prepend,
+			"sort":       collNS{}.Sort,
+			"has":        collNS{}.HasAll,
+			"hasAny":     collNS{}.HasAny,
+			"pick":       collNS{}.Pick,
+			"omit":       collNS{}.Omit,
+			"dup":        collNS{}.Dup,
+			"uniq":       collNS{}.Unique,
+
+			// Type conversion
+
+			"type": func() typeNS { return typeNS{} },
+
+			"toString": typeNS{}.ToString,
+			"default":  typeNS{}.Default,
+			"all":      typeNS{}.AllTrue,
+			"any":      typeNS{}.AnyTrue,
+
+			// Network
+
+			"dns":      func() dnsNS { return dnsNS{} },
+			"sockaddr": func() sockaddrNS { return sockaddrNS{} },
+
+			// Hashing and hmac
+
+			"hash": func() hashNS { return hashNS{} },
+
+			"md5":    hashNS{}.MD5,
+			"sha1":   hashNS{}.SHA1,
+			"sha256": hashNS{}.SHA256,
+			"sha512": hashNS{}.SHA512,
+
+			// Credentials
+
+			"cred": func() credentialNS { return credentialNS{} },
+
+			"totp": credentialNS{}.Totp,
+
+			// Time
+
+			"time": func() timeNS { return timeNS{} },
+
+			"now": timeNS{}.Now,
+
+			// Encoding
+
+			"enc": func() encNS { return encNS{} },
+
+			"base64": encNS{}.Base64,
+			"hex":    encNS{}.Hex,
+			"toJson": encNS{}.JSON,
+			"toYaml": encNS{}.YAML,
+
+			"fromJson": func(v String) (any, error) { return fromYaml(rc, v) },
+			"fromYaml": func(v String) (any, error) { return fromYaml(rc, v) },
+
+			// Strings
+
+			"strings": func() stringsNS { return stringsNS{} },
+
+			"replaceAll": stringsNS{}.ReplaceAll,
+			"title":      stringsNS{}.Title,
+			"upper":      stringsNS{}.Upper,
+			"lower":      stringsNS{}.Lower,
+			"trimSpace":  stringsNS{}.TrimSpace,
+			"indent":     stringsNS{}.Indent,
+			"nindent":    stringsNS{}.NIndent,
+			"quote":      stringsNS{}.DoubleQuote,
+			"squote":     stringsNS{}.SingleQuote,
+
+			"contains":  stringsNS{}.Contains,
+			"hasPrefix": stringsNS{}.HasPrefix,
+			"hasSuffix": stringsNS{}.HasSuffix,
+			"split":     stringsNS{}.Split,
+			"splitN":    stringsNS{}.SplitN,
+
+			"trim":       stringsNS{}.Trim,
+			"trimPrefix": stringsNS{}.TrimPrefix,
+			"trimSuffix": stringsNS{}.TrimSuffix,
+
+			"addPrefix":    stringsNS{}.AddPrefix,
+			"addSuffix":    stringsNS{}.AddSuffix,
+			"removePrefix": stringsNS{}.RemovePrefix,
+			"removeSuffix": stringsNS{}.RemoveSuffix,
+
+			// contextual template functions
+
+			// OS
+
+			"os": func() osNS { return nsOS },
+
+			// Tagging
+
+			"tag": func() tagNS { return nsTag },
+
+			// Filesystem
+
+			"fs": func() fsNS { return nsFS },
+
+			"touch": func(file String) (struct{}, error) { return nsFS.WriteFile(file) },
+			"write": nsFS.WriteFile,
+			"mkdir": nsFS.Mkdir,
+			"find":  nsFS.Find,
+
+			// dukkha specific
+
+			"dukkha": func() dukkhaNS { return nsDukkha },
+
+			"jq":    nsDukkha.JQ,
+			"yq":    nsDukkha.YQ,
+			"jqObj": nsDukkha.JQObj,
+			"yqObj": nsDukkha.YQObj,
+
+			"git":  rc.GitValues,  // git.{tag, branch ...}
+			"host": rc.HostValues, // host.{arch, arch_simple, kernel ...}
 			// eval shell and template
 			"eval":   func() evalNS { return createEvalNS(rc) },
 			"env":    rc.Env,
@@ -147,59 +211,9 @@ func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 
 				return nil
 			},
-		}).
-		// yaml processing
-		Funcs(map[string]any{
-			"fromYaml": func(v String) any {
-				ret, err := fromYaml(rc, toString(v))
-				if err != nil {
-					panic(err)
-				}
-				return ret
-			},
-			"toYaml": func(v any) string {
-				data, _ := yaml.Marshal(v)
-				return stringhelper.Convert[string, byte](data)
-			},
-		}).
-		// dukkha specific template func
-		Funcs(map[string]any{
-			"md5sum": func(s Bytes) string {
-				return hex.EncodeToString(md5helper.Sum(toBytes(s)))
-			},
 
-			"totp":    totpTemplateFunc,
-			"toBytes": func(s any) []byte { return toBytes(s) },
+			// placeholder functions to be overridden before template.Execute
 
-			"setDefaultImageTag": func(imageName String, flags ...String) string {
-				keepKernelInfo := false
-				for _, f := range flags {
-					if toString(f) == "keepKernelInfo" {
-						keepKernelInfo = true
-					}
-				}
-				return SetDefaultImageTagIfNoTagSet(rc, toString(imageName), keepKernelInfo)
-			},
-			"setDefaultManifestTag": func(imageName String, flags ...String) string {
-				return SetDefaultManifestTagIfNoTagSet(rc, toString(imageName))
-			},
-
-			"getDefaultImageTag": func(imageName String, flags ...String) string {
-				keepKernelInfo := false
-				for _, f := range flags {
-					if toString(f) == "keepKernelInfo" {
-						keepKernelInfo = true
-					}
-				}
-				return GetDefaultImageTag(rc, toString(imageName), keepKernelInfo)
-			},
-			"getDefaultManifestTag": func(imageName String, flags ...String) string {
-				return GetDefaultManifestTag(rc, toString(imageName))
-			},
-		}).
-		Funcs(fm).
-		// placeholder functions to be overridden before template.Execute
-		Funcs(map[string]any{
 			"var": func() map[string]any { return nil },
 			// include like helm include
 			"include": func(name string, data any) (string, error) {

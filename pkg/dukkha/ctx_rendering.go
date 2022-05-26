@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -13,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/textquery"
@@ -41,15 +43,20 @@ type RenderingContext interface {
 	Values() map[string]any
 
 	GlobalCacheFS(subdir string) *fshelper.OSFS
+
+	Stdin() io.Reader
+	Stdout() io.Writer
+	Stderr() io.Writer
+	SetStdIO(in io.Reader, out, err io.Writer)
 }
 
 func newContextRendering(
-	ctx *contextStd,
+	ctx contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
 	globalEnv map[string]utils.LazyValue,
-) *contextRendering {
+) contextRendering {
 	envValues := newEnvValues(globalEnv)
-	return &contextRendering{
+	return contextRendering{
 		contextStd: ctx,
 
 		envValues: envValues,
@@ -67,14 +74,13 @@ func newContextRendering(
 	}
 }
 
-var (
-	_ RendererManager  = (*contextRendering)(nil)
-	_ RenderingContext = (*contextRendering)(nil)
-)
-
+// contextRendering is the core context of dukkhaContext, handling most of
+// rendering related jobs
+//
+// it MUST be the first element in dukkhaContext, and MUST be derived together with dukkhaContext
 type contextRendering struct {
-	*contextStd
-	*envValues
+	contextStd
+	envValues
 
 	ifaceTypeHandler rs.InterfaceTypeHandler
 	renderers        map[string]Renderer
@@ -86,15 +92,18 @@ type contextRendering struct {
 
 	fs      *fshelper.OSFS
 	cacheFS *fshelper.OSFS
+
+	stdin          io.Reader
+	stdout, stderr io.Writer
 }
 
-func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRendering {
+func (c *contextRendering) clone(newCtx contextStd, separateEnv bool) contextRendering {
 	envValues := c.envValues
-	if deepCopy {
+	if separateEnv {
 		envValues = c.envValues.clone()
 	}
 
-	return &contextRendering{
+	return contextRendering{
 		contextStd: newCtx,
 
 		envValues: envValues,
@@ -109,7 +118,39 @@ func (c *contextRendering) clone(newCtx *contextStd, deepCopy bool) *contextRend
 		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
 			return envValues.CacheDir(), nil
 		}), "."),
+
+		stdin:  c.stdin,
+		stdout: c.stdout,
+		stderr: c.stderr,
 	}
+}
+
+func (c *contextRendering) Stdin() io.Reader {
+	if c.stdin == nil {
+		return os.Stdin
+	}
+
+	return c.stdin
+}
+
+func (c *contextRendering) Stdout() io.Writer {
+	if c.stdout == nil {
+		return os.Stdout
+	}
+
+	return c.stdout
+}
+
+func (c *contextRendering) Stderr() io.Writer {
+	if c.stderr == nil {
+		return os.Stderr
+	}
+
+	return c.stderr
+}
+
+func (c *contextRendering) SetStdIO(stdin io.Reader, stdout, stderr io.Writer) {
+	c.stdin, c.stdout, c.stderr = stdin, stdout, stderr
 }
 
 func (c *contextRendering) FS() *fshelper.OSFS { return c.fs }
@@ -179,6 +220,7 @@ func (c *contextRendering) Values() map[string]any {
 	return c.values
 }
 
+// RenderYaml implements rs.RenderingHandler
 func (c *contextRendering) RenderYaml(renderer string, rawData any) ([]byte, error) {
 	var attributes []RendererAttribute
 	attrStart := strings.LastIndexByte(renderer, '#')
@@ -195,7 +237,7 @@ func (c *contextRendering) RenderYaml(renderer string, rawData any) ([]byte, err
 		return nil, fmt.Errorf("renderer %q not found", renderer)
 	}
 
-	return v.RenderYaml(c, rawData, attributes)
+	return v.RenderYaml((*dukkhaContext)(unsafe.Pointer(c)), rawData, attributes)
 }
 
 func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (any, error) {
@@ -250,17 +292,17 @@ func (c *contextRendering) Get(name string) expand.Variable {
 				goto ret
 			}
 
-			result, found, err := textquery.RunQuery(query, c.values, nil)
+			result, err := textquery.RunQuery(query, c.values, nil)
 			if err != nil {
 				goto ret
 			}
 
-			if !found {
+			if len(result) == 0 {
 				goto ret
 			}
 
 			kind = expand.String
-			v = utils.ImmediateString(textquery.HandleQueryResult(result, json.Marshal))
+			v = utils.ImmediateString(textquery.MarshalJsonOrYamlQueryResult(result, json.Marshal))
 		}
 
 	ret:

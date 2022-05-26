@@ -2,7 +2,9 @@ package debug
 
 import (
 	"fmt"
-	"os"
+	"io"
+	"reflect"
+	"unsafe"
 
 	"github.com/itchyny/gojq"
 	"github.com/spf13/cobra"
@@ -21,10 +23,10 @@ type Options struct {
 	query          *string
 }
 
-func (opts *Options) writeHeader(data string) error {
-	out := os.Stdout
+func (opts *Options) writeHeader(stdout, stderr io.Writer, data string) error {
+	out := stdout
 	if *opts.headerToStderr {
-		out = os.Stderr
+		out = stderr
 	}
 
 	if len(*opts.headerPrefix) != 0 {
@@ -34,7 +36,19 @@ func (opts *Options) writeHeader(data string) error {
 		}
 	}
 
-	_, err := out.WriteString(data + "\n")
+	str := (*reflect.StringHeader)(unsafe.Pointer(&data))
+	sh := reflect.SliceHeader{
+		Data: str.Data,
+		Len:  str.Len,
+		Cap:  str.Len,
+	}
+
+	_, err := out.Write(*(*[]byte)(unsafe.Pointer(&sh)))
+	if err != nil {
+		return err
+	}
+
+	_, err = out.Write([]byte("\n"))
 	return err
 }
 

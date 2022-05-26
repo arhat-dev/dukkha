@@ -2,103 +2,106 @@ package textquery
 
 import (
 	"fmt"
+	"io"
 	"strconv"
-	"strings"
 
 	"github.com/itchyny/gojq"
 )
 
-// Query runs jq query over general text data bytes with custom
-// marshaling/unmarshaling func for data serialization/deserialization
+// QueryResultHandleFunc handles each query result
+// NOTE: result can be a empty/nil slice when there was no matched content or query returned nothing
+type QueryResultHandleFunc func(data any, result []any, queryErr error) error
+
+// DocIterFunc unmarshals next available doc into golang any object (map, slice)
+// return true when there is doc available, otherwise false
+type DocIterFunc func() (any, bool)
+
+// Query is a generic jq query wrapper
 func Query(
 	query string,
-	generatNext func() (interface{}, bool),
-	marshalFunc func(in interface{}) ([]byte, error),
-) (string, error) {
+	extraValues []any,
+	nextDoc DocIterFunc,
+	handleResult QueryResultHandleFunc,
+	options ...gojq.CompilerOption,
+) (err error) {
 	q, err := gojq.Parse(query)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse query: %w", err)
+		return fmt.Errorf("textquery: parse %q: %w", query, err)
 	}
 
-	sb := &strings.Builder{}
-	wroteOnce := false
 	for {
-		data, ok := generatNext()
+		data, ok := nextDoc()
 		if !ok {
 			break
 		}
 
-		result, hasResult, err2 := RunQuery(q, data, nil)
-		if hasResult {
-			if wroteOnce {
-				sb.WriteByte('\n')
-			}
-
-			sb.WriteString(HandleQueryResult(result, marshalFunc))
-
-			if !wroteOnce {
-				wroteOnce = true
-			}
-		}
-
-		if err2 != nil {
-			return sb.String(), err2
+		result, err2 := RunQuery(q, data, extraValues, options...)
+		err = handleResult(data, result, err2)
+		if err != nil {
+			return
 		}
 	}
 
-	return sb.String(), nil
+	return
 }
 
-// RunQuery runs jq query over arbitrary data with optional
-// predefined key value pairs
+// RunQuery runs jq query over an object (map, slice)
+//
+// if options contains gojq.WithVariables, length of extraValues should match variable count
 func RunQuery(
 	query *gojq.Query,
-	data interface{},
-	kvPairs map[string]interface{},
-) ([]interface{}, bool, error) {
-	var iter gojq.Iter
-
-	if len(kvPairs) == 0 {
-		iter = query.Run(data)
-	} else {
-		var (
-			keys   []string
-			values []interface{}
-		)
-		for k, v := range kvPairs {
-			keys = append(keys, k)
-			values = append(values, v)
-		}
-
-		code, err := gojq.Compile(query, gojq.WithVariables(keys))
-		if err != nil {
-			return nil, false, fmt.Errorf("failed to compile query with variables: %w", err)
-		}
-
-		iter = code.Run(data, values...)
+	object any,
+	extraValues []any,
+	options ...gojq.CompilerOption,
+) (ret []any, err error) {
+	code, err := gojq.Compile(query, options...)
+	if err != nil {
+		return nil, fmt.Errorf("compile query with variables: %w", err)
 	}
 
-	var result []interface{}
+	iter := code.Run(object, extraValues...)
+
 	for {
 		v, ok := iter.Next()
 		if !ok {
 			break
 		}
 
-		if err, ok := v.(error); ok {
-			return nil, false, err
+		if err, ok = v.(error); ok {
+			return nil, err
 		}
 
-		result = append(result, v)
+		ret = append(ret, v)
 	}
 
-	return result, len(result) != 0, nil
+	return
 }
 
-// HandleQueryResult from RunQuery
-func HandleQueryResult(
-	result []interface{},
-	marshalFunc func(in interface{}) ([]byte, error),
+func CreateResultToTextHandleFuncForJsonOrYaml(
+	output io.StringWriter,
+	marshalFunc func(in any) ([]byte, error),
+) QueryResultHandleFunc {
+	notWrote := true
+	return func(data any, result []any, queryErr error) error {
+		if len(result) == 0 {
+			return queryErr
+		}
+
+		if notWrote {
+			notWrote = false
+		} else {
+			output.WriteString("\n")
+		}
+
+		output.WriteString(MarshalJsonOrYamlQueryResult(result, marshalFunc))
+		return nil
+	}
+}
+
+// MarshalJsonOrYamlQueryResult from RunQuery
+func MarshalJsonOrYamlQueryResult(
+	result []any,
+	marshalFunc func(in any) ([]byte, error),
 ) string {
 	switch len(result) {
 	case 0:
@@ -109,7 +112,7 @@ func HandleQueryResult(
 			return r
 		case []byte:
 			return string(r)
-		case []interface{}, map[string]interface{}:
+		case []any, map[string]any:
 			res, _ := marshalFunc(r)
 			return string(res)
 		case int64:
@@ -141,7 +144,7 @@ func HandleQueryResult(
 		case nil:
 			return "null"
 		default:
-			return fmt.Sprintf("%v", r)
+			return fmt.Sprint(r)
 		}
 	default:
 		res, _ := marshalFunc(result)

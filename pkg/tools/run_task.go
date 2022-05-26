@@ -126,7 +126,10 @@ func RunTask(req *TaskExecRequest) (err error) {
 
 	matrixSpecs, err := req.Task.GetMatrixSpecs(req.Context)
 	if err != nil {
-		return fmt.Errorf("creating execution matrix: %w", err)
+		return fmt.Errorf("creating execution matrix for %q: %w",
+			req.Tool.Key().String()+":"+req.Task.Key().String(),
+			err,
+		)
 	}
 
 	if len(matrixSpecs) == 0 {
@@ -164,7 +167,9 @@ matrixRun:
 		case <-waitCh:
 		}
 
-		output.WriteTaskStart(mCtx.PrefixColor(),
+		output.WriteTaskStart(
+			mCtx.Stdout(),
+			mCtx.PrefixColor(),
 			mCtx.CurrentTool(), mCtx.CurrentTask(), ms,
 		)
 
@@ -244,7 +249,9 @@ matrixRun:
 
 			err3 = doRun(mCtx, toolMatrixCmd, execSpecs, nil)
 
-			output.WriteExecResult(mCtx.PrefixColor(),
+			output.WriteExecResult(
+				mCtx.Stderr(),
+				mCtx.PrefixColor(),
 				mCtx.CurrentTool(), mCtx.CurrentTask(),
 				ms.String(), err3,
 			)

@@ -10,12 +10,12 @@ workflow:run:
       output:
       - &golangci_lint_config
         __@tpl: |-
-          {{- filepath.Join env.DUKKHA_CACHE_DIR "golangci-lint.yaml" -}}
+          {{- fs.Join env.DUKKHA_CACHE_DIR "golangci-lint.yaml" -}}
   jobs:
   - idle@tpl: |-
-      {{- os.MkdirAll env.DUKKHA_CACHE_DIR -}}
+      {{- mkdir "-p" env.DUKKHA_CACHE_DIR -}}
   - shell: |-
-      dukkha render --chdir . <<EOF > "${MATRIX_OUTPUT}"
+      tpl:dukkha.Self render --chdir . <<EOF > "${MATRIX_OUTPUT}"
       __@!:
         value@presets: ${MATRIX_PRESET}
         merge:

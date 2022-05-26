@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 
 	"arhat.dev/pkg/textquery"
 	"github.com/spf13/cobra"
@@ -41,6 +41,8 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 			appCtx := *ctx
 			appCtx = appCtx.DeriveNew()
 			appCtx.SetMatrixFilter(matrix.ParseMatrixFilter(matrixFilter))
+
+			stdout, stderr := appCtx.Stdout(), appCtx.Stderr()
 
 			query, err := opts.getQuery()
 			if err != nil {
@@ -85,15 +87,15 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 								return err
 							}
 
-							var data interface{}
+							var data any
 							err = dec.Decode(&data)
 							if err != nil {
 								return err
 							}
 
 							if query != nil {
-								var ret []interface{}
-								ret, _, err = textquery.RunQuery(query, data, nil)
+								var ret []any
+								ret, err = textquery.RunQuery(query, data, nil)
 								if err != nil {
 									return err
 								}
@@ -115,7 +117,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 								return err
 							}
 
-							err = opts.writeHeader(TaskHeaderLineData{
+							err = opts.writeHeader(stdout, stderr, TaskHeaderLineData{
 								ToolKind: tool.Kind(),
 								ToolName: tool.Name(),
 								TaskKind: task.Kind(),
@@ -126,7 +128,7 @@ func NewDebugTaskSpecCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 								return err
 							}
 
-							_, err = os.Stdout.ReadFrom(&buf)
+							_, err = io.Copy(stdout, &buf)
 							return err
 						})
 						if err2 != nil {

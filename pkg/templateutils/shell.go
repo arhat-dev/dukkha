@@ -3,7 +3,6 @@ package templateutils
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -14,6 +13,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	dukkha_internal "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/iohelper"
@@ -89,7 +89,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	if enableExec {
 		var stdout bytes.Buffer
 		runner, err := CreateEmbeddedShellRunner(
-			rc.WorkDir(), rc, nil, &stdout, os.Stderr,
+			rc.WorkDir(), rc, nil, &stdout, rc.Stderr(),
 		)
 		if err != nil {
 			return "", fmt.Errorf("creating shell runner for env: %w", err)
@@ -131,7 +131,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	return expand.Document(&config, word)
 }
 
-var errSkipBackquotedCmdSubst = errors.New("skip CmdSubSt")
+const errSkipBackquotedCmdSubst errString = "skip CmdSubSt"
 
 func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
 	var buf bytes.Buffer
@@ -195,12 +195,19 @@ func RunScriptInEmbeddedShell(
 	return nil
 }
 
+// ExecCmdAsTemplateFuncCall executes cmd as a template func
+// TODO: refactor it to do direct reflect func call, instead of creating a new template
 func ExecCmdAsTemplateFuncCall(
 	rc dukkha.RenderingContext,
 	stdin io.Reader,
 	stdout io.Writer,
 	args []string,
 ) error {
+	// ns, funcName, ok := strings.Cut(args[0], ".")
+	// if !ok {
+	// 	ns, funcName = "", args[0]
+	// }
+
 	tpl := `{{- ` + strings.Join(args, " ")
 
 	var values interface{} = rc
@@ -260,14 +267,18 @@ func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHand
 			pipeReader = hc.Stdin
 		}
 
+		args[0] = strings.TrimPrefix(args[0], "tpl:")
+		// special cases
+		switch args[0] {
+		case "dukkha.Self":
+			return dukkha_internal.RunSelf(rc.(dukkha.Context), pipeReader, hc.Stdout, hc.Stderr, args[1:]...)
+		}
+
 		return ExecCmdAsTemplateFuncCall(
 			rc,
 			pipeReader,
 			hc.Stdout,
-			append(
-				[]string{strings.TrimPrefix(args[0], "tpl:")},
-				args[1:]...,
-			),
+			args,
 		)
 	}
 }

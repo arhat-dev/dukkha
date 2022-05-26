@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -30,7 +29,7 @@ func NewRenderCmd(ctx *dukkha.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(*ctx, opts, args, os.Stdout)
+			return run(*ctx, opts, args, (*ctx).Stdout())
 		},
 	}
 
@@ -75,12 +74,13 @@ func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) 
 		return fmt.Errorf("invalid options: %w", err)
 	}
 
+	stdin := appCtx.Stdin()
 	lastWorkDir := appCtx.WorkDir()
 	for _, src := range args {
 		if src == "-" {
 			err = renderYamlReader(
 				appCtx,
-				os.Stdin,
+				stdin,
 				resolvedOpts.OutputPathFor("-"),
 				0664,
 				resolvedOpts,

@@ -30,7 +30,7 @@ type anyObjectEncoder struct {
 func (e *anyObjectEncoder) Encode(v *rs.AnyObject) error {
 	var toEncode interface{}
 	if e.query != nil {
-		ret, _, err := textquery.RunQuery(e.query, v.NormalizedValue(), nil)
+		ret, err := textquery.RunQuery(e.query, v.NormalizedValue(), nil)
 		if err != nil {
 			return err
 		}

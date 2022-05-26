@@ -61,8 +61,8 @@ func TestSetDefaultImageTag(t *testing.T) {
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 
 		t.Run(spec.BriefString()+"_image_no_kernel_info", func(t *testing.T) {
-			actual := SetDefaultImageTagIfNoTagSet(
-				rc, SetDefaultImageTagIfNoTagSet(rc, "foo", false), false,
+			actual := GetFullImageName_UseDefault_IfIfNoTagSet(
+				rc, GetFullImageName_UseDefault_IfIfNoTagSet(rc, "foo", false), false,
 			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):
@@ -79,8 +79,8 @@ func TestSetDefaultImageTag(t *testing.T) {
 		})
 
 		t.Run(spec.BriefString()+"_image_with_kernel_info", func(t *testing.T) {
-			actual := SetDefaultImageTagIfNoTagSet(
-				rc, SetDefaultImageTagIfNoTagSet(rc, "foo", true), true,
+			actual := GetFullImageName_UseDefault_IfIfNoTagSet(
+				rc, GetFullImageName_UseDefault_IfIfNoTagSet(rc, "foo", true), true,
 			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):
@@ -97,8 +97,8 @@ func TestSetDefaultImageTag(t *testing.T) {
 		})
 
 		t.Run(spec.BriefString()+"_manifest", func(t *testing.T) {
-			actual := SetDefaultManifestTagIfNoTagSet(
-				rc, SetDefaultManifestTagIfNoTagSet(rc, "foo"),
+			actual := GetFullManifestName_UseDefault_IfNoTagSet(
+				rc, GetFullManifestName_UseDefault_IfNoTagSet(rc, "foo"),
 			)
 			switch {
 			case spec.Match(caseWorkTreeCleanTagPresent):

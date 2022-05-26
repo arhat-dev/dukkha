@@ -1,5 +1,4 @@
-//go:build windows || solaris || js
-// +build windows solaris js
+//go:build windows || solaris || js || aix || plan9
 
 package fshelper
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 
 	"arhat.dev/pkg/textquery"
@@ -45,9 +45,11 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 				return err
 			}
 
+			stdout, stderr := appCtx.Stdout(), appCtx.Stderr()
+
 			var enc *json.Encoder
 			if query != nil {
-				enc = json.NewEncoder(os.Stdout)
+				enc = json.NewEncoder(stdout)
 				enc.SetIndent("", "  ")
 			}
 
@@ -59,7 +61,7 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						return fmt.Errorf("get task matrix specs: %w", err)
 					}
 
-					err = opts.writeHeader(TaskHeaderLineData{
+					err = opts.writeHeader(stdout, stderr, TaskHeaderLineData{
 						ToolKind: tool.Kind(),
 						ToolName: tool.Name(),
 						TaskKind: task.Kind(),
@@ -70,21 +72,21 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 					}
 
 					if query != nil {
-						var ret []interface{}
+						var ret []any
 						for _, ms := range matrixSpecs {
-							ent := make(map[string]interface{})
+							ent := make(map[string]any)
 							for k, v := range ms {
 								ent[k] = v
 							}
 							ret = append(ret, ent)
 						}
 
-						ret, _, err = textquery.RunQuery(query, ret, nil)
+						ret, err = textquery.RunQuery(query, ret, nil)
 						if err != nil {
 							return err
 						}
 
-						var data interface{}
+						var data any
 						switch len(ret) {
 						case 0:
 							data = nil
@@ -115,7 +117,7 @@ func NewDebugTaskMatrixCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						buf.WriteString("]\n")
 					}
 
-					_, err = os.Stdout.ReadFrom(&buf)
+					_, err = io.Copy(stdout, &buf)
 					return err
 				},
 			)

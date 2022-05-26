@@ -1,27 +1,37 @@
 package textquery
 
 import (
-	"bytes"
 	"io"
+	"strings"
 
+	"arhat.dev/pkg/stringhelper"
 	"gopkg.in/yaml.v3"
 )
 
-// JQ runs query over json data
-func YQ(query, data string) (string, error) {
-	return YQBytes(query, []byte(data))
+// YQ runs jq over yaml data
+func YQ[B ~byte, T stringhelper.String[B]](query string, data T) (string, error) {
+	var (
+		rd strings.Reader
+		sb strings.Builder
+	)
+
+	rd.Reset(stringhelper.Convert[string, B](data))
+
+	err := Query(
+		query,
+		nil,
+		NewYAMLIterFunc(&rd),
+		CreateResultToTextHandleFuncForJsonOrYaml(&sb, yaml.Marshal),
+	)
+
+	return sb.String(), err
 }
 
-// JQ runs query over yaml data bytes
-func YQBytes(query string, dataBytes []byte) (string, error) {
-	return Query(query, NewYAMLIterator(bytes.NewReader(dataBytes)), yaml.Marshal)
-}
-
-func NewYAMLIterator(r io.Reader) func() (interface{}, bool) {
+func NewYAMLIterFunc(r io.Reader) func() (any, bool) {
 	dec := yaml.NewDecoder(r)
 
-	return func() (interface{}, bool) {
-		var data interface{}
+	return func() (any, bool) {
+		var data any
 		err := dec.Decode(&data)
 		if err != nil {
 			// return plain text on unexpected error

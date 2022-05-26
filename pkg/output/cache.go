@@ -2,13 +2,13 @@ package output
 
 import (
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/muesli/termenv"
 )
 
-func WriteUsingExpiredCacheWarning(key string) {
-	_, _ = fmt.Fprintln(os.Stderr,
+func WriteUsingExpiredCacheWarning(stderr io.Writer, key string) {
+	_, _ = fmt.Fprintln(stderr,
 		termenv.String(
 			fmt.Sprintf("[WARNING] using expired local cache for %q\n", key),
 		).Foreground(termenv.ANSIBrightYellow).String(),

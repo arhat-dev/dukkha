@@ -15,25 +15,28 @@ type CGOSepc struct {
 	// Enable cgo
 	Enabled bool `yaml:"enabled"`
 
-	// CGO_CPPFLAGS
+	// CPPFlags (env CGO_CPPFLAGS) C preprocessor flags
 	CPPFlags []string `yaml:"cppflags"`
 
-	// CGO_CFLAGS
+	// CFlags (env CGO_CFLAGS) C flags
 	CFlags []string `yaml:"cflags"`
 
-	// CGO_CXXFLAGS
+	// CXXFlags (env CGO_CXXFLAGS)
 	CXXFlags []string `yaml:"cxxflags"`
 
-	// CGO_FFLAGS
+	// FFlags (env CGO_FFLAGS) Fortran flags
 	FFlags []string `yaml:"fflags"`
 
-	// CGO_LDFLAGS
+	// LDFlags (env CGO_LDFLAGS) ldflags
 	LDFlags []string `yaml:"ldflags"`
 
+	// CC sets C compiler path or executable name
 	CC string `yaml:"cc"`
 
+	// CXX sets C++ compiler path or executable name
 	CXX string `yaml:"cxx"`
 
+	// FC sets Fortan compiler path or executable name
 	FC string `yaml:"fc"`
 }
 

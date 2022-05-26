@@ -44,15 +44,13 @@ type EnvValues interface {
 	AddListEnv(env ...string)
 }
 
-func newEnvValues(globalEnv map[string]utils.LazyValue) *envValues {
-	ret := &envValues{
+func newEnvValues(globalEnv map[string]utils.LazyValue) envValues {
+	return envValues{
 		globalEnv: globalEnv,
 
 		env: make(map[string]utils.LazyValue),
 		mu:  new(sync.RWMutex),
 	}
-
-	return ret
 }
 
 var _ EnvValues = (*envValues)(nil)
@@ -66,8 +64,8 @@ type envValues struct {
 	mu  *sync.RWMutex
 }
 
-func (c *envValues) clone() *envValues {
-	newValues := &envValues{
+func (c *envValues) clone() envValues {
+	newValues := envValues{
 		globalEnv: c.globalEnv,
 		env:       make(map[string]utils.LazyValue),
 		mu:        new(sync.RWMutex),

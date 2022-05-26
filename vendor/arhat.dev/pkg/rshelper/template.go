@@ -38,8 +38,8 @@ func (h *TemplateHandler) RenderYaml(
 		return nil, fmt.Errorf("failed to parse template %q: %w", string(tplBytes), err)
 	}
 
-	buf := &bytes.Buffer{}
-	err = t.Execute(buf, nil)
+	var buf bytes.Buffer
+	err = t.Execute(&buf, nil)
 
 	return buf.Next(buf.Len()), err
 }

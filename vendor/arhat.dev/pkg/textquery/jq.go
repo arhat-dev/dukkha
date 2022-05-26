@@ -17,32 +17,43 @@ limitations under the License.
 package textquery
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
+	"strings"
+
+	"arhat.dev/pkg/stringhelper"
 )
 
-// JQ runs query over json data
-func JQ(query, data string) (string, error) {
-	return JQBytes(query, []byte(data))
+// JQ runs jq over json data
+func JQ[B ~byte, T stringhelper.String[B]](query string, data T) (string, error) {
+	var (
+		rd strings.Reader
+		sb strings.Builder
+	)
+
+	rd.Reset(stringhelper.Convert[string, B](data))
+
+	err := Query(
+		query,
+		nil,
+		NewJSONIterFunc(&rd),
+		CreateResultToTextHandleFuncForJsonOrYaml(&sb, json.Marshal),
+	)
+
+	return sb.String(), err
 }
 
-// JQ runs query over json data bytes
-func JQBytes(query string, dataBytes []byte) (string, error) {
-	return Query(query, NewJSONIterator(bytes.NewReader(dataBytes)), json.Marshal)
-}
-
-func NewJSONIterator(r io.Reader) func() (interface{}, bool) {
+func NewJSONIterFunc(r io.Reader) func() (any, bool) {
 	dec := json.NewDecoder(r)
 	dec.UseNumber()
 
 	exit := false
-	return func() (interface{}, bool) {
+	return func() (any, bool) {
 		if exit {
 			return nil, false
 		}
 
-		var data interface{}
+		var data any
 		err := dec.Decode(&data)
 		if err != nil {
 			if err == io.EOF {

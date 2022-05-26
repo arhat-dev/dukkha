@@ -15,6 +15,7 @@ import (
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
 
+// ConfigResolvingContext interface definition for config resolving
 type ConfigResolvingContext interface {
 	Context
 
@@ -29,6 +30,7 @@ type ConfigResolvingContext interface {
 	RendererCacheFS(name string) *fshelper.OSFS
 }
 
+// TaskExecContext interface definition for task execution
 type TaskExecContext interface {
 	context.Context
 
@@ -55,15 +57,11 @@ type Context interface {
 	RunTask(ToolKey, TaskKey) error
 }
 
-var (
-	_ ConfigResolvingContext = (*dukkhaContext)(nil)
-
-	_ Context = (*dukkhaContext)(nil)
-)
-
 // Context of dukkha app, contains global settings and values
 type dukkhaContext struct {
-	*contextStd
+	// rendering
+	// MUST be the first element, we are casting its pointer to get pointer to dukkhaContext
+	contextRendering
 
 	// shells
 	contextShells
@@ -73,9 +71,6 @@ type dukkhaContext struct {
 
 	// tasks
 	contextTasks
-
-	// rendering
-	contextRendering
 
 	// task execution, can be null if not running any task
 	contextExec
@@ -88,14 +83,12 @@ func NewConfigResolvingContext(
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
-		contextStd: ctxStd,
+		contextShells: newContextShells(),
+		contextTools:  newContextTools(),
+		contextTasks:  newContextTasks(),
+		contextExec:   newContextExec(),
 
-		contextShells: *newContextShells(),
-		contextTools:  *newContextTools(),
-		contextTasks:  *newContextTasks(),
-		contextExec:   *newContextExec(),
-
-		contextRendering: *newContextRendering(
+		contextRendering: newContextRendering(
 			ctxStd, ifaceTypeHandler, globalEnv,
 		),
 	}
@@ -108,15 +101,12 @@ func (c *dukkhaContext) DeriveNew() Context {
 }
 
 func (c *dukkhaContext) deriveNew(parent context.Context, deepCopy bool) Context {
-	ctxStd := newContextStd(parent)
 	newCtx := &dukkhaContext{
-		contextStd: ctxStd,
-
+		contextRendering: c.contextRendering.clone(newContextStd(parent), deepCopy),
 		contextShells:    c.contextShells,
 		contextTools:     c.contextTools,
 		contextTasks:     c.contextTasks,
-		contextRendering: *c.contextRendering.clone(ctxStd, deepCopy),
-		contextExec:      *c.contextExec.deriveNew(),
+		contextExec:      c.contextExec.deriveNew(),
 	}
 
 	return newCtx

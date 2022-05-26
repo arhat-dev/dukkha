@@ -2,7 +2,7 @@ package output
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 
 	"github.com/muesli/termenv"
@@ -11,6 +11,7 @@ import (
 )
 
 func WriteExecStart(
+	stdout io.Writer,
 	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	cmd []string,
@@ -29,13 +30,14 @@ func WriteExecStart(
 	}
 
 	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+		printlnWithColor(stdout, output, prefixColor)
 	} else {
-		_, _ = fmt.Println(strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stdout, strings.Join(output, " "))
 	}
 }
 
 func WriteExecResult(
+	stderr io.Writer,
 	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
@@ -61,8 +63,8 @@ func WriteExecResult(
 	}
 
 	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+		printlnWithColor(stderr, output, prefixColor)
 	} else {
-		_, _ = fmt.Fprintln(os.Stderr, strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stderr, strings.Join(output, " "))
 	}
 }

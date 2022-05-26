@@ -19,12 +19,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"strings"
 
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/versionhelper"
 	"github.com/spf13/cobra"
 
 	"arhat.dev/dukkha/pkg/cmd/completion"
@@ -43,26 +45,36 @@ import (
 )
 
 // NewRootCmd creates the dukkha command with all sub commands added
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 	var (
+		stdout io.Writer
+
 		logConfig = new(log.Config)
 
 		configPaths []string
 		// merged config
 		config = conf.NewConfig()
 
-		appCtx dukkha.Context
+		appCtx                     = prevCtx
+		appBaseCtx context.Context = prevCtx
 	)
 
-	appBaseCtx, cancel := context.WithCancel(context.Background())
+	if appBaseCtx == nil {
+		var cancel context.CancelFunc
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	go func() {
-		for range sigCh {
-			cancel()
-		}
-	}()
+		stdout = os.Stdout
+		appBaseCtx, cancel = context.WithCancel(context.Background())
+
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, os.Interrupt)
+		go func() {
+			for range sigCh {
+				cancel()
+			}
+		}()
+	} else {
+		stdout = appCtx.Stdout()
+	}
 
 	rootCmd := &cobra.Command{
 		Use: "dukkha",
@@ -78,6 +90,10 @@ func NewRootCmd() *cobra.Command {
 			DisableDescriptions: true,
 		},
 
+		// PersistentPreRunE resolves all config for dukkha
+		//
+		// NOTE: this fucntion is used in pkg/templateutils/dukkhaNS.Self
+		//       make sure we only have config loading happening here
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			switch {
 			case strings.HasPrefix(cmd.Use, "version"),
@@ -142,19 +158,9 @@ func NewRootCmd() *cobra.Command {
 
 			logger.V("initializing dukkha", log.Any("raw_config", config))
 
-			var needTasks bool
-			switch {
-			case strings.HasPrefix(cmd.Use, "render"),
-				strings.HasPrefix(cmd.Use, "diff"):
-				needTasks = false
-			case strings.HasPrefix(cmd.Use, "debug"):
-				needTasks = len(args) != 0
-			default:
-				// for sub commands: run
-				needTasks = true
-			}
-
-			err = config.Resolve(_appCtx, needTasks)
+			// here we always have tasks resolved to make template function
+			// `dukkha.Self` work under all circumstances (e.g. `dukkha.Self run` used in `dukkha render`)
+			err = config.Resolve(_appCtx, true /* need tasks */)
 			if err != nil {
 				return err
 			}
@@ -203,8 +209,10 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	rootCmd.AddCommand(
+		// version
+		versionhelper.NewVersionCmd(stdout),
 		// completion
-		completion.NewCompletionCmd(),
+		completion.NewCompletionCmd(&appCtx),
 		// dukkha render
 		render.NewRenderCmd(&appCtx),
 		// dukkha debug

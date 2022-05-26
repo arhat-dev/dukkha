@@ -18,13 +18,13 @@ task:
     to: /
 
   output@tpl: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.zip" -}}
 ---
 actual:
   top-level@tpl?str|af?str: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:top-level.txt
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:top-level.txt
   root-top-level@tpl?str|af?str: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:/top-level.txt
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.zip" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt
   root-top-level@file?str: testdata/top-level.txt

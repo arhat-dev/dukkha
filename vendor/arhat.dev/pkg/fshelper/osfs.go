@@ -15,15 +15,6 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 )
 
-var (
-	_ fs.FS         = (*OSFS)(nil)
-	_ fs.ReadDirFS  = (*OSFS)(nil)
-	_ fs.ReadFileFS = (*OSFS)(nil)
-	_ fs.GlobFS     = (*OSFS)(nil)
-	_ fs.StatFS     = (*OSFS)(nil)
-	_ fs.SubFS      = (*OSFS)(nil)
-)
-
 // NewOSFS creates a new filesystem abstraction for real filesystem
 // set strictIOFS to true to only allow fs path value
 // getCwd is used to determine current working dir, the string return value should be valid system
@@ -367,11 +358,11 @@ func (ofs *OSFS) Readlink(name string) (string, error) {
 }
 
 // Abs is the filepath.Abs equivalent
-func (ofs *OSFS) Abs(name string) (string, error) {
-	_, path, err := ofs.getRealPath(name)
+func (ofs *OSFS) Abs(name string) (path string, err error) {
+	_, path, err = ofs.getRealPath(name)
 	if err != nil {
-		return "", err
+		return
 	}
 
-	return path, nil
+	return
 }

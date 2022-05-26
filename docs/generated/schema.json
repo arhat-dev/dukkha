@@ -5205,34 +5205,38 @@
     "arhat.dev.dukkha.pkg.tools.golang.CGOSepc": {
       "properties": {
         "cc": {
-          "type": "string"
+          "type": "string",
+          "description": "sets C compiler path or executable name",
+          "x-intellij-html-description": "sets C compiler path or executable name"
         },
         "cflags": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CFLAGS",
-          "x-intellij-html-description": "CGO_CFLAGS"
+          "description": "(env CGO_CFLAGS) C flags",
+          "x-intellij-html-description": "(env CGO_CFLAGS) C flags"
         },
         "cppflags": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CPPFLAGS",
-          "x-intellij-html-description": "CGO_CPPFLAGS"
+          "description": "(env CGO_CPPFLAGS) C preprocessor flags",
+          "x-intellij-html-description": "(env CGO_CPPFLAGS) C preprocessor flags"
         },
         "cxx": {
-          "type": "string"
+          "type": "string",
+          "description": "sets C++ compiler path or executable name",
+          "x-intellij-html-description": "sets C++ compiler path or executable name"
         },
         "cxxflags": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CXXFLAGS",
-          "x-intellij-html-description": "CGO_CXXFLAGS"
+          "description": "(env CGO_CXXFLAGS)",
+          "x-intellij-html-description": "(env CGO_CXXFLAGS)"
         },
         "enabled": {
           "type": "boolean",
@@ -5241,23 +5245,25 @@
           "default": "false"
         },
         "fc": {
-          "type": "string"
+          "type": "string",
+          "description": "sets Fortan compiler path or executable name",
+          "x-intellij-html-description": "sets Fortan compiler path or executable name"
         },
         "fflags": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_FFLAGS",
-          "x-intellij-html-description": "CGO_FFLAGS"
+          "description": "(env CGO_FFLAGS) Fortran flags",
+          "x-intellij-html-description": "(env CGO_FFLAGS) Fortran flags"
         },
         "ldflags": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_LDFLAGS",
-          "x-intellij-html-description": "CGO_LDFLAGS"
+          "description": "(env CGO_LDFLAGS) ldflags",
+          "x-intellij-html-description": "(env CGO_LDFLAGS) ldflags"
         }
       },
       "preferredOrder": [
@@ -5274,7 +5280,9 @@
       "additionalProperties": false,
       "patternProperties": {
         "^cc@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "sets C compiler path or executable name",
+          "x-intellij-html-description": "sets C compiler path or executable name"
         },
         "^cc@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5284,8 +5292,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CFLAGS",
-          "x-intellij-html-description": "CGO_CFLAGS"
+          "description": "(env CGO_CFLAGS) C flags",
+          "x-intellij-html-description": "(env CGO_CFLAGS) C flags"
         },
         "^cflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5295,14 +5303,16 @@
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CPPFLAGS",
-          "x-intellij-html-description": "CGO_CPPFLAGS"
+          "description": "(env CGO_CPPFLAGS) C preprocessor flags",
+          "x-intellij-html-description": "(env CGO_CPPFLAGS) C preprocessor flags"
         },
         "^cppflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^cxx@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "sets C++ compiler path or executable name",
+          "x-intellij-html-description": "sets C++ compiler path or executable name"
         },
         "^cxx@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5312,8 +5322,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_CXXFLAGS",
-          "x-intellij-html-description": "CGO_CXXFLAGS"
+          "description": "(env CGO_CXXFLAGS)",
+          "x-intellij-html-description": "(env CGO_CXXFLAGS)"
         },
         "^cxxflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5328,7 +5338,9 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^fc@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "sets Fortan compiler path or executable name",
+          "x-intellij-html-description": "sets Fortan compiler path or executable name"
         },
         "^fc@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5338,8 +5350,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_FFLAGS",
-          "x-intellij-html-description": "CGO_FFLAGS"
+          "description": "(env CGO_FFLAGS) Fortran flags",
+          "x-intellij-html-description": "(env CGO_FFLAGS) Fortran flags"
         },
         "^fflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5349,8 +5361,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "CGO_LDFLAGS",
-          "x-intellij-html-description": "CGO_LDFLAGS"
+          "description": "(env CGO_LDFLAGS) ldflags",
+          "x-intellij-html-description": "(env CGO_LDFLAGS) ldflags"
         },
         "^ldflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5359,11 +5371,28 @@
     },
     "arhat.dev.dukkha.pkg.tools.golang.TaskBuild": {
       "properties": {
+        "asm_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-asmflags) for `go tool asm`",
+          "x-intellij-html-description": "(-asmflags) for <code>go tool asm</code>"
+        },
         "cgo": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc",
+          "description": "options",
+          "x-intellij-html-description": "options"
         },
         "chdir": {
-          "type": "string"
+          "type": "string",
+          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged this can be helpful when you are managing multiple go modules in one workspace",
+          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged this can be helpful when you are managing multiple go modules in one workspace"
+        },
+        "compiler": {
+          "type": "string",
+          "description": "to use, gccgo or gc",
+          "x-intellij-html-description": "to use, gccgo or gc"
         },
         "continue_on_error": {
           "type": "boolean",
@@ -5376,7 +5405,30 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "for go build (inserted before `Path`)",
+          "x-intellij-html-description": "for go build (inserted before <code>Path</code>)"
+        },
+        "gccgo": {
+          "type": "string",
+          "description": "command to run gccgo",
+          "x-intellij-html-description": "command to run gccgo"
+        },
+        "gccgo_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gccgoflags) for CC (both compiler and linker)",
+          "x-intellij-html-description": "(-gccgoflags) for CC (both compiler and linker)"
+        },
+        "go_compiler_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gcflags) for `go tool compile`",
+          "x-intellij-html-description": "(-gcflags) for <code>go tool compile</code>"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -5385,7 +5437,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "(-ldflags)",
+          "x-intellij-html-description": "(-ldflags)"
         },
         "matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
@@ -5397,13 +5451,19 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "of the go build command, when multiple entries specified, will build multiple times with same arguments",
+          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same arguments"
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "description": "import path of the source code to be built it will be the last argument of this go command execution  see `go help packages` for more information about import path",
+          "x-intellij-html-description": "import path of the source code to be built it will be the last argument of this go command execution  see <code>go help packages</code> for more information about import path"
         },
         "race": {
           "type": "boolean",
+          "description": "(-race)",
+          "x-intellij-html-description": "(-race)",
           "default": "false"
         },
         "tags": {
@@ -5421,25 +5481,53 @@
         "continue_on_error",
         "chdir",
         "path",
-        "extra_args",
         "outputs",
         "race",
+        "compiler",
+        "asm_flags",
+        "go_compiler_flags",
+        "gccgo",
+        "gccgo_flags",
         "ldflags",
         "tags",
-        "cgo"
+        "cgo",
+        "extra_args"
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^asm_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-asmflags) for `go tool asm`",
+          "x-intellij-html-description": "(-asmflags) for <code>go tool asm</code>"
+        },
+        "^asm_flags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^cgo@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.CGOSepc",
+          "description": "options",
+          "x-intellij-html-description": "options"
         },
         "^cgo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^chdir@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged this can be helpful when you are managing multiple go modules in one workspace",
+          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged this can be helpful when you are managing multiple go modules in one workspace"
         },
         "^chdir@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^compiler@.*": {
+          "type": "string",
+          "description": "to use, gccgo or gc",
+          "x-intellij-html-description": "to use, gccgo or gc"
+        },
+        "^compiler@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^continue_on_error@.*": {
@@ -5459,9 +5547,41 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "for go build (inserted before `Path`)",
+          "x-intellij-html-description": "for go build (inserted before <code>Path</code>)"
         },
         "^extra_args@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^gccgo@.*": {
+          "type": "string",
+          "description": "command to run gccgo",
+          "x-intellij-html-description": "command to run gccgo"
+        },
+        "^gccgo@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^gccgo_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gccgoflags) for CC (both compiler and linker)",
+          "x-intellij-html-description": "(-gccgoflags) for CC (both compiler and linker)"
+        },
+        "^gccgo_flags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^go_compiler_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gcflags) for `go tool compile`",
+          "x-intellij-html-description": "(-gcflags) for <code>go tool compile</code>"
+        },
+        "^go_compiler_flags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^hooks@.*": {
@@ -5474,7 +5594,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "(-ldflags)",
+          "x-intellij-html-description": "(-ldflags)"
         },
         "^ldflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5489,19 +5611,25 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "of the go build command, when multiple entries specified, will build multiple times with same arguments",
+          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same arguments"
         },
         "^outputs@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^path@.*": {
-          "type": "string"
+          "type": "string",
+          "description": "import path of the source code to be built it will be the last argument of this go command execution  see `go help packages` for more information about import path",
+          "x-intellij-html-description": "import path of the source code to be built it will be the last argument of this go command execution  see <code>go help packages</code> for more information about import path"
         },
         "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^race@.*": {
           "type": "boolean",
+          "description": "(-race)",
+          "x-intellij-html-description": "(-race)",
           "default": "false"
         },
         "^race@[^\\|]*!": {
@@ -5520,6 +5648,14 @@
     },
     "arhat.dev.dukkha.pkg.tools.golang.TaskTest": {
       "properties": {
+        "asm_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-asmflags) for `go tool asm`",
+          "x-intellij-html-description": "(-asmflags) for <code>go tool asm</code>"
+        },
         "benchmark": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testBenchmarkSpec"
         },
@@ -5528,6 +5664,11 @@
         },
         "chdir": {
           "type": "string"
+        },
+        "compiler": {
+          "type": "string",
+          "description": "to use, gccgo or gc",
+          "x-intellij-html-description": "to use, gccgo or gc"
         },
         "continue_on_error": {
           "type": "boolean",
@@ -5551,25 +5692,54 @@
             "type": "string"
           },
           "type": "array",
-          "description": "custom args only used when running the test",
-          "x-intellij-html-description": "custom args only used when running the test"
+          "description": "appended when running the test",
+          "x-intellij-html-description": "appended when running the test"
         },
         "custom_cmd_prefix": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "to run compiled test file with this cmd prefix",
-          "x-intellij-html-description": "to run compiled test file with this cmd prefix"
+          "description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
+          "x-intellij-html-description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
         },
         "env": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+        },
+        "extra_args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for go test (inserted before `Path`)",
+          "x-intellij-html-description": "for go test (inserted before <code>Path</code>)"
         },
         "failfast": {
           "type": "boolean",
           "description": "go test -failfast",
           "x-intellij-html-description": "go test -failfast",
           "default": "false"
+        },
+        "gccgo": {
+          "type": "string",
+          "description": "command to run gccgo",
+          "x-intellij-html-description": "command to run gccgo"
+        },
+        "gccgo_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gccgoflags) for CC (both compiler and linker)",
+          "x-intellij-html-description": "(-gccgoflags) for CC (both compiler and linker)"
+        },
+        "go_compiler_flags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gcflags) for `go tool compile`",
+          "x-intellij-html-description": "(-gcflags) for <code>go tool compile</code>"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -5583,7 +5753,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "(-ldflags)",
+          "x-intellij-html-description": "(-ldflags)"
         },
         "log_file": {
           "type": "string"
@@ -5618,6 +5790,8 @@
         },
         "race": {
           "type": "boolean",
+          "description": "(-race)",
+          "x-intellij-html-description": "(-race)",
           "default": "false"
         },
         "short": {
@@ -5659,6 +5833,11 @@
         "path",
         "chdir",
         "race",
+        "compiler",
+        "asm_flags",
+        "go_compiler_flags",
+        "gccgo",
+        "gccgo_flags",
         "ldflags",
         "tags",
         "log_file",
@@ -5675,11 +5854,23 @@
         "work_dir",
         "benchmark",
         "profile",
+        "extra_args",
         "custom_cmd_prefix",
         "custom_args"
       ],
       "additionalProperties": false,
       "patternProperties": {
+        "^asm_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-asmflags) for `go tool asm`",
+          "x-intellij-html-description": "(-asmflags) for <code>go tool asm</code>"
+        },
+        "^asm_flags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^benchmark@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.testBenchmarkSpec"
         },
@@ -5696,6 +5887,14 @@
           "type": "string"
         },
         "^chdir@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^compiler@.*": {
+          "type": "string",
+          "description": "to use, gccgo or gc",
+          "x-intellij-html-description": "to use, gccgo or gc"
+        },
+        "^compiler@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^continue_on_error@.*": {
@@ -5729,8 +5928,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "custom args only used when running the test",
-          "x-intellij-html-description": "custom args only used when running the test"
+          "description": "appended when running the test",
+          "x-intellij-html-description": "appended when running the test"
         },
         "^custom_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5740,8 +5939,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "to run compiled test file with this cmd prefix",
-          "x-intellij-html-description": "to run compiled test file with this cmd prefix"
+          "description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
+          "x-intellij-html-description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
         },
         "^custom_cmd_prefix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5752,6 +5951,17 @@
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for go test (inserted before `Path`)",
+          "x-intellij-html-description": "for go test (inserted before <code>Path</code>)"
+        },
+        "^extra_args@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
         "^failfast@.*": {
           "type": "boolean",
           "description": "go test -failfast",
@@ -5759,6 +5969,36 @@
           "default": "false"
         },
         "^failfast@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^gccgo@.*": {
+          "type": "string",
+          "description": "command to run gccgo",
+          "x-intellij-html-description": "command to run gccgo"
+        },
+        "^gccgo@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^gccgo_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gccgoflags) for CC (both compiler and linker)",
+          "x-intellij-html-description": "(-gccgoflags) for CC (both compiler and linker)"
+        },
+        "^gccgo_flags@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^go_compiler_flags@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "(-gcflags) for `go tool compile`",
+          "x-intellij-html-description": "(-gcflags) for <code>go tool compile</code>"
+        },
+        "^go_compiler_flags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^hooks@.*": {
@@ -5779,7 +6019,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "(-ldflags)",
+          "x-intellij-html-description": "(-ldflags)"
         },
         "^ldflags@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5835,6 +6077,8 @@
         },
         "^race@.*": {
           "type": "boolean",
+          "description": "(-race)",
+          "x-intellij-html-description": "(-race)",
           "default": "false"
         },
         "^race@[^\\|]*!": {

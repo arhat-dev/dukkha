@@ -7,6 +7,11 @@ import (
 	"mvdan.cc/sh/v3/expand"
 )
 
+var (
+	_ RendererManager  = (*contextRendering)(nil)
+	_ RenderingContext = (*contextRendering)(nil)
+)
+
 func TestGenEnvForValues(t *testing.T) {
 	t.Parallel()
 

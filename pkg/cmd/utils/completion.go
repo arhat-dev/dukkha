@@ -13,7 +13,7 @@ const MatrixFilterFlagName = "matrix"
 
 func RegisterMatrixFilterFlag(flags *pflag.FlagSet, matrixFilter *[]string) {
 	flags.StringSliceVarP(matrixFilter, MatrixFilterFlagName, "m", nil,
-		"set matrix filter, format: `-m <name>=<value>` for matching, `-m <name>!=<value>` for ignoring",
+		"set matrix filter, format: `-m <name>=<value>` to match, `-m <name>!=<value>` to filter out",
 	)
 }
 

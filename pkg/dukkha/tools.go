@@ -51,8 +51,8 @@ type ToolUser interface {
 	GetTool(k ToolKey) (Tool, bool)
 }
 
-func newContextTools() *contextTools {
-	return &contextTools{
+func newContextTools() contextTools {
+	return contextTools{
 		tools: make(map[ToolKey]Tool),
 	}
 }

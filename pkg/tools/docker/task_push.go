@@ -54,7 +54,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			imageName := templateutils.SetDefaultImageTagIfNoTagSet(
+			imageName := templateutils.GetFullImageName_UseDefault_IfIfNoTagSet(
 				rc, spec.Image, true,
 			)
 			// docker push <image-name>
@@ -69,7 +69,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(
+			manifestName := templateutils.GetFullManifestName_UseDefault_IfNoTagSet(
 				rc, spec.Manifest,
 			)
 			result = append(result,

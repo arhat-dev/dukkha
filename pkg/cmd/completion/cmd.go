@@ -2,8 +2,8 @@ package completion
 
 import (
 	"fmt"
-	"os"
 
+	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/spf13/cobra"
 
 	_ "embed"
@@ -14,7 +14,7 @@ var (
 	completionGuide string
 )
 
-func NewCompletionCmd() *cobra.Command {
+func NewCompletionCmd(ctx *dukkha.Context) *cobra.Command {
 	return &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
 		Short: "Generate completion script",
@@ -27,15 +27,16 @@ func NewCompletionCmd() *cobra.Command {
 		Args:      cobra.ExactValidArgs(1),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			stdout := (*ctx).Stdout()
 			switch args[0] {
 			case "bash":
-				_ = cmd.Root().GenBashCompletion(os.Stdout)
+				_ = cmd.Root().GenBashCompletion(stdout)
 			case "zsh":
-				_ = cmd.Root().GenZshCompletion(os.Stdout)
+				_ = cmd.Root().GenZshCompletion(stdout)
 			case "fish":
-				_ = cmd.Root().GenFishCompletion(os.Stdout, true)
+				_ = cmd.Root().GenFishCompletion(stdout, true)
 			case "powershell":
-				_ = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+				_ = cmd.Root().GenPowerShellCompletionWithDesc(stdout)
 			default:
 				return fmt.Errorf("unsupported shell %q", args[0])
 			}

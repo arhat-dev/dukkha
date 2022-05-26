@@ -90,7 +90,7 @@ func (w *TaskXBuild) GetExecSpecs(
 				continue
 			}
 
-			imageName := templateutils.SetDefaultImageTagIfNoTagSet(
+			imageName := templateutils.GetFullImageName_UseDefault_IfIfNoTagSet(
 				rc, spec.Image, true,
 			)
 
@@ -344,7 +344,7 @@ func (w *TaskXBuild) GetExecSpecs(
 				continue
 			}
 
-			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			manifestName := templateutils.GetFullManifestName_UseDefault_IfNoTagSet(rc, spec.Manifest)
 			localManifestName := getLocalManifestName(manifestName)
 			// ensure local manifest exists
 			ret = append(ret, dukkha.TaskExecSpec{
@@ -393,7 +393,7 @@ func (w *TaskXBuild) GetExecSpecs(
 					}
 
 					// manifest already created, query to get all matching digests
-					digestResult, err := textquery.JQBytes(
+					digestResult, err := textquery.JQ[byte](
 						manifestOsArchVariantQueryForDigest, manifestSpec.Data,
 					)
 					if err != nil {

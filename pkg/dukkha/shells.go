@@ -19,8 +19,8 @@ type ShellManager interface {
 	AddShell(name string, impl Shell)
 }
 
-func newContextShells() *contextShells {
-	return &contextShells{
+func newContextShells() contextShells {
+	return contextShells{
 		allShells: make(map[string]Shell),
 	}
 }

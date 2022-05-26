@@ -1,6 +1,6 @@
 data@T:
   value: "10.10000"
   ops:
-  - shell: 'tpl:strings.Quote "\"${VALUE}\"" | tpl:fromYaml'
+  - shell: 'tpl:strings.DoubleQuote "\"${VALUE}\"" | tpl:fromYaml'
 ---
 data: "10.10000"

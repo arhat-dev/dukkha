@@ -16,12 +16,14 @@ limitations under the License.
 
 package wellknownerrors
 
-import "errors"
+type errString string
+
+func (s errString) Error() string { return string(s) }
 
 // Common errors
-var (
-	ErrNotFound         = errors.New("not found")
-	ErrAlreadyExists    = errors.New("already exists")
-	ErrNotSupported     = errors.New("not supported")
-	ErrInvalidOperation = errors.New("invalid operation")
+const (
+	ErrNotFound         errString = "not found"
+	ErrAlreadyExists    errString = "already exists"
+	ErrNotSupported     errString = "not supported"
+	ErrInvalidOperation errString = "invalid operation"
 )

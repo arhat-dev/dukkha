@@ -98,11 +98,9 @@ const (
 	TaskExecCanceled
 )
 
-func newContextExec() *contextExec {
-	return &contextExec{}
+func newContextExec() (ret contextExec) {
+	return
 }
-
-var _ ExecValues = (*contextExec)(nil)
 
 type contextExec struct {
 	toolKind ToolKind
@@ -121,8 +119,8 @@ type contextExec struct {
 	runtimeOpts RuntimeOptions
 }
 
-func (c *contextExec) deriveNew() *contextExec {
-	return &contextExec{
+func (c *contextExec) deriveNew() contextExec {
+	return contextExec{
 		toolKind: "",
 		toolName: c.toolName,
 

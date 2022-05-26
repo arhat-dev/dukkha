@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"strings"
 
 	"mvdan.cc/sh/v3/syntax"
 
@@ -55,20 +53,29 @@ func (ns evalNS) Template(tplData interface{}) (string, error) {
 //
 // valid options before last argument are
 // `disable_exec` / `enable_exec` to deny (default behvior) / allow shell script evaluation during expansion
-func (ns evalNS) Env(args ...String) (string, error) {
-	var textData String
-	switch len(args) {
+func (ns evalNS) Env(args ...String) (_ string, err error) {
+	var (
+		textData String
+		flags    []string
+	)
+	switch n := len(args); n {
 	case 0:
-		return "", nil
+		err = errAtLeastOneArgGotZero
+		return
 	case 1:
 		textData = args[0]
 	default:
-		textData = args[len(args)-1]
+		flags, err = toStrings(args[:n-1])
+		if err != nil {
+			return
+		}
+
+		textData = args[n-1]
 	}
 
 	enableExec := false
-	for _, opt := range args[:len(args)-1] {
-		switch toString(opt) {
+	for _, opt := range flags {
+		switch opt {
 		case "disable_exec":
 			enableExec = false
 		case "enable_exec":
@@ -76,31 +83,26 @@ func (ns evalNS) Env(args ...String) (string, error) {
 		}
 	}
 
-	return ExpandEnv(ns.rc, toString(textData), enableExec)
+	return ExpandEnv(ns.rc, must(toString(textData)), enableExec)
 }
 
-// Shell evaluates scriptData as bash script, inputs as stdin streams (if any)
-//
-// inputs can be string, bytes, or io.Reader
-func (ns evalNS) Shell(script String, inputs ...interface{}) (string, error) {
+// Shell runs script as bash script, optional inputs are data for stdin
+func (ns evalNS) Shell(script String, inputs ...Bytes) (_ string, err error) {
 	var stdin io.Reader
 	if len(inputs) != 0 {
 		var readers []io.Reader
 		for _, in := range inputs {
-			switch it := in.(type) {
-			case io.Reader:
-				readers = append(readers, it)
-			case string:
-				readers = append(readers, strings.NewReader(it))
-			case []byte:
-				readers = append(readers, bytes.NewReader(it))
-			default:
-				return "", fmt.Errorf(
-					"invalid input type want reader, string or bytes, got %T",
-					it,
-				)
+			inData, inReader, isReader, err2 := toBytesOrReader(in)
+			if err2 != nil {
+				err = err2
+				return
 			}
 
+			if isReader {
+				readers = append(readers, inReader)
+			} else {
+				readers = append(readers, bytes.NewReader(inData))
+			}
 		}
 
 		stdin = io.MultiReader(readers...)
@@ -112,17 +114,23 @@ func (ns evalNS) Shell(script String, inputs ...interface{}) (string, error) {
 		ns.rc,
 		stdin,
 		&stdout,
-		os.Stderr,
+		ns.rc.Stderr(),
 	)
 	if err != nil {
-		return "", err
+		return
+	}
+
+	spt, err := toString(script)
+	if err != nil {
+		return
 	}
 
 	err = RunScriptInEmbeddedShell(
 		ns.rc,
 		runner,
 		syntax.NewParser(),
-		toString(script),
+		spt,
 	)
+
 	return stringhelper.Convert[string, byte](stdout.Next(stdout.Len())), err
 }

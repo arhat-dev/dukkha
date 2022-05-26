@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var _ ExecValues = (*contextExec)(nil)
+
 func TestTaskExecOptions(t *testing.T) {
 	t.Parallel()
 

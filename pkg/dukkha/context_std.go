@@ -9,8 +9,7 @@ var (
 	_ context.Context = (*contextStd)(nil)
 )
 
-func newContextStd(parent context.Context) *contextStd {
-	stdCtx := &contextStd{}
+func newContextStd(parent context.Context) (stdCtx contextStd) {
 	stdCtx.ctx, stdCtx.cancel = context.WithCancel(parent)
 	return stdCtx
 }

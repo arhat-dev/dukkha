@@ -3,7 +3,6 @@ package shell
 import (
 	"bytes"
 	"fmt"
-	"os"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -65,7 +64,7 @@ func (d *Driver) RenderYaml(
 
 	var buf bytes.Buffer
 	runner, err := templateutils.CreateEmbeddedShellRunner(
-		rc.WorkDir(), rc, nil, &buf, os.Stderr,
+		rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(

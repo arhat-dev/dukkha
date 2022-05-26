@@ -2,7 +2,6 @@ package debug
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 
 	"arhat.dev/pkg/textquery"
@@ -36,9 +35,11 @@ func NewDebugTaskListCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 				return err
 			}
 
+			stdout, stderr := appCtx.Stdout(), appCtx.Stderr()
+
 			var enc *json.Encoder
 			if query != nil {
-				enc = json.NewEncoder(os.Stdout)
+				enc = json.NewEncoder(stdout)
 				enc.SetIndent("", "  ")
 			}
 
@@ -71,7 +72,7 @@ func NewDebugTaskListCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 					if !showToolName {
 						actualToolName = ""
 					}
-					err := opts.writeHeader(TaskHeaderLineData{
+					err := opts.writeHeader(stdout, stderr, TaskHeaderLineData{
 						ToolKind: tool.Kind(),
 						ToolName: actualToolName,
 						TaskKind: task.Kind(),
@@ -81,19 +82,19 @@ func NewDebugTaskListCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 					}
 
 					if query != nil {
-						var ret []interface{}
+						var ret []any
 
-						tmp := make([]interface{}, len(buf))
+						tmp := make([]any, len(buf))
 						for idx, v := range buf {
 							tmp[idx] = v
 						}
 
-						ret, _, err = textquery.RunQuery(query, tmp, nil)
+						ret, err = textquery.RunQuery(query, tmp, nil)
 						if err != nil {
 							return err
 						}
 
-						var data interface{}
+						var data any
 						switch len(ret) {
 						case 0:
 							data = nil
@@ -106,7 +107,8 @@ func NewDebugTaskListCmd(ctx *dukkha.Context, opts *Options) *cobra.Command {
 						return enc.Encode(data)
 					}
 
-					_, err = os.Stdout.WriteString(`["` + strings.Join(buf, `", "`) + `"]` + "\n")
+					out := `["` + strings.Join(buf, `", "`) + `"]` + "\n"
+					_, err = stdout.Write([]byte(out))
 					buf = make([]string, 0)
 					return err
 				},

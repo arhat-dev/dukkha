@@ -2,7 +2,9 @@ golang:test:
 - name: dukkha
   env:
   - name: PROFILE_DIR
-    value: build/test-profile
+    value@tpl: |-
+      {{- fs.Join dukkha.WorkDir "build" "test-profile" -}}
+
   matrix:
     pkg@tpl: |-
       {{-
@@ -13,7 +15,13 @@ golang:test:
       -}}
   hooks:
     before:
-    - shell: tpl:os.MkdirAll "\"${PROFILE_DIR}\"" >/dev/null
+    - shell: tpl:mkdir \"-p\" "\"${PROFILE_DIR}\"" >/dev/null
+
+  tags:
+  # build dukkha_internal.RunSelf in tests requires invoking go tool link manaully to
+  # link ./pkg/cmd, so currently we just disable it
+  - noself
+  - timetzdata
 
   __@tpl#use-spec:
     template: |-

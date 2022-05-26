@@ -29,14 +29,27 @@ type TaskBuild struct {
 
 	tools.BaseTask `yaml:",inline"`
 
-	Chdir     string   `yaml:"chdir"`
-	Path      string   `yaml:"path"`
-	ExtraArgs []string `yaml:"extra_args"`
-	Outputs   []string `yaml:"outputs"`
+	// Chdir into a different dir when running go command while keep `dukkha.WorkDir` unchanged
+	// this can be helpful when you are managing multiple go modules in one workspace
+	Chdir string `yaml:"chdir"`
+
+	// Path is the import path of the source code to be built
+	// it will be the last argument of this go command execution
+	//
+	// see `go help packages` for more information about import path
+	Path string `yaml:"path"`
+
+	// Outputs of the go build command, when multiple entries specified, will build multiple times with same
+	// arguments
+	Outputs []string `yaml:"outputs"`
 
 	BuildOptions buildOptions `yaml:",inline"`
 
-	CGO CGOSepc `yaml:"cgo"`
+	// CGo options
+	CGo CGOSepc `yaml:"cgo"`
+
+	// ExtraArgs for go build (inserted before `Path`)
+	ExtraArgs []string `yaml:"extra_args"`
 }
 
 func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
@@ -56,7 +69,7 @@ func (c *TaskBuild) GetExecSpecs(
 			outputs = []string{c.TaskName}
 		}
 
-		buildEnv := createBuildEnv(rc, c.CGO)
+		buildEnv := createBuildEnv(rc, c.BuildOptions, c.CGo)
 		for _, output := range outputs {
 			spec := &dukkha.TaskExecSpec{
 				Chdir: c.Chdir,

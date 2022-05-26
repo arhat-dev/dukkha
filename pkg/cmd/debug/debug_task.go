@@ -2,7 +2,6 @@ package debug
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -225,6 +224,7 @@ func forEachTask(
 
 	sort.Sort(sortStub)
 
+	stderr := appCtx.Stderr()
 	for i, tsk := range tasks {
 		toolKey := dukkha.ToolKey{
 			Kind: taskKeys[i].toolKind,
@@ -237,7 +237,7 @@ func forEachTask(
 
 		err := debugSingleTask(appCtx, tool, tsk, i, len(tasks))
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+			fmt.Fprintln(stderr, err.Error())
 		}
 	}
 

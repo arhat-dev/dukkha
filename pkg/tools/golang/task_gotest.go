@@ -48,16 +48,21 @@ type TaskTest struct {
 	Path  string `yaml:"path"`
 	Chdir string `yaml:"chdir"`
 
-	Build buildOptions `yaml:",inline"`
-	Test  testSpec     `yaml:",inline"`
+	BuildOptions buildOptions `yaml:",inline"`
+	Test         testSpec     `yaml:",inline"`
 
 	Benchmark testBenchmarkSpec `yaml:"benchmark"`
 	Profile   testProfileSpec   `yaml:"profile"`
 
+	// ExtraArgs for go test (inserted before `Path`)
+	ExtraArgs []string `yaml:"extra_args"`
+
 	// CustomCmdPrefix to run compiled test file with this cmd prefix
+	// e.g. built xxx.test, usually will run in local host as ./xxx.test
+	//      but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`
 	CustomCmdPrefix []string `yaml:"custom_cmd_prefix"`
 
-	// custom args only used when running the test
+	// CustomArgs appended when running the test
 	CustomArgs []string `yaml:"custom_args"`
 }
 
@@ -101,10 +106,14 @@ func (c *TaskTest) GetExecSpecs(
 		jsonOutputFile := c.Test.JSONOutputFile
 
 		var compileArgs []string
-		compileArgs = append(compileArgs, c.Build.generateArgs()...)
+
+		buildEnv := createBuildEnv(rc, c.BuildOptions, c.CGO)
+
+		compileArgs = append(compileArgs, c.BuildOptions.generateArgs()...)
 		compileArgs = append(compileArgs, c.Test.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Benchmark.generateArgs(true)...)
 		compileArgs = append(compileArgs, c.Profile.generateArgs(cwdFS, true)...)
+		compileArgs = append(compileArgs, c.ExtraArgs...)
 
 		runCmdPrefix := sliceutils.NewStrings(c.CustomCmdPrefix)
 		var runArgs []string
@@ -115,7 +124,6 @@ func (c *TaskTest) GetExecSpecs(
 			runArgs = append(runArgs, "--")
 			runArgs = append(runArgs, c.CustomArgs...)
 		}
-		buildEnv := createBuildEnv(rc, c.CGO)
 
 		steps = append(steps, dukkha.TaskExecSpec{
 			AlterExecFunc: func(
@@ -130,7 +138,7 @@ func (c *TaskTest) GetExecSpecs(
 						runSteps     []dukkha.TaskExecSpec
 					)
 
-					for _, absPkgDir := range strings.Split(byteshelper.ToString(&stdoutResult.Data), "\n") {
+					for _, absPkgDir := range strings.Split(byteshelper.ToString(stdoutResult.Data), "\n") {
 						absPkgDir = strings.TrimSpace(absPkgDir)
 						if len(absPkgDir) == 0 {
 							continue

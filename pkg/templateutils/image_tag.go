@@ -8,19 +8,19 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func GetDefaultImageTag(
+func GetImageTag(
 	rc dukkha.RenderingContext, imageName string, keepKernelInfo bool,
 ) string {
 	return GetDefaultTag(rc, imageName, false, keepKernelInfo)
 }
 
-func GetDefaultManifestTag(
+func GetManifestTag(
 	rc dukkha.RenderingContext, manifestName string,
 ) string {
 	return GetDefaultTag(rc, manifestName, true, false)
 }
 
-func SetDefaultImageTagIfNoTagSet(
+func GetFullImageName_UseDefault_IfIfNoTagSet(
 	rc dukkha.RenderingContext, imageName string, keepKernelInfo bool,
 ) string {
 	if hasTag(imageName) {
@@ -30,7 +30,7 @@ func SetDefaultImageTagIfNoTagSet(
 	return imageName + ":" + GetDefaultTag(rc, imageName, false, keepKernelInfo)
 }
 
-func SetDefaultManifestTagIfNoTagSet(
+func GetFullManifestName_UseDefault_IfNoTagSet(
 	rc dukkha.RenderingContext, manifestName string,
 ) string {
 	if hasTag(manifestName) {
@@ -106,6 +106,6 @@ func hasTag(name string) bool {
 		return false
 	}
 
-	// has tag if there is no more slash after
+	// has tag if there is no more slash after (to handle port number in host)
 	return strings.IndexByte(name[tagIndex+1:], '/') < 0
 }

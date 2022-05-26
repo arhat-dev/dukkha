@@ -3,7 +3,6 @@ package diff
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -59,6 +58,8 @@ func diffFile(rc dukkha.RenderingContext, srcDocSrc, baseDocSrc, newDocSrc strin
 		return fmt.Errorf("invalid source doc should not be the same as new doc")
 	}
 
+	stdin, stdout := rc.Stdin(), rc.Stdout()
+
 	stdinUsed := false
 	newDecoder := func(src string) (*yaml.Decoder, func(), error) {
 		if src == "-" {
@@ -66,7 +67,7 @@ func diffFile(rc dukkha.RenderingContext, srcDocSrc, baseDocSrc, newDocSrc strin
 				return nil, nil, fmt.Errorf("only one of src/base/new doc can use stdin")
 			}
 			stdinUsed = true
-			return yaml.NewDecoder(os.Stdin), func() {}, nil
+			return yaml.NewDecoder(stdin), func() {}, nil
 		}
 
 		rd, err := rc.FS().Open(src)
@@ -159,20 +160,20 @@ func diffFile(rc dukkha.RenderingContext, srcDocSrc, baseDocSrc, newDocSrc strin
 		}
 
 		if printSep {
-			fmt.Println("---")
+			fmt.Fprintln(stdout, "---")
 		} else {
 			printSep = true
 		}
 
 		diffEntries := diff.Diff(base, current)
 		if len(diffEntries) == 0 {
-			fmt.Println("# no difference")
+			fmt.Fprintln(stdout, "# no difference")
 			continue
 		}
 
 		reasons := reasonDiff(rc, src, current, diffEntries)
 		for _, v := range reasons {
-			fmt.Print(v)
+			fmt.Fprint(stdout, v)
 		}
 	}
 }

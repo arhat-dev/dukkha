@@ -42,7 +42,10 @@ dukkha run golang in-docker build my-executable`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appCtx := *ctx
 
-			stdoutIsPty := term.IsTerminal(int(os.Stdout.Fd()))
+			var stdoutIsPty bool
+			if f, ok := appCtx.Stdout().(*os.File); ok {
+				stdoutIsPty = term.IsTerminal(int(f.Fd()))
+			}
 
 			translateANSIFlag := cmd.Flag("translate-ansi-stream")
 			var actualTranslateANSIStream bool

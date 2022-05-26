@@ -36,30 +36,30 @@ func TestGenerateTemplateFuncDocs(t *testing.T) {
 }
 
 type templateFunc struct {
-	Name string
-	Func string
+	Namespace string
+	Name      string
+	FuncType  string
 }
 
-func collectTemplateFuncs() []*templateFunc {
+func collectTemplateFuncs() []templateFunc {
 	ctx := dukkha_test.NewTestContext(context.TODO())
 
 	tpl := templateutils.CreateTemplate(ctx)
 
 	replacer := strings.NewReplacer(
-		"templateutils.String", "String",
-		"templateutils.Bytes", "Bytes",
+		"templateutils.", "",
 		"interface {}", "any",
 	)
 
-	var ret []*templateFunc
+	var ret []templateFunc
 	for k, v := range tpl.GetExecFuncs() {
 		vt := v.Type()
 
 		if vt.NumIn() != 0 {
 			// is a func
-			ret = append(ret, &templateFunc{
-				Name: k,
-				Func: replacer.Replace(vt.String()),
+			ret = append(ret, templateFunc{
+				Name:     k,
+				FuncType: replacer.Replace(vt.String()),
 			})
 			continue
 		}
@@ -87,27 +87,16 @@ func collectTemplateFuncs() []*templateFunc {
 				fout = append(fout, ft.Out(i))
 			}
 
-			ret = append(ret, &templateFunc{
-				Name: k + "." + m.Name,
-				Func: replacer.Replace(reflect.FuncOf(fin, fout, ft.IsVariadic()).String()),
+			ret = append(ret, templateFunc{
+				Namespace: k,
+				Name:      m.Name,
+				FuncType:  replacer.Replace(reflect.FuncOf(fin, fout, ft.IsVariadic()).String()),
 			})
 		}
 	}
 
 	sort.Slice(ret, func(i, j int) bool {
-		ni, nj := ret[i].Name, ret[j].Name
-		switch {
-		case strings.Contains(ni, "."):
-			if !strings.Contains(nj, ".") {
-				return false
-			}
-
-			return ni < nj
-		case strings.Contains(nj, "."):
-			return true
-		default:
-			return ni < nj
-		}
+		return ret[i].Namespace+"."+ret[i].Name < ret[j].Namespace+"."+ret[j].Name
 	})
 
 	return ret

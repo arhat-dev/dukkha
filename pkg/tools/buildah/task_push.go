@@ -65,7 +65,7 @@ func (c *TaskPush) GetExecSpecs(
 
 		for i, spec := range targets {
 			if len(spec.Image) != 0 {
-				imageName := templateutils.SetDefaultImageTagIfNoTagSet(rc, spec.Image, true)
+				imageName := templateutils.GetFullImageName_UseDefault_IfIfNoTagSet(rc, spec.Image, true)
 				imageIDFile, err := GetImageIDFileForImageName(rc, imageName, false)
 				if err != nil {
 					return err
@@ -90,7 +90,7 @@ func (c *TaskPush) GetExecSpecs(
 				continue
 			}
 
-			manifestName := templateutils.SetDefaultManifestTagIfNoTagSet(rc, spec.Manifest)
+			manifestName := templateutils.GetFullManifestName_UseDefault_IfNoTagSet(rc, spec.Manifest)
 			c.cacheManifestPushSpec(i, opts, manifestName)
 		}
 

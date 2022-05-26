@@ -24,17 +24,17 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 	}{
 		{
 			name:     "Simple md5sum",
-			script:   `tpl:md5sum \"test\"`,
+			script:   `tpl:md5 \"test\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Piped md5sum",
-			script:   `printf "test" | tpl:md5sum`,
+			script:   `printf "test" | tpl:md5`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
 			name:     "Subcmd md5sum",
-			script:   `tpl:md5sum \"$(printf "test")\"`,
+			script:   `tpl:md5 \"$(printf "test")\"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}
@@ -78,7 +78,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 		},
 		{
 			name:     "Valid Simple md5sum",
-			args:     []string{"md5sum", `"test"`},
+			args:     []string{"md5", `"test"`},
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
@@ -89,7 +89,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 		{
 			name:     "Input for md5sum",
 			input:    "test",
-			args:     []string{"md5sum"},
+			args:     []string{"md5"},
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}

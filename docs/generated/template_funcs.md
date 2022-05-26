@@ -1,239 +1,79 @@
 # Template Functions
 
-- `abbrev(int, string) string`
-- `abbrevboth(int, int, string) string`
-- `add(...any) any`
-- `add1(any) int64`
-- `add1f(any) float64`
-- `addPrefix(...String) string`
-- `addSuffix(...String) string`
-- `addf(...any) float64`
-- `adler32sum(string) string`
-- `ago(any) string`
+- `add(...Number) (Number, error)`
+- `add1(Number) (Number, error)`
+- `addPrefix(...String) (string, error)`
+- `addSuffix(...String) (string, error)`
 - `all(...any) bool`
 - `any(...any) bool`
-- `append(any, any) ([]any, error)`
-- `atoi(string) int`
-- `b32dec(string) string`
-- `b32enc(string) string`
-- `b64dec(string) string`
-- `b64enc(string) string`
-- `base(string) string`
-- `bcrypt(string) string`
-- `biggest(any, ...any) int64`
-- `bool(any) bool`
-- `buildCustomCert(string, string) (sprig.certificate, error)`
-- `camelcase(String) string`
-- `cat(...any) string`
-- `ceil(any) float64`
-- `chunk(int, any) [][]any`
-- `clean(string) string`
-- `coalesce(...any) any`
-- `compact(any) []any`
-- `concat(...any) any`
-- `contains(String, String) bool`
-- `date(string, any) string`
-- `dateInZone(string, any, string) string`
-- `dateModify(string, time.Time) time.Time`
-- `date_in_zone(string, any, string) string`
-- `date_modify(string, time.Time) time.Time`
-- `decryptAES(string, string) (string, error)`
-- `deepCopy(any) any`
-- `deepEqual(any, any) bool`
+- `append(...any) (any, error)`
+- `base64(...any) (string, error)`
+- `close(any) (None, error)`
+- `contains(String, String) (bool, error)`
 - `default(any, any) any`
-- `derivePassword(uint32, string, string, string, string) string`
 - `dict(...any) (map[string]any, error)`
-- `dig(...any) (any, error)`
-- `dir(string) string`
-- `div(any, any) (any, error)`
-- `divf(any, ...any) float64`
-- `duration(any) string`
-- `durationRound(any) string`
-- `empty(any) bool`
-- `encryptAES(string, string) (string, error)`
-- `expandenv(string) string`
-- `ext(string) string`
-- `fail(string) (string, error)`
-- `first(any) any`
-- `flatten(...any) ([]any, error)`
-- `float64(any) float64`
-- `floor(any) float64`
-- `fromJson(string) any`
-- `fromYaml(String) any`
-- `genCA(string, int) (sprig.certificate, error)`
-- `genCAWithKey(string, int, string) (sprig.certificate, error)`
-- `genPrivateKey(string) string`
-- `genSelfSignedCert(string, []any, []any, int) (sprig.certificate, error)`
-- `genSelfSignedCertWithKey(string, []any, []any, int, string) (sprig.certificate, error)`
-- `genSignedCert(string, []any, []any, int, sprig.certificate) (sprig.certificate, error)`
-- `genSignedCertWithKey(string, []any, []any, int, sprig.certificate, string) (sprig.certificate, error)`
-- `get(map[string]any, string) any`
+- `div(...Number) (Number, error)`
+- `double(Number) (Number, error)`
+- `dup(any) (any, error)`
+- `find(String, ...String) ([]string, error)`
+- `first(Slice) any`
+- `fromJson(String) (any, error)`
+- `fromYaml(String) (any, error)`
 - `getBuildahImageIDFile(string) (string, error)`
-- `getDefaultImageTag(String, ...String) string`
-- `getDefaultManifestTag(String, ...String) string`
-- `getHostByName(string) string`
-- `has(any, string) bool`
-- `hasKey(map[string]any, string) bool`
-- `hasPrefix(String, String) bool`
-- `hasSuffix(String, String) bool`
-- `htmlDate(any) string`
-- `htmlDateInZone(any, string) string`
-- `htpasswd(string, string) string`
+- `half(Number) (Number, error)`
+- `has(...any) (bool, error)`
+- `hasAny(...any) (bool, error)`
+- `hasPrefix(String, String) (bool, error)`
+- `hasSuffix(String, String) (bool, error)`
+- `hex(...any) (string, error)`
 - `include(string, any) (string, error)`
 - `indent(...any) (string, error)`
-- `initial(any) []any`
-- `initials(string) string`
-- `int(any) int`
-- `int64(any) int64`
-- `isAbs(string) bool`
-- `join(any, string) (string, error)`
-- `jq(String, Bytes) (string, error)`
-- `jqObj(String, any) (any, error)`
-- `kebabcase(String) string`
-- `keys(...map[string]any) ([]string, error)`
-- `kindIs(string, any) bool`
-- `kindOf(any) string`
-- `last(any) any`
+- `jq(...any) (string, error)`
+- `jqObj(...any) (any, error)`
+- `last(Slice) any`
 - `list(...any) []any`
-- `lower(string) string`
-- `max(any, ...any) int64`
-- `maxf(any, ...any) float64`
-- `md5sum(Bytes) string`
-- `merge(map[string]any, ...map[string]any) (map[string]any, error)`
-- `mergeOverwrite(map[string]any, ...map[string]any) any`
-- `min(any, ...any) int64`
-- `minf(any, ...any) float64`
-- `mod(any, any) int64`
-- `mul(...any) any`
-- `mulf(any, ...any) float64`
-- `mustAppend(any, any) ([]any, error)`
-- `mustChunk(int, any) ([][]any, error)`
-- `mustCompact(any) ([]any, error)`
-- `mustDateModify(string, time.Time) (time.Time, error)`
-- `mustDeepCopy(any) (any, error)`
-- `mustFirst(any) (any, error)`
-- `mustFromJson(string) (any, error)`
-- `mustHas(any, any) (bool, error)`
-- `mustInitial(any) ([]any, error)`
-- `mustLast(any) (any, error)`
-- `mustMerge(map[string]any, ...map[string]any) (any, error)`
-- `mustMergeOverwrite(map[string]any, ...map[string]any) (any, error)`
-- `mustPrepend(any, any) ([]any, error)`
-- `mustPush(any, any) ([]any, error)`
-- `mustRegexFind(string, string) (string, error)`
-- `mustRegexFindAll(string, string, int) ([]string, error)`
-- `mustRegexMatch(string, string) (bool, error)`
-- `mustRegexReplaceAll(string, string, string) (string, error)`
-- `mustRegexReplaceAllLiteral(string, string, string) (string, error)`
-- `mustRegexSplit(string, string, int) ([]string, error)`
-- `mustRest(any) ([]any, error)`
-- `mustReverse(any) ([]any, error)`
-- `mustSlice(any, ...any) (any, error)`
-- `mustToDate(string, string) (time.Time, error)`
-- `mustToJson(any) (string, error)`
-- `mustToPrettyJson(any) (string, error)`
-- `mustToRawJson(any) (string, error)`
-- `mustUniq(any) ([]any, error)`
-- `mustWithout(any, ...any) ([]any, error)`
-- `must_date_modify(string, time.Time) (time.Time, error)`
-- `nindent(int, string) string`
-- `nospace(string) string`
-- `omit(map[string]any, ...string) map[string]any`
-- `osBase(string) string`
-- `osClean(string) string`
-- `osDir(string) string`
-- `osExt(string) string`
-- `osIsAbs(string) bool`
-- `pick(map[string]any, ...string) map[string]any`
-- `pluck(string, ...map[string]any) []any`
-- `plural(string, string, int) string`
-- `pow(any, any) any`
-- `prepend(any, any) ([]any, error)`
-- `push(any, any) []any`
-- `quote(String) string`
-- `randAlpha(int) string`
-- `randAlphaNum(int) string`
-- `randAscii(int) string`
-- `randBytes(int) (string, error)`
-- `randInt(int, int) int`
-- `randNumeric(int) string`
-- `regexFind(string, string) string`
-- `regexFindAll(string, string, int) []string`
-- `regexMatch(string, string) bool`
-- `regexQuoteMeta(string) string`
-- `regexReplaceAll(string, string, string) string`
-- `regexReplaceAllLiteral(string, string, string) string`
-- `regexSplit(string, string, int) []string`
-- `rem(any, any) any`
-- `removePrefix(...String) string`
-- `removeSuffix(...String) string`
-- `repeat(int, string) string`
-- `replace(string, string, string) string`
-- `replaceAll(String, String, String) string`
-- `rest(any) []any`
-- `reverse(any) ([]any, error)`
-- `round(any, int, ...float64) float64`
-- `semver(string) (*semver.Version, error)`
-- `semverCompare(string, string) (bool, error)`
-- `seq(...any) ([]int64, error)`
-- `set(map[string]any, string, any) map[string]any`
-- `setDefaultImageTag(String, ...String) string`
-- `setDefaultManifestTag(String, ...String) string`
-- `sha1sum(string) string`
-- `sha256sum(string) string`
-- `shellQuote(String) string`
-- `shuffle(string) string`
-- `slice(...any) []any`
-- `snakecase(String) string`
-- `sort(...any) ([]any, error)`
-- `sortAlpha(any) []string`
-- `split(String, String) []string`
-- `splitList(string, string) []string`
-- `splitN(String, templateutils.Integer, String) []string`
-- `splitn(string, int, string) map[string]string`
-- `squote(String) string`
-- `sub(any, any) any`
-- `subf(any, ...any) float64`
-- `substr(int, int, string) string`
-- `swapcase(string) string`
-- `ternary(any, any, bool) any`
-- `title(String) string`
-- `toBytes(any) []uint8`
-- `toDate(string, string) time.Time`
-- `toDecimal(any) int64`
-- `toJson(any) string`
-- `toLower(String) string`
-- `toPrettyJson(any) string`
-- `toRawJson(any) string`
-- `toString(any) string`
-- `toStrings(any) []string`
-- `toUpper(String) string`
-- `toYaml(any) string`
-- `totp(String, ...any) (string, error)`
-- `trim(String, String) string`
-- `trimAll(string, string) string`
-- `trimPrefix(string, string) string`
-- `trimSpace(String) string`
-- `trimSuffix(string, string) string`
-- `trimall(string, string) string`
-- `trunc(int, string) string`
-- `tuple(...any) []any`
-- `typeIs(string, any) bool`
-- `typeIsLike(string, any) bool`
-- `typeOf(any) string`
-- `uniq(any) ([]any, error)`
-- `unixEpoch(time.Time) string`
-- `unset(map[string]any, string) map[string]any`
-- `until(int) []int`
-- `untilStep(int, int, int) []int`
-- `untitle(string) string`
-- `upper(string) string`
-- `urlJoin(map[string]any) string`
-- `urlParse(any) (*url.URL, error)`
-- `without(any, ...any) []any`
-- `wrap(int, string) string`
-- `wrapWith(int, string, string) string`
-- `yq(String, Bytes) (string, error)`
+- `lower(String) (string, error)`
+- `max(...Number) (any, error)`
+- `md5(...any) (string, error)`
+- `min(...Number) (any, error)`
+- `mkdir(...String) (None, error)`
+- `mod(...Number) (Number, error)`
+- `mul(...Number) (Number, error)`
+- `nindent(...any) (string, error)`
+- `now(...String) (time.Time, error)`
+- `omit(...any) (any, error)`
+- `pick(...any) (any, error)`
+- `prepend(...any) (any, error)`
+- `quote(String) (string, error)`
+- `removePrefix(...String) (string, error)`
+- `removeSuffix(...String) (string, error)`
+- `replaceAll(String, String, String) (string, error)`
+- `seq(...Number) ([]int64, error)`
+- `sha1(...any) (string, error)`
+- `sha256(...any) (string, error)`
+- `sha512(...any) (string, error)`
+- `sort(Slice) (Slice, error)`
+- `split(String, String) ([]string, error)`
+- `splitN(String, Number, String) ([]string, error)`
+- `squote(String) (string, error)`
+- `stringList(...String) ([]string, error)`
+- `sub(...Number) (Number, error)`
+- `sub1(Number) (Number, error)`
+- `title(String) (string, error)`
+- `toJson(...any) (string, error)`
+- `toString(any) (string, error)`
+- `toYaml(...any) (string, error)`
+- `totp(...any) (string, error)`
+- `touch(String) (struct {}, error)`
+- `trim(String, String) (string, error)`
+- `trimPrefix(String, String) (string, error)`
+- `trimSpace(String) (string, error)`
+- `trimSuffix(String, String) (string, error)`
+- `uniq(Slice) (any, error)`
+- `upper(String) (string, error)`
+- `write(String, ...any) (None, error)`
+- `yq(...any) (string, error)`
+- `yqObj(...any) (any, error)`
 - `archconv.AlpineArch(String) string`
 - `archconv.AlpineTripleName(String) string`
 - `archconv.DebianArch(String) string`
@@ -258,253 +98,255 @@
 - `archconv.SF(String) string`
 - `archconv.SimpleArch(String) string`
 - `archconv.SoftFloadArch(String) string`
-- `coll.Append(any, any) ([]any, error)`
-- `coll.Dict(...any) (map[string]any, error)`
+- `coll.Append(...any) (any, error)`
+- `coll.Bools(...Bool) ([]bool, error)`
+- `coll.Dup(any) (any, error)`
 - `coll.Flatten(...any) ([]any, error)`
-- `coll.Has(any, string) bool`
-- `coll.Keys(...map[string]any) ([]string, error)`
-- `coll.Merge(map[string]any, ...map[string]any) (map[string]any, error)`
-- `coll.Omit(...any) (map[string]any, error)`
-- `coll.Pick(...any) (map[string]any, error)`
-- `coll.Prepend(any, any) ([]any, error)`
-- `coll.Reverse(any) ([]any, error)`
-- `coll.Slice(...any) []any`
-- `coll.Sort(...any) ([]any, error)`
-- `coll.Uniq(any) ([]any, error)`
-- `coll.Values(...map[string]any) ([]any, error)`
-- `conv.Atoi(any) int`
-- `conv.Bool(any) bool`
-- `conv.Default(any, any) any`
-- `conv.Dict(...any) (map[string]any, error)`
-- `conv.Has(any, string) bool`
-- `conv.Join(any, string) (string, error)`
-- `conv.ParseFloat(any, int) float64`
-- `conv.ParseInt(any, int, int) int64`
-- `conv.ParseUint(any, int, int) uint64`
-- `conv.Slice(...any) []any`
-- `conv.ToBool(any) bool`
-- `conv.ToBools(...any) []bool`
-- `conv.ToFloat64(any) float64`
-- `conv.ToFloat64s(...any) []float64`
-- `conv.ToInt(any) int`
-- `conv.ToInt64(any) int64`
-- `conv.ToInt64s(...any) []int64`
-- `conv.ToInts(...any) []int`
-- `conv.ToString(any) string`
-- `conv.ToStrings(...any) []string`
-- `conv.URL(any) (*url.URL, error)`
-- `crypto.Bcrypt(...any) (string, error)`
-- `crypto.PBKDF2(any, any, any, any, ...string) (string, error)`
-- `crypto.RSADecrypt(string, []uint8) (string, error)`
-- `crypto.RSADecryptBytes(string, []uint8) ([]uint8, error)`
-- `crypto.RSADerivePublicKey(string) (string, error)`
-- `crypto.RSAEncrypt(string, any) ([]uint8, error)`
-- `crypto.RSAGenerateKey(...any) (string, error)`
-- `crypto.SHA1(any) string`
-- `crypto.SHA224(any) string`
-- `crypto.SHA256(any) string`
-- `crypto.SHA384(any) string`
-- `crypto.SHA512(any) string`
-- `crypto.SHA512_224(any) string`
-- `crypto.SHA512_256(any) string`
-- `crypto.WPAPSK(any, any) (string, error)`
+- `coll.Floats(...Number) ([]float64, error)`
+- `coll.HasAll(...any) (bool, error)`
+- `coll.HasAny(...any) (bool, error)`
+- `coll.Index(any, any) (any, error)`
+- `coll.Ints(...Number) ([]int64, error)`
+- `coll.Keys(Map) ([]string, error)`
+- `coll.List(...any) []any`
+- `coll.MapAnyAny(...any) map[any]any`
+- `coll.MapStringAny(...any) (map[string]any, error)`
+- `coll.Merge(...Map) (Map, error)`
+- `coll.Omit(...any) (any, error)`
+- `coll.Pick(...any) (any, error)`
+- `coll.Prepend(...any) (any, error)`
+- `coll.Push(...any) (any, error)`
+- `coll.Reverse(any) (any, error)`
+- `coll.Slice(...any) (Slice, error)`
+- `coll.Sort(Slice) (Slice, error)`
+- `coll.Strings(...String) ([]string, error)`
+- `coll.Uints(...Number) ([]uint64, error)`
+- `coll.Unique(Slice) (any, error)`
+- `coll.Values(Map) ([]any, error)`
+- `cred.Htpasswd(String, String) (string, error)`
+- `cred.Totp(...any) (string, error)`
+- `dns.CNAME(...String) (string, error)`
+- `dns.HOST(...String) ([]string, error)`
+- `dns.IP(...String) ([]string, error)`
+- `dns.SRV(...String) ([]*net.SRV, error)`
+- `dns.TXT(...String) ([]string, error)`
 - `dukkha.CacheDir() string`
 - `dukkha.CrossPlatform(...String) bool`
-- `dukkha.Set(string, any) (any, error)`
-- `dukkha.SetValue(string, any) (any, error)`
+- `dukkha.FromYaml(Bytes) (any, error)`
+- `dukkha.JQ(...any) (string, error)`
+- `dukkha.JQObj(...any) (any, error)`
+- `dukkha.Self(...String) (struct { Stdout string; Stderr string }, error)`
+- `dukkha.Set(String, any) (any, error)`
+- `dukkha.SetValue(String, any) (any, error)`
 - `dukkha.WorkDir() string`
+- `dukkha.YQ(...any) (string, error)`
+- `dukkha.YQObj(...any) (any, error)`
+- `enc.Base32(...any) (string, error)`
+- `enc.Base64(...any) (string, error)`
+- `enc.Hex(...any) (string, error)`
+- `enc.JSON(...any) (string, error)`
+- `enc.YAML(...any) (string, error)`
 - `eval.Env(...String) (string, error)`
-- `eval.Shell(String, ...any) (string, error)`
+- `eval.Shell(String, ...Bytes) (string, error)`
 - `eval.Template(any) (string, error)`
-- `file.Exists(any) bool`
-- `file.IsDir(any) bool`
-- `file.Read(any) (string, error)`
-- `file.ReadDir(any) ([]string, error)`
-- `file.Stat(any) (fs.FileInfo, error)`
-- `file.Walk(any) ([]string, error)`
-- `file.Write(any, any) (string, error)`
-- `filepath.Abs(String) (string, error)`
-- `filepath.Base(String) string`
-- `filepath.Clean(String) string`
-- `filepath.Dir(String) string`
-- `filepath.Ext(String) string`
-- `filepath.FromSlash(String) string`
-- `filepath.Glob(String) ([]string, error)`
-- `filepath.IsAbs(String) bool`
-- `filepath.Join(...String) string`
-- `filepath.Match(String, String) (bool, error)`
-- `filepath.Rel(String, String) (string, error)`
-- `filepath.Split(String) (string, string)`
-- `filepath.ToSlash(String) string`
-- `filepath.VolumeName(String) string`
-- `math.Abs(any) any`
-- `math.Add(...any) any`
-- `math.Ceil(any) any`
-- `math.Div(any, any) (any, error)`
-- `math.Floor(any) any`
-- `math.IsFloat(any) bool`
-- `math.IsInt(any) bool`
-- `math.IsNum(any) bool`
-- `math.Max(any, ...any) (any, error)`
-- `math.Min(any, ...any) (any, error)`
-- `math.Mul(...any) any`
-- `math.Pow(any, any) any`
-- `math.Rem(any, any) any`
-- `math.Round(any) any`
-- `math.Seq(...any) ([]int64, error)`
-- `math.Sub(any, any) any`
-- `net.LookupCNAME(any) (string, error)`
-- `net.LookupIP(any) (string, error)`
-- `net.LookupIPs(any) ([]string, error)`
-- `net.LookupSRV(any) (*net.SRV, error)`
-- `net.LookupSRVs(any) ([]*net.SRV, error)`
-- `net.LookupTXT(any) ([]string, error)`
-- `now.Add(time.Duration) time.Time`
-- `now.AddDate(int, int, int) time.Time`
-- `now.After(time.Time) bool`
-- `now.AppendFormat([]uint8, string) []uint8`
-- `now.Before(time.Time) bool`
-- `now.Clock() (int, int, int)`
-- `now.Date() (int, time.Month, int)`
-- `now.Day() int`
-- `now.Equal(time.Time) bool`
-- `now.Format(string) string`
-- `now.GoString() string`
-- `now.GobEncode() ([]uint8, error)`
-- `now.Hour() int`
-- `now.ISOWeek() (int, int)`
-- `now.In(*time.Location) time.Time`
-- `now.IsDST() bool`
-- `now.IsZero() bool`
-- `now.Local() time.Time`
-- `now.Location() *time.Location`
-- `now.MarshalBinary() ([]uint8, error)`
-- `now.MarshalJSON() ([]uint8, error)`
-- `now.MarshalText() ([]uint8, error)`
-- `now.Minute() int`
-- `now.Month() time.Month`
-- `now.Nanosecond() int`
-- `now.Round(time.Duration) time.Time`
-- `now.Second() int`
-- `now.String() string`
-- `now.Sub(time.Time) time.Duration`
-- `now.Truncate(time.Duration) time.Time`
-- `now.UTC() time.Time`
-- `now.Unix() int64`
-- `now.UnixMicro() int64`
-- `now.UnixMilli() int64`
-- `now.UnixNano() int64`
-- `now.Weekday() time.Weekday`
-- `now.Year() int`
-- `now.YearDay() int`
-- `now.Zone() (string, int)`
-- `os.AppendFile(String, Bytes, ...any) error`
-- `os.Lookup(...String) string`
-- `os.LookupFile(...String) string`
-- `os.MkdirAll(String, ...any) error`
-- `os.ReadFile(String) (string, error)`
-- `os.Stderr() *os.File`
-- `os.Stdin() *os.File`
-- `os.Stdout() *os.File`
-- `os.UserCacheDir() string`
-- `os.UserConfigDir() string`
-- `os.UserHomeDir() string`
-- `os.WriteFile(String, Bytes, ...any) error`
-- `path.Base(any) string`
-- `path.Clean(any) string`
-- `path.Dir(any) string`
-- `path.Ext(any) string`
-- `path.IsAbs(any) bool`
-- `path.Join(...any) string`
-- `path.Match(any, any) (bool, error)`
-- `path.Split(any) []string`
-- `random.ASCII(any) (string, error)`
-- `random.Alpha(any) (string, error)`
-- `random.AlphaNum(any) (string, error)`
-- `random.Float(...any) (float64, error)`
-- `random.Item(any) (any, error)`
-- `random.Number(...any) (int64, error)`
-- `random.String(any, ...any) (string, error)`
-- `regexp.Find(any, any) (string, error)`
-- `regexp.FindAll(...any) ([]string, error)`
-- `regexp.Match(any, any) bool`
-- `regexp.QuoteMeta(any) string`
-- `regexp.Replace(any, any, any) string`
-- `regexp.ReplaceLiteral(any, any, any) (string, error)`
-- `regexp.Split(...any) ([]string, error)`
-- `sockaddr.Attr(string, any) (string, error)`
-- `sockaddr.Exclude(string, string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.GetAllInterfaces() (sockaddr.IfAddrs, error)`
-- `sockaddr.GetDefaultInterfaces() (sockaddr.IfAddrs, error)`
-- `sockaddr.GetInterfaceIP(string) (string, error)`
-- `sockaddr.GetInterfaceIPs(string) (string, error)`
-- `sockaddr.GetPrivateIP() (string, error)`
-- `sockaddr.GetPrivateIPs() (string, error)`
-- `sockaddr.GetPrivateInterfaces() (sockaddr.IfAddrs, error)`
-- `sockaddr.GetPublicIP() (string, error)`
-- `sockaddr.GetPublicIPs() (string, error)`
-- `sockaddr.GetPublicInterfaces() (sockaddr.IfAddrs, error)`
-- `sockaddr.Include(string, string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.Join(string, string, sockaddr.IfAddrs) (string, error)`
-- `sockaddr.Limit(uint, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.Math(string, string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.Offset(int, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.Sort(string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `sockaddr.Unique(string, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `fs.Abs(String) (string, error)`
+- `fs.AppendFile(String, ...any) (None, error)`
+- `fs.Base(String) string`
+- `fs.Clean(String) string`
+- `fs.Dir(String) string`
+- `fs.Exists(String) (bool, error)`
+- `fs.Ext(String) string`
+- `fs.Find(String, ...String) ([]string, error)`
+- `fs.FromSlash(String) string`
+- `fs.Glob(String) ([]string, error)`
+- `fs.IsAbs(String) bool`
+- `fs.IsCharDevice(String) bool`
+- `fs.IsDevice(String) bool`
+- `fs.IsDir(String) bool`
+- `fs.IsFIFO(String) bool`
+- `fs.IsOther(String) bool`
+- `fs.IsSocket(String) bool`
+- `fs.IsSymlink(String) bool`
+- `fs.Join(...String) (string, error)`
+- `fs.Lookup(...String) (string, error)`
+- `fs.LookupFile(...String) (string, error)`
+- `fs.Match(String, String) (bool, error)`
+- `fs.Mkdir(...String) (None, error)`
+- `fs.OpenFile(...String) (*os.File, error)`
+- `fs.ReadDir(String) ([]string, error)`
+- `fs.ReadFile(String) (string, error)`
+- `fs.Rel(String, String) (string, error)`
+- `fs.Split(String) (string, string)`
+- `fs.ToSlash(String) string`
+- `fs.UserCacheDir() string`
+- `fs.UserConfigDir() string`
+- `fs.UserHomeDir() string`
+- `fs.VolumeName(String) string`
+- `fs.WriteFile(String, ...any) (None, error)`
+- `hash.ADLER32(...any) (string, error)`
+- `hash.Bcrypt(...any) (string, error)`
+- `hash.CRC32(...any) (string, error)`
+- `hash.CRC64(...any) (string, error)`
+- `hash.MD4(...any) (string, error)`
+- `hash.MD5(...any) (string, error)`
+- `hash.RIPEMD160(...any) (string, error)`
+- `hash.SHA1(...any) (string, error)`
+- `hash.SHA224(...any) (string, error)`
+- `hash.SHA256(...any) (string, error)`
+- `hash.SHA384(...any) (string, error)`
+- `hash.SHA512(...any) (string, error)`
+- `hash.SHA512_224(...any) (string, error)`
+- `hash.SHA512_256(...any) (string, error)`
+- `math.Abs(Number) (Number, error)`
+- `math.Add(...Number) (Number, error)`
+- `math.Add1(Number) (Number, error)`
+- `math.Ceil(Number) (float64, error)`
+- `math.Div(...Number) (Number, error)`
+- `math.Double(Number) (Number, error)`
+- `math.Floor(Number) (float64, error)`
+- `math.Half(Number) (Number, error)`
+- `math.Log10(Number) (float64, error)`
+- `math.Log2(Number) (float64, error)`
+- `math.LogE(Number) (float64, error)`
+- `math.Max(...Number) (any, error)`
+- `math.Min(...Number) (any, error)`
+- `math.Mod(...Number) (Number, error)`
+- `math.Mul(...Number) (Number, error)`
+- `math.Pow(...Number) (Number, error)`
+- `math.Round(Number) (float64, error)`
+- `math.Seq(...Number) ([]int64, error)`
+- `math.Sub(...Number) (Number, error)`
+- `math.Sub1(Number) (Number, error)`
+- `os.Stderr() io.Writer`
+- `os.Stdin() io.Reader`
+- `os.Stdout() io.Writer`
+- `path.Base(String) string`
+- `path.Clean(String) string`
+- `path.Dir(String) string`
+- `path.Ext(String) string`
+- `path.IsAbs(String) bool`
+- `path.Join(...String) (string, error)`
+- `path.Match(String, String) (bool, error)`
+- `path.Split(String) []string`
+- `re.Find(...String) (string, error)`
+- `re.FindAll(...String) ([]string, error)`
+- `re.Match(...String) (bool, error)`
+- `re.QuoteMeta(String) string`
+- `re.Replace(...String) (string, error)`
+- `re.ReplasLiteral(...String) (string, error)`
+- `re.Split(...String) ([]string, error)`
+- `sockaddr.AllInterfaces() (sockaddr.IfAddrs, error)`
+- `sockaddr.Attr(String, any) (string, error)`
+- `sockaddr.DefaultInterfaces() (sockaddr.IfAddrs, error)`
+- `sockaddr.Exclude(String, String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.Include(String, String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.InterfaceIP(String) (string, error)`
+- `sockaddr.Join(String, String, sockaddr.IfAddrs) (string, error)`
+- `sockaddr.Limit(Number, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.Math(String, String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.Offset(Number, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.PrivateIP() (string, error)`
+- `sockaddr.PrivateInterfaces() (sockaddr.IfAddrs, error)`
+- `sockaddr.PublicIP() (string, error)`
+- `sockaddr.PublicInterfaces() (sockaddr.IfAddrs, error)`
+- `sockaddr.Sort(String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
+- `sockaddr.Unique(String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
 - `state.Failed() bool`
 - `state.Succeeded() bool`
-- `strconv.Unquote(String) (string, error)`
 - `strings.Abbrev(...any) (string, error)`
-- `strings.AddPrefix(String, String, String) string`
-- `strings.AddSuffix(String, String, String) string`
-- `strings.CamelCase(String) string`
-- `strings.Contains(String, String) bool`
-- `strings.HasPrefix(String, String) bool`
-- `strings.HasSuffix(String, String) bool`
+- `strings.AddPrefix(...String) (string, error)`
+- `strings.AddSuffix(...String) (string, error)`
+- `strings.CamelCase(String) (string, error)`
+- `strings.Contains(String, String) (bool, error)`
+- `strings.ContainsAny(String, String) (bool, error)`
+- `strings.DoubleQuote(String) (string, error)`
+- `strings.HasPrefix(String, String) (bool, error)`
+- `strings.HasSuffix(String, String) (bool, error)`
 - `strings.Indent(...any) (string, error)`
-- `strings.JQ(String, Bytes) (string, error)`
-- `strings.JQObj(String, any) (any, error)`
-- `strings.KebabCase(String) string`
-- `strings.Quote(String) string`
-- `strings.RemovePrefix(String, String, String) string`
-- `strings.RemoveSuffix(String, String, String) string`
-- `strings.Repeat(templateutils.Integer, String) (string, error)`
-- `strings.ReplaceAll(String, String, String) string`
+- `strings.Initials(String) (string, error)`
+- `strings.Join(any, any) (string, error)`
+- `strings.KebabCase(String) (string, error)`
+- `strings.Lower(String) (string, error)`
+- `strings.NIndent(...any) (string, error)`
+- `strings.NoSpace(String) (string, error)`
+- `strings.RemovePrefix(...String) (string, error)`
+- `strings.RemoveSuffix(...String) (string, error)`
+- `strings.Repeat(Number, String) (string, error)`
+- `strings.ReplaceAll(String, String, String) (string, error)`
 - `strings.RuneCount(...String) (int, error)`
-- `strings.ShellQuote(String) string`
-- `strings.Slug(String) string`
-- `strings.SnakeCase(String) string`
-- `strings.Split(String, String) []string`
-- `strings.SplitN(String, templateutils.Integer, String) []string`
-- `strings.Squote(String) string`
-- `strings.Title(String) string`
-- `strings.ToLower(String) string`
-- `strings.ToUpper(String) string`
-- `strings.Trim(String, String) string`
-- `strings.TrimPrefix(String, String) string`
-- `strings.TrimSpace(String) string`
-- `strings.TrimSuffix(String, String) string`
-- `strings.Trunc(templateutils.Integer, String) string`
+- `strings.ShellQuote(...String) (string, error)`
+- `strings.Shuffle(String) (string, error)`
+- `strings.SingleQuote(String) (string, error)`
+- `strings.Slug(String) (string, error)`
+- `strings.SnakeCase(String) (string, error)`
+- `strings.Split(String, String) ([]string, error)`
+- `strings.SplitN(String, Number, String) ([]string, error)`
+- `strings.Substr(...any) (string, error)`
+- `strings.SwapCase(String) (string, error)`
+- `strings.Title(String) (string, error)`
+- `strings.Trim(String, String) (string, error)`
+- `strings.TrimLeft(String, String) (string, error)`
+- `strings.TrimPrefix(String, String) (string, error)`
+- `strings.TrimRight(String, String) (string, error)`
+- `strings.TrimSpace(String) (string, error)`
+- `strings.TrimSuffix(String, String) (string, error)`
+- `strings.Unquote(String) (string, error)`
+- `strings.Untitle(String) (string, error)`
+- `strings.Upper(String) (string, error)`
 - `strings.WordWrap(...any) (string, error)`
-- `strings.YQ(String, Bytes) (string, error)`
-- `time.Hour(any) time.Duration`
-- `time.Microsecond(any) time.Duration`
-- `time.Millisecond(any) time.Duration`
-- `time.Minute(any) time.Duration`
-- `time.Nanosecond(any) time.Duration`
-- `time.Now() time.Time`
-- `time.Parse(string, any) (time.Time, error)`
-- `time.ParseDuration(any) (time.Duration, error)`
-- `time.ParseInLocation(string, string, any) (time.Time, error)`
-- `time.ParseLocal(string, any) (time.Time, error)`
-- `time.Second(any) time.Duration`
-- `time.Since(time.Time) time.Duration`
-- `time.Unix(any) (time.Time, error)`
-- `time.Until(time.Time) time.Duration`
-- `time.ZoneName() string`
-- `time.ZoneOffset() int`
-- `uuid.IsValid(any) (bool, error)`
-- `uuid.Nil() (string, error)`
-- `uuid.Parse(any) (uuid.UUID, error)`
+- `tag.ImageName(...String) (string, error)`
+- `tag.ImageTag(...String) (string, error)`
+- `tag.ManifestName(...String) (string, error)`
+- `tag.ManifestTag(...String) (string, error)`
+- `time.Add(Duration, Time) (time.Time, error)`
+- `time.Ceil(Duration, Time) (time.Time, error)`
+- `time.CeilDuration(Duration, Duration) (time.Duration, error)`
+- `time.Day(...Number) (time.Duration, error)`
+- `time.FMT_ANSI() string`
+- `time.FMT_Clock() string`
+- `time.FMT_Date() string`
+- `time.FMT_DateTime() string`
+- `time.FMT_RFC3339() string`
+- `time.FMT_RFC3339Nano() string`
+- `time.FMT_Ruby() string`
+- `time.FMT_Stamp() string`
+- `time.FMT_Unix() string`
+- `time.Floor(Duration, Time) (time.Time, error)`
+- `time.FloorDuration(Duration, Duration) (time.Duration, error)`
+- `time.Format(...any) (string, error)`
+- `time.Hour(...Number) (time.Duration, error)`
+- `time.Microsecond(...Number) (time.Duration, error)`
+- `time.Millisecond(...Number) (time.Duration, error)`
+- `time.Minute(...Number) (time.Duration, error)`
+- `time.Nanosecond(...Number) (time.Duration, error)`
+- `time.Now(...String) (time.Time, error)`
+- `time.Parse(...any) (time.Time, error)`
+- `time.ParseDuration(String) (time.Duration, error)`
+- `time.Round(Duration, Time) (time.Time, error)`
+- `time.RoundDuration(Duration, Duration) (time.Duration, error)`
+- `time.Second(...Number) (time.Duration, error)`
+- `time.Since(...Time) (time.Duration, error)`
+- `time.Until(...Time) (time.Duration, error)`
+- `time.Week(...Number) (time.Duration, error)`
+- `time.ZoneName(...any) (string, error)`
+- `time.ZoneOffset(...any) (int, error)`
+- `type.AllTrue(...any) bool`
+- `type.AnyTrue(...any) bool`
+- `type.Default(any, any) any`
+- `type.FirstNoneZero(...any) any`
+- `type.IsBool(any) bool`
+- `type.IsFloat(any) bool`
+- `type.IsInt(any) bool`
+- `type.IsNum(any) bool`
+- `type.IsZero(any) bool`
+- `type.ToBool(any) (bool, error)`
+- `type.ToFloat(any) (float64, error)`
+- `type.ToInt(any) (int64, error)`
+- `type.ToString(any) (string, error)`
+- `type.ToStrings(any) ([]string, error)`
+- `type.ToUint(any) (uint64, error)`
+- `uuid.IsValid(String) bool`
+- `uuid.New(...Number) (string, error)`
 - `uuid.V1() (string, error)`
 - `uuid.V4() (string, error)`
+- `uuid.Zero() string`

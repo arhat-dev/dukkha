@@ -44,7 +44,7 @@ func TestCreateBuildEnv(t *testing.T) {
 				Value: archconst.ARCH_S390X,
 			})
 
-			assert.EqualValues(t, expected, createBuildEnv(rc, CGOSepc{}))
+			assert.EqualValues(t, expected, createBuildEnv(rc, buildOptions{}, CGOSepc{}))
 		})
 	}
 
@@ -189,7 +189,7 @@ func TestCreateBuildEnv(t *testing.T) {
 			})
 
 			assert.Equal(t, expected, createBuildEnv(
-				rc, CGOSepc{},
+				rc, buildOptions{}, CGOSepc{},
 			))
 		})
 	}

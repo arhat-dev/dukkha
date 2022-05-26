@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -59,15 +58,15 @@ func doRun(
 		if es.Stdin != nil {
 			stdin = es.Stdin
 		} else {
-			stdin = os.Stdin
+			stdin = ctx.Stdin()
 		}
 
 		if !ctx.TranslateANSIStream() {
-			stdout = os.Stdout
-			stderr = os.Stderr
+			stdout = ctx.Stdout()
+			stderr = ctx.Stderr()
 		} else {
 			stdoutW := utils.NewANSIWriter(
-				os.Stdout, ctx.RetainANSIStyle(),
+				ctx.Stdout(), ctx.RetainANSIStyle(),
 			)
 
 			stdout = stdoutW
@@ -283,6 +282,7 @@ func doRun(
 			}
 
 			output.WriteExecStart(
+				ctx.Stdout(),
 				ctx.PrefixColor(),
 				ctx.CurrentTool(), cmd,
 				path.Base(shellCmd[len(shellCmd)-1])[:7],
@@ -290,7 +290,7 @@ func doRun(
 
 			cmd = shellCmd
 		} else {
-			output.WriteExecStart(ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
+			output.WriteExecStart(ctx.Stdout(), ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
 		}
 
 		env := make(map[string]string, len(ctx.Env()))

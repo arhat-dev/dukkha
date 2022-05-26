@@ -17,13 +17,13 @@ task:
     to: /
 
   output@tpl: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}
 ---
 actual:
   top-level@tpl?str|af?str: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}:top-level.txt
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}:top-level.txt
   root-top-level@tpl?str|af?str: |-
-    {{- filepath.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}:/top-level.txt
+    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar.bz2" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt
   root-top-level@file?str: testdata/top-level.txt

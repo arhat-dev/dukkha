@@ -71,7 +71,7 @@ func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 
 			query := createManifestPlatformQueryForDigest(test.Query.Kernel, test.Query.Arch)
 
-			result, err := textquery.JQBytes(query, []byte(test.Manifest))
+			result, err := textquery.JQ[byte](query, []byte(test.Manifest))
 			if check.ExpectErr {
 				assert.Error(t, err)
 				return

@@ -3,7 +3,6 @@ package transform
 import (
 	"bytes"
 	"fmt"
-	"os"
 
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
@@ -149,7 +148,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 			runner *interp.Runner
 		)
 		runner, err = templateutils.CreateEmbeddedShellRunner(
-			rc.WorkDir(), rc, nil, &buf, os.Stderr,
+			rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf(

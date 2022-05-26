@@ -35,7 +35,7 @@ type Driver struct {
 }
 
 func (d *Driver) RenderYaml(
-	_ dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -78,15 +78,19 @@ func (d *Driver) RenderYaml(
 		prompt = string(promptBytes)
 	}
 
-	fmt.Print(prompt)
+	stdin, stdout := rc.Stdin(), rc.Stdout()
+	fmt.Fprint(stdout, prompt)
 
 	if hide != nil && *hide {
-		ret, err2 := term.ReadPassword(int(os.Stdin.Fd()))
-		fmt.Println()
-		return ret, err2
+		stdinFile, ok := stdin.(*os.File)
+		if ok {
+			ret, err2 := term.ReadPassword(int(stdinFile.Fd()))
+			fmt.Fprintln(stdout)
+			return ret, err2
+		}
 	}
 
-	ret, err := iohelper.ReadInputLine(os.Stdin)
-	fmt.Println()
+	ret, err := iohelper.ReadInputLine(stdin)
+	fmt.Fprintln(stdout)
 	return ret, err
 }

@@ -9,6 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	_ ConfigResolvingContext = (*dukkhaContext)(nil)
+
+	_ Context = (*dukkhaContext)(nil)
+)
+
 type canceledContext struct{}
 
 func (*canceledContext) Done() <-chan struct{} {

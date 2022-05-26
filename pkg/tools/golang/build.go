@@ -10,9 +10,8 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
-	var env dukkha.Env
-
+func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc) (env dukkha.Env) {
+	// set GOOS
 	goos, _ := constant.GetGolangOS(v.MatrixKernel())
 	switch {
 	case len(goos) != 0:
@@ -27,6 +26,7 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		})
 	}
 
+	// set GOARCH
 	mArch := v.MatrixArch()
 	goarch, ok := constant.GetGolangArch(mArch)
 	if !ok {
@@ -39,6 +39,8 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 			Value: goarch,
 		})
 	}
+
+	// set GOARCH specific micro arch
 
 	spec, ok := archconst.Parse[byte](mArch)
 	switch spec.Name {
@@ -100,6 +102,14 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 		})
 	}
 
+	// set GCCGO
+	if len(buildSpec.GCCGo) != 0 {
+		env = append(env, &dukkha.EnvEntry{
+			Name:  "GCCGO",
+			Value: buildSpec.GCCGo,
+		})
+	}
+
 	return append(env, cgoSpec.getEnv(
 		v.HostKernel() != v.MatrixKernel() || v.HostArch() != mArch, /* doing cross compile */
 		v.MatrixKernel(), /* target kernel */
@@ -112,15 +122,50 @@ func createBuildEnv(v dukkha.EnvValues, cgoSpec CGOSepc) dukkha.Env {
 type buildOptions struct {
 	rs.BaseField `yaml:"-"`
 
-	Race    bool     `yaml:"race"`
+	// Race (-race)
+	Race bool `yaml:"race"`
+
+	// Compiler to use, gccgo or gc
+	Compiler string `yaml:"compiler"`
+
+	// ASMFlags (-asmflags) for `go tool asm`
+	ASMFlags []string `yaml:"asm_flags"`
+
+	// GoCompilerFlags (-gcflags) for `go tool compile`
+	GoCompilerFlags []string `yaml:"go_compiler_flags"`
+
+	// GCCGo command to run gccgo
+	GCCGo string `yaml:"gccgo"`
+
+	// GCCGoFlags (-gccgoflags) for CC (both compiler and linker)
+	GCCGoFlags []string `yaml:"gccgo_flags"`
+
+	// LDFlags (-ldflags)
 	LDFlags []string `yaml:"ldflags"`
-	Tags    []string `yaml:"tags"`
+
+	Tags []string `yaml:"tags"`
 }
 
 func (opts buildOptions) generateArgs() []string {
 	var args []string
 	if opts.Race {
 		args = append(args, "-race")
+	}
+
+	if len(opts.Compiler) != 0 {
+		args = append(args, opts.Compiler)
+	}
+
+	if len(opts.ASMFlags) != 0 {
+		args = append(args, "-asmflags", strings.Join(opts.ASMFlags, " "))
+	}
+
+	if len(opts.GoCompilerFlags) != 0 {
+		args = append(args, "-gcflags", strings.Join(opts.GoCompilerFlags, " "))
+	}
+
+	if len(opts.GCCGoFlags) != 0 {
+		args = append(args, "-gccgoflags", strings.Join(opts.GCCGoFlags, " "))
 	}
 
 	if len(opts.LDFlags) != 0 {

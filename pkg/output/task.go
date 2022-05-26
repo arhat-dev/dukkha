@@ -2,6 +2,7 @@ package output
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/muesli/termenv"
@@ -11,6 +12,7 @@ import (
 )
 
 func WriteTaskStart(
+	stdout io.Writer,
 	prefixColor termenv.Color,
 	k dukkha.ToolKey,
 	tk dukkha.TaskKey,
@@ -24,25 +26,31 @@ func WriteTaskStart(
 	}
 
 	if prefixColor != nil {
-		printlnWithColor(output, prefixColor)
+		printlnWithColor(stdout, output, prefixColor)
 	} else {
-		_, _ = fmt.Println(strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stdout, strings.Join(output, " "))
 	}
 }
 
-func printlnWithColor(parts []string, color termenv.Color) {
+func printlnWithColor(stdout io.Writer, parts []string, color termenv.Color) {
 	style := termenv.String(parts...).Foreground(color)
-	_, _ = fmt.Println(style.String())
+	_, _ = fmt.Fprintln(stdout, style.String())
 }
 
 func AssembleTaskKindID(
 	k dukkha.ToolKey,
 	taskKind dukkha.TaskKind,
 ) string {
-	kindParts := []string{string(k.Kind)}
+	var sb strings.Builder
+	sb.WriteString(string(k.Kind))
+
 	if len(k.Name) != 0 {
-		kindParts = append(kindParts, string(k.Name))
+		sb.WriteString(":")
+		sb.WriteString(string(k.Name))
 	}
 
-	return strings.Join(append(kindParts, string(taskKind)), ":")
+	sb.WriteString(":")
+	sb.WriteString(string(taskKind))
+
+	return sb.String()
 }

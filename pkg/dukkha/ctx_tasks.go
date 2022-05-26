@@ -9,8 +9,8 @@ type TaskUser interface {
 	AllToolSpecificTasks() map[ToolKey][]Task
 }
 
-func newContextTasks() *contextTasks {
-	return &contextTasks{
+func newContextTasks() contextTasks {
+	return contextTasks{
 		toolSpecificTasks: make(map[ToolKey][]Task),
 	}
 }
