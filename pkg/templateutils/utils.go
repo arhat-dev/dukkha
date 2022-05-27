@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-func parseArgsLastObjSecondLastMaybeOutput(args []any) (obj any, outWriter io.Writer, actualArgs []any) {
+func parseArgs_MaybeOUTPUT_OBJ(args []any) (obj any, outWriter io.Writer, actualArgs []any) {
 	var ok bool
 
 	switch len(args) {
@@ -28,7 +28,7 @@ func parseArgsLastObjSecondLastMaybeOutput(args []any) (obj any, outWriter io.Wr
 	return
 }
 
-func parseArgsLastInputSecondLastMaybeOutput(args []any) (
+func parseArgs_MaybeOUTPUT_DATA(args []any) (
 	inData []byte,
 	inReader io.Reader,
 	outWriter io.Writer,
@@ -54,16 +54,6 @@ func parseArgsLastInputSecondLastMaybeOutput(args []any) (
 	inData, inReader, ok, err = toBytesOrReader(args[len(args)-1])
 	if !ok {
 		inReader = nil
-	}
-
-	return
-}
-
-func close(file any) (_ None, err error) {
-	c, ok := file.(io.Closer)
-	if ok {
-		err = c.Close()
-		return
 	}
 
 	return

@@ -5,7 +5,6 @@
 package template
 
 import (
-	"reflect"
 	"sync"
 
 	"arhat.dev/dukkha/third_party/golang/text/template/parse"
@@ -19,9 +18,7 @@ type common struct {
 	// We use two maps, one for parsing and one for execution.
 	// This separation makes the API cleaner since it doesn't
 	// expose reflection to the client.
-	muFuncs    sync.RWMutex // protects parseFuncs and execFuncs
-	parseFuncs FuncMap
-	execFuncs  map[string]reflect.Value
+	funcs parse.TemplateFuncs
 }
 
 // Template is the representation of a parsed template. The *parse.Tree
@@ -72,8 +69,6 @@ func (t *Template) init() {
 	if t.common == nil {
 		c := new(common)
 		c.tmpl = make(map[string]*Template)
-		c.parseFuncs = make(FuncMap)
-		c.execFuncs = make(map[string]reflect.Value)
 		t.common = c
 	}
 }
@@ -101,14 +96,8 @@ func (t *Template) Clone() (*Template, error) {
 		tmpl := v.copy(nt.common)
 		nt.tmpl[k] = tmpl
 	}
-	t.muFuncs.RLock()
-	defer t.muFuncs.RUnlock()
-	for k, v := range t.parseFuncs {
-		nt.parseFuncs[k] = v
-	}
-	for k, v := range t.execFuncs {
-		nt.execFuncs[k] = v
-	}
+
+	nt.funcs = t.funcs
 	return nt, nil
 }
 
@@ -175,12 +164,10 @@ func (t *Template) Delims(left, right string) *Template {
 // type or if the name cannot be used syntactically as a function in a template.
 // It is legal to overwrite elements of the map. The return value is the template,
 // so calls can be chained.
-func (t *Template) Funcs(funcMap FuncMap) *Template {
+func (t *Template) Funcs(funcMap parse.TemplateFuncs) *Template {
 	t.init()
-	t.muFuncs.Lock()
-	defer t.muFuncs.Unlock()
-	addValueFuncs(t.execFuncs, funcMap)
-	addFuncs(t.parseFuncs, funcMap)
+	t.funcs = funcMap
+
 	return t
 }
 
@@ -207,9 +194,7 @@ func (t *Template) Lookup(name string) *Template {
 // overwriting the main template body.
 func (t *Template) Parse(text string) (*Template, error) {
 	t.init()
-	t.muFuncs.RLock()
-	trees, err := parse.Parse(t.name, text, t.leftDelim, t.rightDelim, t.parseFuncs, builtins())
-	t.muFuncs.RUnlock()
+	trees, err := parse.Parse(t.name, text, t.leftDelim, t.rightDelim, t.funcs)
 	if err != nil {
 		return nil, err
 	}

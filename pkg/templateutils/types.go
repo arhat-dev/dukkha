@@ -377,6 +377,15 @@ func toString(s String) (_ string, err error) {
 	case bool:
 		return strconv.FormatBool(t), nil
 
+	case struct{}:
+		return
+	case *struct{}:
+		return
+	case None:
+		return
+	case *None:
+		return
+
 	case fmt.Stringer:
 		return t.String(), nil
 	case nil:

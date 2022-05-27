@@ -20,9 +20,11 @@ import (
 // encNS for encoding
 type encNS struct{}
 
-// YAML to encode object into
+// YAML encodes object into yaml
+//
+// NOTE: there's no yaml decoding support in this namespace, use dukkha.FromYaml instead
 func (encNS) YAML(args ...any) (ret string, err error) {
-	obj, outWriter, args := parseArgsLastObjSecondLastMaybeOutput(args)
+	obj, outWriter, args := parseArgs_MaybeOUTPUT_OBJ(args)
 	flags, err := toStrings(args)
 	if err != nil {
 		return
@@ -72,8 +74,10 @@ func (encNS) YAML(args ...any) (ret string, err error) {
 
 // Json to encode object to json format
 // Usage: Json(...<options>, <optional writer>, Object)
+//
+// NOTE: there's no json decoding support in this namespace, use dukkha.FromJson instead
 func (encNS) JSON(args ...any) (ret string, err error) {
-	obj, outWriter, args := parseArgsLastObjSecondLastMaybeOutput(args)
+	obj, outWriter, args := parseArgs_MaybeOUTPUT_OBJ(args)
 	flags, err := toStrings(args)
 	if err != nil {
 		return
@@ -134,13 +138,14 @@ func (encNS) JSON(args ...any) (ret string, err error) {
 	return
 }
 
-// Hex to encode/decode hex data
-// Usage: Hex(...<options>, <optional writer>, inputDataOrReader)
-// where
-// options:
+// Hex to encode/decode hex data (default works in encoding mode)
+//
+// Hex(...<options>, <optional writer>, inputDataOrReader)
+//
+// where options are:
 // - `--decode` or `-d`: decode input as hex
 func (encNS) Hex(args ...any) (ret string, err error) {
-	inData, inReader, outWriter, args, err := parseArgsLastInputSecondLastMaybeOutput(args)
+	inData, inReader, outWriter, args, err := parseArgs_MaybeOUTPUT_DATA(args)
 	if err != nil {
 		return
 	}
@@ -303,7 +308,7 @@ func handleBaseX(
 	name string,
 	factory baseXFactory,
 ) (ret string, err error) {
-	inData, inReader, outWriter, args, err := parseArgsLastInputSecondLastMaybeOutput(args)
+	inData, inReader, outWriter, args, err := parseArgs_MaybeOUTPUT_DATA(args)
 	if err != nil {
 		return
 	}

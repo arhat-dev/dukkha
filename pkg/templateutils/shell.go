@@ -7,20 +7,20 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"reflect"
 	"strings"
 
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	dukkha_internal "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/pkg/stringhelper"
 )
 
-// ExpandEnv expand environment variable in unix style (`$FOO`, `${BAR}`)
+// ExpandEnv expands unix style environment variable (`$FOO`, `${BAR}`)
 // if enableExec is set to ture, also supports arbitrary command execution
 // using `$(do something)`
 func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (string, error) {
@@ -45,7 +45,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 		Env: rc,
 		// reassemble back-quoted string and $() by default
 		CmdSubst: func(w io.Writer, cs *syntax.CmdSubst) error {
-			script, err2 := rebuildShellEvaluation(printer, cs)
+			script, err2 := rebuildScript(printer, cs)
 			if err2 != nil {
 				if err2 != errSkipBackquotedCmdSubst {
 					return err2
@@ -88,7 +88,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 
 	if enableExec {
 		var stdout bytes.Buffer
-		runner, err := CreateEmbeddedShellRunner(
+		runner, err := CreateShellRunner(
 			rc.WorkDir(), rc, nil, &stdout, rc.Stderr(),
 		)
 		if err != nil {
@@ -97,7 +97,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 
 		// reassemble back-quoted string but eval $()
 		config.CmdSubst = func(w io.Writer, cs *syntax.CmdSubst) error {
-			script, err2 := rebuildShellEvaluation(printer, cs)
+			script, err2 := rebuildScript(printer, cs)
 			if err2 != nil {
 				if err2 != errSkipBackquotedCmdSubst {
 					return err2
@@ -114,7 +114,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 			}
 
 			stdout.Reset()
-			err2 = RunScriptInEmbeddedShell(rc, runner, parser, script)
+			err2 = RunScript(rc, runner, parser, script)
 			if err2 != nil {
 				return err2
 			}
@@ -133,7 +133,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 
 const errSkipBackquotedCmdSubst errString = "skip CmdSubSt"
 
-func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
+func rebuildScript(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
 	var buf bytes.Buffer
 
 	err2 := printer.Print(&buf, cs)
@@ -154,7 +154,7 @@ func rebuildShellEvaluation(printer *syntax.Printer, cs *syntax.CmdSubst) (strin
 	}
 }
 
-func CreateEmbeddedShellRunner(
+func CreateShellRunner(
 	workdir string, // workdir may be different from rc.WorkDir
 	rc dukkha.RenderingContext,
 	stdin io.Reader,
@@ -166,7 +166,7 @@ func CreateEmbeddedShellRunner(
 		interp.StdIO(stdin, stdout, stderr),
 		interp.Params("-e"),
 		interp.OpenHandler(fileOpenHandler),
-		interp.ExecHandler(newExecHandler(rc, stdin)),
+		interp.ExecHandler(newExecHandler(rc, stdin, stdout)),
 	)
 
 	if err != nil {
@@ -176,7 +176,7 @@ func CreateEmbeddedShellRunner(
 	return runner, nil
 }
 
-func RunScriptInEmbeddedShell(
+func RunScript(
 	ctx context.Context,
 	runner *interp.Runner,
 	parser *syntax.Parser,
@@ -196,52 +196,134 @@ func RunScriptInEmbeddedShell(
 }
 
 // ExecCmdAsTemplateFuncCall executes cmd as a template func
-// TODO: refactor it to do direct reflect func call, instead of creating a new template
+// args[0] should be a template func name, see funcs.go for reference
 func ExecCmdAsTemplateFuncCall(
 	rc dukkha.RenderingContext,
-	stdin io.Reader,
-	stdout io.Writer,
+	pipeStdin io.Reader,
+	pipeStdout io.Writer,
 	args []string,
-) error {
-	// ns, funcName, ok := strings.Cut(args[0], ".")
-	// if !ok {
-	// 	ns, funcName = "", args[0]
-	// }
+) (stdout, stderr string, err error) {
+	var (
+		bufCallArgs [10]reflect.Value
+		callArgs    []reflect.Value
 
-	tpl := `{{- ` + strings.Join(args, " ")
+		nArgs     = len(args) - 1
+		useStdin  = pipeStdin != nil
+		useStdout = pipeStdout != nil
 
-	var values interface{} = rc
-	if stdin != nil {
-		data, err := io.ReadAll(stdin)
-		if err != nil {
-			return err
-		}
-
-		type valuesWithStdin struct {
-			dukkha.RenderingContext
-			// nolint:revive
-			DUKKHA_TEMPLATE_STDIN string
-		}
-
-		values = &valuesWithStdin{
-			RenderingContext:      rc,
-			DUKKHA_TEMPLATE_STDIN: string(data),
-		}
-
-		tpl += ` .DUKKHA_TEMPLATE_STDIN`
+		funcs = CreateTemplateFuncs(rc)
+	)
+	if nArgs < 0 {
+		err = errString("invalid 0 arg call")
+		return
 	}
 
-	tpl += ` -}}`
+	const nBUF = len(bufCallArgs)
 
-	t, err := CreateTemplate(rc).Parse(tpl)
-	if err != nil {
-		return fmt.Errorf("convert cmd to template call: %w", err)
+	funcName := args[0]
+	fid := FuncNameToFuncID(funcName)
+
+	fn := funcs.GetByID(fid)
+	if !fn.IsValid() {
+		err = fmt.Errorf("%q not found", funcName)
+		return
 	}
 
-	return t.Execute(stdout, values)
+	if useStdout {
+		// TODO: generate a func to tell whether fn supports the second last arg as writer
+		switch fid {
+		case FuncID_enc_YAML, FuncID_enc_JSON, FuncID_toYaml, FuncID_toJson,
+			FuncID_enc_Base32, FuncID_enc_Base64, FuncID_hex:
+		default:
+			useStdout = false
+		}
+	}
+
+	if useStdin && useStdout {
+		if nArgs+2 > nBUF {
+			callArgs = make([]reflect.Value, nArgs+2)
+		} else {
+			callArgs = bufCallArgs[:nArgs+2]
+		}
+
+		callArgs[nArgs+1] = reflect.ValueOf(pipeStdin)
+		callArgs[nArgs] = reflect.ValueOf(pipeStdout)
+	} else if useStdin || useStdout {
+		if nArgs+1 > nBUF {
+			callArgs = make([]reflect.Value, nArgs+1)
+		} else {
+			callArgs = bufCallArgs[:nArgs+1]
+		}
+
+		if useStdin { // input is the last argument
+			callArgs[nArgs] = reflect.ValueOf(pipeStdin)
+		} else /* useStdout */ { // output is the second last argument by convension
+			if nArgs > 0 {
+				callArgs[nArgs-1] = reflect.ValueOf(pipeStdout)
+			} else {
+				callArgs[0] = reflect.ValueOf(pipeStdout)
+			}
+		}
+	} else {
+		if nArgs > nBUF {
+			callArgs = make([]reflect.Value, nArgs)
+		} else {
+			callArgs = bufCallArgs[:nArgs]
+		}
+	}
+
+	j := 0
+	for i := range callArgs {
+		if callArgs[i].IsValid() {
+			continue
+		}
+
+		callArgs[i] = reflect.ValueOf(args[j+1])
+		j++
+	}
+
+	defer func() {
+		p := recover()
+		if p != nil {
+			err = fmt.Errorf("%s %s, called with %v: %v", funcName, fn.Type().String(), callArgs, p)
+		}
+	}()
+
+	callRet := fn.Call(callArgs)
+	switch len(callRet) {
+	case 1:
+	case 2:
+		ret1 := callRet[1]
+		if ret1.IsValid() && ret1.CanInterface() {
+			err, _ = ret1.Interface().(error)
+			if err != nil {
+				return
+			}
+		}
+	default:
+		panic("invalid return value count, expecting 1 or 2")
+	}
+
+	ret0 := callRet[0]
+	if ret0.IsValid() && ret0.CanInterface() {
+		switch rv := ret0.Interface().(type) {
+		case cmdOutput:
+			stdout = rv.Stdout
+			stderr = rv.Stderr
+		default:
+			stdout, err = toString(rv)
+		}
+		return
+	}
+
+	return
 }
 
-func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHandlerFunc {
+func newExecHandler(
+	rc dukkha.RenderingContext,
+	origStdin io.Reader,
+	origStdout io.Writer,
+) interp.ExecHandlerFunc {
 	defaultCmdExecHandler := interp.DukkhaExecHandler(0)
 
 	return func(
@@ -261,25 +343,37 @@ func newExecHandler(rc dukkha.RenderingContext, stdin io.Reader) interp.ExecHand
 
 		hc := interp.HandlerCtx(ctx)
 
-		var pipeReader io.Reader
-		if hc.Stdin != stdin {
+		var (
+			pipeReader io.Reader
+			pipeWriter io.Writer
+		)
+		if hc.Stdin != origStdin {
 			// piped context
 			pipeReader = hc.Stdin
 		}
 
-		args[0] = strings.TrimPrefix(args[0], "tpl:")
-		// special cases
-		switch args[0] {
-		case "dukkha.Self":
-			return dukkha_internal.RunSelf(rc.(dukkha.Context), pipeReader, hc.Stdout, hc.Stderr, args[1:]...)
+		if hc.Stdout != origStdout {
+			pipeWriter = hc.Stdout
 		}
 
-		return ExecCmdAsTemplateFuncCall(
+		args[0] = strings.TrimPrefix(args[0], "tpl:")
+
+		out, errOut, err := ExecCmdAsTemplateFuncCall(
 			rc,
 			pipeReader,
-			hc.Stdout,
+			pipeWriter,
 			args,
 		)
+
+		if len(out) != 0 {
+			hc.Stdout.Write(stringhelper.ToBytes[byte, byte](out))
+		}
+
+		if len(errOut) != 0 {
+			hc.Stderr.Write(stringhelper.ToBytes[byte, byte](errOut))
+		}
+
+		return err
 	}
 }
 

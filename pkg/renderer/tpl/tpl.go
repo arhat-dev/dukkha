@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -212,60 +213,58 @@ func renderTemplate(
 	}
 
 	// Override placeholder funcs immediately before execute template
-	tpl.Funcs(map[string]interface{}{
-		"var": func() map[string]interface{} {
-			return variables
-		},
-
-		// include like helm include
-		"include": func(name string, data interface{}) (string, error) {
-			count, ok := includedCount[name]
-			if ok {
-				if count >= maxIncludeCount {
-					return "", fmt.Errorf("too many include of %q", name)
-				}
-
-				includedCount[name] = count + 1
-			} else {
-				includedCount[name] = 1
+	fnVar := func() any { return variables }
+	fnInclude := func(name string, data interface{}) (string, error) {
+		count, ok := includedCount[name]
+		if ok {
+			if count >= maxIncludeCount {
+				return "", fmt.Errorf("too many include of %q", name)
 			}
 
-			var (
-				buf  strings.Builder
-				err2 error
-			)
-			if _, defined := definedTemplates[name]; defined {
-				err2 = tpl.ExecuteTemplate(&buf, name, data)
-			} else {
-				var idx int64
-				idx, err2 = strconv.ParseInt(name, 10, 64)
-				if err2 != nil {
-					return "", fmt.Errorf("template %q undefined", name)
-				}
+			includedCount[name] = count + 1
+		} else {
+			includedCount[name] = 1
+		}
 
-				if idx < 0 {
-					idx = tplListSize + idx
-				}
-
-				if idx < 0 || idx >= tplListSize {
-					return "", fmt.Errorf(
-						"invalid index out of range: %d not in [0,%d)",
-						idx, tplListSize,
-					)
-				}
-
-				err2 = tplList[idx].Execute(&buf, data)
-			}
-
-			includedCount[name]--
-
+		var (
+			buf  strings.Builder
+			err2 error
+		)
+		if _, defined := definedTemplates[name]; defined {
+			err2 = tpl.ExecuteTemplate(&buf, name, data)
+		} else {
+			var idx int64
+			idx, err2 = strconv.ParseInt(name, 10, 64)
 			if err2 != nil {
-				return "", err2
+				return "", fmt.Errorf("template %q undefined", name)
 			}
 
-			return buf.String(), nil
-		},
-	})
+			if idx < 0 {
+				idx = tplListSize + idx
+			}
+
+			if idx < 0 || idx >= tplListSize {
+				return "", fmt.Errorf(
+					"invalid index out of range: %d not in [0,%d)",
+					idx, tplListSize,
+				)
+			}
+
+			err2 = tplList[idx].Execute(&buf, data)
+		}
+
+		includedCount[name]--
+
+		if err2 != nil {
+			return "", err2
+		}
+
+		return buf.String(), nil
+	}
+
+	tplFuncs := tpl.GetExecFuncs().(*templateutils.TemplateFuncs)
+	tplFuncs.Override(templateutils.FuncID_var, reflect.ValueOf(fnVar))
+	tplFuncs.Override(templateutils.FuncID_include, reflect.ValueOf(fnInclude))
 
 	var buf bytes.Buffer
 	err = tpl.Execute(&buf, rc)

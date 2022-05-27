@@ -727,7 +727,7 @@ func (s *state) evalCall(dot, fun reflect.Value, isBuiltin bool, node parse.Node
 	}
 
 	// Special case for builtin and/or, which short-circuit.
-	if isBuiltin && (name == "and" || name == "or") {
+	if name == "and" || name == "or" {
 		argType := typ.In(0)
 		var v reflect.Value
 		for _, arg := range args {
@@ -788,6 +788,11 @@ func (s *state) evalCall(dot, fun reflect.Value, isBuiltin bool, node parse.Node
 		s.errorf("error calling %s: %w", name, err)
 	}
 	return unwrap(v)
+}
+
+func truth(arg reflect.Value) bool {
+	t, _ := isTrue(indirectInterface(arg))
+	return t
 }
 
 // canBeNil reports whether an untyped nil can be assigned to the type. See reflect.Zero.

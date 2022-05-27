@@ -63,7 +63,7 @@ func (d *Driver) RenderYaml(
 	}
 
 	var buf bytes.Buffer
-	runner, err := templateutils.CreateEmbeddedShellRunner(
+	runner, err := templateutils.CreateShellRunner(
 		rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 	)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d *Driver) RenderYaml(
 	)
 
 	for _, script := range scripts {
-		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, script)
+		err = templateutils.RunScript(rc, runner, parser, script)
 
 		if err != nil {
 			return nil, fmt.Errorf(

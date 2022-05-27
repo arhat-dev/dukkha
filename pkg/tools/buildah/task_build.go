@@ -26,19 +26,22 @@ const (
 	TaskKindBuild = "build"
 )
 
+// buildahNS for template funcs related to buildah
+type buildahNS struct{ rc dukkha.RenderingContext }
+
+func (ns buildahNS) ImageIDFile(imageName string) (string, error) {
+	return GetImageIDFileForImageName(
+		ns.rc,
+		templateutils.GetFullImageName_UseDefault_IfIfNoTagSet(ns.rc, imageName, true),
+		false,
+	)
+}
+
 func init() {
 	dukkha.RegisterTask(ToolKind, TaskKindBuild, newTaskBuild)
 
 	templateutils.RegisterTemplateFuncs(map[string]templateutils.TemplateFuncFactory{
-		"getBuildahImageIDFile": func(rc dukkha.RenderingContext) interface{} {
-			return func(imageName string) (string, error) {
-				return GetImageIDFileForImageName(
-					rc,
-					templateutils.GetFullImageName_UseDefault_IfIfNoTagSet(rc, imageName, true),
-					false,
-				)
-			}
-		},
+		"buildah": func(rc dukkha.RenderingContext) any { return buildahNS{rc: rc} },
 	})
 }
 

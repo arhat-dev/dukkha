@@ -7,6 +7,7 @@ package parse
 import (
 	"flag"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -318,7 +319,17 @@ var parseTests = []parseTest{
 	{"block definition", `{{block "foo"}}hello{{end}}`, hasError, ""},
 }
 
-var builtins = map[string]any{
+type TestTemplateFuncs map[string]any
+
+func (tf TestTemplateFuncs) Has(name string) bool {
+	return tf != nil && tf[name] != nil
+}
+
+func (tf TestTemplateFuncs) GetByName(name string) reflect.Value {
+	panic("unexpected GetByName call during testing")
+}
+
+var builtins = TestTemplateFuncs{
 	"printf":   fmt.Sprintf,
 	"contains": strings.Contains,
 }
@@ -327,7 +338,7 @@ func testParse(doCopy bool, t *testing.T) {
 	textFormat = "%q"
 	defer func() { textFormat = "%s" }()
 	for _, test := range parseTests {
-		tmpl, err := New(test.name).Parse(test.input, "", "", make(map[string]*Tree), builtins)
+		tmpl, err := New(test.name, nil).Parse(test.input, "", "", make(map[string]*Tree), builtins)
 		switch {
 		case err == nil && !test.ok:
 			t.Errorf("%q: expected error; got none", test.name)
@@ -374,9 +385,9 @@ func TestParseWithComments(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tr := New(test.name)
+			tr := New(test.name, nil)
 			tr.Mode = ParseComments
-			tmpl, err := tr.Parse(test.input, "", "", make(map[string]*Tree))
+			tmpl, err := tr.Parse(test.input, "", "", make(map[string]*Tree), nil)
 			if err != nil {
 				t.Errorf("%q: expected error; got none", test.name)
 			}
@@ -391,9 +402,9 @@ func TestSkipFuncCheck(t *testing.T) {
 	oldTextFormat := textFormat
 	textFormat = "%q"
 	defer func() { textFormat = oldTextFormat }()
-	tr := New("skip func check")
+	tr := New("skip func check", nil)
 	tr.Mode = SkipFuncCheck
-	tmpl, err := tr.Parse("{{fn 1 2}}", "", "", make(map[string]*Tree))
+	tmpl, err := tr.Parse("{{fn 1 2}}", "", "", make(map[string]*Tree), nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -425,7 +436,7 @@ func TestIsEmpty(t *testing.T) {
 		t.Errorf("nil tree is not empty")
 	}
 	for _, test := range isEmptyTests {
-		tree, err := New("root").Parse(test.input, "", "", make(map[string]*Tree), nil)
+		tree, err := New("root", nil).Parse(test.input, "", "", make(map[string]*Tree), nil)
 		if err != nil {
 			t.Errorf("%q: unexpected error: %v", test.name, err)
 			continue
@@ -437,7 +448,7 @@ func TestIsEmpty(t *testing.T) {
 }
 
 func TestErrorContextWithTreeCopy(t *testing.T) {
-	tree, err := New("root").Parse("{{if true}}{{end}}", "", "", make(map[string]*Tree), nil)
+	tree, err := New("root", nil).Parse("{{if true}}{{end}}", "", "", make(map[string]*Tree), nil)
 	if err != nil {
 		t.Fatalf("unexpected tree parse failure: %v", err)
 	}
@@ -558,7 +569,7 @@ var errorTests = []parseTest{
 func TestErrors(t *testing.T) {
 	for _, test := range errorTests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := New(test.name).Parse(test.input, "", "", make(map[string]*Tree))
+			_, err := New(test.name, nil).Parse(test.input, "", "", make(map[string]*Tree), nil)
 			if err == nil {
 				t.Fatalf("expected error %q, got nil", test.result)
 			}
@@ -576,7 +587,7 @@ func TestBlock(t *testing.T) {
 		inner = `bar{{.}}baz`
 	)
 	treeSet := make(map[string]*Tree)
-	tmpl, err := New("outer").Parse(input, "", "", treeSet, nil)
+	tmpl, err := New("outer", nil).Parse(input, "", "", treeSet, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -595,7 +606,7 @@ func TestBlock(t *testing.T) {
 func TestLineNum(t *testing.T) {
 	const count = 100
 	text := strings.Repeat("{{printf 1234}}\n", count)
-	tree, err := New("bench").Parse(text, "", "", make(map[string]*Tree), builtins)
+	tree, err := New("bench", nil).Parse(text, "", "", make(map[string]*Tree), builtins)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -619,7 +630,7 @@ func TestLineNum(t *testing.T) {
 func BenchmarkParseLarge(b *testing.B) {
 	text := strings.Repeat("{{1234}}\n", 10000)
 	for i := 0; i < b.N; i++ {
-		_, err := New("bench").Parse(text, "", "", make(map[string]*Tree), builtins)
+		_, err := New("bench", nil).Parse(text, "", "", make(map[string]*Tree), builtins)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -661,7 +672,7 @@ func BenchmarkListString(b *testing.B) {
 	{{printf "%v" (contains $z.Field1.Field2 $y)}}
 {{end}}
 `
-	tree, err := New("bench").Parse(text, "", "", make(map[string]*Tree), builtins)
+	tree, err := New("bench", nil).Parse(text, "", "", make(map[string]*Tree), builtins)
 	if err != nil {
 		b.Fatal(err)
 	}

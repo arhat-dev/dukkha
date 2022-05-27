@@ -290,9 +290,9 @@ func (ns fsNS) LookupFile(args ...String) (ret string, err error) {
 	return interp.DukkhaLookPathDir(goos, rc.WorkDir(), f, rc, interp.DukkhaFindFile)
 }
 
-// ReadFile reads complete local file content
-func (ns fsNS) ReadFile(file String) (_ string, err error) {
-	f, err := toString(file)
+// ReadFile reads all content from local file
+func (ns fsNS) ReadFile(path String) (_ string, err error) {
+	f, err := toString(path)
 	if err != nil {
 		return
 	}
@@ -343,28 +343,56 @@ func (ns fsNS) OpenFile(args ...String) (_ *os.File, err error) {
 	var (
 		pfs pflag.FlagSet
 
-		mode   uint32
-		fflags int
+		mode          uint32
+		fflags        string
+		fileOpenFlags int
+		read, write   bool
 	)
 
 	clihelper.InitFlagSet(&pfs, "open-file")
 
 	pfs.Uint32VarP(&mode, "mode", "m", 0, "")
-	pfs.IntVarP(&fflags, "flags", "f", os.O_RDONLY, "")
+	pfs.StringVarP(&fflags, "flags", "f", "r", "")
 
 	err = pfs.Parse(flags)
 	if err != nil {
 		return
 	}
 
+	for _, c := range fflags {
+		switch c {
+		case 'r':
+			read = true
+		case 'w':
+			write = true
+		case 'a':
+			fileOpenFlags |= os.O_APPEND
+		case 'x':
+			fileOpenFlags |= os.O_EXCL
+		case 's':
+			fileOpenFlags |= os.O_SYNC
+		}
+	}
+
+	if read && write {
+		fileOpenFlags |= os.O_RDWR
+	} else if read {
+		fileOpenFlags |= os.O_RDONLY
+	} else if write {
+		fileOpenFlags |= os.O_WRONLY
+	}
+
 	var f fs.File
-	f, err = ns.rc.FS().OpenFile(path, fflags, fs.FileMode(mode))
+	f, err = ns.rc.FS().OpenFile(path, fileOpenFlags, fs.FileMode(mode))
 	if err != nil {
 		return
 	}
 
 	return f.(*os.File), nil
 }
+
+// Touch is an alias of WriteFile(file)
+func (ns fsNS) Touch(file String) (None, error) { return ns.WriteFile(file) }
 
 // WriteFile write data to file in O_TRUNC mode
 //

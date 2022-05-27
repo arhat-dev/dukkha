@@ -16,12 +16,12 @@ func (pathNS) Ext(p String) string   { return path.Ext(must(toString(p))) }
 func (pathNS) IsAbs(p String) bool   { return path.IsAbs(must(toString(p))) }
 
 func (pathNS) Join(elem ...String) (_ string, err error) {
-	elements, err := toStrings(elem)
+	parts, err := toStrings(elem)
 	if err != nil {
 		return
 	}
 
-	return path.Join(elements...), nil
+	return path.Join(parts...), nil
 }
 
 func (pathNS) Match(pattern, name String) (matched bool, err error) {

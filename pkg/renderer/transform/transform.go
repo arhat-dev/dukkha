@@ -147,7 +147,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 			buf    bytes.Buffer
 			runner *interp.Runner
 		)
-		runner, err = templateutils.CreateEmbeddedShellRunner(
+		runner, err = templateutils.CreateShellRunner(
 			rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 		)
 		if err != nil {
@@ -161,7 +161,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 			syntax.Variant(syntax.LangBash),
 		)
 
-		err = templateutils.RunScriptInEmbeddedShell(rc, runner, parser, *op.Shell)
+		err = templateutils.RunScript(rc, runner, parser, *op.Shell)
 		if err != nil {
 			return nil, err
 		}

@@ -84,7 +84,7 @@ There is a template func `eval.Shell` for running shell commands in template.
 
 ```yaml
 foo@tpl: |-
-  {{- eval.Shell "echo 'Called From Template'" -}}
+  {{- (eval.Shell "echo 'Called From Template'").Stdout -}}
 ```
 
 ## Suggested Use Cases

@@ -1,9 +1,22 @@
 package templateutils
 
-import "reflect"
+import (
+	"io"
+	"reflect"
+)
 
 // typeNS for scalar type conversion
 type typeNS struct{}
+
+func (typeNS) Close(file any) (_ None, err error) {
+	c, ok := file.(io.Closer)
+	if ok {
+		err = c.Close()
+		return
+	}
+
+	return
+}
 
 func (typeNS) Default(def, v any) any {
 	if IsZero(v) {

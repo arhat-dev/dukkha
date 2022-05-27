@@ -5,75 +5,9 @@
 - `addPrefix(...String) (string, error)`
 - `addSuffix(...String) (string, error)`
 - `all(...any) bool`
+- `and(any, ...any) any`
 - `any(...any) bool`
 - `append(...any) (any, error)`
-- `base64(...any) (string, error)`
-- `close(any) (None, error)`
-- `contains(String, String) (bool, error)`
-- `default(any, any) any`
-- `dict(...any) (map[string]any, error)`
-- `div(...Number) (Number, error)`
-- `double(Number) (Number, error)`
-- `dup(any) (any, error)`
-- `find(String, ...String) ([]string, error)`
-- `first(Slice) any`
-- `fromJson(String) (any, error)`
-- `fromYaml(String) (any, error)`
-- `getBuildahImageIDFile(string) (string, error)`
-- `half(Number) (Number, error)`
-- `has(...any) (bool, error)`
-- `hasAny(...any) (bool, error)`
-- `hasPrefix(String, String) (bool, error)`
-- `hasSuffix(String, String) (bool, error)`
-- `hex(...any) (string, error)`
-- `include(string, any) (string, error)`
-- `indent(...any) (string, error)`
-- `jq(...any) (string, error)`
-- `jqObj(...any) (any, error)`
-- `last(Slice) any`
-- `list(...any) []any`
-- `lower(String) (string, error)`
-- `max(...Number) (any, error)`
-- `md5(...any) (string, error)`
-- `min(...Number) (any, error)`
-- `mkdir(...String) (None, error)`
-- `mod(...Number) (Number, error)`
-- `mul(...Number) (Number, error)`
-- `nindent(...any) (string, error)`
-- `now(...String) (time.Time, error)`
-- `omit(...any) (any, error)`
-- `pick(...any) (any, error)`
-- `prepend(...any) (any, error)`
-- `quote(String) (string, error)`
-- `removePrefix(...String) (string, error)`
-- `removeSuffix(...String) (string, error)`
-- `replaceAll(String, String, String) (string, error)`
-- `seq(...Number) ([]int64, error)`
-- `sha1(...any) (string, error)`
-- `sha256(...any) (string, error)`
-- `sha512(...any) (string, error)`
-- `sort(Slice) (Slice, error)`
-- `split(String, String) ([]string, error)`
-- `splitN(String, Number, String) ([]string, error)`
-- `squote(String) (string, error)`
-- `stringList(...String) ([]string, error)`
-- `sub(...Number) (Number, error)`
-- `sub1(Number) (Number, error)`
-- `title(String) (string, error)`
-- `toJson(...any) (string, error)`
-- `toString(any) (string, error)`
-- `toYaml(...any) (string, error)`
-- `totp(...any) (string, error)`
-- `touch(String) (struct {}, error)`
-- `trim(String, String) (string, error)`
-- `trimPrefix(String, String) (string, error)`
-- `trimSpace(String) (string, error)`
-- `trimSuffix(String, String) (string, error)`
-- `uniq(Slice) (any, error)`
-- `upper(String) (string, error)`
-- `write(String, ...any) (None, error)`
-- `yq(...any) (string, error)`
-- `yqObj(...any) (any, error)`
 - `archconv.AlpineArch(String) string`
 - `archconv.AlpineTripleName(String) string`
 - `archconv.DebianArch(String) string`
@@ -81,7 +15,7 @@
 - `archconv.DockerArch(String) string`
 - `archconv.DockerArchVariant(String) string`
 - `archconv.DockerHubArch(String, ...String) string`
-- `archconv.DockerOS(string) string`
+- `archconv.DockerOS(String) string`
 - `archconv.DockerPlatformArch(String) string`
 - `archconv.GNUArch(String) string`
 - `archconv.GNUTripleName(String, ...String) string`
@@ -93,11 +27,14 @@
 - `archconv.LLVMTripleName(String, ...String) string`
 - `archconv.OciArch(String) string`
 - `archconv.OciArchVariant(String) string`
-- `archconv.OciOS(string) string`
+- `archconv.OciOS(String) string`
 - `archconv.QemuArch(String) string`
 - `archconv.SF(String) string`
 - `archconv.SimpleArch(String) string`
 - `archconv.SoftFloadArch(String) string`
+- `base64(...any) (string, error)`
+- `call(any, ...any) (any, error)`
+- `close(any) (None, error)`
 - `coll.Append(...any) (any, error)`
 - `coll.Bools(...Bool) ([]bool, error)`
 - `coll.Dup(any) (any, error)`
@@ -123,66 +60,32 @@
 - `coll.Uints(...Number) ([]uint64, error)`
 - `coll.Unique(Slice) (any, error)`
 - `coll.Values(Map) ([]any, error)`
+- `contains(String, String) (bool, error)`
 - `cred.Htpasswd(String, String) (string, error)`
 - `cred.Totp(...any) (string, error)`
+- `default(any, any) any`
+- `dict(...any) (map[string]any, error)`
+- `div(...Number) (Number, error)`
 - `dns.CNAME(...String) (string, error)`
 - `dns.HOST(...String) ([]string, error)`
 - `dns.IP(...String) ([]string, error)`
 - `dns.SRV(...String) ([]*net.SRV, error)`
 - `dns.TXT(...String) ([]string, error)`
-- `dukkha.CacheDir() string`
-- `dukkha.CrossPlatform(...String) bool`
-- `dukkha.FromYaml(Bytes) (any, error)`
-- `dukkha.JQ(...any) (string, error)`
-- `dukkha.JQObj(...any) (any, error)`
-- `dukkha.Self(...String) (struct { Stdout string; Stderr string }, error)`
-- `dukkha.Set(String, any) (any, error)`
-- `dukkha.SetValue(String, any) (any, error)`
-- `dukkha.WorkDir() string`
-- `dukkha.YQ(...any) (string, error)`
-- `dukkha.YQObj(...any) (any, error)`
+- `double(Number) (Number, error)`
+- `dup(any) (any, error)`
 - `enc.Base32(...any) (string, error)`
 - `enc.Base64(...any) (string, error)`
 - `enc.Hex(...any) (string, error)`
 - `enc.JSON(...any) (string, error)`
 - `enc.YAML(...any) (string, error)`
-- `eval.Env(...String) (string, error)`
-- `eval.Shell(String, ...Bytes) (string, error)`
-- `eval.Template(any) (string, error)`
-- `fs.Abs(String) (string, error)`
-- `fs.AppendFile(String, ...any) (None, error)`
-- `fs.Base(String) string`
-- `fs.Clean(String) string`
-- `fs.Dir(String) string`
-- `fs.Exists(String) (bool, error)`
-- `fs.Ext(String) string`
-- `fs.Find(String, ...String) ([]string, error)`
-- `fs.FromSlash(String) string`
-- `fs.Glob(String) ([]string, error)`
-- `fs.IsAbs(String) bool`
-- `fs.IsCharDevice(String) bool`
-- `fs.IsDevice(String) bool`
-- `fs.IsDir(String) bool`
-- `fs.IsFIFO(String) bool`
-- `fs.IsOther(String) bool`
-- `fs.IsSocket(String) bool`
-- `fs.IsSymlink(String) bool`
-- `fs.Join(...String) (string, error)`
-- `fs.Lookup(...String) (string, error)`
-- `fs.LookupFile(...String) (string, error)`
-- `fs.Match(String, String) (bool, error)`
-- `fs.Mkdir(...String) (None, error)`
-- `fs.OpenFile(...String) (*os.File, error)`
-- `fs.ReadDir(String) ([]string, error)`
-- `fs.ReadFile(String) (string, error)`
-- `fs.Rel(String, String) (string, error)`
-- `fs.Split(String) (string, string)`
-- `fs.ToSlash(String) string`
-- `fs.UserCacheDir() string`
-- `fs.UserConfigDir() string`
-- `fs.UserHomeDir() string`
-- `fs.VolumeName(String) string`
-- `fs.WriteFile(String, ...any) (None, error)`
+- `eq(any, ...any) (bool, error)`
+- `ge(any, any) (bool, error)`
+- `gt(any, any) (bool, error)`
+- `half(Number) (Number, error)`
+- `has(...any) (bool, error)`
+- `hasAny(...any) (bool, error)`
+- `hasPrefix(String, String) (bool, error)`
+- `hasSuffix(String, String) (bool, error)`
 - `hash.ADLER32(...any) (string, error)`
 - `hash.Bcrypt(...any) (string, error)`
 - `hash.CRC32(...any) (string, error)`
@@ -197,6 +100,16 @@
 - `hash.SHA512(...any) (string, error)`
 - `hash.SHA512_224(...any) (string, error)`
 - `hash.SHA512_256(...any) (string, error)`
+- `hex(...any) (string, error)`
+- `html(...any) string`
+- `indent(...any) (string, error)`
+- `index(any, any) (any, error)`
+- `js(...any) string`
+- `le(any, any) (bool, error)`
+- `len(any) (int, error)`
+- `list(...any) []any`
+- `lower(String) (string, error)`
+- `lt(any, any) (bool, error)`
 - `math.Abs(Number) (Number, error)`
 - `math.Add(...Number) (Number, error)`
 - `math.Add1(Number) (Number, error)`
@@ -217,9 +130,17 @@
 - `math.Seq(...Number) ([]int64, error)`
 - `math.Sub(...Number) (Number, error)`
 - `math.Sub1(Number) (Number, error)`
-- `os.Stderr() io.Writer`
-- `os.Stdin() io.Reader`
-- `os.Stdout() io.Writer`
+- `max(...Number) (any, error)`
+- `md5(...any) (string, error)`
+- `min(...Number) (any, error)`
+- `mod(...Number) (Number, error)`
+- `mul(...Number) (Number, error)`
+- `ne(any, any) (bool, error)`
+- `nindent(...any) (string, error)`
+- `not(any) bool`
+- `now(...String) (time.Time, error)`
+- `omit(...any) (any, error)`
+- `or(any, ...any) any`
 - `path.Base(String) string`
 - `path.Clean(String) string`
 - `path.Dir(String) string`
@@ -228,13 +149,27 @@
 - `path.Join(...String) (string, error)`
 - `path.Match(String, String) (bool, error)`
 - `path.Split(String) []string`
+- `pick(...any) (any, error)`
+- `prepend(...any) (any, error)`
+- `print(...any) string`
+- `printf(String, ...any) string`
+- `println(...any) string`
+- `quote(String) (string, error)`
 - `re.Find(...String) (string, error)`
 - `re.FindAll(...String) ([]string, error)`
 - `re.Match(...String) (bool, error)`
 - `re.QuoteMeta(String) string`
 - `re.Replace(...String) (string, error)`
-- `re.ReplasLiteral(...String) (string, error)`
+- `re.ReplaceLiteral(...String) (string, error)`
 - `re.Split(...String) ([]string, error)`
+- `removePrefix(...String) (string, error)`
+- `removeSuffix(...String) (string, error)`
+- `replaceAll(String, String, String) (string, error)`
+- `seq(...Number) ([]int64, error)`
+- `sha1(...any) (string, error)`
+- `sha256(...any) (string, error)`
+- `sha512(...any) (string, error)`
+- `slice(...any) (Slice, error)`
 - `sockaddr.AllInterfaces() (sockaddr.IfAddrs, error)`
 - `sockaddr.Attr(String, any) (string, error)`
 - `sockaddr.DefaultInterfaces() (sockaddr.IfAddrs, error)`
@@ -251,8 +186,11 @@
 - `sockaddr.PublicInterfaces() (sockaddr.IfAddrs, error)`
 - `sockaddr.Sort(String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
 - `sockaddr.Unique(String, sockaddr.IfAddrs) (sockaddr.IfAddrs, error)`
-- `state.Failed() bool`
-- `state.Succeeded() bool`
+- `sort(Slice) (Slice, error)`
+- `split(String, String) ([]string, error)`
+- `splitN(String, Number, String) ([]string, error)`
+- `squote(String) (string, error)`
+- `stringList(...String) ([]string, error)`
 - `strings.Abbrev(...any) (string, error)`
 - `strings.AddPrefix(...String) (string, error)`
 - `strings.AddSuffix(...String) (string, error)`
@@ -294,10 +232,8 @@
 - `strings.Untitle(String) (string, error)`
 - `strings.Upper(String) (string, error)`
 - `strings.WordWrap(...any) (string, error)`
-- `tag.ImageName(...String) (string, error)`
-- `tag.ImageTag(...String) (string, error)`
-- `tag.ManifestName(...String) (string, error)`
-- `tag.ManifestTag(...String) (string, error)`
+- `sub(...Number) (Number, error)`
+- `sub1(Number) (Number, error)`
 - `time.Add(Duration, Time) (time.Time, error)`
 - `time.Ceil(Duration, Time) (time.Time, error)`
 - `time.CeilDuration(Duration, Duration) (time.Duration, error)`
@@ -330,8 +266,18 @@
 - `time.Week(...Number) (time.Duration, error)`
 - `time.ZoneName(...any) (string, error)`
 - `time.ZoneOffset(...any) (int, error)`
+- `title(String) (string, error)`
+- `toJson(...any) (string, error)`
+- `toString(any) (string, error)`
+- `toYaml(...any) (string, error)`
+- `totp(...any) (string, error)`
+- `trim(String, String) (string, error)`
+- `trimPrefix(String, String) (string, error)`
+- `trimSpace(String) (string, error)`
+- `trimSuffix(String, String) (string, error)`
 - `type.AllTrue(...any) bool`
 - `type.AnyTrue(...any) bool`
+- `type.Close(any) (None, error)`
 - `type.Default(any, any) any`
 - `type.FirstNoneZero(...any) any`
 - `type.IsBool(any) bool`
@@ -345,8 +291,88 @@
 - `type.ToString(any) (string, error)`
 - `type.ToStrings(any) ([]string, error)`
 - `type.ToUint(any) (uint64, error)`
+- `uniq(Slice) (any, error)`
+- `upper(String) (string, error)`
+- `urlquery(...any) string`
 - `uuid.IsValid(String) bool`
 - `uuid.New(...Number) (string, error)`
 - `uuid.V1() (string, error)`
 - `uuid.V4() (string, error)`
 - `uuid.Zero() string`
+- `VALUE() any`
+- `dukkha.CacheDir() string`
+- `dukkha.CrossPlatform(...String) bool`
+- `dukkha.FromJson(Bytes) (any, error)`
+- `dukkha.FromYaml(Bytes) (any, error)`
+- `dukkha.JQ(...any) (string, error)`
+- `dukkha.JQObj(...any) (any, error)`
+- `dukkha.Self(...String) (struct { Stdout string; Stderr string }, error)`
+- `dukkha.Set(String, any) (any, error)`
+- `dukkha.SetValue(String, any) (any, error)`
+- `dukkha.WorkDir() string`
+- `dukkha.YQ(...any) (string, error)`
+- `dukkha.YQObj(...any) (any, error)`
+- `env() map[string]string`
+- `eval.Env(...String) (string, error)`
+- `eval.Shell(String, ...Bytes) (struct { Stdout string; Stderr string }, error)`
+- `eval.Template(String) (string, error)`
+- `find(String, ...String) ([]string, error)`
+- `fromJson(Bytes) (any, error)`
+- `fromYaml(Bytes) (any, error)`
+- `fs.Abs(String) (string, error)`
+- `fs.AppendFile(String, ...any) (None, error)`
+- `fs.Base(String) string`
+- `fs.Clean(String) string`
+- `fs.Dir(String) string`
+- `fs.Exists(String) (bool, error)`
+- `fs.Ext(String) string`
+- `fs.Find(String, ...String) ([]string, error)`
+- `fs.FromSlash(String) string`
+- `fs.Glob(String) ([]string, error)`
+- `fs.IsAbs(String) bool`
+- `fs.IsCharDevice(String) bool`
+- `fs.IsDevice(String) bool`
+- `fs.IsDir(String) bool`
+- `fs.IsFIFO(String) bool`
+- `fs.IsOther(String) bool`
+- `fs.IsSocket(String) bool`
+- `fs.IsSymlink(String) bool`
+- `fs.Join(...String) (string, error)`
+- `fs.Lookup(...String) (string, error)`
+- `fs.LookupFile(...String) (string, error)`
+- `fs.Match(String, String) (bool, error)`
+- `fs.Mkdir(...String) (None, error)`
+- `fs.OpenFile(...String) (*os.File, error)`
+- `fs.ReadDir(String) ([]string, error)`
+- `fs.ReadFile(String) (string, error)`
+- `fs.Rel(String, String) (string, error)`
+- `fs.Split(String) (string, string)`
+- `fs.ToSlash(String) string`
+- `fs.Touch(String) (None, error)`
+- `fs.UserCacheDir() string`
+- `fs.UserConfigDir() string`
+- `fs.UserHomeDir() string`
+- `fs.VolumeName(String) string`
+- `fs.WriteFile(String, ...any) (None, error)`
+- `git() map[string]string`
+- `host() map[string]string`
+- `jq(...any) (string, error)`
+- `jqObj(...any) (any, error)`
+- `matrix() map[string]string`
+- `mkdir(...String) (None, error)`
+- `os.Stderr() io.Writer`
+- `os.Stdin() io.Reader`
+- `os.Stdout() io.Writer`
+- `state.Failed() bool`
+- `state.Succeeded() bool`
+- `tag.ImageName(...String) (string, error)`
+- `tag.ImageTag(...String) (string, error)`
+- `tag.ManifestName(...String) (string, error)`
+- `tag.ManifestTag(...String) (string, error)`
+- `touch(String) (None, error)`
+- `values() map[string]any`
+- `write(String, ...any) (None, error)`
+- `yq(...any) (string, error)`
+- `yqObj(...any) (any, error)`
+- `include(String, any) (string, error)`
+- `var() map[string]any`

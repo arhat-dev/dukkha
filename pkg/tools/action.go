@@ -166,7 +166,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 			stdin io.Reader,
 			stdout, stderr io.Writer,
 		) (dukkha.RunTaskOrRunCmd, error) {
-			runner, err := templateutils.CreateEmbeddedShellRunner(
+			runner, err := templateutils.CreateShellRunner(
 				workingDir, ctx, stdin, stdout, stderr,
 			)
 			if err != nil {
@@ -175,7 +175,7 @@ func (act *Action) genEmbeddedShellActionSpecs(
 
 			parser := syntax.NewParser(syntax.Variant(syntax.LangBash))
 
-			err = templateutils.RunScriptInEmbeddedShell(ctx, runner, parser, script)
+			err = templateutils.RunScript(ctx, runner, parser, script)
 			if err != nil {
 				return nil, err
 			}

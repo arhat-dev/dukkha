@@ -24,7 +24,7 @@ type Tree struct {
 	Mode      Mode      // parsing mode.
 	text      string    // text parsed to create the template (or its parent)
 	// Parsing only; cleared after parse.
-	funcs      []map[string]any
+	funcs      TemplateFuncs
 	lex        *lexer
 	token      [3]item // three-token lookahead for parser.
 	peekCount  int
@@ -59,11 +59,11 @@ func (t *Tree) Copy() *Tree {
 // templates described in the argument string. The top-level template will be
 // given the specified name. If an error is encountered, parsing stops and an
 // empty map is returned with the error.
-func Parse(name, text, leftDelim, rightDelim string, funcs ...map[string]any) (map[string]*Tree, error) {
+func Parse(name, text, leftDelim, rightDelim string, funcs TemplateFuncs) (map[string]*Tree, error) {
 	treeSet := make(map[string]*Tree)
-	t := New(name)
+	t := New(name, funcs)
 	t.text = text
-	_, err := t.Parse(text, leftDelim, rightDelim, treeSet, funcs...)
+	_, err := t.Parse(text, leftDelim, rightDelim, treeSet, funcs)
 	return treeSet, err
 }
 
@@ -128,7 +128,7 @@ func (t *Tree) peekNonSpace() item {
 // Parsing.
 
 // New allocates a new parse tree with the given name.
-func New(name string, funcs ...map[string]any) *Tree {
+func New(name string, funcs TemplateFuncs) *Tree {
 	return &Tree{
 		Name:  name,
 		funcs: funcs,
@@ -218,7 +218,7 @@ func (t *Tree) recover(errp *error) {
 }
 
 // startParse initializes the parser, using the lexer.
-func (t *Tree) startParse(funcs []map[string]any, lex *lexer, treeSet map[string]*Tree) {
+func (t *Tree) startParse(funcs TemplateFuncs, lex *lexer, treeSet map[string]*Tree) {
 	t.Root = nil
 	t.lex = lex
 	t.vars = []string{"$"}
@@ -240,7 +240,7 @@ func (t *Tree) stopParse() {
 // the template for execution. If either action delimiter string is empty, the
 // default ("{{" or "}}") is used. Embedded template definitions are added to
 // the treeSet map.
-func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs ...map[string]any) (tree *Tree, err error) {
+func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs TemplateFuncs) (tree *Tree, err error) {
 	defer t.recover(&err)
 	t.ParseName = t.Name
 	emitComment := t.Mode&ParseComments != 0
@@ -300,7 +300,7 @@ func (t *Tree) parse() {
 		if t.peek().typ == itemLeftDelim {
 			delim := t.next()
 			if t.nextNonSpace().typ == itemDefine {
-				newT := New("definition") // name will be updated once we know it.
+				newT := New("definition", nil) // name will be updated once we know it.
 				newT.text = t.text
 				newT.Mode = t.Mode
 				newT.ParseName = t.ParseName
@@ -606,7 +606,7 @@ func (t *Tree) blockControl() Node {
 	name := t.parseTemplateName(token, context)
 	pipe := t.pipeline(context, itemRightDelim)
 
-	block := New(name) // name will be updated once we know it.
+	block := New(name, nil) // name will be updated once we know it.
 	block.text = t.text
 	block.Mode = t.Mode
 	block.ParseName = t.ParseName
@@ -765,15 +765,11 @@ func (t *Tree) term() Node {
 
 // hasFunction reports if a function name exists in the Tree's maps.
 func (t *Tree) hasFunction(name string) bool {
-	for _, funcMap := range t.funcs {
-		if funcMap == nil {
-			continue
-		}
-		if funcMap[name] != nil {
-			return true
-		}
+	if t.funcs == nil {
+		return false
 	}
-	return false
+
+	return t.funcs.Has(name)
 }
 
 // popVars trims the variable list to the specified length

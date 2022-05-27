@@ -71,8 +71,8 @@ func (archconvNS) QemuArch(arch String) string {
 	return v
 }
 
-func (archconvNS) OciOS(mKernel string) string {
-	v, _ := constant.GetOciOS(mKernel)
+func (archconvNS) OciOS(mKernel String) string {
+	v, _ := constant.GetOciOS(must(toString(mKernel)))
 	return v
 }
 
@@ -86,8 +86,8 @@ func (archconvNS) OciArchVariant(arch String) string {
 	return v
 }
 
-func (archconvNS) DockerOS(mKernel string) string {
-	v, _ := constant.GetDockerOS(mKernel)
+func (archconvNS) DockerOS(mKernel String) string {
+	v, _ := constant.GetDockerOS(must(toString(mKernel)))
 	return v
 }
 

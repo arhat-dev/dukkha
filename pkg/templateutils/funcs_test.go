@@ -2,7 +2,6 @@ package templateutils
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"go/format"
 	"os"
@@ -12,8 +11,6 @@ import (
 	"testing"
 	"text/template"
 
-	di "arhat.dev/dukkha/internal"
-	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"github.com/stretchr/testify/assert"
 
 	_ "embed" // for go:embed
@@ -22,11 +19,12 @@ import (
 var (
 	//go:embed gen/funcs.tpl
 	funcs_template string
+
+	//go:embed gen/docs.tpl
+	funcs_docs string
 )
 
 func TestGenerateFuncs(t *testing.T) {
-	t.SkipNow()
-
 	type Values struct {
 		StaticFuncs    []TemplateFuncInfo
 		LastStaticFunc TemplateFuncInfo
@@ -40,285 +38,388 @@ func TestGenerateFuncs(t *testing.T) {
 
 	var val Values
 
-	val.StaticFuncs = collectTemplateFuncs(staticFuncMaps[:])
+	val.StaticFuncs = collectTemplateFuncs(staticFuncMaps)
 	val.LastStaticFunc = val.StaticFuncs[len(val.StaticFuncs)-1]
 
-	val.ContextualFuncs = collectTemplateFuncs(contextualFuncs[:])
+	val.ContextualFuncs = collectTemplateFuncs(contextualFuncs)
 	val.LastContextualFunc = val.ContextualFuncs[len(val.ContextualFuncs)-1]
 
-	val.PlaceholderFuncs = collectTemplateFuncs(placeholderFuncMaps[:])
+	val.PlaceholderFuncs = collectTemplateFuncs(placeholderFuncMaps)
 	val.LastPlaceholderFunc = val.PlaceholderFuncs[len(val.PlaceholderFuncs)-1]
 
-	println(len(val.PlaceholderFuncs))
+	t.Run("funcs", func(t *testing.T) {
+		tpl, err := template.New("").Parse(funcs_template)
+		assert.NoError(t, err)
 
-	tpl, err := template.New("").Parse(funcs_template)
-	assert.NoError(t, err)
+		var out bytes.Buffer
+		err = tpl.Execute(&out, val)
+		if !assert.NoError(t, err) {
+			return
+		}
 
-	var out bytes.Buffer
-	err = tpl.Execute(&out, val)
-	assert.NoError(t, err)
+		data, err := format.Source(out.Bytes())
+		if !assert.NoError(t, err) {
+			return
+		}
 
-	data, err := format.Source(out.Next(out.Len()))
-	assert.NoError(t, err)
+		err = os.WriteFile("funcs.go", data, 0644)
+		assert.NoError(t, err)
+	})
 
-	err = os.WriteFile("funcs.go", data, 0644)
-	assert.NoError(t, err)
+	t.Run("docs", func(t *testing.T) {
+		nStatic := len(val.StaticFuncs)
+		nContextual := len(val.ContextualFuncs)
+		nPlaceholder := len(val.PlaceholderFuncs)
+		allFuncs := make([]TemplateFuncInfo, nStatic+nContextual+nPlaceholder)
+		copy(allFuncs, val.StaticFuncs)
+		copy(allFuncs[nStatic:], val.ContextualFuncs)
+		copy(allFuncs[nStatic+nContextual:], val.PlaceholderFuncs)
+
+		tpl, err := template.New("").Funcs(template.FuncMap{
+			"strings": func() any { return stringsNS{} },
+		}).Parse(funcs_docs)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		var out bytes.Buffer
+
+		err = tpl.Execute(&out, allFuncs)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		err = os.WriteFile("../../docs/generated/template_funcs.md", out.Bytes(), 0644)
+		assert.NoError(t, err)
+	})
 }
 
 type TemplateFuncInfo struct {
-	namespace string
-	name      string
-	funcType  string
+	// UserCallHandle is the string with which user can call this func in template
+	UserCallHandle string
+	// CodeCallHandle is the code calling path
+	CodeCallHandle string
+
+	Ident string
+
+	FuncType string
 }
 
-func (tf TemplateFuncInfo) Name() string {
-	if len(tf.namespace) != 0 {
-		return tf.namespace + "." + tf.name
-	}
-
-	return tf.name
-}
-
-func (tf TemplateFuncInfo) Ident() string {
-	if len(tf.namespace) != 0 {
-		return tf.namespace + "_" + tf.name
-	}
-
-	return tf.name
-}
-
-func collectTemplateFuncs(fms []map[string]any) []TemplateFuncInfo {
+func collectTemplateFuncs(fms map[string]any) []TemplateFuncInfo {
 	visited := make(map[string]struct{})
 
 	var ret []TemplateFuncInfo
-	for _, fm := range fms {
-		for k, fn := range fm {
-			tfs := parseTemplateFunc(k, fn)
+	for k, fn := range fms {
+		tfs := parseTemplateFunc(k, fn)
 
-			for _, tf := range tfs {
-				if _, ok := visited[tf.Ident()]; ok {
-					continue
-				}
-
-				visited[tf.Ident()] = struct{}{}
-				ret = append(ret, tf)
+		for _, tf := range tfs {
+			if _, ok := visited[tf.Ident]; ok {
+				continue
 			}
+
+			visited[tf.Ident] = struct{}{}
+			ret = append(ret, tf)
 		}
 	}
 
 	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Name() < ret[j].Name()
+		return ret[i].Ident < ret[j].Ident
 	})
 
 	return ret
 }
 
 var replacer = strings.NewReplacer(
-	"templateutils.String", "String",
-	"templateutils.Bytes", "Bytes",
+	"templateutils.", "",
 	"interface {}", "any",
+	"reflect.Value", "any",
+	"utils.LazyValue", "string",
 )
 
 func parseTemplateFunc(k string, fn any) []TemplateFuncInfo {
-	v := reflect.ValueOf(fn)
-	vt := reflect.TypeOf(fn)
+	ref, ok := fn.(FuncRef)
+	if ok {
+		// describes a func derived from namespace type
 
-	if vt.NumIn() != 0 {
-		// is a func
+		m, ok := reflect.TypeOf(ref.nsType).MethodByName(ref.funcName)
+		if !ok {
+			panic(fmt.Errorf("method %q not found for %q", ref.funcName, k))
+		}
+
+		funcType, isExported := funcTypeOfMethod(m)
+		if !isExported {
+			panic(fmt.Errorf("invalid unexported method %q for %q", ref.funcName, k))
+		}
+
 		return []TemplateFuncInfo{{
-			name:     k,
-			funcType: replacer.Replace(vt.String()),
+			UserCallHandle: k,
+			CodeCallHandle: "ns_" + ref.nsName + "." + ref.funcName,
+			Ident:          k,
+			FuncType:       replacer.Replace(funcType.String()),
 		}}
 	}
 
-	// namespaced func
-	ns := v.Call(nil)[0].Type()
+	// is a func, must only return a namespace struct
 
-	switch ns.Kind() {
-	case reflect.Map:
-		return []TemplateFuncInfo{{
-			name:     k,
-			funcType: replacer.Replace(vt.String()),
-		}}
-	default:
-		// is a namespace, see below
+	typ := reflect.TypeOf(fn)
+
+	if typ.NumIn() != 0 {
+		panic(fmt.Errorf("invalid func %q with args: %q", k, typ.String()))
 	}
 
-	nMethods := ns.NumMethod()
-	ret := make([]TemplateFuncInfo, 0, nMethods)
+	if typ.NumOut() != 1 {
+		panic(fmt.Errorf("invalid func %q with multiple or none returns, expecting 1: %q", k, typ.String()))
+	}
+
+	ret0 := typ.Out(0)
+	if ret0.Kind() != reflect.Struct {
+		panic(fmt.Errorf("invalid return type of %q: %q", k, ret0.String()))
+	}
+
+	// namespace struct
+
+	nMethods := ret0.NumMethod()
+	ret := make([]TemplateFuncInfo, 0, nMethods+1)
+	ret = append(ret, TemplateFuncInfo{
+		UserCallHandle: k,
+		CodeCallHandle: "get_ns_" + k,
+		Ident:          k,
+		FuncType:       "func() " + ret0.Name(),
+	})
+
 	for i := 0; i < nMethods; i++ {
-		m := ns.Method(i)
-		if len(m.PkgPath) != 0 {
-			// unexported, ignore
+		m := ret0.Method(i)
+		funcType, isExported := funcTypeOfMethod(m)
+		if !isExported {
 			continue
 		}
 
-		ft := m.Func.Type()
-		var (
-			fin  []reflect.Type
-			fout []reflect.Type
-		)
-		// skip first (receiver)
-		for i := 1; i < ft.NumIn(); i++ {
-			fin = append(fin, ft.In(i))
-		}
-
-		for i := 0; i < ft.NumOut(); i++ {
-			fout = append(fout, ft.Out(i))
-		}
-
 		ret = append(ret, TemplateFuncInfo{
-			namespace: k,
-			name:      m.Name,
-			funcType:  replacer.Replace(reflect.FuncOf(fin, fout, ft.IsVariadic()).String()),
+			UserCallHandle: k + "." + m.Name,
+			CodeCallHandle: "ns_" + k + "." + m.Name,
+			Ident:          k + "_" + m.Name,
+			FuncType:       replacer.Replace(funcType.String()),
 		})
 	}
 
 	return ret
 }
 
-var (
-	testRC = dukkha_test.NewTestContext(context.TODO())
-)
+func funcTypeOfMethod(m reflect.Method) (ret reflect.Type, isExported bool) {
+	var (
+		fin  []reflect.Type
+		fout []reflect.Type
+	)
 
-var contextualFuncs = [...]map[string]any{
-	{
-		"os": func() osNS { return osNS{} },
+	funcType := m.Func.Type()
 
-		"fs":    func() fsNS { return createFSNS(testRC) },
-		"touch": func(file String) (struct{}, error) { return fsNS{}.WriteFile(file) },
-		"read":  fsNS{}.ReadFile,
-		"write": fsNS{}.WriteFile,
-		"mkdir": fsNS{}.Mkdir,
-		"find":  fsNS{}.Find,
+	// skip first (receiver)
+	for i := 1; i < funcType.NumIn(); i++ {
+		fin = append(fin, funcType.In(i))
+	}
 
-		"dukkha": func() dukkhaNS { return createDukkhaNS(testRC) },
+	for i := 0; i < funcType.NumOut(); i++ {
+		fout = append(fout, funcType.Out(i))
+	}
 
-		"git":  testRC.GitValues,  // git.{tag, branch ...}
-		"host": testRC.HostValues, // host.{arch, arch_simple, kernel ...}
-		// eval shell and template
-		"env":    testRC.Env,
-		"values": testRC.Values,
-		"matrix": func() map[string]string {
-			mf := testRC.MatrixFilter()
-			return mf.AsEntry()
-		},
-		// state task execution
-		"state": func() stateNS { return createStateNS(testRC) },
-		// for transform renderer
-		"VALUE": func() any {
-			vg, ok := testRC.(di.VALUEGetter)
-			if ok {
-				return vg.VALUE()
-			}
+	ret = reflect.FuncOf(fin, fout, funcType.IsVariadic())
+	isExported = len(m.PkgPath) == 0
 
-			return nil
-		},
-
-		"fromJson": func(v String) (any, error) { return nil, nil },
-		"fromYaml": func(v String) (any, error) { return nil, nil },
-	},
-
-	{
-		"setDefaultImageTag": func(imageName String, flags ...String) string {
-			return ""
-		},
-		"setDefaultManifestTag": func(imageName String, flags ...String) string {
-			return ""
-		},
-
-		"getDefaultImageTag": func(imageName String, flags ...String) string {
-			return ""
-		},
-		"getDefaultManifestTag": func(imageName String, flags ...String) string {
-			return ""
-		},
-	},
+	return
 }
 
-var staticFuncMaps = [...]map[string]any{
-	{
-		"close": close,
+type FuncRef struct {
+	nsName   string
+	nsType   any
+	funcName string
+}
 
-		"path": func() pathNS { return pathNS{} },
-		"dns":  func() dnsNS { return dnsNS{} },
-		"uuid": func() uuidNS { return uuidNS{} },
-		"re":   func() regexpNS { return regexpNS{} },
+var staticFuncMaps = map[string]any{
+	"archconv": func() archconvNS { return archconvNS{} },
+	"path":     func() pathNS { return pathNS{} },
+	"uuid":     func() uuidNS { return uuidNS{} },
+	"re":       func() regexpNS { return regexpNS{} },
 
-		"hash": func() hashNS { return hashNS{} },
+	// Math
 
-		"md5":    hashNS{}.MD5,
-		"sha256": hashNS{}.SHA256,
-		"sha512": hashNS{}.SHA512,
+	"math": func() mathNS { return mathNS{} },
 
-		"cred": func() credentialNS { return credentialNS{} },
-		"totp": credentialNS{}.Totp,
+	"seq": FuncRef{"math", mathNS{}, "Seq"},
 
-		"time": func() timeNS { return timeNS{} },
-		"now":  timeNS{}.Now,
+	"min": FuncRef{"math", mathNS{}, "Min"},
+	"max": FuncRef{"math", mathNS{}, "Max"},
 
-		"enc":    func() encNS { return encNS{} },
-		"base64": encNS{}.Base64,
-		"hex":    encNS{}.Hex,
-		"toJson": encNS{}.JSON,
-		"toYaml": encNS{}.YAML,
-	},
-	{
-		"text": func() stringsNS { return stringsNS{} },
+	"mod": FuncRef{"math", mathNS{}, "Mod"},
+	"add": FuncRef{"math", mathNS{}, "Add"},
+	"sub": FuncRef{"math", mathNS{}, "Sub"},
+	"mul": FuncRef{"math", mathNS{}, "Mul"},
+	"div": FuncRef{"math", mathNS{}, "Div"},
 
-		"replaceAll": stringsNS{}.ReplaceAll,
-		"title":      stringsNS{}.Title,
-		"trimSpace":  stringsNS{}.TrimSpace,
-		"indent":     stringsNS{}.Indent,
-		"quote":      stringsNS{}.DoubleQuote,
-		"shellQuote": stringsNS{}.ShellQuote,
-		"squote":     stringsNS{}.SingleQuote,
+	"add1":   FuncRef{"math", mathNS{}, "Add1"},
+	"sub1":   FuncRef{"math", mathNS{}, "Sub1"},
+	"double": FuncRef{"math", mathNS{}, "Double"},
+	"half":   FuncRef{"math", mathNS{}, "Half"},
 
-		"contains":  stringsNS{}.Contains,
-		"hasPrefix": stringsNS{}.HasPrefix,
-		"hasSuffix": stringsNS{}.HasSuffix,
-		"split":     stringsNS{}.Split,
-		"splitN":    stringsNS{}.SplitN,
-		"trim":      stringsNS{}.Trim,
+	// Collections
 
-		"kebabcase": stringsNS{}.KebabCase,
-		"snakecase": stringsNS{}.SnakeCase,
-		"camelcase": stringsNS{}.CamelCase,
+	"coll": func() collNS { return collNS{} },
 
-		// "jq": textNS{}.JQ,
-		// "yq": textNS{}.YQ,
+	"list":       FuncRef{"coll", collNS{}, "List"},
+	"stringList": FuncRef{"coll", collNS{}, "Strings"},
+	"slice":      FuncRef{"coll", collNS{}, "Slice"},
+	"index":      FuncRef{"coll", collNS{}, "Index"},
+	"dict":       FuncRef{"coll", collNS{}, "MapStringAny"},
+	"append":     FuncRef{"coll", collNS{}, "Append"},
+	"prepend":    FuncRef{"coll", collNS{}, "Prepend"},
+	"sort":       FuncRef{"coll", collNS{}, "Sort"},
+	"has":        FuncRef{"coll", collNS{}, "HasAll"},
+	"hasAny":     FuncRef{"coll", collNS{}, "HasAny"},
+	"pick":       FuncRef{"coll", collNS{}, "Pick"},
+	"omit":       FuncRef{"coll", collNS{}, "Omit"},
+	"dup":        FuncRef{"coll", collNS{}, "Dup"},
+	"uniq":       FuncRef{"coll", collNS{}, "Unique"},
 
-		// multi-line string
+	// Type conversion
 
-		"addPrefix": func(args ...String) string {
-			return ""
-		},
-		"removePrefix": func(args ...String) string {
-			return ""
-		},
-		"addSuffix": func(args ...String) string {
-			return ""
-		},
-		"removeSuffix": func(args ...String) string {
-			return ""
-		},
-	},
+	"type": func() typeNS { return typeNS{} },
 
-	{
-		"archconv": func() archconvNS { return archconvNS{} },
-		"toBytes":  func(s any) []byte { return nil },
-	},
+	"close":    FuncRef{"type", typeNS{}, "Close"},
+	"toString": FuncRef{"type", typeNS{}, "ToString"},
+	"default":  FuncRef{"type", typeNS{}, "Default"},
+	"all":      FuncRef{"type", typeNS{}, "AllTrue"},
+	"any":      FuncRef{"type", typeNS{}, "AnyTrue"},
+
+	// Network
+
+	"dns":      func() dnsNS { return dnsNS{} },
+	"sockaddr": func() sockaddrNS { return sockaddrNS{} },
+
+	// Hashing and hmac
+
+	"hash": func() hashNS { return hashNS{} },
+
+	"md5":    FuncRef{"hash", hashNS{}, "MD5"},
+	"sha1":   FuncRef{"hash", hashNS{}, "SHA1"},
+	"sha256": FuncRef{"hash", hashNS{}, "SHA256"},
+	"sha512": FuncRef{"hash", hashNS{}, "SHA512"},
+
+	// Credentials
+
+	"cred": func() credentialNS { return credentialNS{} },
+
+	"totp": FuncRef{"cred", credentialNS{}, "Totp"},
+
+	// Time
+
+	"time": func() timeNS { return timeNS{} },
+
+	"now": FuncRef{"time", timeNS{}, "Now"},
+
+	// Encoding
+
+	"enc": func() encNS { return encNS{} },
+
+	"base64": FuncRef{"enc", encNS{}, "Base64"},
+	"hex":    FuncRef{"enc", encNS{}, "Hex"},
+	"toJson": FuncRef{"enc", encNS{}, "JSON"},
+	"toYaml": FuncRef{"enc", encNS{}, "YAML"},
+
+	// Strings
+
+	"strings": func() stringsNS { return stringsNS{} },
+
+	"replaceAll": FuncRef{"strings", stringsNS{}, "ReplaceAll"},
+	"title":      FuncRef{"strings", stringsNS{}, "Title"},
+	"upper":      FuncRef{"strings", stringsNS{}, "Upper"},
+	"lower":      FuncRef{"strings", stringsNS{}, "Lower"},
+	"indent":     FuncRef{"strings", stringsNS{}, "Indent"},
+	"nindent":    FuncRef{"strings", stringsNS{}, "NIndent"},
+	"quote":      FuncRef{"strings", stringsNS{}, "DoubleQuote"},
+	"squote":     FuncRef{"strings", stringsNS{}, "SingleQuote"},
+	"contains":   FuncRef{"strings", stringsNS{}, "Contains"},
+	"split":      FuncRef{"strings", stringsNS{}, "Split"},
+	"splitN":     FuncRef{"strings", stringsNS{}, "SplitN"},
+
+	"trim":       FuncRef{"strings", stringsNS{}, "Trim"},
+	"trimSpace":  FuncRef{"strings", stringsNS{}, "TrimSpace"},
+	"trimPrefix": FuncRef{"strings", stringsNS{}, "TrimPrefix"},
+	"trimSuffix": FuncRef{"strings", stringsNS{}, "TrimSuffix"},
+
+	"hasPrefix": FuncRef{"strings", stringsNS{}, "HasPrefix"},
+	"hasSuffix": FuncRef{"strings", stringsNS{}, "HasSuffix"},
+
+	"addPrefix":    FuncRef{"strings", stringsNS{}, "AddPrefix"},
+	"addSuffix":    FuncRef{"strings", stringsNS{}, "AddSuffix"},
+	"removePrefix": FuncRef{"strings", stringsNS{}, "RemovePrefix"},
+	"removeSuffix": FuncRef{"strings", stringsNS{}, "RemoveSuffix"},
+
+	// golang built-in funcs (replaced `slice` and `index`)
+
+	"call":     FuncRef{"golang", golangNS{}, "Call"},
+	"html":     FuncRef{"golang", golangNS{}, "HTMLEscaper"},
+	"js":       FuncRef{"golang", golangNS{}, "JSEscaper"},
+	"len":      FuncRef{"golang", golangNS{}, "Length"},
+	"and":      FuncRef{"golang", golangNS{}, "And"},
+	"not":      FuncRef{"golang", golangNS{}, "Not"},
+	"or":       FuncRef{"golang", golangNS{}, "Or"},
+	"print":    FuncRef{"golang", golangNS{}, "Sprint"},
+	"printf":   FuncRef{"golang", golangNS{}, "Sprintf"},
+	"println":  FuncRef{"golang", golangNS{}, "Sprintln"},
+	"urlquery": FuncRef{"golang", golangNS{}, "URLQueryEscaper"},
+	"eq":       FuncRef{"golang", golangNS{}, "Eq"}, // ==
+	"ge":       FuncRef{"golang", golangNS{}, "Ge"}, // >=
+	"gt":       FuncRef{"golang", golangNS{}, "Gt"}, // >
+	"le":       FuncRef{"golang", golangNS{}, "Le"}, // <=
+	"lt":       FuncRef{"golang", golangNS{}, "Lt"}, // <
+	"ne":       FuncRef{"golang", golangNS{}, "Ne"}, // !=
+}
+
+var contextualFuncs = map[string]any{
+	// OS
+
+	"os": func() osNS { return osNS{} },
+
+	// Tagging
+
+	"tag": func() tagNS { return tagNS{} },
+
+	// Filesystem
+
+	"fs": func() fsNS { return fsNS{} },
+
+	"touch": FuncRef{"fs", fsNS{}, "Touch"},
+	"write": FuncRef{"fs", fsNS{}, "WriteFile"},
+	"mkdir": FuncRef{"fs", fsNS{}, "Mkdir"},
+	"find":  FuncRef{"fs", fsNS{}, "Find"},
+
+	// dukkha runtime values
+
+	"dukkha": func() dukkhaNS { return dukkhaNS{} },
+
+	"jq":    FuncRef{"dukkha", dukkhaNS{}, "JQ"},
+	"yq":    FuncRef{"dukkha", dukkhaNS{}, "YQ"},
+	"jqObj": FuncRef{"dukkha", dukkhaNS{}, "JQObj"},
+	"yqObj": FuncRef{"dukkha", dukkhaNS{}, "YQObj"},
+
+	"fromJson": FuncRef{"dukkha", dukkhaNS{}, "FromJson"},
+	"fromYaml": FuncRef{"dukkha", dukkhaNS{}, "FromYaml"},
+
+	// eval shell and template
+	"eval": func() evalNS { return evalNS{} },
+
+	// state for task execution
+	"state": func() stateNS { return stateNS{} },
+
+	"git":    FuncRef{"misc", miscNS{}, "Git"},  // git.{tag, branch ...}
+	"host":   FuncRef{"misc", miscNS{}, "Host"}, // host.{arch, arch_simple, kernel ...}
+	"env":    FuncRef{"misc", miscNS{}, "Env"},
+	"values": FuncRef{"misc", miscNS{}, "Values"},
+	"matrix": FuncRef{"misc", miscNS{}, "Matrix"},
+	"VALUE":  FuncRef{"misc", miscNS{}, "VALUE"},
 }
 
 // placeholder functions to be overridden before template.Execute
-var placeholderFuncMaps = [...]map[string]any{
-	{
-		// var as template variable
-		"var": func() map[string]any { return nil },
-
-		// include is like helm include
-		"include": func(name string, data any) (string, error) {
-			return "", fmt.Errorf("no implementation")
-		},
-	},
+var placeholderFuncMaps = map[string]any{
+	"var":     FuncRef{"pending", pendingNS{}, "Var"},
+	"include": FuncRef{"pending", pendingNS{}, "Include"},
 }

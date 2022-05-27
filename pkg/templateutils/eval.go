@@ -4,49 +4,38 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 
 	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/pkg/stringhelper"
 )
 
 func createEvalNS(rc dukkha.RenderingContext) evalNS { return evalNS{rc: rc} }
 
 type evalNS struct{ rc dukkha.RenderingContext }
 
-func (ns evalNS) Template(tplData interface{}) (string, error) {
-	var tplStr string
-	switch tt := tplData.(type) {
-	case string:
-		tplStr = tt
-	case []byte:
-		tplStr = string(tt)
-	default:
-		return "", fmt.Errorf(
-			"invalid template data, want string or bytes, got %T",
-			tt,
-		)
+// TODO: support writer as the second last argument
+func (ns evalNS) Template(tplData String) (_ string, err error) {
+	tplStr, err := toString(tplData)
+	if err != nil {
+		return
 	}
 
 	tpl, err := CreateTemplate(ns.rc).Parse(tplStr)
 	if err != nil {
-		return "", fmt.Errorf(
-			"parsing template\n\n%s\n\n %w",
-			tplStr, err,
-		)
+		err = fmt.Errorf("parse template %q: %w", tplStr, err)
+		return
 	}
 
-	var buf bytes.Buffer
+	var buf strings.Builder
 	err = tpl.Execute(&buf, ns.rc)
 	if err != nil {
-		return "", fmt.Errorf(
-			"evaluating template\n\n%s\n\n %w",
-			tplStr, err,
-		)
+		err = fmt.Errorf("execute template %q: %w", tplStr, err)
+		return
 	}
 
-	return stringhelper.Convert[string, byte](buf.Next(buf.Len())), nil
+	return buf.String(), nil
 }
 
 // Env expands environment variables in last argument, which can be string or bytes
@@ -54,25 +43,26 @@ func (ns evalNS) Template(tplData interface{}) (string, error) {
 // valid options before last argument are
 // `disable_exec` / `enable_exec` to deny (default behvior) / allow shell script evaluation during expansion
 func (ns evalNS) Env(args ...String) (_ string, err error) {
-	var (
-		textData String
-		flags    []string
-	)
-	switch n := len(args); n {
+	var flags []string
+	n := len(args)
+	switch n {
 	case 0:
 		err = errAtLeastOneArgGotZero
 		return
 	case 1:
-		textData = args[0]
 	default:
 		flags, err = toStrings(args[:n-1])
 		if err != nil {
 			return
 		}
-
-		textData = args[n-1]
 	}
 
+	text, err := toString(args[n-1])
+	if err != nil {
+		return
+	}
+
+	// TODO: better control over exec on/off in dukkha config
 	enableExec := false
 	for _, opt := range flags {
 		switch opt {
@@ -83,11 +73,12 @@ func (ns evalNS) Env(args ...String) (_ string, err error) {
 		}
 	}
 
-	return ExpandEnv(ns.rc, must(toString(textData)), enableExec)
+	return ExpandEnv(ns.rc, text, enableExec)
 }
 
 // Shell runs script as bash script, optional inputs are data for stdin
-func (ns evalNS) Shell(script String, inputs ...Bytes) (_ string, err error) {
+// TODO: support writer as the second last argument
+func (ns evalNS) Shell(script String, inputs ...Bytes) (ret cmdOutput, err error) {
 	var stdin io.Reader
 	if len(inputs) != 0 {
 		var readers []io.Reader
@@ -108,13 +99,13 @@ func (ns evalNS) Shell(script String, inputs ...Bytes) (_ string, err error) {
 		stdin = io.MultiReader(readers...)
 	}
 
-	var stdout bytes.Buffer
-	runner, err := CreateEmbeddedShellRunner(
+	var stdout, stderr strings.Builder
+	runner, err := CreateShellRunner(
 		ns.rc.WorkDir(),
 		ns.rc,
 		stdin,
 		&stdout,
-		ns.rc.Stderr(),
+		&stderr,
 	)
 	if err != nil {
 		return
@@ -125,12 +116,14 @@ func (ns evalNS) Shell(script String, inputs ...Bytes) (_ string, err error) {
 		return
 	}
 
-	err = RunScriptInEmbeddedShell(
+	err = RunScript(
 		ns.rc,
 		runner,
 		syntax.NewParser(),
 		spt,
 	)
 
-	return stringhelper.Convert[string, byte](stdout.Next(stdout.Len())), err
+	ret.Stdout = stdout.String()
+	ret.Stderr = stderr.String()
+	return
 }

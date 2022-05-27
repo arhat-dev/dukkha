@@ -24,8 +24,6 @@ import (
 )
 
 func TestGenerateSchema(t *testing.T) {
-	t.Parallel()
-
 	_renderers, _tools, _tasks := collectSchema()
 
 	rdrs := make([]reflect.StructField, len(_renderers))

@@ -1,13 +1,19 @@
 package templateutils
 
-func funcNameToFuncID(name string) funcID {
+import (
+	"reflect"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+)
+
+func FuncNameToFuncID(name string) FuncID {
 	switch name {
 
 	// start of static funcs
 
 	{{- range $_, $v := .StaticFuncs }}
-	case funcName_{{- $v.Ident -}}:
-		return funcID_{{- $v.Ident }}
+	case FuncName_{{- $v.Ident -}}:
+		return FuncID_{{- $v.Ident }}
 	{{- end }}
 
 	// end of static funcs
@@ -15,8 +21,8 @@ func funcNameToFuncID(name string) funcID {
 	// start of contextual funcs
 
 	{{- range $_, $v := .ContextualFuncs }}
-	case funcName_{{- $v.Ident -}}:
-		return funcID_{{- $v.Ident }}
+	case FuncName_{{- $v.Ident -}}:
+		return FuncID_{{- $v.Ident }}
 	{{- end }}
 
 	// end of contextual funcs
@@ -24,8 +30,8 @@ func funcNameToFuncID(name string) funcID {
 	// start of placeholder funcs
 
 	{{- range $_, $v := .PlaceholderFuncs }}
-	case funcName_{{- $v.Ident -}}:
-		return funcID_{{- $v.Ident }}
+	case FuncName_{{- $v.Ident -}}:
+		return FuncID_{{- $v.Ident }}
 	{{- end }}
 
 	// end of placeholder funcs
@@ -35,14 +41,14 @@ func funcNameToFuncID(name string) funcID {
 	}
 }
 
-func (id funcID) String() string {
+func (id FuncID) String() string {
 	switch id {
 
 	// start of static funcs
 
 	{{- range $_, $v := .StaticFuncs }}
-	case funcID_{{- $v.Ident -}}:
-		return funcName_{{- $v.Ident }}
+	case FuncID_{{- $v.Ident -}}:
+		return FuncName_{{- $v.Ident }}
 	{{- end }}
 
 	// end of static funcs
@@ -50,8 +56,8 @@ func (id funcID) String() string {
 	// start of contextual funcs
 
 	{{- range $_, $v := .ContextualFuncs }}
-	case funcID_{{- $v.Ident -}}:
-		return funcName_{{- $v.Ident }}
+	case FuncID_{{- $v.Ident -}}:
+		return FuncName_{{- $v.Ident }}
 	{{- end }}
 
 	// end of contextual funcs
@@ -59,8 +65,8 @@ func (id funcID) String() string {
 	// start of placeholder funcs
 
 	{{- range $_, $v := .PlaceholderFuncs }}
-	case funcID_{{- $v.Ident -}}:
-		return funcName_{{- $v.Ident }}
+	case FuncID_{{- $v.Ident -}}:
+		return FuncName_{{- $v.Ident }}
 	{{- end }}
 
 	// end of placeholder funcs
@@ -70,12 +76,12 @@ func (id funcID) String() string {
 }
 
 const (
-	_unknown_template_func funcID = iota
+	_unknown_template_func FuncID = iota
 
 	// start of static funcs
 
 	{{- range $_, $v := .StaticFuncs }}
-	funcID_{{- $v.Ident }}
+	FuncID_{{- $v.Ident }} // {{ $v.FuncType }}
 	{{- end }}
 
 	// end of static funcs
@@ -83,7 +89,7 @@ const (
 	// start of contextual funcs
 
 	{{- range $_, $v := .ContextualFuncs }}
-	funcID_{{- $v.Ident }}
+	FuncID_{{- $v.Ident }} // {{ $v.FuncType }}
 	{{- end }}
 
 	// end of contextual funcs
@@ -91,25 +97,25 @@ const (
 	// start of placeholder funcs
 
 	{{- range $_, $v := .PlaceholderFuncs }}
-	funcID_{{- $v.Ident }}
+	FuncID_{{- $v.Ident }} // {{ $v.FuncType }}
 	{{- end }}
 
 	// end of placeholder funcs
 
-	funcID_COUNT
+	FuncID_COUNT
 )
 
 const (
-	funcID_LAST_STATIC_FUNC = funcID_{{ .LastStaticFunc.Ident }}
-	funcID_LAST_CONTEXTUAL_FUNC = funcID_{{ .LastContextualFunc.Ident }}
-	funcID_LAST_Placeholder_FUNC = funcID_{{ .LastPlaceholderFunc.Ident }}
+	FuncID_LAST_Static_FUNC = FuncID_{{ .LastStaticFunc.Ident }}
+	FuncID_LAST_Contextual_FUNC = FuncID_{{ .LastContextualFunc.Ident }}
+	FuncID_LAST_Placeholder_FUNC = FuncID_{{ .LastPlaceholderFunc.Ident }}
 )
 
 const (
 	// start of static funcs
 
 	{{- range $_, $v := .StaticFuncs }}
-	funcName_{{- $v.Ident }} = "{{- $v.Name -}}"
+	FuncName_{{- $v.Ident }} = "{{- $v.UserCallHandle -}}"
 	{{- end }}
 
 	// end of static funcs
@@ -117,7 +123,7 @@ const (
 	// start of contextual funcs
 
 	{{- range $_, $v := .ContextualFuncs }}
-	funcName_{{- $v.Ident }} = "{{- $v.Name -}}"
+	FuncName_{{- $v.Ident }} = "{{- $v.UserCallHandle -}}"
 	{{- end }}
 
 	// end of contextual funcs
@@ -125,8 +131,39 @@ const (
 	// start of placeholder funcs
 
 	{{- range $_, $v := .PlaceholderFuncs }}
-	funcName_{{- $v.Ident }} = "{{- $v.Name -}}"
+	FuncName_{{- $v.Ident }} = "{{- $v.UserCallHandle -}}"
 	{{- end }}
 
 	// end of placeholder funcs
 )
+
+var staticFuncs = [FuncID_LAST_Static_FUNC]any{
+	{{- range $_, $v := .StaticFuncs }}
+	FuncID_{{- $v.Ident }} - 1: {{- $v.CodeCallHandle -}},
+	{{- end }}
+}
+
+func createContextualFuncs(rc dukkha.RenderingContext) *ContextualFuncs {
+	var (
+		ns_dukkha = createDukkhaNS(rc)
+		ns_fs     = createFSNS(rc)
+		ns_os     = createOSNS(rc)
+		ns_eval   = createEvalNS(rc)
+		ns_tag    = createTagNS(rc)
+		ns_state  = createStateNS(rc)
+		ns_misc   = createMiscNS(rc)
+	)
+
+	get_ns_dukkha := func() dukkhaNS { return ns_dukkha }
+	get_ns_fs := func() fsNS { return ns_fs }
+	get_ns_os := func() osNS { return ns_os }
+	get_ns_eval := func() evalNS { return ns_eval }
+	get_ns_tag := func() tagNS { return ns_tag }
+	get_ns_state := func() stateNS { return ns_state }
+
+	return &ContextualFuncs{
+		{{- range $_, $v := .ContextualFuncs }}
+		FuncID_{{- $v.Ident }} - FuncID_LAST_Static_FUNC - 1: reflect.ValueOf({{- $v.CodeCallHandle -}}),
+		{{- end }}
+	}
+}

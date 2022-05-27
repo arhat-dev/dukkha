@@ -43,12 +43,13 @@ type hashNS struct{}
 // ADLER32 big-endian
 func (hashNS) ADLER32(args ...any) (string, error) {
 	var buf [4]byte
-	return handleHashTemplateFunc_DATA(args, "adler32", func() hash.Hash {
-		return adler32.New()
-	}, func(data []byte) []byte {
-		binary.BigEndian.PutUint32(buf[:], adler32.Checksum(data))
-		return buf[:]
-	})
+	return handleHashTemplateFunc_DATA(args, "adler32",
+		func() hash.Hash { return adler32.New() },
+		func(data []byte) []byte {
+			binary.BigEndian.PutUint32(buf[:], adler32.Checksum(data))
+			return buf[:]
+		},
+	)
 }
 
 // CRC32 (Castagnoli) big-endian
@@ -57,9 +58,7 @@ func (hashNS) CRC32(args ...any) (string, error) {
 	var buf [4]byte
 
 	return handleHashTemplateFunc_DATA(args, "crc32",
-		func() hash.Hash {
-			return crc32.New(table)
-		},
+		func() hash.Hash { return crc32.New(table) },
 		func(data []byte) []byte {
 			binary.BigEndian.PutUint32(buf[:], crc32.Checksum(data, table))
 			return buf[:]
@@ -73,9 +72,7 @@ func (hashNS) CRC64(args ...any) (string, error) {
 	var buf [8]byte
 
 	return handleHashTemplateFunc_DATA(args, "crc64",
-		func() hash.Hash {
-			return crc64.New(table)
-		},
+		func() hash.Hash { return crc64.New(table) },
 		func(data []byte) []byte {
 			binary.BigEndian.PutUint64(buf[:], crc64.Checksum(data, table))
 			return buf[:]

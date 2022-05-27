@@ -939,27 +939,6 @@ func TestExecError_CustomError(t *testing.T) {
 	}
 }
 
-func TestJSEscaping(t *testing.T) {
-	testCases := []struct {
-		in, exp string
-	}{
-		{`a`, `a`},
-		{`'foo`, `\'foo`},
-		{`Go "jump" \`, `Go \"jump\" \\`},
-		{`Yukihiro says "今日は世界"`, `Yukihiro says \"今日は世界\"`},
-		{"unprintable \uFDFF", `unprintable \uFDFF`},
-		{`<html>`, `\u003Chtml\u003E`},
-		{`no = in attributes`, `no \u003D in attributes`},
-		{`&#x27; does not become HTML entity`, `\u0026#x27; does not become HTML entity`},
-	}
-	for _, tc := range testCases {
-		s := JSEscapeString(tc.in)
-		if s != tc.exp {
-			t.Errorf("JS escaping [%s] got [%s] want [%s]", tc.in, s, tc.exp)
-		}
-	}
-}
-
 // A nice example: walk a binary tree.
 
 type Tree struct {
@@ -1640,7 +1619,7 @@ func TestInterfaceValues(t *testing.T) {
 
 // Check that panics during calls are recovered and returned as errors.
 func TestExecutePanicDuringCall(t *testing.T) {
-	funcs := map[string]any{
+	funcs := FuncMap{
 		"doPanic": func() string {
 			panic("custom panic string")
 		},

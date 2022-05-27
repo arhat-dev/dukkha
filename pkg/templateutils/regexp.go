@@ -3,9 +3,9 @@ package templateutils
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"arhat.dev/pkg/clihelper"
+	"arhat.dev/pkg/regexphelper"
 	"github.com/spf13/pflag"
 )
 
@@ -49,6 +49,7 @@ func (regexpNS) Match(args ...String) (matched bool, err error) {
 	return
 }
 
+// TODO: support writer as the second last argument
 func (regexpNS) Replace(args ...String) (ret string, err error) {
 	err = handleReTemplateFunc_OPDATA_DATA(args, func(re *regexp.Regexp, opData, data string) error {
 		ret = re.ReplaceAllString(data, opData)
@@ -58,7 +59,8 @@ func (regexpNS) Replace(args ...String) (ret string, err error) {
 	return
 }
 
-func (regexpNS) ReplasLiteral(args ...String) (ret string, err error) {
+// TODO: support writer as the second last argument
+func (regexpNS) ReplaceLiteral(args ...String) (ret string, err error) {
 	err = handleReTemplateFunc_OPDATA_DATA(args, func(re *regexp.Regexp, opData, data string) error {
 		ret = re.ReplaceAllLiteralString(data, opData)
 		return nil
@@ -175,7 +177,7 @@ func parseRegexp(args []String) (_ *regexp.Regexp, err error) {
 		fs pflag.FlagSet
 
 		flags []string
-		opts  RegexpOpts
+		opts  regexphelper.Options
 	)
 
 	clihelper.InitFlagSet(&fs, "regexp")
@@ -196,54 +198,4 @@ func parseRegexp(args []String) (_ *regexp.Regexp, err error) {
 	}
 
 	return regexp.Compile(opts.Wrap(expr))
-}
-
-// regexp options per regexp/syntax/doc.go
-//
-// i	case-insensitive (default false)
-// m	multi-line mode: ^ and $ match begin/end line in addition to begin/end text (default false)
-// s	let . match \n (default false)
-// U	ungreedy: swap meaning of x* and x*?, x+ and x+?, etc (default false)
-//
-// see https://pkg.go.dev/regexp/syntax
-type RegexpOpts struct {
-	CaseInsensitive bool
-	Multiline       bool
-	DotNewLine      bool
-	Ungreedy        bool
-}
-
-func (opts RegexpOpts) Wrap(expr string) string {
-	const PREFIX = "(?"
-	var sb strings.Builder
-
-	sb.WriteString(PREFIX)
-
-	if opts.CaseInsensitive {
-		sb.WriteString("i")
-	}
-
-	if opts.Multiline {
-		sb.WriteString("m")
-	}
-
-	if opts.DotNewLine {
-		sb.WriteString("s")
-	}
-
-	if opts.Ungreedy {
-		sb.WriteString("U")
-	}
-
-	if sb.Len() == len(PREFIX) {
-		// no flags added
-		return expr
-	}
-
-	// `(?flags:re)`
-	sb.WriteString(":")
-	sb.WriteString(expr)
-	sb.WriteString(")")
-
-	return sb.String()
 }

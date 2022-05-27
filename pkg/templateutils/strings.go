@@ -506,18 +506,22 @@ func (stringsNS) RuneCount(args ...String) (_ int, err error) {
 
 */
 
+// TODO: support writer as the second last argument
 func (stringsNS) AddPrefix(args ...String) (string, error) {
 	return handleMultiSectionText_OPDATA_OptionalSep_DATA(args, AddPrefix)
 }
 
+// TODO: support writer as the second last argument
 func (stringsNS) RemovePrefix(args ...String) (string, error) {
 	return handleMultiSectionText_OPDATA_OptionalSep_DATA(args, RemovePrefix)
 }
 
+// TODO: support writer as the second last argument
 func (stringsNS) AddSuffix(args ...String) (string, error) {
 	return handleMultiSectionText_OPDATA_OptionalSep_DATA(args, AddSuffix)
 }
 
+// TODO: support writer as the second last argument
 func (stringsNS) RemoveSuffix(args ...String) (string, error) {
 	return handleMultiSectionText_OPDATA_OptionalSep_DATA(args, RemoveSuffix)
 }

@@ -24,7 +24,7 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 	}{
 		{
 			name:     "Simple md5sum",
-			script:   `tpl:md5 \"test\"`,
+			script:   `tpl:md5 test`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
@@ -34,7 +34,7 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 		},
 		{
 			name:     "Subcmd md5sum",
-			script:   `tpl:md5 \"$(printf "test")\"`,
+			script:   `tpl:md5 "$(printf "test")"`,
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 	}
@@ -48,7 +48,7 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
 
-			runner, err := CreateEmbeddedShellRunner("", ctx, stdin, stdout, stderr)
+			runner, err := CreateShellRunner("", ctx, stdin, stdout, stderr)
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -56,7 +56,7 @@ func TestEmbeddedShellForTemplateFunc(t *testing.T) {
 			stdout.Reset()
 
 			parser := syntax.NewParser(syntax.Variant(syntax.LangBash))
-			assert.NoError(t, RunScriptInEmbeddedShell(ctx, runner, parser, test.script))
+			assert.NoError(t, RunScript(ctx, runner, parser, test.script))
 
 			assert.Equal(t, test.expected, stdout.String())
 			assert.EqualValues(t, 0, stderr.Len())
@@ -78,7 +78,7 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 		},
 		{
 			name:     "Valid Simple md5sum",
-			args:     []string{"md5", `"test"`},
+			args:     []string{"md5", "test"},
 			expected: hex.EncodeToString(md5helper.Sum([]byte("test"))),
 		},
 		{
@@ -96,7 +96,6 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			buf := &bytes.Buffer{}
 			ctx := dt.NewTestContext(context.TODO())
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
@@ -105,14 +104,14 @@ func TestExecCmdAsTemplateFuncCall(t *testing.T) {
 				input = strings.NewReader(test.input)
 			}
 
-			err := ExecCmdAsTemplateFuncCall(ctx, input, buf, test.args)
+			ret, _, err := ExecCmdAsTemplateFuncCall(ctx, input, nil, test.args)
 			if test.expectErr {
 				assert.Error(t, err)
 				return
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, test.expected, buf.String())
+			assert.Equal(t, test.expected, ret)
 		})
 	}
 }

@@ -535,7 +535,7 @@ func TestShutdown(t *testing.T) {
 	// We need to duplicate template.Parse here to hold on to the lexer.
 	const text = "erroneous{{define}}{{else}}1234"
 	lexer := lex("foo", text, "{{", "}}", false)
-	_, err := New("root").parseLexer(lexer)
+	_, err := New("root", nil).parseLexer(lexer)
 	if err == nil {
 		t.Fatalf("expected error")
 	}

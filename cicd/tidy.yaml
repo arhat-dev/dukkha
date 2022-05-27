@@ -29,3 +29,9 @@ workflow:run:
       while ! go test -v -mod=readonly -tags="docs" ./docs ; do
         :
       done
+
+  - task:
+      ref: golang:test(dukkha)
+      matrix_filter:
+        pkg:
+        - pkg/templateutils

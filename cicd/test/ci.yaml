@@ -52,7 +52,7 @@ workflow:run:
 
       # already built ./build/dukkha in previous step
 
-      tpl:dukkha.Sefl run golang local build dukkha -m kernel=windows -m arch=x86
+      tpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=x86
 
       wine ./build/dukkha.windows.x86.exe render <<EOF
       sh@shell: command -v winepath

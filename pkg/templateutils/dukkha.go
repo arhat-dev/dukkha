@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
-	dukkha_internal "arhat.dev/dukkha/internal"
+	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/textquery"
@@ -15,7 +16,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Dukkha runtime specific template funcs
+// dukkha runtime specific template funcs
 
 func createDukkhaNS(rc dukkha.RenderingContext) dukkhaNS { return dukkhaNS{rc: rc} }
 
@@ -27,17 +28,33 @@ type cmdOutput = struct {
 }
 
 // Self runs dukkha command in current process
+// TODO: support writer as the second last argument
 func (ns dukkhaNS) Self(args ...String) (ret cmdOutput, err error) {
+	var stdin io.Reader
+
+	nArgs := len(args)
+	if nArgs != 0 {
+		var ok bool
+		stdin, ok = args[nArgs-1].(io.Reader)
+		if ok {
+			nArgs--
+		} else {
+			stdin = ns.rc.Stdin()
+		}
+	} else {
+		stdin = ns.rc.Stdin()
+	}
+
 	var stdout, stderr strings.Builder
 
-	flags, err := toStrings(args)
+	flags, err := toStrings(args[:nArgs])
 	if err != nil {
 		return
 	}
 
-	err = dukkha_internal.RunSelf(
+	err = di.RunSelf(
 		ns.rc.(dukkha.Context),
-		ns.rc.Stdin(),
+		stdin,
 		&stdout,
 		&stderr,
 		flags...,
@@ -97,9 +114,9 @@ func (ns dukkhaNS) SetValue(key String, v any) (_ any, err error) {
 	// parse yaml/json doc when v is string or bytes
 	switch t := v.(type) {
 	case string:
-		v, err = fromYaml(ns.rc, t)
+		v, err = ns.FromYaml(t)
 	case []byte:
-		v, err = fromYaml(ns.rc, string(t))
+		v, err = ns.FromYaml(t)
 	default:
 		// do nothing
 	}
@@ -181,32 +198,31 @@ func genNewVal(key string, value any, ret *map[string]any) error {
 }
 
 // JQObj is an alias of YQObj (as YAML is a superset of JSON)
-func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) {
-	return ns.YQObj(args...)
-}
+func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) { return ns.YQObj(args...) }
 
 // YQObj is like YQ, but returns object instead of marshaled text
 func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
-	var candidates []any
+	var ret []any
 	err = handleTextQuery(args, ns.rc, func(data any, result []any, queryErr error) error {
-		candidates = append(candidates, result...)
+		ret = append(ret, result...)
 		return queryErr
 	})
 	if err != nil {
 		return
 	}
 
-	switch len(candidates) {
+	switch len(ret) {
 	case 0:
 		return nil, nil
 	case 1:
-		return candidates[0], nil
+		return ret[0], nil
 	default:
-		return candidates, nil
+		return ret, nil
 	}
 }
 
 // JQ is jq on json string/object, return json string
+// TODO: support writer as the second last argument
 func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
@@ -214,6 +230,7 @@ func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, json.Marshal),
 	)
 	if err != nil {
+		sb.Reset()
 		return
 	}
 
@@ -221,6 +238,7 @@ func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 }
 
 // YQ is jq on yaml string/object with multi-doc support, return yaml text
+// TODO: support writer as the second last argument
 func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
@@ -228,6 +246,7 @@ func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, yaml.Marshal),
 	)
 	if err != nil {
+		sb.Reset()
 		return
 	}
 
@@ -271,12 +290,8 @@ func handleTextQuery(args []any, rc dukkha.RenderingContext, handle textquery.Qu
 	return JQ(rc, q, variables, data, handle)
 }
 
-// FromYaml unmarshals single yaml doc into any/map[string]any
+// FromYaml unmarshals single yaml/json doc into []any/map[string]any
 func (ns dukkhaNS) FromYaml(v Bytes) (_ any, err error) {
-	return fromYaml(ns.rc, v)
-}
-
-func fromYaml(rc rs.RenderingHandler, v Bytes) (_ any, err error) {
 	inData, inReader, isReader, err := toBytesOrReader(v)
 	if err != nil {
 		return
@@ -292,19 +307,24 @@ func fromYaml(rc rs.RenderingHandler, v Bytes) (_ any, err error) {
 		}
 	}
 
-	out := rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject)
-	err = decode(out)
+	var out rs.AnyObject
+
+	_ = rs.Init(&out, nil)
+	err = decode(&out)
 	if err != nil {
 		return nil, fmt.Errorf("fromYaml: unmarshal yaml data: %w", err)
 	}
 
-	err = out.ResolveFields(rc, -1)
+	err = out.ResolveFields(ns.rc, -1)
 	if err != nil {
 		return nil, fmt.Errorf("fromYaml: resolving yaml data: %w", err)
 	}
 
 	return out.NormalizedValue(), nil
 }
+
+// FromJson is an alias of FromYaml
+func (ns dukkhaNS) FromJson(v Bytes) (any, error) { return ns.FromYaml(v) }
 
 func JQ(
 	rc dukkha.RenderingContext,
