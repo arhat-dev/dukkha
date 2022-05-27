@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.9.1-0.20220526100445-f47af2003f1c
+# arhat.dev/pkg v0.9.1-0.20220527144217-d24b4ab73fcb
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper
@@ -292,7 +292,7 @@ golang.org/x/xerrors/internal
 # gopkg.in/ini.v1 v1.62.0
 ## explicit
 gopkg.in/ini.v1
-# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+# gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
 # mvdan.cc/sh/v3 v3.5.0 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491

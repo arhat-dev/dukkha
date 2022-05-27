@@ -44,6 +44,7 @@ workflow:run:
       matrix_filter: {}
 
   # generate checksums for archives
+  # TODO: use template func
   - chdir: build
     shell: |-
       openssl dgst -sha256 *.tar* *.zip > sha256.txt

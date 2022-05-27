@@ -16,7 +16,7 @@ type FindOptions struct {
 	FileType fs.FileMode
 	Perm     fs.FileMode // TODO: currently not used
 
-	MinDepth, MaxDepth int
+	MinDepth, MaxDepth int32
 	MinSize, MaxSize   int64
 
 	// unix timestamps (seconds since unix epoch)
@@ -112,7 +112,7 @@ const (
 
 // pathDepth return depth of s for find
 // it assumes there is no relative path element in middle (. or ..)
-func pathDepth(s string) (n int) {
+func pathDepth(s string) (n int32) {
 	sz := len(s)
 	if sz < 2 {
 		return 0
@@ -173,7 +173,7 @@ func (ofs *OSFS) Find(fopts *FindOptions, startpath string) (ret []string, err e
 	err = fs.WalkDir(ofs, startpath, func(path string, ent fs.DirEntry, dirErr error) error {
 		var (
 			ok    bool
-			depth int
+			depth int32
 		)
 
 		if dirErr != nil {

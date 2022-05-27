@@ -385,3 +385,57 @@ func ModTime(d time.Duration, t time.Time, action modAction) (ret time.Time) {
 		panic("unreachable")
 	}
 }
+
+func NewLazyAutoCloseReader(open func() (io.Reader, error)) LazyAutoCloseReader {
+	return LazyAutoCloseReader{
+		open: open,
+	}
+}
+
+type readerState uint8
+
+const (
+	readerIdle readerState = iota
+	readerOpened
+	readerClosed
+)
+
+// LazyAutoCloseReader open underlay stream on first read call, close on error (if implements io.Closer)
+type LazyAutoCloseReader struct {
+	cur     io.Reader
+	lastErr error
+
+	open  func() (io.Reader, error)
+	state readerState
+}
+
+func (l *LazyAutoCloseReader) Read(p []byte) (ret int, err error) {
+	switch l.state {
+	case readerIdle:
+		l.cur, err = l.open()
+		if err != nil {
+			l.state = readerClosed
+			return
+		}
+
+		l.state = readerOpened
+		fallthrough
+	case readerOpened:
+		ret, err = l.cur.Read(p)
+		if err != nil {
+			l.lastErr = err
+			l.state = readerClosed
+			clo, ok := l.cur.(io.Closer)
+			if ok {
+				_ = clo.Close()
+			}
+		}
+		return
+	default:
+		err = l.lastErr
+		if err == nil {
+			err = io.EOF
+		}
+		return
+	}
+}

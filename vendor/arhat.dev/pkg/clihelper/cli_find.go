@@ -43,9 +43,9 @@ func FindCli(osfs *fshelper.OSFS, startpath string, args ...string) (_ []string,
 type FindCliOptions struct {
 	flags uint32
 
-	minDepth int
-	maxDepth int
-	depth    int
+	minDepth int32
+	maxDepth int32
+	depth    int32
 
 	minSize    string
 	maxSize    string
@@ -76,9 +76,9 @@ func (opts *FindCliOptions) AddFlags(fs *pflag.FlagSet) {
 
 	fs.StringVarP(&opts.typ, "type", "t", "", "")
 
-	fs.IntVar(&opts.depth, "depth", -1, "")
-	fs.IntVar(&opts.minDepth, "min-depth", -1, "")
-	fs.IntVar(&opts.maxDepth, "max-depth", -1, "")
+	fs.Int32Var(&opts.depth, "depth", -1, "")
+	fs.Int32Var(&opts.minDepth, "min-depth", -1, "")
+	fs.Int32Var(&opts.maxDepth, "max-depth", -1, "")
 
 	fs.StringVar(&opts.size, "size", "", "")
 	fs.StringVar(&opts.minSize, "min-size", "", "")
@@ -253,7 +253,7 @@ func (opts *FindCliOptions) Resolve(now int64) (ret fshelper.FindOptions, err er
 
 		ret.MinDepth, ret.MaxDepth = opts.minDepth, opts.maxDepth
 		if ret.MaxDepth < 0 {
-			ret.MaxDepth = math.MaxInt64
+			ret.MaxDepth = math.MaxInt32
 		}
 
 		if ret.MinDepth > ret.MaxDepth {
