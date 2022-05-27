@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.9.1-0.20220527144217-d24b4ab73fcb
+# arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper

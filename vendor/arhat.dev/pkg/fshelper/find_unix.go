@@ -26,37 +26,37 @@ func (ofs *OSFS) matchFileSysinfo(opts *FindOptions, path string, f any) (bool, 
 	}
 
 	if ops&needUserGroup != 0 {
-		if ops&FindOp_CheckUser != 0 && info.Uid != opts.UnixUID {
+		if ops&FindOp_CheckUser != 0 && uint32(info.Uid) != opts.UnixUID {
 			return false, nil
 		}
 
-		if ops&FindOp_CheckGroup != 0 && info.Gid != opts.UnixGID {
+		if ops&FindOp_CheckGroup != 0 && uint32(info.Gid) != opts.UnixGID {
 			return false, nil
 		}
 	}
 
 	if ops&needTime != 0 {
 		if ops&FindOp_CheckCreationTime != 0 &&
-			(info.Birthtimespec.Sec < opts.MinCreationTime ||
-				info.Birthtimespec.Sec > opts.MaxCreationTime) {
+			(int64(info.Birthtimespec.Sec) < opts.MinCreationTime ||
+				int64(info.Birthtimespec.Sec) > opts.MaxCreationTime) {
 			return false, nil
 		}
 
 		if ops&FindOp_CheckLastAccessTime != 0 &&
-			(info.Atimespec.Sec < opts.MinAtime ||
-				info.Atimespec.Sec > opts.MaxAtime) {
+			(int64(info.Atimespec.Sec) < opts.MinAtime ||
+				int64(info.Atimespec.Sec) > opts.MaxAtime) {
 			return false, nil
 		}
 
 		if ops&FindOp_CheckLastMetadataChangeTime != 0 &&
-			(info.Ctimespec.Sec < opts.MinCtime ||
-				info.Ctimespec.Sec > opts.MaxCtime) {
+			(int64(info.Ctimespec.Sec) < opts.MinCtime ||
+				int64(info.Ctimespec.Sec) > opts.MaxCtime) {
 			return false, nil
 		}
 
 		if ops&FindOp_CheckLastContentUpdatedTime != 0 &&
-			(info.Mtimespec.Sec < opts.MinMtime ||
-				info.Mtimespec.Sec > opts.MaxMtime) {
+			(int64(info.Mtimespec.Sec) < opts.MinMtime ||
+				int64(info.Mtimespec.Sec) > opts.MaxMtime) {
 			return false, nil
 		}
 	}

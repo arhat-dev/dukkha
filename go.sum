@@ -1,5 +1,5 @@
-arhat.dev/pkg v0.9.1-0.20220527144217-d24b4ab73fcb h1:SjiMBVPF2j308aQiJmZsQ2gDWxBdLngGA7H7VunWL0Q=
-arhat.dev/pkg v0.9.1-0.20220527144217-d24b4ab73fcb/go.mod h1:VKNfqa7hV+ylj2H/V0a/QAWKTPe5syh057S6Cv7xv0E=
+arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b h1:4JMg9ibwX2+6P4Ajh9avyYYUmmGGN5T0podCSe75xm4=
+arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b/go.mod h1:VKNfqa7hV+ylj2H/V0a/QAWKTPe5syh057S6Cv7xv0E=
 arhat.dev/pty v0.1.0 h1:KUH0pR7+lCvX+GTcRrkEE7TOw8t1UMMiiUJyFi+Fizo=
 arhat.dev/pty v0.1.0/go.mod h1:U1xkO+BRGZT4fjImSnlQPGfCgmFPlex9dTMUvce9e/Q=
 arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005 h1:6NpU51Al+uaGrDaaEXtKA8f1fjRc5H0lwQb6sawE+/s=
