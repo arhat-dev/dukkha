@@ -3,6 +3,7 @@ package templateutils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -197,16 +198,27 @@ func genNewVal(key string, value any, ret *map[string]any) error {
 	return genNewVal(nextKey, value, &newValParent)
 }
 
-// JQObj is an alias of YQObj (as YAML is a superset of JSON)
-func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) { return ns.YQObj(args...) }
+func newJsonDecoder(r io.Reader) DataDecoder {
+	dec := json.NewDecoder(r)
+	dec.UseNumber()
+	return dec
+}
 
-// YQObj is like YQ, but returns object instead of marshaled text
-func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
+func newYamlDecoder(r io.Reader) DataDecoder {
+	dec := yaml.NewDecoder(r)
+	return dec
+}
+
+// JQObj is like JQ, but returns object instead of marshaled text
+func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) {
 	var ret []any
-	err = handleTextQuery(args, ns.rc, func(data any, result []any, queryErr error) error {
-		ret = append(ret, result...)
-		return queryErr
-	})
+	err = handleTextQuery(ns.rc, args,
+		newJsonDecoder,
+		func(data any, result []any, queryErr error) error {
+			ret = append(ret, result...)
+			return queryErr
+		},
+	)
 	if err != nil {
 		return
 	}
@@ -221,12 +233,37 @@ func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
 	}
 }
 
-// JQ is jq on json string/object, return json string
+// YQObj is like YQ, but returns object instead of marshaled text
+func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
+	var ret []any
+	err = handleTextQuery(ns.rc, args,
+		newYamlDecoder,
+		func(data any, result []any, queryErr error) error {
+			ret = append(ret, result...)
+			return queryErr
+		},
+	)
+	if err != nil {
+		return
+	}
+
+	switch len(ret) {
+	case 0:
+		return nil, nil
+	case 1:
+		return ret[0], nil
+	default:
+		return ret, nil
+	}
+}
+
+// JQ is jq on json string/object with json stream support, return json text
 // TODO: support writer as the second last argument
 func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
-	err = handleTextQuery(args, ns.rc,
+	err = handleTextQuery(ns.rc, args,
+		newJsonDecoder,
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, json.Marshal),
 	)
 	if err != nil {
@@ -242,7 +279,8 @@ func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
-	err = handleTextQuery(args, ns.rc,
+	err = handleTextQuery(ns.rc, args,
+		newYamlDecoder,
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, yaml.Marshal),
 	)
 	if err != nil {
@@ -253,7 +291,12 @@ func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 	return sb.String(), nil
 }
 
-func handleTextQuery(args []any, rc dukkha.RenderingContext, handle textquery.QueryResultHandleFunc) (err error) {
+func handleTextQuery(
+	rc dukkha.RenderingContext,
+	args []any,
+	newDecoder func(io.Reader) DataDecoder,
+	handle textquery.QueryResultHandleFunc,
+) (err error) {
 	var (
 		query     String
 		data      Bytes
@@ -277,7 +320,7 @@ func handleTextQuery(args []any, rc dukkha.RenderingContext, handle textquery.Qu
 		case map[string]any:
 			variables = t
 		default:
-			err = fmt.Errorf("unsupported variables container type: %T", t)
+			err = fmt.Errorf("unsupported type of variables %T: expecting map[stirng]{string, any}", t)
 			return
 		}
 	}
@@ -287,11 +330,41 @@ func handleTextQuery(args []any, rc dukkha.RenderingContext, handle textquery.Qu
 		return
 	}
 
-	return JQ(rc, q, variables, data, handle)
+	return JQ(rc, data, JQOptions{
+		Query: q,
+
+		// TODO: support optional resolving
+		ResolveRenderingSuffixBeforeQueryStart: false,
+
+		Variables:    variables,
+		NewDecoder:   newDecoder,
+		HandleResult: handle,
+	})
 }
 
-// FromYaml unmarshals single yaml/json doc into []any/map[string]any
+// FromYaml unmarshals single yaml doc into []any/map[string]any
 func (ns dukkhaNS) FromYaml(v Bytes) (_ any, err error) {
+	return FromText(ns.rc, v,
+		newYamlDecoder,
+		yaml.Unmarshal,
+	)
+}
+
+// FromJson is an alias of FromYaml
+func (ns dukkhaNS) FromJson(v Bytes) (any, error) {
+	return FromText(ns.rc, v,
+		newJsonDecoder,
+		json.Unmarshal,
+	)
+}
+
+// TODO: support optional resolving
+func FromText(
+	rc dukkha.RenderingContext,
+	v Bytes,
+	newDecoder func(io.Reader) DataDecoder,
+	unmarshal func(data []byte, out any) error,
+) (_ any, err error) {
 	inData, inReader, isReader, err := toBytesOrReader(v)
 	if err != nil {
 		return
@@ -299,11 +372,11 @@ func (ns dukkhaNS) FromYaml(v Bytes) (_ any, err error) {
 
 	var decode func(out any) error
 	if isReader {
-		dec := yaml.NewDecoder(inReader)
+		dec := newDecoder(inReader)
 		decode = dec.Decode
 	} else {
 		decode = func(out any) error {
-			return yaml.Unmarshal(inData, out)
+			return unmarshal(inData, out)
 		}
 	}
 
@@ -312,26 +385,53 @@ func (ns dukkhaNS) FromYaml(v Bytes) (_ any, err error) {
 	_ = rs.Init(&out, nil)
 	err = decode(&out)
 	if err != nil {
-		return nil, fmt.Errorf("fromYaml: unmarshal yaml data: %w", err)
+		return nil, fmt.Errorf("fromX: unamrshal data: %w", err)
 	}
 
-	err = out.ResolveFields(ns.rc, -1)
+	err = out.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, fmt.Errorf("fromYaml: resolving yaml data: %w", err)
+		return nil, fmt.Errorf("fromX: resolve data: %w", err)
 	}
 
 	return out.NormalizedValue(), nil
 }
 
-// FromJson is an alias of FromYaml
-func (ns dukkhaNS) FromJson(v Bytes) (any, error) { return ns.FromYaml(v) }
+type DataDecoder interface {
+	Decode(any) error
+}
 
+type JQOptions struct {
+	// Query is the jq expression
+	// REQUIRED
+	Query string
+
+	// resolve foo@xxx in decoded data to foo before running jq over it
+	ResolveRenderingSuffixBeforeQueryStart bool
+
+	// Variables provided when running jq
+	//
+	// OPTIONAL
+	Variables map[string]any
+
+	// NewDecoder creates a data decoder
+	//
+	// the created decoder should support both rs.AnyObject and rs.AnyObjectMap (usually {json, yaml}.NewDecoder)
+	// when ResolveRenderingSuffixBeforeQueryStart is set to true
+	//
+	// OPTIONAL, defaults to yaml.NewDecoder
+	NewDecoder func(io.Reader) DataDecoder
+
+	// HandleResult called for each unmarshaled object
+	//
+	// REQUIRED
+	HandleResult textquery.QueryResultHandleFunc
+}
+
+// JQ evaluates jq expression over v
 func JQ(
 	rc dukkha.RenderingContext,
-	query string,
-	variables map[string]any,
 	v Bytes,
-	handleResult textquery.QueryResultHandleFunc,
+	opts JQOptions,
 ) error {
 	var (
 		varNames   []string
@@ -361,29 +461,47 @@ func JQ(
 			inReader = &rd
 		}
 
-		dec := yaml.NewDecoder(inReader)
+		var dec DataDecoder
 
-		docIter = func() (any, bool) {
-			var obj rs.AnyObject
+		if opts.NewDecoder == nil {
+			dec = yaml.NewDecoder(inReader)
+		} else {
+			dec = opts.NewDecoder(inReader)
+		}
 
-			_ = rs.Init(&obj, nil)
+		if opts.ResolveRenderingSuffixBeforeQueryStart {
+			docIter = func() (any, bool) {
+				var obj rs.AnyObject
 
-			errDocIter = dec.Decode(&obj)
-			if errDocIter != nil {
-				// TODO: return plain text on unexpected error?
-				return nil, false
+				_ = rs.Init(&obj, nil)
+
+				errDocIter = dec.Decode(&obj)
+				if errDocIter != nil {
+					// TODO: return plain text on unexpected error?
+					return nil, false
+				}
+
+				errDocIter = obj.ResolveFields(rc, -1)
+				if errDocIter != nil {
+					return nil, false
+				}
+
+				return obj.NormalizedValue(), true
 			}
+		} else {
+			docIter = func() (any, bool) {
+				var obj any
+				errDocIter = dec.Decode(&obj)
+				if errDocIter != nil {
+					return nil, false
+				}
 
-			errDocIter = obj.ResolveFields(rc, -1)
-			if errDocIter != nil {
-				return nil, false
+				return obj, true
 			}
-
-			return obj.NormalizedValue(), true
 		}
 	}
 
-	for k, v := range variables {
+	for k, v := range opts.Variables {
 		varNames = append(varNames, k)
 		varValues = append(varValues, v)
 	}
@@ -406,15 +524,19 @@ func JQ(
 	}
 
 	err = textquery.Query(
-		query,
+		opts.Query,
 		varValues,
 		docIter,
-		handleResult,
+		opts.HandleResult,
 		options[:nOptions]...,
 	)
 
 	if err != nil {
 		return err
+	}
+
+	if errors.Is(errDocIter, io.EOF) {
+		errDocIter = nil
 	}
 
 	return errDocIter
