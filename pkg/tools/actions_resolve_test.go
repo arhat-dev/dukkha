@@ -46,9 +46,9 @@ func TestResolveActions_steps(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./_fixtures/actions/resolve",
-		func() interface{} { return rs.Init(&TestResolvable{}, nil) },
-		func() interface{} { return rs.Init(&CheckSpec{}, nil) },
-		func(t *testing.T, spec, exp interface{}) {
+		func() any { return rs.InitAny(&TestResolvable{}, nil) },
+		func() any { return rs.InitAny(&CheckSpec{}, nil) },
+		func(t *testing.T, spec, exp any) {
 			in := spec.(*TestResolvable)
 			cs := exp.(*CheckSpec)
 
@@ -88,7 +88,7 @@ func TestResolveActions_steps(t *testing.T) {
 
 					// call AlterExecFunc in second spec is like calling
 					// next() to go to next step
-					var ret interface{}
+					var ret any
 					ret, err = jobs[1].AlterExecFunc(nil, nil, nil, nil)
 
 					if cs.Steps[i].Error {

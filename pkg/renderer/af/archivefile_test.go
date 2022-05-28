@@ -55,13 +55,13 @@ func TestParseOneLineSpec(t *testing.T) {
 
 func TestDriver(t *testing.T) {
 	testhelper.TestFixtures(t, "./fixtures",
-		func() interface{} {
-			return rs.Init(&rs.AnyObject{}, nil)
+		func() any {
+			return rs.InitAny(&rs.AnyObject{}, nil)
 		},
-		func() interface{} {
-			return rs.Init(&rs.AnyObject{}, nil)
+		func() any {
+			return rs.InitAny(&rs.AnyObject{}, nil)
 		},
-		func(t *testing.T, src, exp interface{}) {
+		func(t *testing.T, src, exp any) {
 			defer t.Cleanup(func() {})
 
 			in := src.(*rs.AnyObject)
@@ -100,7 +100,7 @@ func TestDriver(t *testing.T) {
 			actual := in.NormalizedValue()
 			expected := check.NormalizedValue()
 
-			assert.IsType(t, map[string]interface{}{}, expected)
+			assert.IsType(t, map[string]any{}, expected)
 			assert.IsType(t, expected, actual)
 
 			assert.EqualValues(t, expected, actual)

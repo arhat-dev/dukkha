@@ -85,7 +85,7 @@ func (n *Node) MarshalYAML() (interface{}, error) {
 }
 
 //go:linkname unmarshalMap arhat.dev/rs.unmarshalYamlMap
-func unmarshalMap(content []*yaml.Node) ([][]*yaml.Node, error)
+func unmarshalMap(content []*yaml.Node) ([]*[2]*yaml.Node, error)
 
 func (n *Node) UnmarshalYAML(yn *yaml.Node) error {
 	n.RawNode = yn

@@ -112,25 +112,25 @@ func TestTask(
 	}
 
 	testhelper.TestFixtures(t, dir,
-		func() interface{} {
-			return rs.Init(&TestCase{}, &rs.Options{
+		func() any {
+			return rs.InitAny(&TestCase{}, &rs.Options{
 				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
-					func(typ reflect.Type, yamlKey string) (interface{}, error) {
-						return rs.Init(newTask(), nil), nil
+					func(typ reflect.Type, yamlKey string) (any, error) {
+						return rs.InitAny(newTask(), nil), nil
 					},
 				),
 			})
 		},
-		func() interface{} {
-			return rs.Init(&CheckSpec{}, &rs.Options{
+		func() any {
+			return rs.InitAny(&CheckSpec{}, &rs.Options{
 				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
-					func(typ reflect.Type, yamlKey string) (interface{}, error) {
-						return rs.Init(newExpected(), nil), nil
+					func(typ reflect.Type, yamlKey string) (any, error) {
+						return rs.InitAny(newExpected(), nil), nil
 					},
 				),
 			})
 		},
-		func(t *testing.T, in, exp interface{}) {
+		func(t *testing.T, in, exp any) {
 			defer t.Cleanup(func() {
 
 			})
@@ -156,7 +156,7 @@ func TestTask(
 				return
 			}
 
-			rs.Init(tool, nil)
+			rs.InitAny(tool, nil)
 
 			assert.NoError(t, tool.Init(ctx.ToolCacheFS(tool)))
 			ctx.AddTool(tool.Key(), tool)

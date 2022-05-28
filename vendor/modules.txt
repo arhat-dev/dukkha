@@ -29,7 +29,7 @@ arhat.dev/pkg/yamlhelper
 # arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
-# arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005
+# arhat.dev/rs v0.9.1-0.20220528072228-6d50ae66aeeb
 ## explicit; go 1.18
 arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1

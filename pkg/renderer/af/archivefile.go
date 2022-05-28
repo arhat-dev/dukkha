@@ -69,7 +69,7 @@ func (d *Driver) RenderYaml(
 			return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 		}
 
-		spec = rs.Init(&inputSpec{}, nil).(*inputSpec)
+		spec = rs.InitAny(&inputSpec{}, nil).(*inputSpec)
 		err = yaml.Unmarshal(rawDataBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: invalid input spec: %w", d.name, err)

@@ -2,8 +2,8 @@ arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b h1:4JMg9ibwX2+6P4Ajh9avyYYUmm
 arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b/go.mod h1:VKNfqa7hV+ylj2H/V0a/QAWKTPe5syh057S6Cv7xv0E=
 arhat.dev/pty v0.1.0 h1:KUH0pR7+lCvX+GTcRrkEE7TOw8t1UMMiiUJyFi+Fizo=
 arhat.dev/pty v0.1.0/go.mod h1:U1xkO+BRGZT4fjImSnlQPGfCgmFPlex9dTMUvce9e/Q=
-arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005 h1:6NpU51Al+uaGrDaaEXtKA8f1fjRc5H0lwQb6sawE+/s=
-arhat.dev/rs v0.9.1-0.20220504025217-236a7c93c005/go.mod h1:V/TOxwDKOZhADW47hu7hxamExdXeWlaIhaJQgOHYY7k=
+arhat.dev/rs v0.9.1-0.20220528072228-6d50ae66aeeb h1:kKDt8dqWD46LmSSiaonlrhv3/gZ3/kINmwQpsZVJuBQ=
+arhat.dev/rs v0.9.1-0.20220528072228-6d50ae66aeeb/go.mod h1:Kebop1yUJvR/OFc8y54SodOwoOX4E0Edp41SEr7IHXE=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=

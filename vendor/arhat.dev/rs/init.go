@@ -49,22 +49,20 @@ type Options struct {
 //
 // if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
-func Init(in Field, opts *Options) Field {
-	return initInterface(in, opts).(Field)
+func Init[T Field](in T, opts *Options) T {
+	return InitAny(in, opts).(T)
 }
 
-func initInterface(in any, opts *Options) any {
+func InitAny(in any, opts *Options) any {
 	parentVal := reflect.ValueOf(in)
-	parentType := reflect.TypeOf(in)
 
 	switch parentVal.Kind() {
 	case reflect.Struct:
 	case reflect.Ptr:
 		// no pointer to pointer support
 		parentVal = parentVal.Elem()
-		parentType = parentType.Elem()
 
-		if parentType.Kind() != reflect.Struct {
+		if parentVal.Kind() != reflect.Struct {
 			// the target is not a struct, not using BaseField
 			return in
 		}
@@ -104,7 +102,7 @@ func initInterface(in any, opts *Options) any {
 		return in
 	}
 
-	err := baseField.init(parentType, parentVal, opts)
+	err := baseField.init(parentVal, opts)
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +143,7 @@ func tryInit(fieldValue reflect.Value, opts *Options) bool {
 	if fieldValue.CanInterface() {
 		fVal, canCallInit := fieldValue.Interface().(Field)
 		if canCallInit {
-			_ = Init(fVal, opts)
+			_ = InitAny(fVal, opts)
 			return true
 		}
 	}
@@ -162,7 +160,7 @@ func tryInit(fieldValue reflect.Value, opts *Options) bool {
 
 	fVal, canCallInit := fieldValue.Interface().(Field)
 	if canCallInit {
-		_ = Init(fVal, opts)
+		_ = InitAny(fVal, opts)
 		return true
 	}
 

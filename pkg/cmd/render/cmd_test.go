@@ -47,9 +47,9 @@ func TestCmd(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures",
-		func() interface{} { return rs.Init(&TestSpec{}, nil) },
-		func() interface{} { return rs.Init(&CheckSpec{}, nil) },
-		func(t *testing.T, in, c interface{}) {
+		func() any { return rs.InitAny(&TestSpec{}, nil) },
+		func() any { return rs.InitAny(&CheckSpec{}, nil) },
+		func(t *testing.T, in, c any) {
 			spec := in.(*TestSpec)
 			check := c.(*CheckSpec)
 

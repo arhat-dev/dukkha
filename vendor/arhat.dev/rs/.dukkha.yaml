@@ -3,7 +3,7 @@ global:
   env:
   - name: PROFILE_DIR
     value@tpl: |-
-      {{- filepath.Join dukkha.WorkDir "build" "test-profile" -}}
+      {{- fs.Join dukkha.WorkDir "build" "test-profile" -}}
   values:
     cmd:
       run_ctr@presets?str|tpl: templates/run-ctr.yml
@@ -66,8 +66,12 @@ workflow:run:
 
 - name: test
   jobs:
-  - task: golang:test(rs, {})
-  - task: golang:test(benchmark, {})
+  - task:
+      ref: golang:test(rs)
+      matrix_filter: {}
+  - task:
+      ref: golang:test(benchmark)
+      matrix_filter: {}
 
 - name: report
   matrix:
@@ -88,8 +92,8 @@ golang:test:
   matrix:
     pkg@tpl: |-
       {{-
-        eval.Shell "go list ./..."
-        | removePrefix (eval.Shell "go list -m" | trimSuffix "\n")
+        (eval.Shell "go list ./...").Stdout
+        | removePrefix ((eval.Shell "go list -m").Stdout | trimSuffix "\n")
         | addPrefix "- "
       -}}
   hooks:
@@ -118,6 +122,6 @@ golang:test:
   benchmark:
     enabled: true
   json_output_file@tpl: |-
-    {{- filepath.Join env.PROFILE_DIR "result-benchmark.json" -}}
+    {{- fs.Join env.PROFILE_DIR "result-benchmark.json" -}}
   verbose: true
   path: ./

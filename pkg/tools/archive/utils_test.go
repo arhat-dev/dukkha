@@ -66,12 +66,12 @@ func TestCollectFiles(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/collect-files",
-		func() interface{} { return rs.Init(&TestCase{}, nil) },
-		func() interface{} {
+		func() any { return rs.InitAny(&TestCase{}, nil) },
+		func() any {
 			m := make(map[string]*ExpectedEntry)
 			return &m
 		},
-		func(t *testing.T, in, exp interface{}) {
+		func(t *testing.T, in, exp any) {
 			spec := in.(*TestCase)
 			expected := *exp.(*map[string]*ExpectedEntry)
 

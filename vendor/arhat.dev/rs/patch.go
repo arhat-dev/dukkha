@@ -124,7 +124,7 @@ func (s *PatchSpec) merge(rc RenderingHandler, valueData any) (any, error) {
 			v, err = runJQ(m.Select, v)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"failed to run select over merge#%d: %w",
+					"run select over merge#%d: %w",
 					i, err,
 				)
 			}
@@ -160,7 +160,7 @@ doMerge:
 			case map[string]any:
 				dt, err = MergeMap(dt, mt, s.MapListAppend, s.MapListItemUnique)
 				if err != nil {
-					return nil, fmt.Errorf("failed to merge map value: %w", err)
+					return nil, fmt.Errorf("merge map value: %w", err)
 				}
 			case nil:
 				// no value to merge, skip
@@ -235,7 +235,7 @@ func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
 			spec.Value, err = runJQ(p.Select, spec.Value)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"failed to run select over patch#%d: %w",
+					"run select over patch#%d: %w",
 					i, err,
 				)
 			}
@@ -283,7 +283,7 @@ func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
 	var ret any
 	err = json.Unmarshal(patchedDoc, &ret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal patched value: %w", err)
+		return nil, fmt.Errorf("unmarshal patched value: %w", err)
 	}
 
 	if len(s.Select) == 0 {

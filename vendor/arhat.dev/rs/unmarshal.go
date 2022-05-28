@@ -18,14 +18,14 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 
 	if n.Kind != yaml.MappingNode {
 		return fmt.Errorf("rs: unexpected non map data %q for struct %q unmarshaling",
-			n.Tag, f._parentType.String(),
+			n.Tag, f._parentValue.Type().String(),
 		)
 	}
 
 	oneLevelMap, err := unmarshalYamlMap(n.Content)
 	if err != nil {
 		return fmt.Errorf("rs: data unmarshal failed for %s: %w",
-			f._parentType.String(), err,
+			f._parentValue.Type().String(), err,
 		)
 	}
 
@@ -37,12 +37,13 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 		// custom tag with `!rs:` prefix can also indicate rendering suffix
 
 		var (
-			suffixStart = strings.LastIndexByte(rawYamlKey, '@')
-			field       = f.getField(rawYamlKey)
-			rsTag       = strings.TrimPrefix(strings.TrimPrefix(kv[1].Tag, "!rs:"), "!tag:arhat.dev/rs:")
+			suffixStart     = strings.LastIndexByte(rawYamlKey, '@')
+			field, hasFiled = f.getField(rawYamlKey)
+			rsTag           = strings.TrimPrefix(strings.TrimPrefix(kv[1].Tag, "!rs:"), "!tag:arhat.dev/rs:")
 
 			yamlKey string
 		)
+
 		switch {
 		case rsTag != kv[1].Tag:
 			// this field is definitely using rendering suffix as
@@ -58,7 +59,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 				hasVirtualKey = true
 			}
 			err = f.unmarshalRS(yamlKey, rsTag, kv)
-		case field != nil,
+		case hasFiled,
 			suffixStart == -1:
 			// matched struct field tag `yaml:"foo@http"`
 			// or having no rendering suffix
@@ -74,7 +75,12 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 			if hasVirtualKey {
 				err = f.unmarshalRS(yamlKey, "", kv)
 			} else {
-				err = f.unmarshalNoRS(yamlKey, kv, field)
+				var ref *fieldRef
+				if hasFiled {
+					ref = &field
+				}
+
+				err = f.unmarshalNoRS(yamlKey, kv, ref)
 			}
 
 		default:
@@ -96,7 +102,7 @@ func (f *BaseField) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
-func (f *BaseField) unmarshalNoRS(yamlKey string, kv []*yaml.Node, field *fieldRef) error {
+func (f *BaseField) unmarshalNoRS(yamlKey string, kv *[2]*yaml.Node, field *fieldRef) error {
 	v := kv[1]
 	if field == nil {
 		field = f.inlineMap
@@ -110,7 +116,7 @@ func (f *BaseField) unmarshalNoRS(yamlKey string, kv []*yaml.Node, field *fieldR
 		}
 
 		return fmt.Errorf("rs: unknown yaml field %q to %s",
-			yamlKey, f._parentType.String(),
+			yamlKey, f._parentValue.Type().String(),
 		)
 	}
 
@@ -118,50 +124,55 @@ func (f *BaseField) unmarshalNoRS(yamlKey string, kv []*yaml.Node, field *fieldR
 
 	err := unmarshal(nil, yamlKey, v, field, &field.isInlineMap, nil)
 	if err != nil {
-		return fmt.Errorf("rs: failed to unmarshal yaml field %q to %s.%s: %w",
-			yamlKey, f._parentType.String(), field.fieldName, err,
+		return fmt.Errorf("rs: unmarshal yaml field %q to type %s.%s: %w",
+			yamlKey, f._parentValue.Type().String(), field.fieldName, err,
 		)
 	}
 
 	return nil
 }
 
-func (f *BaseField) unmarshalRS(yamlKey, suffix string, kv []*yaml.Node) error {
-	field := f.getField(yamlKey)
+func (f *BaseField) unmarshalRS(yamlKey, suffix string, kv *[2]*yaml.Node) error {
+	var ref *fieldRef
+
+	field, hasField := f.getField(yamlKey)
+	if hasField {
+		ref = &field
+	}
 
 	v := prepareYamlNode(kv[1])
 	if v == nil {
 		v = kv[1]
 	}
-	if field == nil {
+	if ref == nil {
 		if yamlKey == "__" {
 			// handle virtual key
 			return f.addUnresolvedField_self(suffix, kv[1])
 		}
 
 		v = fakeMap(cloneYamlNode(kv[0], strTag, yamlKey), v)
-		field = f.inlineMap
+		ref = f.inlineMap
 	}
 
-	if field == nil {
+	if ref == nil {
 		if f._opts != nil && f._opts.AllowUnknownFields {
 			return nil
 		}
 
-		return fmt.Errorf("rs: unknown yaml field %q to %s",
-			yamlKey, f._parentType.String(),
+		return fmt.Errorf("rs: unknown yaml key %q for type %s",
+			yamlKey, f._parentValue.Type().String(),
 		)
 	}
 
 	// field is not nil
 
-	if field.disableRS {
-		return fmt.Errorf("rendering suffix is not allowed to %q (%s)",
-			yamlKey, f._parentType.String(),
+	if ref.disableRS {
+		return fmt.Errorf("rendering suffix is not allowed to %q (type %s)",
+			yamlKey, f._parentValue.Type().String(),
 		)
 	}
 
-	return field.base.addUnresolvedField(yamlKey, suffix, nil, field, v)
+	return ref.base.addUnresolvedField(yamlKey, suffix, nil, ref, v)
 }
 
 func unmarshal(
@@ -238,7 +249,7 @@ func unmarshal(
 			suffix := strings.TrimPrefix(pair[0].Value, "__@")
 
 			if suffix == pair[0].Value {
-				content = append(content, pair...)
+				content = append(content, pair[:]...)
 				continue
 			}
 
@@ -374,7 +385,7 @@ func unmarshalInterface(
 			}
 
 			return true, fmt.Errorf(
-				"failed to create interface field: %w",
+				"create interface field: %w",
 				err,
 			)
 		}
@@ -432,7 +443,7 @@ func unmarshalArray(
 		)
 		if err != nil {
 			return fmt.Errorf(
-				"failed to unmarshal #%d array item of yaml field %q for %s: %w",
+				"unmarshal #%d array item of yaml field %q for %s: %w",
 				i, yamlKey, out.fieldValue.Type().String(), err,
 			)
 		}
@@ -476,7 +487,7 @@ func unmarshalSlice(
 		)
 		if err != nil {
 			return fmt.Errorf(
-				"failed to unmarshal #%d slice item of yaml field %q for %s: %w",
+				"unmarshal #%d slice item of yaml field %q for %s: %w",
 				i, yamlKey, outVal.fieldValue.Type().String(), err,
 			)
 		}
@@ -547,7 +558,7 @@ func unmarshalMap(
 			kv[1], outVal.clone(*ret), keepOld, in,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal map value %s for key %q: %w",
+			return nil, fmt.Errorf("unmarshal map value %s for key %q: %w",
 				valType.String(), k, err,
 			)
 		}

@@ -57,9 +57,9 @@ func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/manifest-platform-query",
-		func() interface{} { return rs.Init(&TestCase{}, nil) },
-		func() interface{} { return rs.Init(&CheckSpec{}, nil) },
-		func(t *testing.T, spec, exp interface{}) {
+		func() any { return rs.InitAny(&TestCase{}, nil) },
+		func() any { return rs.InitAny(&CheckSpec{}, nil) },
+		func(t *testing.T, spec, exp any) {
 			test, check := spec.(*TestCase), exp.(*CheckSpec)
 
 			ctx := dt.NewTestContext(context.TODO())

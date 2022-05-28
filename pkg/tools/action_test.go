@@ -42,9 +42,9 @@ func TestActionFixtures(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./_fixtures/action",
-		func() interface{} { return rs.Init(&Action{}, nil).(*Action) },
-		func() interface{} { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
-		func(t *testing.T, in interface{}, exp interface{}) {
+		func() any { return rs.InitAny(&Action{}, nil) },
+		func() any { return rs.InitAny(&CheckSpec{}, nil) },
+		func(t *testing.T, in any, exp any) {
 			actual := in.(*Action)
 			expected := exp.(*CheckSpec)
 

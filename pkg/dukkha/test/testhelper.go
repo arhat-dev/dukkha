@@ -21,9 +21,9 @@ func TestFixturesUsingRenderingSuffix(
 	check func(t *testing.T, ctx dukkha.Context, ts, cs rs.Field),
 ) {
 	testhelper.TestFixtures(t, dir,
-		func() interface{} { return rs.Init(newTestSpec(), nil) },
-		func() interface{} { return rs.Init(newCheckSpec(), nil) },
-		func(t *testing.T, spec, exp interface{}) {
+		func() any { return rs.InitAny(newTestSpec(), nil) },
+		func() any { return rs.InitAny(newCheckSpec(), nil) },
+		func(t *testing.T, spec, exp any) {
 			defer t.Cleanup(func() {})
 			s, e := spec.(rs.Field), exp.(rs.Field)
 

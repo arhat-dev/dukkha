@@ -33,9 +33,9 @@ func TestDriver_RenderYaml(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures",
-		func() interface{} { return rs.Init(&TestSpec{}, nil) },
-		func() interface{} { return rs.Init(&CheckSpec{}, nil) },
-		func(t *testing.T, spec, exp interface{}) {
+		func() any { return rs.InitAny(&TestSpec{}, nil) },
+		func() any { return rs.InitAny(&CheckSpec{}, nil) },
+		func(t *testing.T, spec, exp any) {
 			actual := spec.(*TestSpec)
 			expected := exp.(*CheckSpec)
 

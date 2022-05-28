@@ -32,7 +32,7 @@ func TestRead(t *testing.T) {
 			}
 
 			for _, inc := range c.Include {
-				_ = rs.Init(inc, nil)
+				_ = rs.InitAny(inc, nil)
 			}
 		})
 	)

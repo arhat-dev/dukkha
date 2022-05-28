@@ -258,7 +258,6 @@ func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
 }
 
 // JQ is jq on json string/object with json stream support, return json text
-// TODO: support writer as the second last argument
 func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
@@ -275,7 +274,6 @@ func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 }
 
 // YQ is jq on yaml string/object with multi-doc support, return yaml text
-// TODO: support writer as the second last argument
 func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
@@ -293,7 +291,7 @@ func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 
 func handleTextQuery(
 	rc dukkha.RenderingContext,
-	args []any,
+	args []any, // TODO: support writer as the second last argument
 	newDecoder func(io.Reader) DataDecoder,
 	handle textquery.QueryResultHandleFunc,
 ) (err error) {
@@ -382,7 +380,7 @@ func FromText(
 
 	var out rs.AnyObject
 
-	_ = rs.Init(&out, nil)
+	_ = rs.InitAny(&out, nil)
 	err = decode(&out)
 	if err != nil {
 		return nil, fmt.Errorf("fromX: unamrshal data: %w", err)
@@ -473,7 +471,7 @@ func JQ(
 			docIter = func() (any, bool) {
 				var obj rs.AnyObject
 
-				_ = rs.Init(&obj, nil)
+				_ = rs.InitAny(&obj, nil)
 
 				errDocIter = dec.Decode(&obj)
 				if errDocIter != nil {
