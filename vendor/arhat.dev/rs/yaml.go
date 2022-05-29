@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// nolint:revive
 const (
 	nullTag      = "!!null"
 	boolTag      = "!!bool"
@@ -36,7 +37,7 @@ const (
 
 func shortTag(tag string) string {
 	if strings.HasPrefix(tag, longTagPrefix) {
-		switch t := tag[len(longTagPrefix):]; t {
+		switch tag {
 		case nullTag_long:
 			return nullTag
 		case boolTag_long:
@@ -58,7 +59,7 @@ func shortTag(tag string) string {
 		case mergeTag_long:
 			return mergeTag
 		default:
-			return "!!" + t
+			return "!!" + tag[len(longTagPrefix):]
 		}
 	}
 	return tag

@@ -5,8 +5,13 @@ import (
 )
 
 type Options struct {
-	// InterfaceTypeHandler handles interface value creation for any inner field
+	// InterfaceTypeHandler handles interface value creation for any field
 	// with a interface{...} type (including []interface{...} and map[string]interface{...})
+	//
+	// for example, define a interface type Foo:
+	// 		type Foo interface{ Bar() string }
+	//
+	// with InterfaceTypeHandler you can return values whose type impelemts Foo during unmarshaling
 	//
 	// defaults to `nil`
 	InterfaceTypeHandler InterfaceTypeHandler
@@ -83,11 +88,11 @@ func InitAny(in any, opts *Options) any {
 
 	var baseField *BaseField
 	switch firstField.Type() {
-	case baseFieldStructType:
+	case typeStruct_BaseField:
 		// using BaseField
 
 		baseField = firstField.Addr().Interface().(*BaseField)
-	case baseFieldPtrType:
+	case typePtr_BaseField:
 		// using *BaseField
 
 		if firstField.IsZero() {
@@ -113,7 +118,7 @@ func InitAny(in any, opts *Options) any {
 // InitRecursively trys to call Init on all fields implementing Field interface
 func InitRecursively(fv reflect.Value, opts *Options) {
 	switch fv.Type() {
-	case baseFieldPtrType, baseFieldStructType:
+	case typePtr_BaseField, typeStruct_BaseField:
 		return
 	}
 

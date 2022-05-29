@@ -34,12 +34,10 @@ func prepareYamlNode(n *yaml.Node) *yaml.Node {
 }
 
 // fakeMap constructs a single entry map node from two yaml nodes
-func fakeMap(k, v *yaml.Node) *yaml.Node {
-	return &yaml.Node{
-		Kind:    yaml.MappingNode,
-		Value:   "",
-		Content: []*yaml.Node{k, v},
-	}
+func fakeMap(out, k, v *yaml.Node) {
+	out.Kind = yaml.MappingNode
+	out.Value = ""
+	out.Content = []*yaml.Node{k, v}
 }
 
 func unmarshalYamlMap(content []*yaml.Node) (ret []*[2]*yaml.Node, err error) {

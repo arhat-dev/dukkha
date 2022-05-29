@@ -40,7 +40,7 @@ func TestLcpp(t *testing.T) {
 			expected: "a/",
 		},
 		{
-			list:     []string{"a/🌶️🌶️/c", "a/🌶️x/d", "a/🌶️🌶️/a"},
+			list:     []string{"a/🌶️🌶️/c", "a/x/d", "a/🌶️🌶️/a"},
 			expected: "a/",
 		},
 		{

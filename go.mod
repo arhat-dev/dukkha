@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b
-	arhat.dev/rs v0.9.1-0.20220528072228-6d50ae66aeeb
+	arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74
 	github.com/Masterminds/goutils v1.1.1
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
@@ -17,9 +17,9 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2
 	github.com/huandu/xstrings v1.3.2
 	github.com/itchyny/gojq v0.12.7
-	github.com/klauspost/compress v1.15.4
-	github.com/minio/minio-go/v7 v7.0.26
-	github.com/mitchellh/copystructure v1.0.0
+	github.com/klauspost/compress v1.15.5
+	github.com/minio/minio-go/v7 v7.0.27
+	github.com/mitchellh/copystructure v1.2.0
 	github.com/muesli/termenv v0.11.0
 	github.com/nwaples/rardecode v1.1.3
 	github.com/pierrec/lz4/v4 v4.1.14
@@ -29,13 +29,13 @@ require (
 	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.8.0
-	golang.org/x/crypto v0.0.0-20220511200225-c6db032c6c88
-	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
-	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6
-	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/net v0.0.0-20220526153639-5463443f8c37
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
+	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v3 v3.0.1
-	mvdan.cc/sh/v3 v3.5.0
+	mvdan.cc/sh/v3 v3.5.1
 )
 
 replace (
@@ -63,7 +63,7 @@ require (
 	github.com/minio/md5-simd v1.1.0 // indirect
 	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -37,17 +37,17 @@ type TaskCreate struct {
 	Format string `yaml:"format"`
 
 	// Compression configuration
-	Compression *compressionSpec `yaml:"compression"`
+	Compression compressionSpec `yaml:"compression"`
 
 	// Output archive file
 	Output string `yaml:"output"`
 
-	// Files to include into archive
-	Files []*archiveFileSpec `yaml:"files"`
+	// Files to be archived
+	Files []*fileFromToSpec `yaml:"files"`
 }
 
 type compressionSpec struct {
-	rs.BaseField
+	rs.BaseField `yaml:"-"`
 
 	// Enable compression
 	//
@@ -69,14 +69,22 @@ type compressionSpec struct {
 	Level string `yaml:"level"`
 }
 
-type archiveFileSpec struct {
-	rs.BaseField
+type fileFromToSpec struct {
+	rs.BaseField `yaml:"-"`
 
 	// From local file path, include files to be archived with glob pattern support
 	From string `yaml:"from"`
 
-	// To is the in archive path those files will go
+	// To in archive path, files by `From` will be put at
+	//
+	// if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED
+	//
+	// if only one file was selected by `From`, when `To` ends with a slash, it's a dir
+	// matched file will be put into it, otherwise, its type is determined by matched file
 	To string `yaml:"to"`
+
+	// FollowSymlink eval symlink to store actual file instead of creating symlink in archive
+	FollowSymlink bool `yaml:"follow_symlink"`
 }
 
 func (c *TaskCreate) Kind() dukkha.TaskKind { return TaskKindCreate }
@@ -98,10 +106,11 @@ func (c *TaskCreate) GetExecSpecs(
 		}
 
 		var (
-			method *string
-			level  string
-
 			format = c.Format
+
+			enableCompression = c.Compression.Enabled
+			compressionMethod string
+			compressionLevel  string
 		)
 
 		if len(format) == 0 {
@@ -113,21 +122,18 @@ func (c *TaskCreate) GetExecSpecs(
 			}
 		}
 
-		if c.Compression != nil && c.Compression.Enabled {
-			cmethod := c.Compression.Method
-			level = c.Compression.Level
-			if len(cmethod) == 0 {
+		if enableCompression {
+			compressionMethod = c.Compression.Method
+			compressionLevel = c.Compression.Level
+
+			if len(compressionMethod) == 0 {
 				switch format {
 				case constant.ArchiveFormat_Zip:
-					cmethod = constant.ZipCompressionMethod_Deflate.String()
-					level = "5"
+					compressionMethod = constant.ZipCompressionMethod_Deflate.String()
 				case constant.ArchiveFormat_Tar:
-					cmethod = constant.CompressionMethod_Gzip
-					level = "5"
+					compressionMethod = constant.CompressionMethod_Gzip
 				}
 			}
-
-			method = &cmethod
 		}
 
 		steps = append(steps, dukkha.TaskExecSpec{
@@ -136,31 +142,26 @@ func (c *TaskCreate) GetExecSpecs(
 				stdin io.Reader,
 				stdout, stderr io.Writer,
 			) (dukkha.RunTaskOrRunCmd, error) {
-				_out, err := rc.FS().OpenFile(output, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+				archiveFile, err := rc.FS().OpenFile(output, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 				if err != nil {
 					return nil, err
 				}
 
-				out := _out.(*os.File)
+				out := archiveFile.(io.WriteCloser)
 				defer func() { _ = out.Close() }()
 
 				switch format {
 				case constant.ArchiveFormat_Tar:
-					var tarball io.WriteCloser = out
-
-					if method != nil {
-						tarball, err = createCompressionStream(out, *method, level)
+					if enableCompression {
+						out, err = createCompressionStream(out, compressionMethod, compressionLevel)
 						if err != nil {
 							return nil, err
 						}
 					}
 
-					err = createTar(rc.FS(), tarball, files)
-					_ = tarball.Close()
-
-					return nil, err
+					return nil, createTar(rc.FS(), out, files)
 				case constant.ArchiveFormat_Zip:
-					return nil, createZip(rc.FS(), out, files, method, level)
+					return nil, createZip(rc.FS(), out, files, enableCompression, compressionMethod, compressionLevel)
 				default:
 					return nil, fmt.Errorf("unsupported format: %q", format)
 				}

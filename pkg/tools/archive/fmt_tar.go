@@ -20,8 +20,10 @@ func createTar(ofs *fshelper.OSFS, w io.Writer, files []*entry) error {
 
 		hdr.Format = tar.FormatPAX
 		hdr.Name = f.to
-		if f.info.IsDir() && !strings.HasSuffix(f.to, "/") {
-			f.to += "/"
+
+		mode := f.info.Mode()
+		if mode.IsDir() && !strings.HasSuffix(hdr.Name, "/") {
+			hdr.Name += "/"
 		}
 
 		err = tw.WriteHeader(hdr)
@@ -29,7 +31,7 @@ func createTar(ofs *fshelper.OSFS, w io.Writer, files []*entry) error {
 			return err
 		}
 
-		if f.info.Mode().IsRegular() {
+		if mode.IsRegular() {
 			err = copyFileContent(ofs, tw, f.from)
 			if err != nil {
 				return err

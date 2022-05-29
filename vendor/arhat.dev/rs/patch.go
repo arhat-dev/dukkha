@@ -58,9 +58,10 @@ type PatchSpec struct {
 	// Select part of the data as final result
 	//
 	// this action happens after merge and patch
+	// TODO: support jq variables
 	Select string `yaml:"select"`
 
-	// TODO: give following options proper name
+	// TODO: give following options proper names
 
 	// Unique to make sure elements in the sequence is unique
 	//
@@ -83,12 +84,14 @@ func runJQ(query string, data any) (any, error) {
 
 	var (
 		ret any
-		idx int
+		n   int
+		ok  bool
 	)
 
 	iter := q.Run(data)
 	for {
-		v, ok := iter.Next()
+		var v any
+		v, ok = iter.Next()
 		if !ok {
 			break
 		}
@@ -97,7 +100,7 @@ func runJQ(query string, data any) (any, error) {
 			return nil, fmt.Errorf("jq query failed: %w", err)
 		}
 
-		switch idx {
+		switch n {
 		case 0:
 			ret = v
 		case 1:
@@ -106,7 +109,7 @@ func runJQ(query string, data any) (any, error) {
 			ret = append(ret.([]any), v)
 		}
 
-		idx++
+		n++
 	}
 
 	return ret, nil
@@ -115,7 +118,7 @@ func runJQ(query string, data any) (any, error) {
 func (s *PatchSpec) merge(rc RenderingHandler, valueData any) (any, error) {
 	mergeSrc := make([]any, len(s.Merge))
 	for i, m := range s.Merge {
-		v, err := handleOptionalRenderingSuffixResolving(rc, m.Value, m.Resolve)
+		v, err := handleOptionalRenderingSuffixResolving(m.Value, m.Resolve, rc)
 		if err != nil {
 			return nil, err
 		}
@@ -197,15 +200,15 @@ doMerge:
 }
 
 // Apply Merge and Patch to Value, Unique is ensured if set to true
-func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
-	valueData, err := handleOptionalRenderingSuffixResolving(rc, s.Value, s.Resolve)
+func (s *PatchSpec) Apply(rc RenderingHandler) (_ any, err error) {
+	valueData, err := handleOptionalRenderingSuffixResolving(s.Value, s.Resolve, rc)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	data, err := s.merge(rc, valueData)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	type resolvedJSONPatchSpec struct {
@@ -215,24 +218,24 @@ func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
 	}
 
 	// apply select action to patches
-	patchSrc := make([]*resolvedJSONPatchSpec, len(s.Patch))
+	patchSrc := make([]resolvedJSONPatchSpec, len(s.Patch))
 	for i, p := range s.Patch {
 		var v any
 		v, err = handleOptionalRenderingSuffixResolving(
-			rc, p.Value, p.Resolve,
+			p.Value, p.Resolve, rc,
 		)
 		if err != nil {
-			return nil, err
+			return
 		}
 
-		spec := &resolvedJSONPatchSpec{
+		patchSrc[i] = resolvedJSONPatchSpec{
 			Path:      p.Path,
 			Operation: p.Operation,
 			Value:     v,
 		}
 
 		if len(p.Select) != 0 {
-			spec.Value, err = runJQ(p.Select, spec.Value)
+			patchSrc[i].Value, err = runJQ(p.Select, patchSrc[i].Value)
 			if err != nil {
 				return nil, fmt.Errorf(
 					"run select over patch#%d: %w",
@@ -240,15 +243,13 @@ func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
 				)
 			}
 		}
-
-		patchSrc[i] = spec
 	}
 
 	if len(patchSrc) == 0 {
 		if len(s.Select) != 0 {
 			data, err = runJQ(s.Select, data)
 			if err != nil {
-				return nil, err
+				return
 			}
 		}
 
@@ -257,33 +258,36 @@ func (s *PatchSpec) Apply(rc RenderingHandler) (any, error) {
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	patchData, err := json.Marshal(patchSrc)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	patch, err := jsonpatch.DecodePatch(patchData)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	patchedDoc, err := patch.ApplyIndentWithOptions(jsonData, "", &jsonpatch.ApplyOptions{
+	options := jsonpatch.ApplyOptions{
 		SupportNegativeIndices:   true,
 		EnsurePathExistsOnAdd:    false,
 		AccumulatedCopySizeLimit: 0,
 		AllowMissingPathOnRemove: true,
-	})
+	}
+
+	patchedDoc, err := patch.ApplyIndentWithOptions(jsonData, "", &options)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	var ret any
 	err = json.Unmarshal(patchedDoc, &ret)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal patched value: %w", err)
+		err = fmt.Errorf("unmarshal patched value: %w", err)
+		return
 	}
 
 	if len(s.Select) == 0 {

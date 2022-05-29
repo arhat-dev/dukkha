@@ -26,6 +26,7 @@ type (
 	TypeHintBool    struct{}
 )
 
+// nolint:revive
 const (
 	typeHintName_None    = ""
 	typeHintName_Str     = "str"
@@ -220,7 +221,8 @@ func castScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
 		return n, nil
 	}
 
-	ret := cloneYamlNode(n, newTag, n.Value)
+	var ret yaml.Node
+	cloneYamlNode(&ret, n, newTag, n.Value)
 	switch newTag {
 	case strTag, binaryTag:
 	default:
@@ -233,16 +235,15 @@ func castScalarNode(n *yaml.Node, newTag string) (*yaml.Node, error) {
 		}
 	}
 
-	return ret, nil
+	return &ret, nil
 }
 
 // cloneYamlNode creates a new yaml.Node by copying all values from n
 // and override its tag and value
-func cloneYamlNode(n *yaml.Node, tag, value string) (ret *yaml.Node) {
-	ret = new(yaml.Node)
-	*ret = *n
-	ret.Tag = tag
-	ret.Value = value
+func cloneYamlNode(out, n *yaml.Node, tag, value string) {
+	*out = *n
+	out.Tag = tag
+	out.Value = value
 	return
 }
 

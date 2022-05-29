@@ -82,7 +82,7 @@ func (f *BaseField) parseFieldTags(sf *reflect.StructField, dataTagNS string) (r
 			}
 
 			// inline map, MUST have string key
-			if sf.Type.Key() != stringType {
+			if sf.Type.Key() != type_string {
 				err = fmt.Errorf(
 					"inline option not applicable to %s.%s: "+
 						"inline map MUST have string key",
@@ -163,7 +163,7 @@ func (f *BaseField) init(
 		InitRecursively(fieldValue, opts)
 
 		if !ts.inline {
-			if !f.addField(sf.Name, fieldValue, f, ts) {
+			if !f.addField(f, sf.Name, ts, fieldValue) {
 				return fmt.Errorf(
 					"duplicate yaml key %q in struct %s.%s",
 					ts.yamlKey, parentType.String(), sf.Name,
@@ -195,7 +195,7 @@ func (f *BaseField) collectInlineFields(
 	switch kind := sf.Type.Kind(); {
 	case kind == reflect.Struct:
 		// embedded struct
-		if reflect.PtrTo(sf.Type).Implements(fieldInterfaceType) || sf.Type.Implements(fieldInterfaceType) {
+		if reflect.PtrTo(sf.Type).Implements(typeEface_Field) || sf.Type.Implements(typeEface_Field) {
 			innerBaseF = fieldValue.Field(0)
 		}
 	case kind == reflect.Ptr:
@@ -228,12 +228,12 @@ func (f *BaseField) collectInlineFields(
 	start := 0
 	switch innerBaseF.Kind() {
 	case reflect.Struct:
-		if innerBaseF.Addr().Type() == baseFieldPtrType {
+		if innerBaseF.Addr().Type() == typePtr_BaseField {
 			base = innerBaseF.Addr().Interface().(*BaseField)
 			start = 1
 		}
 	case reflect.Ptr:
-		if innerBaseF.Type() == baseFieldPtrType {
+		if innerBaseF.Type() == typePtr_BaseField {
 			base = innerBaseF.Interface().(*BaseField)
 			start = 1
 		}
@@ -254,7 +254,7 @@ func (f *BaseField) collectInlineFields(
 		}
 
 		if !ts.inline {
-			if !f.addField(sf.Name, fieldValue.Field(i), base, ts) {
+			if !f.addField(base, sf.Name, ts, fieldValue.Field(i)) {
 				return fmt.Errorf(
 					"duplicate yaml key %q in inline field %s.%s",
 					ts.yamlKey, f._parentValue.Type().String(), sf.Name,
@@ -296,13 +296,12 @@ type fieldRef struct {
 	disableRS bool
 }
 
-func (f *fieldRef) Elem() *fieldRef {
+func (f *fieldRef) Elem() fieldRef {
 	return f.clone(f.fieldValue.Elem())
 }
 
-func (f *fieldRef) clone(v reflect.Value) (ret *fieldRef) {
-	ret = new(fieldRef)
-	*ret = *f
+func (f *fieldRef) clone(v reflect.Value) (ret fieldRef) {
+	ret = *f
 	ret.fieldValue = v
 	return
 }
@@ -310,10 +309,10 @@ func (f *fieldRef) clone(v reflect.Value) (ret *fieldRef) {
 // addField adds one field identified by its yamlKey
 // it may be a catch-other field
 func (f *BaseField) addField(
-	fieldName string,
-	fieldValue reflect.Value,
 	base *BaseField,
+	fieldName string,
 	ts tagSpec,
+	fieldValue reflect.Value,
 ) bool {
 	if ts.inlineMap {
 		if f.inlineMap != nil {
@@ -398,14 +397,13 @@ func (f *BaseField) addUnresolvedField_self(suffix string, n *yaml.Node) error {
 }
 
 func (f *BaseField) addUnresolvedField(
+	// value part
+	ref *fieldRef,
+	rawData *yaml.Node,
 	// key part
 	yamlKey string,
 	suffix string,
 	resolvedSuffix []rendererSpec,
-
-	// value part
-	ref *fieldRef,
-	rawData *yaml.Node,
 ) error {
 	if resolvedSuffix == nil {
 		resolvedSuffix = parseRenderingSuffix(suffix)

@@ -159,8 +159,8 @@
         },
         "select": {
           "type": "string",
-          "description": "part of the data as final result  this action happens after merge and patch",
-          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch"
+          "description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables",
+          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables"
         },
         "unique": {
           "type": "boolean",
@@ -238,8 +238,8 @@
         },
         "^select@.*": {
           "type": "string",
-          "description": "part of the data as final result  this action happens after merge and patch",
-          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch"
+          "description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables",
+          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables"
         },
         "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2557,11 +2557,11 @@
         },
         "files": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.fileFromToSpec"
           },
           "type": "array",
-          "description": "to include into archive",
-          "x-intellij-html-description": "to include into archive"
+          "description": "to be archived",
+          "x-intellij-html-description": "to be archived"
         },
         "format": {
           "type": "string",
@@ -2620,11 +2620,11 @@
         },
         "^files@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.fileFromToSpec"
           },
           "type": "array",
-          "description": "to include into archive",
-          "x-intellij-html-description": "to include into archive"
+          "description": "to be archived",
+          "x-intellij-html-description": "to be archived"
         },
         "^files@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2699,43 +2699,6 @@
         }
       }
     },
-    "arhat.dev.dukkha.pkg.tools.archive.archiveFileSpec": {
-      "properties": {
-        "from": {
-          "type": "string",
-          "description": "local file path, include files to be archived with glob pattern support",
-          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
-        },
-        "to": {
-          "type": "string",
-          "description": "in archive path those files will go",
-          "x-intellij-html-description": "in archive path those files will go"
-        }
-      },
-      "preferredOrder": [
-        "from",
-        "to"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^from@.*": {
-          "type": "string",
-          "description": "local file path, include files to be archived with glob pattern support",
-          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
-        },
-        "^from@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
-        "^to@.*": {
-          "type": "string",
-          "description": "in archive path those files will go",
-          "x-intellij-html-description": "in archive path those files will go"
-        },
-        "^to@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        }
-      }
-    },
     "arhat.dev.dukkha.pkg.tools.archive.compressionSpec": {
       "properties": {
         "enabled": {
@@ -2789,6 +2752,59 @@
           "default": "gzip"
         },
         "^method@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.archive.fileFromToSpec": {
+      "properties": {
+        "follow_symlink": {
+          "type": "boolean",
+          "description": "eval symlink to store actual file instead of creating symlink in archive",
+          "x-intellij-html-description": "eval symlink to store actual file instead of creating symlink in archive",
+          "default": "false"
+        },
+        "from": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "to": {
+          "type": "string",
+          "description": "in archive path, files by `From` will be put at  if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by `From`, when `To` ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file",
+          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at  if multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file"
+        }
+      },
+      "preferredOrder": [
+        "from",
+        "to",
+        "follow_symlink"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^follow_symlink@.*": {
+          "type": "boolean",
+          "description": "eval symlink to store actual file instead of creating symlink in archive",
+          "x-intellij-html-description": "eval symlink to store actual file instead of creating symlink in archive",
+          "default": "false"
+        },
+        "^follow_symlink@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^from@.*": {
+          "type": "string",
+          "description": "local file path, include files to be archived with glob pattern support",
+          "x-intellij-html-description": "local file path, include files to be archived with glob pattern support"
+        },
+        "^from@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^to@.*": {
+          "type": "string",
+          "description": "in archive path, files by `From` will be put at  if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by `From`, when `To` ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file",
+          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at  if multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file"
+        },
+        "^to@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }

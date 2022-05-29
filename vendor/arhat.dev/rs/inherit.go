@@ -38,10 +38,10 @@ func (f *BaseField) Inherit(other *BaseField) error {
 				}
 
 				err := f.addUnresolvedField(
-					k,
-					"", v.renderers,
 					ref,
 					v.rawData,
+					k,
+					"", v.renderers,
 				)
 
 				if err != nil {

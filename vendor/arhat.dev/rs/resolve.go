@@ -14,9 +14,10 @@ func (f *BaseField) HasUnresolvedField() bool {
 	return len(f.unresolvedNormalFields) != 0
 }
 
-func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...string) error {
+func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...string) (err error) {
 	if !f.initialized() {
-		return fmt.Errorf("rs: struct not intialized before resolving")
+		err = fmt.Errorf("rs: struct not intialized before resolving")
+		return
 	}
 
 	if depth == 0 {
@@ -24,9 +25,10 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 	}
 
 	if len(f.unresolvedSelfItems) != 0 {
-		err := resolveOverlappedItems(rc, 1, "", f._parentValue, f.unresolvedSelfItems)
+		err = resolveOverlappedItems(1, &f._parentValue, "", f.unresolvedSelfItems, rc)
 		if err != nil {
-			return fmt.Errorf("rs: resolve value from virtual key: %w", err)
+			err = fmt.Errorf("rs: resolve value from virtual key: %w", err)
+			return
 		}
 	}
 
@@ -34,68 +36,79 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 		// resolve all
 
 		for name, v := range f.normalFields {
-			err := v.base.resolveNormalField(rc, depth, name, &v.fieldValue)
+			err = v.base.resolveNormalField(depth, &v.fieldValue, name, rc)
 			if err != nil {
-				return fmt.Errorf(
+				err = fmt.Errorf(
 					"rs: resolve field %s.%s: %w",
 					f._parentValue.Type().String(), v.fieldName, err,
 				)
+				return
 			}
 		}
 
 		for k, list := range f.unresolvedInlineMapItems {
-			err := resolveOverlappedItems(rc, depth, k, f.inlineMap.fieldValue, list)
+			err = resolveOverlappedItems(depth, &f.inlineMap.fieldValue, k, list, rc)
 			if err != nil {
-				return err
+				return
 			}
 		}
 
 		if f.inlineMap != nil {
 			// the inline map has been resolved above, so let's go to
 			// values of these inline map entries
-			return handleResolvedField(rc, depth, f.inlineMap.fieldValue)
+			err = handleResolvedField(depth, &f.inlineMap.fieldValue, rc)
+			return
 		}
 
-		return nil
+		return
 	}
 
+	// resolve specified fileds by tag names
+
+	var (
+		ref fieldRef
+		ok  bool
+	)
 	for _, name := range names {
-		v, ok := f.normalFields[name]
+		ref, ok = f.normalFields[name]
 		if !ok {
 			// can be targeting inline map field name
 			switch {
 			case len(name) == 0:
 				// resolve itself (added by virtual key `__`)
 
-				err := resolveOverlappedItems(rc, 1, "", f._parentValue, f.unresolvedSelfItems)
+				err = resolveOverlappedItems(1, &f._parentValue, "", f.unresolvedSelfItems, rc)
 				if err != nil {
-					return err
+					return
 				}
 
 				continue
 			case f.inlineMap != nil && f.inlineMap.fieldName == name:
 				for k, list := range f.unresolvedInlineMapItems {
-					err := resolveOverlappedItems(rc, depth, k, f.inlineMap.fieldValue, list)
+					err = resolveOverlappedItems(depth, &f.inlineMap.fieldValue, k, list, rc)
 					if err != nil {
-						return err
+						return
 					}
 				}
 
 				continue
 			default:
-				return fmt.Errorf(
+				err = fmt.Errorf(
 					"rs: no such field %q in struct %q",
 					name, f._parentValue.Type().String(),
 				)
+				return
 			}
 		}
 
-		err := v.base.resolveNormalField(rc, depth, name, &v.fieldValue)
+		err = ref.base.resolveNormalField(depth, &ref.fieldValue, name, rc)
 		if err != nil {
-			return fmt.Errorf(
+			err = fmt.Errorf(
 				"rs: resolve requested field %s of %s: %w",
 				name, f._parentValue.Type().String(), err,
 			)
+
+			return
 		}
 	}
 
@@ -103,11 +116,11 @@ func (f *BaseField) ResolveFields(rc RenderingHandler, depth int, names ...strin
 }
 
 func resolveOverlappedItems(
-	rc RenderingHandler,
 	depth int,
+	fVal *reflect.Value,
 	k string,
-	fVal reflect.Value,
 	list []unresolvedFieldSpec,
+	rc RenderingHandler,
 ) error {
 	var (
 		itemCache *reflect.Value
@@ -117,55 +130,61 @@ func resolveOverlappedItems(
 	n := len(list)
 	for i := 0; i < n; i++ {
 		itemCache, err = handleUnresolvedField(
-			rc, depth, k, &list[i], itemCache,
+			depth,
+			&list[i],
+			itemCache,
 			// flush existing data with the same key on first pair
 			i != 0,
+			k,
+			rc,
 		)
 		if err != nil {
 			return err
 		}
 	}
 
-	return handleResolvedField(rc, depth, fVal)
+	return handleResolvedField(depth, fVal, rc)
 }
 
 func (f *BaseField) resolveNormalField(
-	rc RenderingHandler,
 	depth int,
-	yamlKey string,
 	fieldValue *reflect.Value,
+	yamlKey string,
+	rc RenderingHandler,
 ) error {
 	v, ok := f.unresolvedNormalFields[yamlKey]
 	if !ok {
-		return handleResolvedField(rc, depth, *fieldValue)
+		return handleResolvedField(depth, fieldValue, rc)
 	}
 
 	_, err := handleUnresolvedField(
-		rc, depth, yamlKey, &v, nil, false,
+		depth, &v, nil, false, yamlKey, rc,
 	)
 	return err
 }
 
 func handleResolvedField(
-	rc RenderingHandler,
 	depth int,
-	field reflect.Value,
-) error {
+	field *reflect.Value,
+	rc RenderingHandler,
+) (err error) {
 	if depth == 0 {
-		return nil
+		return
 	}
 
 	switch fk := field.Kind(); fk {
 	case reflect.Map:
 		if field.IsNil() {
-			return nil
+			return
 		}
 
 		iter := field.MapRange()
+		var val reflect.Value
 		for iter.Next() {
-			err := handleResolvedField(rc, depth-1, iter.Value())
+			val = iter.Value()
+			err = handleResolvedField(depth-1, &val, rc)
 			if err != nil {
-				return err
+				return
 			}
 		}
 	case reflect.Array:
@@ -173,14 +192,19 @@ func handleResolvedField(
 	case reflect.Slice:
 		if fk == reflect.Slice && field.IsNil() {
 			// this is a resolved field, slice/array empty means no value
-			return nil
+			return
 		}
 
-		for i := 0; i < field.Len(); i++ {
-			tt := field.Index(i)
-			err := handleResolvedField(rc, depth-1, tt)
+		var (
+			val reflect.Value
+			n   = field.Len()
+		)
+
+		for i := 0; i < n; i++ {
+			val = field.Index(i)
+			err = handleResolvedField(depth-1, &val, rc)
 			if err != nil {
-				return err
+				return
 			}
 		}
 	case reflect.Struct:
@@ -189,18 +213,18 @@ func handleResolvedField(
 		fallthrough
 	case reflect.Interface:
 		if !field.IsValid() || field.IsZero() || field.IsNil() {
-			return nil
+			return
 		}
 		// handled after switch
 	default:
 		// scalar types, no action required
-		return nil
+		return
 	}
 
-	return tryResolve(rc, depth-1, field)
+	return tryResolve(depth-1, field, rc)
 }
 
-func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error {
+func tryResolve(depth int, targetField *reflect.Value, rc RenderingHandler) error {
 	if targetField.CanInterface() {
 		fVal, canCallResolve := targetField.Interface().(Field)
 		if canCallResolve {
@@ -217,14 +241,14 @@ func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error
 		return nil
 	}
 
-	targetField = targetField.Addr()
-	if !targetField.CanInterface() {
+	ptrTargetField := targetField.Addr()
+	if !ptrTargetField.CanInterface() {
 		return nil
 	}
 
-	fVal, canCallResolve := targetField.Interface().(Field)
+	fVal, canCallResolve := ptrTargetField.Interface().(Field)
 	if canCallResolve {
-		if targetField.IsNil() {
+		if fVal == nil || ptrTargetField.IsNil() {
 			return nil
 		}
 
@@ -236,44 +260,49 @@ func tryResolve(rc RenderingHandler, depth int, targetField reflect.Value) error
 }
 
 func handleUnresolvedField(
-	rc RenderingHandler,
 	depth int,
-	yamlKey string,
 	v *unresolvedFieldSpec,
 	inlineMapItemCache *reflect.Value,
 	keepOld bool,
-) (*reflect.Value, error) {
+	yamlKey string,
+	rc RenderingHandler,
+) (_ *reflect.Value, err error) {
 	target := v.ref
 
 	toResolve := v.rawData
-	if v.ref.isInlineMap {
+	if target.isInlineMap {
 		// unwrap map data for resolving
-		toResolve = v.rawData.Content[1]
+		toResolve = toResolve.Content[1]
 	}
 
-	var err error
-	for _, renderer := range v.renderers {
-		toResolve, err = tryRender(rc,
-			renderer.name, renderer.typeHint, renderer.patchSpec,
+	n := len(v.renderers)
+	for i := 0; i < n; i++ {
+		toResolve, err = tryRender(
 			toResolve,
+			&v.renderers[i],
+			rc,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("render value for %q: %w", yamlKey, err)
+			err = fmt.Errorf("render value for %q: %w", yamlKey, err)
+			return
 		}
 	}
 
 	resolved := toResolve
-	if v.ref.isInlineMap {
+	if target.isInlineMap {
+		var fm yaml.Node
+		fakeMap(&fm, v.rawData.Content[0], resolved)
+
 		inlineMapItemCache, err = unmarshalMap(
-			rc,
-			yamlKey,
-			fakeMap(v.rawData.Content[0], resolved),
+			&fm,
 			target,
 			inlineMapItemCache,
 			&keepOld,
+			yamlKey,
+			rc,
 		)
 	} else {
-		err = unmarshal(rc, yamlKey, resolved, target, nil, nil)
+		err = unmarshal(resolved, target, nil, nil, yamlKey, rc)
 	}
 
 	if err != nil {
@@ -283,53 +312,66 @@ func handleUnresolvedField(
 		)
 	}
 
-	return inlineMapItemCache, handleResolvedField(rc, depth, target.fieldValue)
+	return inlineMapItemCache, handleResolvedField(depth, &target.fieldValue, rc)
 }
 
 func tryRender(
-	rc RenderingHandler,
-	rendererName string,
-	typeHint TypeHint,
-	isPatchSpec bool,
 	toResolve *yaml.Node,
-) (*yaml.Node, error) {
-	if isPatchSpec {
-		patchSpec, err := resolvePatchSpec(rc, toResolve)
+	rdr *rendererSpec,
+	rc RenderingHandler,
+) (_ *yaml.Node, err error) {
+	if rdr.patchSpec {
+		var (
+			patchSpec  *PatchSpec
+			patchedObj any
+			dataBytes  []byte
+		)
+
+		patchSpec, err = resolvePatchSpec(rc, toResolve)
 		if err != nil {
-			return nil, fmt.Errorf("invalid patch spec: %w", err)
+			err = fmt.Errorf("invalid patch spec: %w", err)
+			return
 		}
 
-		patchedData, err := patchSpec.Apply(rc)
+		patchedObj, err = patchSpec.Apply(rc)
 		if err != nil {
-			return nil, fmt.Errorf("apply patch: %w", err)
+			err = fmt.Errorf("apply patch: %w", err)
+			return
 		}
 
-		// patch doc is generated from arbitrary yaml data from built-in interface{} value
-		// so we are able to marshal it into json with no error, and then parse the json data as *yaml.Node for further processing
+		// patch doc is generated from arbitrary yaml data from built-in `any` value
+		// so we are able to marshal it into json with no error, and then parse the json data
+		// as *yaml.Node for further processing
+		// TODO: convert patchedObj to *yaml.Node directly
 
-		var dataBytes []byte
-		dataBytes, err = json.Marshal(patchedData)
+		dataBytes, err = json.Marshal(patchedObj)
 		if err != nil {
-			return nil, fmt.Errorf("marshal patched data: %w", err)
+			err = fmt.Errorf("marshal patched data: %w", err)
+			return
 		}
 
 		// json data is deemed to be valid yaml, if not, we must have some
-		// big problem. so we don't need to recover yaml.Unmarshal from panic
-		// here
-		toResolve = new(yaml.Node)
-		err = yaml.Unmarshal(dataBytes, toResolve)
+		// big problem. so we don't recover yaml.Unmarshal from panic here
+		var tmp yaml.Node
+		err = yaml.Unmarshal(dataBytes, &tmp)
 		if err != nil {
-			return nil, fmt.Errorf("prepare patched data: %w", err)
+			err = fmt.Errorf("prepare patched data: %w", err)
+			return
 		}
+
+		toResolve = &tmp
 	}
 
-	if len(rendererName) != 0 {
-		renderedData, err := rc.RenderYaml(rendererName, toResolve)
+	if len(rdr.name) != 0 {
+		var (
+			renderedData []byte
+			tag          string
+		)
+
+		renderedData, err = rc.RenderYaml(rdr.name, toResolve)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"renderer %q render value: %w",
-				rendererName, err,
-			)
+			err = fmt.Errorf("renderer %q render value: %w", rdr.name, err)
+			return
 		}
 
 		// check type hinting before assuming it's valid yaml
@@ -340,8 +382,9 @@ func tryRender(
 		// scalar types cannot be applied with patch spec
 		// so the rendered data will be the final value for resolving
 
-		var tag string
-		switch typeHint.(type) {
+		var tmp yaml.Node
+
+		switch rdr.typeHint.(type) {
 		case TypeHintStr:
 			tag = strTag
 		case TypeHintInt:
@@ -350,23 +393,26 @@ func tryRender(
 			tag = floatTag
 		default:
 			// assume rendered data as yaml for further processing
-			toResolve = assumeValidYaml(renderedData)
+			assumeValidYaml(renderedData, &tmp)
 		}
 
 		if len(tag) != 0 {
-			toResolve = &yaml.Node{
+			tmp = yaml.Node{
 				Style: guessYamlStringStyle(renderedData),
 				Kind:  yaml.ScalarNode,
 				Tag:   tag,
 				Value: stringhelper.Convert[string, byte](renderedData),
 			}
 		}
+
+		toResolve = &tmp
 	}
 
 	// apply hint after resolving (rendering)
-	toResolve, err := applyHint(typeHint, toResolve)
+	toResolve, err = applyHint(rdr.typeHint, toResolve)
 	if err != nil {
-		return nil, fmt.Errorf("ensure type hint %q: %w", typeHint, err)
+		err = fmt.Errorf("ensure type hint %q: %w", rdr.typeHint, err)
+		return
 	}
 
 	return toResolve, nil
@@ -382,11 +428,10 @@ func guessYamlStringStyle(s []byte) yaml.Style {
 }
 
 // assumeValidYaml tries its best to unmarshal data as yaml.Node
-func assumeValidYaml(data []byte) (ret *yaml.Node) {
-	ret = new(yaml.Node)
-	err := yaml.Unmarshal(data, ret)
+func assumeValidYaml(data []byte, out *yaml.Node) {
+	err := yaml.Unmarshal(data, out)
 	if err != nil {
-		ret = &yaml.Node{
+		*out = yaml.Node{
 			Style: guessYamlStringStyle(data),
 			Kind:  yaml.ScalarNode,
 			Tag:   strTag,
@@ -397,17 +442,17 @@ func assumeValidYaml(data []byte) (ret *yaml.Node) {
 	}
 
 	// unmarshal ok
-	if prepared := prepareYamlNode(ret); prepared != nil {
-		ret = prepared
+	if prepared := prepareYamlNode(out); prepared != nil {
+		*out = *prepared
 	}
 
 	switch {
-	case isStrScalar(ret), isBinaryScalar(ret):
+	case isStrScalar(out), isBinaryScalar(out):
 		// use original string instead of yaml unmarshaled string
 		// yaml.Unmarshal may modify string content when it's not
 		// valid yaml
 
-		ret = &yaml.Node{
+		*out = yaml.Node{
 			Style: guessYamlStringStyle(data),
 			Kind:  yaml.ScalarNode,
 			Tag:   strTag,
@@ -460,7 +505,7 @@ func resolvePatchSpec(
 	return
 }
 
-func handleOptionalRenderingSuffixResolving(rc RenderingHandler, n *yaml.Node, resolve *bool) (any, error) {
+func handleOptionalRenderingSuffixResolving(n *yaml.Node, resolve *bool, rc RenderingHandler) (any, error) {
 	n = prepareYamlNode(n)
 	if n == nil {
 		return nil, nil
