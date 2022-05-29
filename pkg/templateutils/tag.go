@@ -1,9 +1,10 @@
 package templateutils
 
 import (
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/clihelper"
 	"github.com/spf13/pflag"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func createTagNS(rc dukkha.RenderingContext) tagNS {
@@ -71,7 +72,7 @@ func (ns tagNS) ImageTag(args ...String) (string, error) {
 	})
 }
 
-// ManifestTag generates a tag for container manifest name (the last arugment)
+// ManifestTag generates a tag for container manifest name (the last argument)
 func (ns tagNS) ManifestTag(args ...String) (_ string, err error) {
 	return handleImageTagging(args, func(opts *tagOptions, name string) (string, error) {
 		return GetManifestTag(ns.rc, name), nil

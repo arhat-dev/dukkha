@@ -27,7 +27,6 @@ const (
 	// replace_XBUILD_CONTEXT_DIR          = "<XBUILD_CONTEXT_DIR>"
 )
 
-// nolint:revive
 func replace_XBUILD_STEP_CONTAINER_ID(stepID string) string {
 	return "<XBUILD_STEP_CONTAINER_ID_" + stepID + ">"
 }

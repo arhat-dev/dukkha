@@ -7,11 +7,12 @@ import (
 	"strings"
 	"testing"
 
+	"arhat.dev/pkg/testhelper/cmdtesthelper"
+
 	"arhat.dev/dukkha/pkg/conf"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/pkg/testhelper/cmdtesthelper"
 
 	_ "arhat.dev/dukkha/cmd/dukkha/addon"
 )

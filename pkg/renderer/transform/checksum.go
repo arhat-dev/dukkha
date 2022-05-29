@@ -18,7 +18,6 @@ import (
 
 type checksumKind string
 
-// nolint:revive
 const (
 	checksum_MD5    checksumKind = "md5"
 	checksum_SHA1   checksumKind = "sha1"

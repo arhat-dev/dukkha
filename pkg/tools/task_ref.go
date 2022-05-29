@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"arhat.dev/rs"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/matrix"
-	"arhat.dev/rs"
 )
 
 type TaskReference struct {

@@ -36,7 +36,9 @@ import (
 // - `--base64`: encode hashed data in base64 format (std encoding)
 // - `--base32`: encode hashed data in base32 format (std encoding)
 //
-// NOTE: to encode hashed data with more advanced options, use pipeline to pass returned hashing result in raw mode to encNS functions
+// NOTE: to encode hashed data with more advanced options,
+// 		 use pipeline to pass returned hashing result in raw mode to encNS functions
+//
 // e.g. {{- hash.CRC32 "-raw" .SomeData | enc.Base64 "--url" "--raw" -}}
 type hashNS struct{}
 
@@ -212,6 +214,7 @@ func (hashNS) SHA512(args ...any) (string, error) {
 	})
 }
 
+// nolint:revive
 func (hashNS) SHA512_224(args ...any) (string, error) {
 	var buf [sha512.Size224]byte
 	return handleHashTemplateFunc_DATA(args, "sha512-224", sha512.New512_224, func(data []byte) []byte {
@@ -220,6 +223,7 @@ func (hashNS) SHA512_224(args ...any) (string, error) {
 	})
 }
 
+// nolint:revive
 func (hashNS) SHA512_256(args ...any) (string, error) {
 	var buf [sha512.Size256]byte
 	return handleHashTemplateFunc_DATA(args, "sha512-256", sha512.New512_256, func(data []byte) []byte {
@@ -279,7 +283,12 @@ func parseHashingOptions(flags []string, name string, defaultRaw bool) (ret hash
 	return
 }
 
-func handleHashTemplateFunc_DATA(args []any, name string, newHash func() hash.Hash, sum func(data []byte) []byte) (ret string, err error) {
+func handleHashTemplateFunc_DATA(
+	args []any,
+	name string,
+	newHash func() hash.Hash,
+	sum func(data []byte) []byte,
+) (ret string, err error) {
 	n := len(args)
 	if n == 0 {
 		return "", fmt.Errorf("at least 1 args expected: got 0")
@@ -301,6 +310,7 @@ func handleHashTemplateFunc_DATA(args []any, name string, newHash func() hash.Ha
 			return
 		}
 
+		// nolint:gocritic
 		if isReader {
 			if h == nil {
 				h = newHash()

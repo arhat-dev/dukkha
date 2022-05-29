@@ -14,11 +14,11 @@ type timeNS struct{}
 
 */
 
-func (timeNS) FMT_RFC3339() string     { return time.RFC3339 }
+func (timeNS) FMT_RFC3339() string     { return time.RFC3339 } // nolint:revive
 func (timeNS) FMT_RFC3339Nano() string { return time.RFC3339Nano }
 func (timeNS) FMT_Unix() string        { return time.UnixDate }
 func (timeNS) FMT_Ruby() string        { return time.RubyDate }
-func (timeNS) FMT_ANSI() string        { return time.ANSIC }
+func (timeNS) FMT_ANSI() string        { return time.ANSIC } // nolint:revive
 func (timeNS) FMT_Stamp() string       { return time.StampMilli }
 func (timeNS) FMT_Date() string        { return "2006-01-02" }
 func (timeNS) FMT_Clock() string       { return "15:04:05" }
@@ -336,7 +336,8 @@ func (timeNS) Parse(args ...any) (ret time.Time, err error) {
 //
 // Format(layout String, t Time): format Time t in specified layout
 //
-// Format(layout, loc String, t Time): format Time t in location loc wtih format, when format is empty, fallback to RFC3339
+// Format(layout, loc String, t Time): format Time t in location loc with format,
+// when format is empty, fallback to RFC3339
 func (timeNS) Format(args ...any) (_ string, err error) {
 	var (
 		layout string

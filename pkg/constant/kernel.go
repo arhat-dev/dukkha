@@ -3,7 +3,7 @@ package constant
 // Kernel names
 // currently they are defined the same as GOOS values
 //
-// nolint:revive
+
 const (
 	KERNEL_Windows    = "windows"
 	KERNEL_Linux      = "linux"
@@ -72,7 +72,7 @@ const (
 	kernelID_iOS
 	kernelID_Plan9
 
-	kernelID_COUNT
+	kernelID_COUNT // nolint:deadcode,varcheck
 )
 
 func kernel_id_of(kernel string) kernelID {

@@ -8,13 +8,14 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/clihelper"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/stringhelper"
 	"github.com/spf13/pflag"
 	"mvdan.cc/sh/v3/interp"
+
+	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 func createFSNS(rc dukkha.RenderingContext) fsNS { return fsNS{rc: rc} }
@@ -161,7 +162,8 @@ func (ns fsNS) Find(path String, args ...String) (ret []string, err error) {
 //
 // Lookup(path, file String): like the one above, but use specified path as PATH env
 //
-// Lookup(path, pathext, file String): specify both PATH and PATHEXT manually, but if path is empty, fallback to PATH env
+// Lookup(path, pathext, file String): specify both PATH and PATHEXT manually,
+// 										but if path is empty, fallback to PATH env
 //
 // NOTE: it will try extra suffices (e.g. `.exe`) on windows
 //
@@ -374,6 +376,7 @@ func (ns fsNS) OpenFile(args ...String) (_ *os.File, err error) {
 		}
 	}
 
+	// nolint:gocritic
 	if read && write {
 		fileOpenFlags |= os.O_RDWR
 	} else if read {

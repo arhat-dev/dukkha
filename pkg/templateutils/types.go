@@ -31,15 +31,6 @@ type None struct{}
 // - bool value
 type Bool any
 
-func toBoolOrFalse(v Bool) (ret bool) {
-	ret, err := parseBool(v)
-	if err != nil {
-		return false
-	}
-
-	return
-}
-
 func parseBool(v Bool) (bool, error) {
 	switch v := v.(type) {
 	case bool:
@@ -160,16 +151,6 @@ func toIntegerOrPanic[T integer](i Number) (ret T) {
 	return
 }
 
-// toFloatOrPanic panics on error condition
-func toFloatOrPanic[T float](i Number) (ret T) {
-	ret, err := parseFloat[T](i)
-	if err != nil {
-		panic(err)
-	}
-
-	return
-}
-
 func toIntegers[T integer, V Number](arr []V) (ret []T, err error) {
 	if len(arr) == 0 {
 		return
@@ -261,7 +242,7 @@ func parseNumber(i Number) (_ uint64, isFloat bool, _ error) {
 	case int64:
 		return uint64(i), false, nil
 	case uint64:
-		return uint64(i), false, nil
+		return i, false, nil
 
 	case uintptr:
 		return uint64(i), false, nil
@@ -332,6 +313,7 @@ func strToInteger(str string) (uint64, bool, error) {
 // - fmt.Stringer
 type String any
 
+// nolint:gocyclo
 func toString(s String) (_ string, err error) {
 	switch t := s.(type) {
 	case []byte:
@@ -362,9 +344,9 @@ func toString(s String) (_ string, err error) {
 		return strconv.FormatUint(uint64(t), 10), nil
 
 	case int64:
-		return strconv.FormatInt(int64(t), 10), nil
+		return strconv.FormatInt(t, 10), nil
 	case uint64:
-		return strconv.FormatUint(uint64(t), 10), nil
+		return strconv.FormatUint(t, 10), nil
 
 	case uintptr:
 		return strconv.FormatUint(uint64(t), 10), nil
@@ -372,7 +354,7 @@ func toString(s String) (_ string, err error) {
 	case float32:
 		return strconv.FormatFloat(float64(t), 'f', -1, 64), nil
 	case float64:
-		return strconv.FormatFloat(float64(t), 'f', -1, 64), nil
+		return strconv.FormatFloat(t, 'f', -1, 64), nil
 
 	case bool:
 		return strconv.FormatBool(t), nil
@@ -565,10 +547,10 @@ func toBytesOrReader(data Bytes) (b []byte, r io.Reader, isReader bool, err erro
 		return
 
 	case int64:
-		b = strconv.AppendInt(b, int64(t), 10)
+		b = strconv.AppendInt(b, t, 10)
 		return
 	case uint64:
-		b = strconv.AppendUint(b, uint64(t), 10)
+		b = strconv.AppendUint(b, t, 10)
 		return
 
 	case uintptr:
@@ -579,7 +561,7 @@ func toBytesOrReader(data Bytes) (b []byte, r io.Reader, isReader bool, err erro
 		b = strconv.AppendFloat(b, float64(t), 'f', -1, 64)
 		return
 	case float64:
-		b = strconv.AppendFloat(b, float64(t), 'f', -1, 64)
+		b = strconv.AppendFloat(b, t, 'f', -1, 64)
 		return
 
 	case bool:
@@ -654,6 +636,7 @@ func toTimeDefault(t Time) (time.Time, error) {
 	return parseTime(time.RFC3339Nano, t, nil)
 }
 
+// nolint:gocyclo
 func parseTime(layout string, t Time, loc *time.Location) (ret time.Time, err error) {
 	// this funcion is called at most onece
 	parseTime := time.Parse

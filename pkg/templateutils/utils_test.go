@@ -40,6 +40,7 @@ func TestRemoveMatchedRunes(t *testing.T) {
 }
 
 func TestChunkedWriter(t *testing.T) {
+	// nolint:revive
 	const (
 		TOTAL_SIZE = 103
 		CHUNK_SIZE = 4
@@ -50,6 +51,7 @@ func TestChunkedWriter(t *testing.T) {
 		REMAINDER  = TOTAL_SIZE % CHUNK_SIZE
 	)
 
+	// nolint:revive
 	CALL_PRE := CALL_AFTER
 	if REMAINDER != 0 {
 		CALL_PRE++

@@ -87,6 +87,7 @@ func (typeNS) IsNum(v any) bool {
 
 func (typeNS) IsZero(v any) bool { return IsZero(v) }
 
+// nolint:gocyclo
 func IsZero(v any) bool {
 	switch t := v.(type) {
 	case string:

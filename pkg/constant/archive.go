@@ -2,7 +2,6 @@ package constant
 
 import "fmt"
 
-// nolint:revive
 const (
 	ArchiveFormat_Zip = "zip"
 	ArchiveFormat_Tar = "tar"
@@ -11,7 +10,6 @@ const (
 // https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT#4.4.5
 type ZipCompressionMethod uint16
 
-// nolint:revive
 const (
 	ZipCompressionMethod_Store   ZipCompressionMethod = 0
 	ZipCompressionMethod_Deflate ZipCompressionMethod = 8

@@ -99,6 +99,7 @@ func CrossPlatform(
 
 type archID uint32
 
+// nolint:gocyclo
 func (id archID) String() string {
 	switch id {
 	case archID_X86:
@@ -247,6 +248,7 @@ const (
 	archID_COUNT
 )
 
+// nolint:gocyclo
 func arch_id_of(arch string) archID {
 	switch arch {
 	case ARCH_X86:

@@ -8,13 +8,14 @@ import (
 	"io"
 	"strings"
 
-	di "arhat.dev/dukkha/internal"
-	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 	"github.com/itchyny/gojq"
 	"gopkg.in/yaml.v3"
+
+	di "arhat.dev/dukkha/internal"
+	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 // dukkha runtime specific template funcs
@@ -198,13 +199,13 @@ func genNewVal(key string, value any, ret *map[string]any) error {
 	return genNewVal(nextKey, value, &newValParent)
 }
 
-func newJsonDecoder(r io.Reader) DataDecoder {
+func newJSONDecoder(r io.Reader) DataDecoder {
 	dec := json.NewDecoder(r)
 	dec.UseNumber()
 	return dec
 }
 
-func newYamlDecoder(r io.Reader) DataDecoder {
+func newYAMLDecoder(r io.Reader) DataDecoder {
 	dec := yaml.NewDecoder(r)
 	return dec
 }
@@ -213,7 +214,7 @@ func newYamlDecoder(r io.Reader) DataDecoder {
 func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) {
 	var ret []any
 	err = handleTextQuery(ns.rc, args,
-		newJsonDecoder,
+		newJSONDecoder,
 		func(data any, result []any, queryErr error) error {
 			ret = append(ret, result...)
 			return queryErr
@@ -237,7 +238,7 @@ func (ns dukkhaNS) JQObj(args ...any) (_ any, err error) {
 func (ns dukkhaNS) YQObj(args ...any) (_ any, err error) {
 	var ret []any
 	err = handleTextQuery(ns.rc, args,
-		newYamlDecoder,
+		newYAMLDecoder,
 		func(data any, result []any, queryErr error) error {
 			ret = append(ret, result...)
 			return queryErr
@@ -262,7 +263,7 @@ func (ns dukkhaNS) JQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
 	err = handleTextQuery(ns.rc, args,
-		newJsonDecoder,
+		newJSONDecoder,
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, json.Marshal),
 	)
 	if err != nil {
@@ -278,7 +279,7 @@ func (ns dukkhaNS) YQ(args ...any) (_ string, err error) {
 	var sb strings.Builder
 
 	err = handleTextQuery(ns.rc, args,
-		newYamlDecoder,
+		newYAMLDecoder,
 		textquery.CreateResultToTextHandleFuncForJsonOrYaml(&sb, yaml.Marshal),
 	)
 	if err != nil {
@@ -343,15 +344,16 @@ func handleTextQuery(
 // FromYaml unmarshals single yaml doc into []any/map[string]any
 func (ns dukkhaNS) FromYaml(v Bytes) (_ any, err error) {
 	return FromText(ns.rc, v,
-		newYamlDecoder,
+		newYAMLDecoder,
 		yaml.Unmarshal,
 	)
 }
 
-// FromJson is an alias of FromYaml
+// FromJson
+// nolint:revive
 func (ns dukkhaNS) FromJson(v Bytes) (any, error) {
 	return FromText(ns.rc, v,
-		newJsonDecoder,
+		newJSONDecoder,
 		json.Unmarshal,
 	)
 }

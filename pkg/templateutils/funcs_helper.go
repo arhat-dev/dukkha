@@ -98,7 +98,6 @@ func get_ns_re() regexpNS         { return ns_re }
 func get_ns_sockaddr() sockaddrNS { return ns_sockaddr }
 func get_ns_time() timeNS         { return ns_time }
 func get_ns_uuid() uuidNS         { return ns_uuid }
-func get_ns_golang() golangNS     { return ns_golang }
 
 func (f *TemplateFuncs) Has(name string) bool {
 	if FuncNameToFuncID(name) != _unknown_template_func {
@@ -114,16 +113,17 @@ func (f *TemplateFuncs) Has(name string) bool {
 }
 
 func (f *TemplateFuncs) Override(fid FuncID, newFn reflect.Value) {
-	if fid > FuncID_LAST_Placeholder_FUNC {
+	switch {
+	case fid > FuncID_LAST_Placeholder_FUNC:
 		// TODO: ?
 		return
-	} else if fid > FuncID_LAST_Contextual_FUNC {
+	case fid > FuncID_LAST_Contextual_FUNC:
 		// is placeholder func
 		f.PlaceholderFuncs[fid-FuncID_LAST_Contextual_FUNC-1] = newFn
-	} else if fid > FuncID_LAST_Static_FUNC {
+	case fid > FuncID_LAST_Static_FUNC:
 		// is contextual func
 		f.ContextualFuncs[fid-FuncID_LAST_Static_FUNC-1] = newFn
-	} else {
+	default:
 		// TODO: shall we allow overrding static funcs at all?
 		// is static func
 		f.StaticFuncs[fid-1] = newFn
@@ -139,16 +139,17 @@ func (f *TemplateFuncs) GetByID(fid FuncID) (ret reflect.Value) {
 		return
 	}
 
-	if fid > FuncID_LAST_Placeholder_FUNC {
+	switch {
+	case fid > FuncID_LAST_Placeholder_FUNC:
 		// TODO: ?
 		return
-	} else if fid > FuncID_LAST_Contextual_FUNC {
+	case fid > FuncID_LAST_Contextual_FUNC:
 		// is placeholder func
 		return f.PlaceholderFuncs[fid-FuncID_LAST_Contextual_FUNC-1]
-	} else if fid > FuncID_LAST_Static_FUNC {
+	case fid > FuncID_LAST_Static_FUNC:
 		// is contextual func
 		return f.ContextualFuncs[fid-FuncID_LAST_Static_FUNC-1]
-	} else {
+	default:
 		// is static func
 		return f.StaticFuncs[fid-1]
 	}

@@ -46,7 +46,7 @@ func (s *Spec) AsFilter() (ret Filter) {
 }
 
 // GenerateEntries generates a set of matrix entries from the spec
-// nolint:gocyclo
+
 func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 	if !s.HasUserValue() {
 		return

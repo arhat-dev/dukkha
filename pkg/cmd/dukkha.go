@@ -92,7 +92,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 
 		// PersistentPreRunE resolves all config for dukkha
 		//
-		// NOTE: this fucntion is used in pkg/templateutils/dukkhaNS.Self
+		// NOTE: this function is used in pkg/templateutils/dukkhaNS.Self
 		//       make sure we only have config loading happening here
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			switch {

@@ -36,7 +36,7 @@ func TestSimpleArch(t *testing.T) {
 		{ARCH_PPC64_LE_V8, ARCH_PPC64_LE},
 		{ARCH_PPC64_LE_V9, ARCH_PPC64_LE},
 	} {
-		t.Run(string(test.arch), func(t *testing.T) {
+		t.Run(test.arch, func(t *testing.T) {
 			assert.EqualValues(t, test.expected, SimpleArch(test.arch))
 		})
 	}

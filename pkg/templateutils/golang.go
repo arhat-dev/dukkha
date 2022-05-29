@@ -125,7 +125,7 @@ func (golangNS) Call(fn reflect.Value, args ...reflect.Value) (reflect.Value, er
 			return reflect.Value{}, fmt.Errorf("wrong number of args: got %d want at least %d", len(args), numIn-1)
 		}
 		dddType = typ.In(numIn - 1).Elem()
-	} else {
+	} else { // nolint:gocritic
 		if len(args) != numIn {
 			return reflect.Value{}, fmt.Errorf("wrong number of args: got %d want %d", len(args), numIn)
 		}
@@ -337,11 +337,11 @@ func HTMLEscape(w io.Writer, b []byte) {
 		default:
 			continue
 		}
-		w.Write(b[last:i])
-		w.Write(html)
+		_, _ = w.Write(b[last:i])
+		_, _ = w.Write(html)
 		last = i + 1
 	}
-	w.Write(b[last:])
+	_, _ = w.Write(b[last:])
 }
 
 // HTMLEscapeString returns the escaped HTML equivalent of the plain text data s.
@@ -386,45 +386,45 @@ func (golangNS) JSEscape(w io.Writer, b []byte) {
 			// fast path: nothing to do
 			continue
 		}
-		w.Write(b[last:i])
+		_, _ = w.Write(b[last:i])
 
 		if c < utf8.RuneSelf {
 			// Quotes, slashes and angle brackets get quoted.
 			// Control characters get written as \u00XX.
 			switch c {
 			case '\\':
-				w.Write(stringhelper.ToBytes[byte, byte](jsBackslash))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsBackslash))
 			case '\'':
-				w.Write(stringhelper.ToBytes[byte, byte](jsApos))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsApos))
 			case '"':
-				w.Write(stringhelper.ToBytes[byte, byte](jsQuot))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsQuot))
 			case '<':
-				w.Write(stringhelper.ToBytes[byte, byte](jsLt))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsLt))
 			case '>':
-				w.Write(stringhelper.ToBytes[byte, byte](jsGt))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsGt))
 			case '&':
-				w.Write(stringhelper.ToBytes[byte, byte](jsAmp))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsAmp))
 			case '=':
-				w.Write(stringhelper.ToBytes[byte, byte](jsEq))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsEq))
 			default:
-				w.Write(stringhelper.ToBytes[byte, byte](jsLowUni))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsLowUni))
 				t, b := c>>4, c&0x0f
-				w.Write(stringhelper.ToBytes[byte, byte](jsHex[t : t+1]))
-				w.Write(stringhelper.ToBytes[byte, byte](jsHex[b : b+1]))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsHex[t : t+1]))
+				_, _ = w.Write(stringhelper.ToBytes[byte, byte](jsHex[b : b+1]))
 			}
 		} else {
 			// Unicode rune.
 			r, size := utf8.DecodeRune(b[i:])
 			if unicode.IsPrint(r) {
-				w.Write(b[i : i+size])
+				_, _ = w.Write(b[i : i+size])
 			} else {
-				fmt.Fprintf(w, "\\u%04X", r)
+				_, _ = fmt.Fprintf(w, "\\u%04X", r)
 			}
 			i += size - 1
 		}
 		last = i + 1
 	}
-	w.Write(b[last:])
+	_, _ = w.Write(b[last:])
 }
 
 // JSEscapeString returns the escaped JavaScript equivalent of the plain text data s.
@@ -501,23 +501,6 @@ func prepareArg(value reflect.Value, argType reflect.Type) (reflect.Value, error
 	return reflect.Value{}, fmt.Errorf("value has type %s; should be %s", value.Type(), argType)
 }
 
-// goodName reports whether the function name is a valid identifier.
-func goodName(name string) bool {
-	if name == "" {
-		return false
-	}
-	for i, r := range name {
-		switch {
-		case r == '_':
-		case i == 0 && !unicode.IsLetter(r):
-			return false
-		case !unicode.IsLetter(r) && !unicode.IsDigit(r):
-			return false
-		}
-	}
-	return true
-}
-
 func intLike(typ reflect.Kind) bool {
 	switch typ {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -539,7 +522,8 @@ func printableValue(v reflect.Value) (any, bool) {
 	}
 
 	if !v.Type().Implements(errorType) && !v.Type().Implements(fmtStringerType) {
-		if v.CanAddr() && (reflect.PointerTo(v.Type()).Implements(errorType) || reflect.PointerTo(v.Type()).Implements(fmtStringerType)) {
+		if v.CanAddr() && (reflect.PointerTo(v.Type()).Implements(errorType) ||
+			reflect.PointerTo(v.Type()).Implements(fmtStringerType)) {
 			v = v.Addr()
 		} else {
 			switch v.Kind() {
@@ -548,6 +532,7 @@ func printableValue(v reflect.Value) (any, bool) {
 			}
 		}
 	}
+
 	return v.Interface(), true
 }
 

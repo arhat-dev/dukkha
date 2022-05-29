@@ -18,10 +18,10 @@ import (
 
 var (
 	//go:embed gen/funcs.tpl
-	funcs_template string
+	funcs_template string // nolint:revive
 
 	//go:embed gen/docs.tpl
-	funcs_docs string
+	funcs_docs string // nolint:revive
 )
 
 func TestGenerateFuncs(t *testing.T) {

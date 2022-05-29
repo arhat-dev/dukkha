@@ -64,7 +64,7 @@ func parseArgs_MaybeOUTPUT_DATA(args []any) (
 // RemoveMatchedRunesInPlace removes all matched runes in p, return new size of p, which is always <= len(p)
 func RemoveMatchedRunesInPlace(p []byte, match func(r rune) bool) (n int) {
 	var (
-		matchStart  int = -1
+		matchStart  = int(-1)
 		startRuneSZ int
 
 		i int
@@ -81,13 +81,14 @@ loop:
 	}
 
 	for j, r = range str[i:n] {
-		if match(r) {
+		switch {
+		case match(r):
 			if matchStart == -1 {
 				matchStart = j
 			} else if startRuneSZ == 0 {
 				startRuneSZ = j - matchStart
 			}
-		} else if matchStart != -1 {
+		case matchStart != -1:
 			if startRuneSZ == 0 {
 				startRuneSZ = j - matchStart
 			}
@@ -99,7 +100,7 @@ loop:
 			startRuneSZ = 0
 			matchStart = -1
 			goto loop
-		} else if matchStart != -1 && startRuneSZ == 0 {
+		case matchStart != -1 && startRuneSZ == 0:
 			startRuneSZ = j - matchStart
 		}
 	}
@@ -306,13 +307,21 @@ func (cw *ChunkedWriter) Write(p []byte) (wrote int, err error) {
 
 	// n - i < chunksize
 
-	cw.doBeforeEachChunkWriting()
+	err = cw.doBeforeEachChunkWriting()
+	if err != nil {
+		return
+	}
+
 	wn, err = cw.underlay.Write(p[i:])
 	wrote += wn
 	cw.remainder = wn
 	if wn == chunksize {
-		cw.doAfterEachChunkWrote()
+		err2 := cw.doAfterEachChunkWrote()
+		if err == nil {
+			err = err2
+		}
 	}
+
 	return
 }
 

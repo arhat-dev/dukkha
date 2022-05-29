@@ -6,6 +6,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
+// nolint:gocyclo
 func FuncNameToFuncID(name string) FuncID {
 	switch name {
 
@@ -41,6 +42,7 @@ func FuncNameToFuncID(name string) FuncID {
 	}
 }
 
+// nolint:gocyclo
 func (id FuncID) String() string {
 	switch id {
 

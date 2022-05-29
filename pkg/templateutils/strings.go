@@ -553,9 +553,9 @@ func AddPrefix(s, prefix, sep string) string {
 
 func addPrefixW(w io.StringWriter, s, prefix, sep string) {
 	forEachTextSection(s, sep, func(section string) {
-		w.WriteString(prefix)
-		w.WriteString(section)
-		w.WriteString(sep)
+		_, _ = w.WriteString(prefix)
+		_, _ = w.WriteString(section)
+		_, _ = w.WriteString(sep)
 	})
 }
 
@@ -564,8 +564,8 @@ func RemovePrefix(s, prefix, sep string) string {
 	var sb strings.Builder
 
 	forEachTextSection(s, sep, func(section string) {
-		sb.WriteString(strings.TrimPrefix(section, prefix))
-		sb.WriteString(sep)
+		_, _ = sb.WriteString(strings.TrimPrefix(section, prefix))
+		_, _ = sb.WriteString(sep)
 	})
 
 	return sb.String()
@@ -576,9 +576,9 @@ func AddSuffix(s, suffix, sep string) string {
 	var sb strings.Builder
 
 	forEachTextSection(s, sep, func(section string) {
-		sb.WriteString(section)
-		sb.WriteString(suffix)
-		sb.WriteString(sep)
+		_, _ = sb.WriteString(section)
+		_, _ = sb.WriteString(suffix)
+		_, _ = sb.WriteString(sep)
 	})
 
 	return sb.String()
@@ -588,14 +588,17 @@ func RemoveSuffix(s, suffix, sep string) string {
 	var sb strings.Builder
 
 	forEachTextSection(s, sep, func(section string) {
-		sb.WriteString(strings.TrimSuffix(section, suffix))
-		sb.WriteString(sep)
+		_, _ = sb.WriteString(strings.TrimSuffix(section, suffix))
+		_, _ = sb.WriteString(sep)
 	})
 
 	return sb.String()
 }
 
-func handleMultiSectionText_OPDATA_OptionalSep_DATA(args []String, do func(str, op, sep string) string) (_ string, err error) {
+func handleMultiSectionText_OPDATA_OptionalSep_DATA(
+	args []String,
+	do func(str, op, sep string) string,
+) (_ string, err error) {
 	var (
 		opData any
 		data   any

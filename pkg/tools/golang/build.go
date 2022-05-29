@@ -30,7 +30,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 	mArch := v.MatrixArch()
 	goarch, ok := constant.GetGolangArch(mArch)
 	if !ok {
-		goarch = string(mArch)
+		goarch = mArch
 	}
 
 	if len(goarch) != 0 {
@@ -43,63 +43,65 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 	// set GOARCH specific micro arch
 
 	spec, ok := archconst.Parse[byte](mArch)
-	switch spec.Name {
-	case archconst.ARCH_AMD64:
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOAMD64",
-			Value: spec.MicroArch,
-		})
-	case archconst.ARCH_X86:
-		var go386 string
-		if spec.SoftFloat {
-			go386 = "softfloat"
-		} else {
-			go386 = "sse2"
-		}
+	if ok {
+		switch spec.Name {
+		case archconst.ARCH_AMD64:
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOAMD64",
+				Value: spec.MicroArch,
+			})
+		case archconst.ARCH_X86:
+			var go386 string
+			if spec.SoftFloat {
+				go386 = "softfloat"
+			} else {
+				go386 = "sse2"
+			}
 
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GO386",
-			Value: go386,
-		})
-	case archconst.ARCH_ARM64:
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOARM64",
-			Value: strings.TrimPrefix(spec.MicroArch, "v"),
-		})
-	case archconst.ARCH_ARM:
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOARM",
-			Value: strings.TrimPrefix(spec.MicroArch, "v"),
-		})
-	case archconst.ARCH_MIPS64:
-		var gomips64 string
-		if spec.SoftFloat {
-			gomips64 = "softfloat"
-		} else {
-			gomips64 = "hardfloat"
-		}
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GO386",
+				Value: go386,
+			})
+		case archconst.ARCH_ARM64:
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOARM64",
+				Value: strings.TrimPrefix(spec.MicroArch, "v"),
+			})
+		case archconst.ARCH_ARM:
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOARM",
+				Value: strings.TrimPrefix(spec.MicroArch, "v"),
+			})
+		case archconst.ARCH_MIPS64:
+			var gomips64 string
+			if spec.SoftFloat {
+				gomips64 = "softfloat"
+			} else {
+				gomips64 = "hardfloat"
+			}
 
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOMIPS64",
-			Value: gomips64,
-		})
-	case archconst.ARCH_MIPS:
-		var gomips string
-		if spec.SoftFloat {
-			gomips = "softfloat"
-		} else {
-			gomips = "hardfloat"
-		}
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOMIPS64",
+				Value: gomips64,
+			})
+		case archconst.ARCH_MIPS:
+			var gomips string
+			if spec.SoftFloat {
+				gomips = "softfloat"
+			} else {
+				gomips = "hardfloat"
+			}
 
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOMIPS",
-			Value: gomips,
-		})
-	case archconst.ARCH_PPC64:
-		env = append(env, &dukkha.EnvEntry{
-			Name:  "GOPPC64",
-			Value: "power" + strings.TrimPrefix(spec.MicroArch, "v"),
-		})
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOMIPS",
+				Value: gomips,
+			})
+		case archconst.ARCH_PPC64:
+			env = append(env, &dukkha.EnvEntry{
+				Name:  "GOPPC64",
+				Value: "power" + strings.TrimPrefix(spec.MicroArch, "v"),
+			})
+		}
 	}
 
 	// set GCCGO

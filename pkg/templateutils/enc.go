@@ -162,13 +162,10 @@ func (encNS) Hex(args ...any) (ret string, err error) {
 			/* pre-check */ func(tmpReader *bytes.Reader, tmpWriter *bytes.Buffer) io.Writer {
 				return nil
 			},
-			/* before writing */ func(dst io.Writer) io.Writer {
-				return hex.NewEncoder(dst)
-			},
+			/* before writing */ hex.NewEncoder,
 			/* after wrote */ func(wrappedDst io.Writer) {},
 			/* fallback */ func(b []byte) ([]byte, error) {
-				ret := hex.EncodeToString(b)
-				return []byte(ret), nil
+				return stringhelper.ToBytes[byte, byte](hex.EncodeToString(b)), nil
 			},
 		)
 
@@ -202,9 +199,7 @@ func (encNS) Hex(args ...any) (ret string, err error) {
 			/* pre-check */ func(tmpReader *bytes.Reader, tmpWriter *bytes.Buffer) io.Reader {
 				return nil
 			},
-			/* before reading */ func(src io.Reader) io.Reader {
-				return hex.NewDecoder(src)
-			},
+			/* before reading */ hex.NewDecoder,
 			/* fallback */ func(b []byte) ([]byte, error) {
 				return hex.DecodeString(stringhelper.Convert[string, byte](b))
 			},
@@ -245,7 +240,8 @@ type baseXFactory struct {
 // - `--hex` or `-h`: use Hex encoding (for base32)
 // - `--raw` or `-r`: encode/decode without padding
 // - `--strict` or `-s`: encode/decode in strict mode
-// - `--table` or `-t` str: encode/decode with custom encoding table length MUST match (e.g. 32 for base32, 64 for base64)
+// - `--table` or `-t` str: encode/decode with custom encoding
+// 							table length MUST match (e.g. 32 for base32, 64 for base64)
 func (encNS) Base64(args ...any) (string, error) {
 	const (
 		encodeStd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -495,6 +491,7 @@ func readBytes(
 		inReader = x
 	}
 
+	// nolint:gocritic
 	if outWriter != nil {
 		if inReader == nil {
 			tmpReader.Reset(inData)
@@ -544,6 +541,7 @@ func writeBytes(
 		outWriter = x
 	}
 
+	// nolint:gocritic
 	if outWriter != nil {
 		if inReader == nil {
 			tmpReader.Reset(inData)

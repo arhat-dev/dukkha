@@ -101,7 +101,10 @@ func handleReTemplateFunc_DATA(args []String, doRE func(re *regexp.Regexp, data 
 }
 
 // last two arga are: opration action data (e.g. replacement text) and data
-func handleReTemplateFunc_OPDATA_DATA(args []String, doRE func(re *regexp.Regexp, opData, data string) error) (err error) {
+func handleReTemplateFunc_OPDATA_DATA(
+	args []String,
+	doRE func(re *regexp.Regexp, opData, data string) error,
+) (err error) {
 	n := len(args)
 	if n < 3 {
 		return fmt.Errorf("at least 3 args expected: got %d", n)
@@ -126,7 +129,10 @@ func handleReTemplateFunc_OPDATA_DATA(args []String, doRE func(re *regexp.Regexp
 }
 
 // last two args are: an optional number, input data
-func handleRETemplateFunc_OptionalN_DATA(args []String, doRE func(re *regexp.Regexp, data string, c int) error) (err error) {
+func handleRETemplateFunc_OptionalN_DATA(
+	args []String,
+	doRE func(re *regexp.Regexp, data string, c int) error,
+) (err error) {
 	n := len(args)
 	if n < 2 {
 		return fmt.Errorf("at least 2 args expected: got %d", n)
@@ -134,7 +140,11 @@ func handleRETemplateFunc_OptionalN_DATA(args []String, doRE func(re *regexp.Reg
 
 	c := -1
 	if n > 2 {
-		iv, isFloat, err := parseNumber(args[n-2])
+		var (
+			iv      uint64
+			isFloat bool
+		)
+		iv, isFloat, err = parseNumber(args[n-2])
 		if !isFloat && err == nil {
 			c = int(iv)
 		}

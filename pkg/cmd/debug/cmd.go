@@ -3,11 +3,11 @@ package debug
 import (
 	"fmt"
 	"io"
-	"reflect"
-	"unsafe"
 
 	"github.com/itchyny/gojq"
 	"github.com/spf13/cobra"
+
+	"arhat.dev/pkg/stringhelper"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -36,14 +36,7 @@ func (opts *Options) writeHeader(stdout, stderr io.Writer, data string) error {
 		}
 	}
 
-	str := (*reflect.StringHeader)(unsafe.Pointer(&data))
-	sh := reflect.SliceHeader{
-		Data: str.Data,
-		Len:  str.Len,
-		Cap:  str.Len,
-	}
-
-	_, err := out.Write(*(*[]byte)(unsafe.Pointer(&sh)))
+	_, err := out.Write(stringhelper.ToBytes[byte, byte](data))
 	if err != nil {
 		return err
 	}

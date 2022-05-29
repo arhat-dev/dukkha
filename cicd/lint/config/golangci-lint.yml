@@ -8,3 +8,29 @@
 #   goheader:
 #     template: |-
 #       SPDX-License-Identifier: Apache-2.0
+
+issues:
+  exclude-rules:
+    - linters:
+      - revive
+      text: |-
+        var-naming: don't use underscores in Go names; (const|var (get_)?ns_*|method FMT_|func)
+
+    - linters:
+      - revive
+      text: |-
+        dot-imports: should not use dot imports
+      path: pkg/constant
+
+    - linters:
+      - goconst
+      text: |-
+        string `(arm64|x86_64|<unknown>|softfloat|ios|plan9|windows|power8|power9)`
+
+    - linters:
+      - goconst
+      path: pkg/constant
+
+    - linters:
+      - lll
+      path: pkg/templateutils/sprig.go

@@ -6,8 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"github.com/spf13/cobra"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 
 	_ "unsafe" // for go:linkname
 )

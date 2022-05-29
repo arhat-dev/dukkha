@@ -103,9 +103,9 @@ func (opts dnsOptions) lookup(do func(*net.Resolver) error) error {
 		}
 
 		return do(&resolver)
-	} else {
-		return do(net.DefaultResolver)
 	}
+
+	return do(net.DefaultResolver)
 }
 
 func parseDNSOptions(flags []string) (ret dnsOptions, err error) {

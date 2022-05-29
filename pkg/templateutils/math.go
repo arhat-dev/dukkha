@@ -243,7 +243,7 @@ func (mathNS) Div(v ...Number) (_ Number, err error) {
 	}
 }
 
-// Sub substracts the last argument by all but the last arguments
+// Sub subtracts the last argument by all but the last arguments
 //
 // see Add for details about the return type
 func (mathNS) Sub(v ...Number) (_ Number, err error) {
@@ -377,9 +377,12 @@ func (mathNS) Log2(v Number) (_ float64, err error) {
 	return math.Log2(f), nil
 }
 
+// nolint:gocyclo
 func forEachNumber(
 	args []Number,
-	handleLast func(last any), // type of last is one of [int64, uint64, float64, *big.Float], all following operation is the same type
+	// type of last is one of [int64, uint64, float64, *big.Float],
+	// all following operation is the same type
+	handleLast func(last any),
 	handleOpInt64 func(int64),
 	handleOpUint64 func(uint64),
 	handleOpFloat64 func(float64),
@@ -422,8 +425,10 @@ func forEachNumber(
 		last = uint64(t)
 
 	case int64:
+		// nolint:unconvert
 		last = int64(t)
 	case uint64:
+		// nolint:unconvert
 		last = uint64(t)
 
 	case uintptr:
@@ -432,6 +437,7 @@ func forEachNumber(
 	case float32:
 		last = float64(t)
 	case float64:
+		// nolint:unconvert
 		last = float64(t)
 
 	default:
@@ -536,10 +542,10 @@ func toBigFloat(v any) (ret big.Float, err error) {
 		return
 
 	case int64:
-		ret.SetInt64(int64(t))
+		ret.SetInt64(t)
 		return
 	case uint64:
-		ret.SetUint64(uint64(t))
+		ret.SetUint64(t)
 		return
 
 	case uintptr:

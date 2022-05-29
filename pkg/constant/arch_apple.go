@@ -5,6 +5,7 @@ import "arhat.dev/pkg/archconst"
 // https://github.com/tpoechtrager/osxcross
 
 // TODO: determine apple arch
+// nolint:gocyclo
 func GetAppleArch(mArch string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_AMD64:
@@ -91,6 +92,7 @@ func GetAppleArch(mArch string) (string, bool) {
 	}
 }
 
+// nolint:gocyclo
 func GetAppleTripleName(mArch, darwinVersion string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_AMD64:

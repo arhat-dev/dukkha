@@ -4,6 +4,7 @@ import "arhat.dev/pkg/archconst"
 
 // GetAlpineTripleName of matrix arch
 // reference: https://more.musl.cc/10/x86_64-linux-musl/
+// nolint:gocyclo
 func GetAlpineTripleName(mArch string) (string, bool) {
 	// NOTE: some arch value in triple name is different from alpine arch
 	// 		 so we cannot do the same conversion as GNU/LLVM triple does
@@ -92,6 +93,7 @@ func GetAlpineTripleName(mArch string) (string, bool) {
 	}
 }
 
+// nolint:gocyclo
 func GetDebianTripleName(mArch string, targetKernel, targetLibc string) (v string, ok bool) {
 	// TODO: adjust triple name according to target kernel
 	_ = targetKernel

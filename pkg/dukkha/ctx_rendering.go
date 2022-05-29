@@ -98,25 +98,25 @@ type contextRendering struct {
 }
 
 func (c *contextRendering) clone(newCtx contextStd, separateEnv bool) contextRendering {
-	envValues := c.envValues
+	vals := c.envValues
 	if separateEnv {
-		envValues = c.envValues.clone()
+		vals = c.envValues.clone()
 	}
 
 	return contextRendering{
 		contextStd: newCtx,
 
-		envValues: envValues,
+		envValues: vals,
 		renderers: c.renderers,
 
 		// values are global scoped, DO NOT deep copy in any case
 		values: c.values,
 
 		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return envValues.WorkDir(), nil
+			return vals.WorkDir(), nil
 		}), "."),
 		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return envValues.CacheDir(), nil
+			return vals.CacheDir(), nil
 		}), "."),
 
 		stdin:  c.stdin,

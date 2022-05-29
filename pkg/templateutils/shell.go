@@ -14,10 +14,11 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/pkg/stringhelper"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 // ExpandEnv expands unix style environment variable (`$FOO`, `${BAR}`)
@@ -239,6 +240,7 @@ func ExecCmdAsTemplateFuncCall(
 		}
 	}
 
+	// nolint:gocritic
 	if useStdin && useStdout {
 		if nArgs+2 > nBUF {
 			callArgs = make([]reflect.Value, nArgs+2)
@@ -366,11 +368,11 @@ func newExecHandler(
 		)
 
 		if len(out) != 0 {
-			hc.Stdout.Write(stringhelper.ToBytes[byte, byte](out))
+			_, _ = hc.Stdout.Write(stringhelper.ToBytes[byte, byte](out))
 		}
 
 		if len(errOut) != 0 {
-			hc.Stderr.Write(stringhelper.ToBytes[byte, byte](errOut))
+			_, _ = hc.Stderr.Write(stringhelper.ToBytes[byte, byte](errOut))
 		}
 
 		return err

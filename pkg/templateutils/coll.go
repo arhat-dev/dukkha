@@ -398,6 +398,8 @@ func typedSliceUnique[T comparable](list []T) (ret []T) {
 
 // Merge maps into a new map, type of the returned map is determined by the last argument
 // it merges in last to first order
+//
+// nolint:gocyclo
 func (collNS) Merge(maps ...Map) (_ Map, err error) {
 	n := len(maps)
 	if n < 2 {
@@ -678,6 +680,8 @@ func mergeBothAnyMap(
 // Index slice or map, return indexed element
 //
 // for slices, idx may be < 0 to index from end
+//
+// nolint:gocyclo
 func (collNS) Index(idxOrKey any, sliceOrMap any) (_ any, err error) {
 	switch t := sliceOrMap.(type) {
 	case nil:
@@ -1063,11 +1067,11 @@ func lessThan(a, b any) (_ bool, err error) {
 	case int64:
 		var x int64
 		x, err = parseInteger[int64](b)
-		return int64(t) < x, err
+		return t < x, err
 	case uint64:
 		var x uint64
 		x, err = parseInteger[uint64](b)
-		return uint64(t) < x, err
+		return t < x, err
 
 	case uintptr:
 		var x uint64
@@ -1160,6 +1164,7 @@ func (collNS) Pick(args ...any) (_ any, err error) { return pickOrMmit(args, tru
 // retrun same type as container
 func (collNS) Omit(args ...any) (_ any, err error) { return pickOrMmit(args, false) }
 
+// nolint:gocyclo
 func pickOrMmit(args []any, pick bool) (_ any, err error) {
 	n := len(args)
 	if n < 2 {
@@ -1761,6 +1766,8 @@ func collectMapValues[K comparable, V any, M map[K]V](t map[K]V) (ret []any, err
 // when container is a map, target is used as a key
 // when container is a slice, target is used as a value to compare each element
 // when container is string, target is used as a substring
+//
+// nolint:gocyclo
 func (collNS) HasAny(args ...any) (_ bool, err error) {
 	n := len(args)
 	if n < 2 {
@@ -1951,6 +1958,8 @@ func floatSliceContainsAny[T float](s []T, target []any) (_ bool, err error) {
 // when container is a map, target is used as a key
 // when container is a slice, target is used as a value to compare each element
 // when container is string, target is used as a substring
+//
+// nolint:gocyclo
 func (collNS) HasAll(args ...any) (_ bool, err error) {
 	n := len(args)
 	if n < 2 {

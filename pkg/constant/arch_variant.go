@@ -2,6 +2,7 @@ package constant
 
 import "arhat.dev/pkg/archconst"
 
+// nolint:gocyclo
 func GetDockerArchVariant(mArch string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_ARM:
@@ -90,6 +91,7 @@ func GetDockerArchVariant(mArch string) (string, bool) {
 }
 
 // currently it's the same as docker arch variant
+// nolint:gocyclo
 func GetOciArchVariant(mArch string) (string, bool) {
 	switch mArch {
 	case archconst.ARCH_ARM:

@@ -43,7 +43,8 @@ func (credentialNS) Htpasswd(username, password String) (ret string, err error) 
 //
 // Totp(N Integer, token String): generate N digits totp code based on the token for the time being
 //
-// Totp(N Integer, time Time, token String): generate N digits (when <= 0, fallback to 6) code based on the token for the specified time
+// Totp(N Integer, time Time, token String): generate N digits (when <= 0, fallback to 6) code
+// 											 based on the token for the specified time
 func (credentialNS) Totp(args ...any) (ret string, err error) {
 	var (
 		token  string

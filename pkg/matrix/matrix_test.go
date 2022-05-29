@@ -25,6 +25,7 @@ func TestSpec_GenerateFilter(t *testing.T) {
 func TestSpec_GenerateEntries(t *testing.T) {
 	t.Parallel()
 
+	// nolint:revive
 	const (
 		DEFAULT_KERNEL = "default-kernel"
 		DEFAULT_ARCH   = "default-arch"
