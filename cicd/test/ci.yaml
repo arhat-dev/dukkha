@@ -37,7 +37,7 @@ workflow:run:
 
       tpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=amd64
 
-      wine64 ./build/dukkha.windows.amd64.exe render <<EOF
+      wine64 ./build/dukkha-windows-amd64.exe render <<EOF
       sh@shell: command -v winepath
       tpl@tpl: |-
         {{- fs.Lookup "winepath" -}}
@@ -54,7 +54,7 @@ workflow:run:
 
       tpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=x86
 
-      wine ./build/dukkha.windows.x86.exe render <<EOF
+      wine ./build/dukkha-windows-x86.exe render <<EOF
       sh@shell: command -v winepath
       tpl@tpl: |-
         {{- fs.Lookup "winepath" -}}
