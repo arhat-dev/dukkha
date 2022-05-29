@@ -9,14 +9,9 @@ workflow:run:
 # required by ci
 - name: sign-artifacts
   jobs:
-  # generate dukkha.*.sig
+  # generate dukkha-{kernel}-{arch}.sig
   - task:
-      ref@tpl: |-
-        {{- if eq env.GITHUB_ACTIONS "true" -}}
-          cosign:sign(dukkha)
-        {{- else -}}
-          cosign:sign(fake)
-        {{- end -}}
+      ref: cosign:sign(dukkha)
       matrix_filter: {}
 
 # upload signed artifacts to ghcr.io
@@ -33,53 +28,24 @@ workflow:run:
 # required by ci
 - name: create-release
   jobs:
-  # generate dukkha.*.{sha256,sha512,md5}
-  - task:
-      ref: workflow:run(gen-artifacts-checksum)
-      matrix_filter: {}
-  # generate dukkha.*.{tar.gz,zip}
-  # using dukkha.*.{,.exe,sha256,sha512,md5,sig} and license.txt
+  # generate dukkha-{kernel}-{arch}.{tar.gz,zip}
+  # using dukkha-{kernel}-{arch}.{,.exe,sha256,sha512,md5,sig} and license.txt
   - task:
       ref: archive:create(dukkha)
       matrix_filter: {}
 
   # generate checksums for archives
-  # TODO: use template func
   - chdir: build
     shell: |-
-      openssl dgst -sha256 *.tar* *.zip > sha256.txt
-      openssl dgst -sha512 *.tar* *.zip > sha512.txt
-      openssl dgst -md5 *.tar* *.zip > md5.txt
+      hashes="sha256 sha512 md5"
+      for hash in $hashes ; do
+        printf "" >"$hash.txt"
+        for file in *.tar* *.zip; do
+          printf "%s  %s\n" "$("tpl:$hash" <"$file")" "$file" >> "$hash.txt"
+        done
+      done
 
   # create github release
   - task:
-      ref: |-
-        {{- if eq env.GITHUB_ACTIONS "true" -}}
-          github:release(dukkha)
-        {{- else -}}
-          github:release(fake)
-        {{- end -}}
+      ref: github:release(fake)
       matrix_filter: {}
-
-    continue_on_error@tpl: |-
-      {{- if eq env.GITHUB_ACTIONS "true" -}}
-        false
-      {{- else -}}
-        true
-      {{- end -}}
-
-#
-#
-#
-
-- name: gen-artifacts-checksum
-  matrix@file: cicd/artifacts/matrix.yml
-  jobs:
-  - chdir: build
-    shell@tpl: |-
-      openssl dgst -sha256 {{ include "artifacts.bin-name" . }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
-      openssl dgst -sha512 {{ include "artifacts.bin-name" . }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
-      openssl dgst -md5 {{ include "artifacts.bin-name" . }} \
-        > dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5

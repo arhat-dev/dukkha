@@ -15,3 +15,19 @@ golang:build:
   - -mod=vendor
   - -trimpath
   - -buildvcs=false
+  hooks:
+    after:matrix:success:
+    - chdir: build
+      shell@tpl: |-
+        {{- $suffix := "" -}}
+        {{- if eq matrix.kernel "windows" -}}
+          {{- $suffix = ".exe" -}}
+        {{- end -}}
+
+        file="{{- include "artifacts.bin-name" . -}}"
+
+        hashes="sha256 sha512 md5"
+        for hash in $hashes ; do
+          printf "%s  dukkha{{- $suffix -}}" "$("tpl:$hash" <"$file")" \
+            > "dukkha-{{- matrix.kernel -}}-{{- matrix.arch -}}.$hash"
+        done

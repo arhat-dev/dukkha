@@ -1,0 +1,12 @@
+workflow:run:
+- name: test-release
+  matrix@file: cicd/artifacts/matrix.yml
+  jobs:
+  - task:
+      ref: golang:build(dukkha)
+  - task:
+      ref: cosign:sign(fake)
+  - task:
+      ref: archive:create(dukkha)
+  # - task:
+  #     ref: github:release(fake)

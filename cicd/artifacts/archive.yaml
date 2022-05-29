@@ -1,11 +1,15 @@
 archive:create:
 - name: dukkha
   matrix@file: cicd/artifacts/matrix.yml
+  env:
+  - name: name_prefix
+    value@tpl: dukkha-{{- matrix.kernel -}}-{{- matrix.arch -}}
+
   compression:
     enabled: true
     level: "9"
   output@tpl: |-
-    build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}
+    build/{{- env.name_prefix -}}
     {{- if eq matrix.kernel "windows" -}}
       .zip
     {{- else -}}
@@ -13,31 +17,31 @@ archive:create:
     {{- end -}}
 
   files:
-  # executable dukkha
-  - from@tpl: |-
-      build/{{- include "artifacts.bin-name" . -}}
-
+  # dukkha executable
+  - from@tpl: build/{{- include "artifacts.bin-name" . -}}
     to@tpl: |-
-      {{- include "artifacts.bin-name" . -}}
+      {{- $suffix := "" -}}
+      {{- if eq matrix.kernel "windows" -}}
+        {{- $suffix = ".exe" -}}
+      {{- end -}}
+
+      {{- include "artifacts.bin-name" . -}}/dukkha{{- $suffix -}}
 
   # license
   - from: LICENSE.txt
-    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/LICENSE
+    to@tpl: "{{- env.name_prefix -}}/LICENSE"
 
   # signature
-  - from@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
-    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sig
+  - from@tpl: build/{{- env.name_prefix -}}.sig
+    to@tpl: "{{- env.name_prefix -}}/dukkha.sig"
 
-  # checksum
-  - from@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha256
-    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha256
+  # checksums
 
-  - from@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sha512
-    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.sha512
+  - from@tpl: build/{{- env.name_prefix -}}.sha256
+    to@tpl: "{{- env.name_prefix -}}/dukkha.sha256"
 
-  - from@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.md5
-    to@tpl: dukkha.{{ matrix.kernel }}.{{ matrix.arch }}/dukkha.md5
+  - from@tpl: build/{{- env.name_prefix -}}.sha512
+    to@tpl: "{{- env.name_prefix -}}/dukkha.sha512"
+
+  - from@tpl: build/{{- env.name_prefix -}}.md5
+    to@tpl: "{{- env.name_prefix -}}/dukkha.md5"

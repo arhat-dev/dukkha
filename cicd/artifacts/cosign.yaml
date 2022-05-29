@@ -35,7 +35,7 @@ cosign:sign:
   files:
   - path@tpl: *blob_path
     output@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
+      build/dukkha-{{ matrix.kernel }}-{{ matrix.arch }}.sig
 
 - name: fake
   matrix@file: *matrix
@@ -46,4 +46,4 @@ cosign:sign:
   files:
   - path@tpl: *blob_path
     output@tpl: |-
-      build/dukkha.{{ matrix.kernel }}.{{ matrix.arch }}.sig
+      build/dukkha-{{ matrix.kernel }}-{{ matrix.arch }}.sig
