@@ -3,12 +3,9 @@ package diff
 type Kind string
 
 const (
-	// missing in base doc
-	KindAdded Kind = "added"
-	// updated in the new doc
-	KindUpdated Kind = "updated"
-	// deleted in the new doc
-	KindDeleted Kind = "deleted"
+	KindAdded   Kind = "added"   // missing in base doc
+	KindUpdated Kind = "updated" // updated in the new doc
+	KindDeleted Kind = "deleted" // deleted in the new doc
 )
 
 type Entry struct {

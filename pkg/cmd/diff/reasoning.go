@@ -34,16 +34,16 @@ func (r *Reason) String() string {
 		return r.Err.Error() + "\n"
 	}
 
-	ret := &strings.Builder{}
+	var sb strings.Builder
 	for _, ent := range r.DiffEntries {
 		if len(r.Renderer) == 0 {
-			_, _ = ret.WriteString(string(ent.Kind) + " ")
-			_, _ = ret.WriteString(strings.Join(ent.Key, "") + " ")
-			_, _ = ret.Write(handleRawInput(ent.DivertAt.RawNode))
+			_, _ = sb.WriteString(string(ent.Kind) + " ")
+			_, _ = sb.WriteString(strings.Join(ent.Key, "") + " ")
+			_, _ = sb.Write(handleRawInput(ent.DivertAt.RawNode))
 			continue
 		}
 
-		_, _ = ret.WriteString(
+		_, _ = sb.WriteString(
 			fmt.Sprintln(
 				r.Renderer+":",
 				r.Input,
@@ -55,7 +55,7 @@ func (r *Reason) String() string {
 		)
 	}
 
-	return ret.String()
+	return sb.String()
 }
 
 // reasonDiff (WIP) try to reason how to update src doc to generate these diff entries
@@ -63,8 +63,7 @@ func (r *Reason) String() string {
 // src is the yaml doc with rendering suffix unmarshaled as a trie node
 // diffEntries are calculated by comparing yaml doc generated from src and
 // actual state of that generated doc
-func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*diff.Entry) []*Reason {
-	var ret []*Reason
+func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*diff.Entry) (ret []Reason) {
 	for i, d := range diffEntries {
 		node, tailKey := src.Get(d.Key)
 		if len(tailKey) != 0 {
@@ -72,8 +71,8 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 			// difference, or the entry was added manually
 
 			if len(node.Renderers) == 0 {
-				ret = append(ret, &Reason{
-					Err: fmt.Errorf("src is not compatible with key: %s", strings.Join(d.Key, "")),
+				ret = append(ret, Reason{
+					Err: fmt.Errorf("src is not compatible with key %q", strings.Join(d.Key, "")),
 				})
 
 				continue
@@ -100,7 +99,7 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 					lastRdr = j
 					break findLastRdr
 				default:
-					ret = append(ret, &Reason{
+					ret = append(ret, Reason{
 						Err: fmt.Errorf("unsupported renderer %q as final renderer", rdr.Name),
 					})
 
@@ -110,7 +109,7 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 
 			if lastRdr == -1 {
 				// no meaningful renderer exists, doc incompatible
-				ret = append(ret, &Reason{
+				ret = append(ret, Reason{
 					Err: fmt.Errorf("src is not compatible with key: %s",
 						strings.Join(d.Key, ""),
 					),
@@ -122,14 +121,14 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 			// render input for last meaningful renderer
 			rawInput, err := tryRender(rc, node.RawNode, rdrs[:lastRdr])
 			if err != nil {
-				ret = append(ret, &Reason{
+				ret = append(ret, Reason{
 					Err: fmt.Errorf("render input for last meaningful renderer %v", err),
 				})
 
 				continue
 			}
 
-			reason := &Reason{
+			reason := Reason{
 				Renderer: rdrs[lastRdr].Name,
 				Input:    string(handleRawInput(rawInput)),
 			}
@@ -162,12 +161,12 @@ func reasonDiff(rc rs.RenderingHandler, src, current *diff.Node, diffEntries []*
 		// TODO: exact match, but maybe we have rendering suffix in child node somewhere
 		// 	    if that's the case, the document need manual inspection
 
-		ret = append(ret, &Reason{
+		ret = append(ret, Reason{
 			DiffEntries: []*diff.Entry{diffEntries[i]},
 		})
 	}
 
-	return ret
+	return
 }
 
 func handleRawInput(rawInput *yaml.Node) []byte {
@@ -188,14 +187,19 @@ func handleRawInput(rawInput *yaml.Node) []byte {
 //
 // ref: https://github.com/arhat-dev/rs/blob/master/resolve.go#L206
 func tryRender(rc rs.RenderingHandler, n *yaml.Node, renderers []*diff.RendererSpec) (*yaml.Node, error) {
-
 	for _, v := range renderers {
 		ht, err := rs.ParseTypeHint(v.TypeHint)
 		if err != nil {
 			return nil, err
 		}
 
-		n, err = renderOnce(rc, v.Name, ht, v.Patch, n)
+		spec := rendererSpec{
+			name:      v.Name,
+			patchSpec: v.Patch,
+			typeHint:  ht,
+		}
+
+		n, err = renderOnce(n, &spec, rc)
 		if err != nil {
 			return nil, err
 		}
@@ -206,9 +210,14 @@ func tryRender(rc rs.RenderingHandler, n *yaml.Node, renderers []*diff.RendererS
 
 //go:linkname renderOnce arhat.dev/rs.tryRender
 func renderOnce(
-	rc rs.RenderingHandler,
-	rendererName string,
-	typeHint rs.TypeHint,
-	isPatchSpec bool,
 	toResolve *yaml.Node,
+	rdr *rendererSpec,
+	rc rs.RenderingHandler,
 ) (*yaml.Node, error)
+
+type rendererSpec struct {
+	name string
+
+	patchSpec bool
+	typeHint  rs.TypeHint
+}
