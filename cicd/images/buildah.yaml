@@ -46,7 +46,7 @@ buildah:xbuild:
       from:
         step:
           id: builder
-          path@env: /app/build/dukkha.linux.${MATRIX_ARCH}
+          path@env: /app/build/dukkha-linux-${MATRIX_ARCH}
       to:
         path: /dukkha
 

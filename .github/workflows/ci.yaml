@@ -49,11 +49,10 @@ jobs:
         mv build/dukkha "$(command -v dukkha)"
 
       install_wine: true
-
-      # TODO: add "macos-latest" once resolved sget error on macos
       matrix: |-
         {
           "os": [
+            "macos-latest",
             "windows-latest",
             "ubuntu-latest"
           ],
