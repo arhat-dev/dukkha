@@ -6,8 +6,6 @@ arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74 h1:r8ZEy1c9NyHF/Ar64h/JImSy5b/
 arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74/go.mod h1:Kebop1yUJvR/OFc8y54SodOwoOX4E0Edp41SEr7IHXE=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
-github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=
-github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02 h1:JXGyALZeC5GOIeBeNNvPfFtSFz0JEzVa7YqdVshTwa0=
 github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02/go.mod h1:oZaL7+2R1XEeSSQNvmdqrr3B96+FIJZDKO3lakRFwss=
 github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191 h1:XJ/EVFZGeFdm53hHOO7t5EP1ghFdX89KghiDkuUxD28=

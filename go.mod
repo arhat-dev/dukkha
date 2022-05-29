@@ -6,7 +6,6 @@ require (
 	arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b
 	arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74
 	github.com/Masterminds/goutils v1.1.1
-	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082

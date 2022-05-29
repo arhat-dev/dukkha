@@ -6,12 +6,12 @@ task:
   files:
   - path: testdata/blob.txt
     output@tpl: |-
-      {{- fs.Join env.DUKKHA_CACHE_DIR "signature" -}}
+      {{- fs.Join dukkha.CacheDir "signature" -}}
 ---
 expect_err: false
 actual:
   signature@tpl|file: |-
-    {{- fs.Join env.DUKKHA_CACHE_DIR "signature" -}}
+    {{- fs.Join dukkha.CacheDir "signature" -}}
 
 expected:
   signature@file: testdata/blob.txt.sig

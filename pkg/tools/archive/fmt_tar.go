@@ -8,14 +8,40 @@ import (
 	"arhat.dev/pkg/fshelper"
 )
 
-func createTar(ofs *fshelper.OSFS, w io.Writer, files []*entry) error {
-	tw := tar.NewWriter(w)
-	defer func() { _ = tw.Close() }()
+func createTar(
+	ofs *fshelper.OSFS,
+	w io.Writer,
+	files []*entry,
+	enableCompression bool,
+	compressionMethod string,
+	compressionLevel string,
+) (err error) {
+	var (
+		tw  *tar.Writer
+		hdr *tar.Header
+	)
+
+	if enableCompression {
+		var tarball io.WriteCloser
+		tarball, err = createCompressionStream(w, compressionMethod, compressionLevel)
+		if err != nil {
+			return
+		}
+
+		tw = tar.NewWriter(tarball)
+		defer func() {
+			_ = tw.Close()
+			_ = tarball.Close()
+		}()
+	} else {
+		tw = tar.NewWriter(w)
+		defer func() { _ = tw.Close() }()
+	}
 
 	for _, f := range files {
-		hdr, err := tar.FileInfoHeader(f.info, f.link)
+		hdr, err = tar.FileInfoHeader(f.info, f.link)
 		if err != nil {
-			return err
+			return
 		}
 
 		hdr.Format = tar.FormatPAX
@@ -28,21 +54,21 @@ func createTar(ofs *fshelper.OSFS, w io.Writer, files []*entry) error {
 
 		err = tw.WriteHeader(hdr)
 		if err != nil {
-			return err
+			return
 		}
 
 		if mode.IsRegular() {
 			err = copyFileContent(ofs, tw, f.from)
 			if err != nil {
-				return err
+				return
 			}
 		}
 
 		err = tw.Flush()
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	return nil
+	return
 }

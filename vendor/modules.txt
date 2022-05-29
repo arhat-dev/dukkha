@@ -35,9 +35,6 @@ arhat.dev/rs
 # github.com/Masterminds/goutils v1.1.1
 ## explicit
 github.com/Masterminds/goutils
-# github.com/Masterminds/semver/v3 v3.1.1
-## explicit; go 1.12
-github.com/Masterminds/semver/v3
 # github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 ## explicit; go 1.13
 github.com/aoldershaw/ansi

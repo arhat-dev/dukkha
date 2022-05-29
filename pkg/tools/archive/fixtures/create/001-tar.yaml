@@ -7,13 +7,13 @@ task:
     to: /
 
   output@tpl: |-
-    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar" -}}
+    {{- fs.Join dukkha.CacheDir "test.tar" -}}
 ---
 actual:
   top-level@tpl?str|af?str: |-
-    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar" -}}:top-level.txt
+    {{- fs.Join dukkha.CacheDir "test.tar" -}}:top-level.txt
   root-top-level@tpl?str|af?str: |-
-    {{- fs.Join env.DUKKHA_CACHE_DIR "test.tar" -}}:/top-level.txt
+    {{- fs.Join dukkha.CacheDir "test.tar" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt
   root-top-level@file?str: testdata/top-level.txt

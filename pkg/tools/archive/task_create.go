@@ -147,21 +147,16 @@ func (c *TaskCreate) GetExecSpecs(
 					return nil, err
 				}
 
-				out := archiveFile.(io.WriteCloser)
-				defer func() { _ = out.Close() }()
+				out := archiveFile.(*os.File)
+				defer func() { _ = archiveFile.Close() }()
 
 				switch format {
 				case constant.ArchiveFormat_Tar:
-					if enableCompression {
-						out, err = createCompressionStream(out, compressionMethod, compressionLevel)
-						if err != nil {
-							return nil, err
-						}
-					}
-
-					return nil, createTar(rc.FS(), out, files)
+					err = createTar(rc.FS(), out, files, enableCompression, compressionMethod, compressionLevel)
+					return nil, err
 				case constant.ArchiveFormat_Zip:
-					return nil, createZip(rc.FS(), out, files, enableCompression, compressionMethod, compressionLevel)
+					err = createZip(rc.FS(), out, files, enableCompression, compressionMethod, compressionLevel)
+					return nil, err
 				default:
 					return nil, fmt.Errorf("unsupported format: %q", format)
 				}
