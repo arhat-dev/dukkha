@@ -23,7 +23,7 @@ __NOTE for renderer `tpl`:__ Environment variables in this section are also avai
 - `DUKKHA_CACHE_DIR`
   - Description: The absolute path of the cache directory used for task intermediate output caching
   - Default Value: `${DUKKHA_WORKDIR}/.dukkha/cache`
-  - Customization: Set `bootstrap.cache_dir` in your config file
+  - Customization: Set `global.cache_dir` in your config file
 
 ## `git` Repo Information
 
