@@ -98,7 +98,7 @@ github.com/itchyny/timefmt-go
 github.com/json-iterator/go
 # github.com/jtolds/gls v4.20.0+incompatible
 ## explicit
-# github.com/klauspost/compress v1.15.5
+# github.com/klauspost/compress v1.15.6
 ## explicit; go 1.16
 github.com/klauspost/compress
 github.com/klauspost/compress/fse
@@ -193,7 +193,7 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.7.1
+# github.com/stretchr/testify v1.7.2
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/ulikunitz/xz v0.5.10
@@ -207,7 +207,7 @@ github.com/ulikunitz/xz/lzma
 github.com/weaveworks/schemer/definition
 github.com/weaveworks/schemer/importer
 github.com/weaveworks/schemer/schema
-# go.uber.org/atomic v1.7.0
+# go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
 # go.uber.org/multierr v1.8.0
