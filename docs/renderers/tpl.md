@@ -5,7 +5,7 @@ foo@tpl: |-
   {{ matrix.arch }}
 ```
 
-Execute an embedded [golang template](https://golang.org/pkg/text/template/) and use the result as the real value.
+Execute a [golang template](https://golang.org/pkg/text/template/) to generate value.
 
 __NOTE:__ See [template_funcs.md](../generated/template_funcs.md) for overview of supported functions
 
@@ -31,7 +31,7 @@ renderers:
       bar: { an: { object: true } }
 ```
 
-__NOTE:__ Using `path` for template inclusion (`include` option) reads files from local filesystem every time it's rendering, to avoid this, use `text` with some cache enabled renderer.
+__NOTE:__ When using `path` for template inclusion (`include` option) reads files from local filesystem every time it's rendering, to avoid this, use `text` with some cache enabled renderer.
 
 ## Supported value types
 
@@ -89,4 +89,4 @@ foo@tpl: |-
 
 ## Suggested Use Cases
 
-No suggestion for now.
+TBD.

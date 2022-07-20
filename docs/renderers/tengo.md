@@ -1,4 +1,4 @@
-# Tengo Renderer
+# Tengo Script Renderer `tengo`
 
 ```yaml
 foo@tengo: |-

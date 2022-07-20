@@ -126,7 +126,7 @@ func (f *TemplateFuncs) Override(fid FuncID, newFn reflect.Value) {
 	default:
 		// TODO: shall we allow overrding static funcs at all?
 		// is static func
-		f.StaticFuncs[fid-1] = newFn
+		f.StaticFuncs[fid] = newFn
 	}
 }
 
@@ -151,7 +151,7 @@ func (f *TemplateFuncs) GetByID(fid FuncID) (ret reflect.Value) {
 		return f.ContextualFuncs[fid-FuncID_LAST_Static_FUNC-1]
 	default:
 		// is static func
-		return f.StaticFuncs[fid-1]
+		return f.StaticFuncs[fid]
 	}
 }
 

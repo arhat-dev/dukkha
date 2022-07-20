@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// typeNS for scalar type conversion
+// typeNS for scalar type conversion and value handling
 type typeNS struct{}
 
 func (typeNS) Close(file any) (_ None, err error) {

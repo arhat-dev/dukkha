@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -40,7 +41,7 @@ type Driver struct {
 
 	Options configSpec `yaml:",inline"`
 
-	variables map[string]interface{}
+	variables map[string]any
 }
 
 func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
@@ -54,8 +55,7 @@ func (d *Driver) Init(cacheFS *fshelper.OSFS) error {
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{},
-	attributes []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext, rawData any, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	rawData, err := rs.NormalizeRawData(rawData)
 	if err != nil {
@@ -83,13 +83,13 @@ func (d *Driver) RenderYaml(
 
 	var (
 		include   []*includeSpec
-		variables map[string]interface{}
+		variables map[string]any
 		tplStr    string
 	)
 
 	if useSpec {
-		var spec *inputSpec
-		spec, err = resolveInputSpec(rc, tplBytes)
+		var spec inputSpec
+		err = resolveInputSpec(rc, tplBytes, &spec)
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: %s", d.name, err)
 		}
@@ -98,7 +98,7 @@ func (d *Driver) RenderYaml(
 		include = spec.Config.Include
 		variables = spec.Config.Variables.NormalizedValue()
 	} else {
-		tplStr = string(tplBytes)
+		tplStr = stringhelper.Convert[string, byte](tplBytes)
 		include = d.Options.Include
 		variables = d.variables
 	}
@@ -111,26 +111,26 @@ func (d *Driver) RenderYaml(
 	return data, nil
 }
 
-func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte) (*inputSpec, error) {
-	spec := rs.InitAny(&inputSpec{}, nil).(*inputSpec)
+func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte, out *inputSpec) (err error) {
+	rs.InitAny(out, nil)
 
-	err := yaml.Unmarshal(tplBytes, spec)
+	err = yaml.Unmarshal(tplBytes, out)
 	if err != nil {
-		return nil, fmt.Errorf("invalid template input spec: %w", err)
+		return fmt.Errorf("invalid template input spec: %w", err)
 	}
 
-	err = spec.ResolveFields(rc, -1)
+	err = out.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, fmt.Errorf("resolving template input spec: %w", err)
+		return fmt.Errorf("resolving template input spec: %w", err)
 	}
 
-	return spec, nil
+	return
 }
 
 func renderTemplate(
 	rc dukkha.RenderingContext,
 	inc []*includeSpec,
-	variables map[string]interface{},
+	variables map[string]any,
 
 	tplStr string,
 ) ([]byte, error) {
@@ -177,7 +177,7 @@ func renderTemplate(
 		}
 
 		name := path.Base(inc)
-		incTpl, err := tpl.New(name).Parse(string(tplBytes))
+		incTpl, err := tpl.New(name).Parse(stringhelper.Convert[string, byte](tplBytes))
 		if err != nil {
 			return nil, fmt.Errorf("invalid template file %q: %w", inc, err)
 		}
@@ -212,9 +212,9 @@ func renderTemplate(
 		return nil, fmt.Errorf("parsing template: %w", err)
 	}
 
-	// Override placeholder funcs immediately before execute template
+	// Override placeholder funcs immediately before executing template
 	fnVar := func() any { return variables }
-	fnInclude := func(name string, data interface{}) (string, error) {
+	fnInclude := func(name string, data any) (string, error) {
 		count, ok := includedCount[name]
 		if ok {
 			if count >= maxIncludeCount {
@@ -269,10 +269,7 @@ func renderTemplate(
 	var buf bytes.Buffer
 	err = tpl.Execute(&buf, rc)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"%w: %s",
-			err, tplStr,
-		)
+		return nil, fmt.Errorf("%w: %s", err, tplStr)
 	}
 
 	return buf.Next(buf.Len()), nil
