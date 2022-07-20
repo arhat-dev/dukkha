@@ -3,12 +3,12 @@ archive:create:
   matrix@file: cicd/artifacts/matrix.yml
   env:
   - name: name_prefix
-    value@tpl: dukkha-{{- matrix.kernel -}}-{{- matrix.arch -}}
+    value@tmpl: dukkha-{{- matrix.kernel -}}-{{- matrix.arch -}}
 
   compression:
     enabled: true
     level: "9"
-  output@tpl: |-
+  output@tmpl: |-
     build/{{- env.name_prefix -}}
     {{- if eq matrix.kernel "windows" -}}
       .zip
@@ -18,8 +18,8 @@ archive:create:
 
   files:
   # dukkha executable
-  - from@tpl: build/{{- include "artifacts.bin-name" . -}}
-    to@tpl: |-
+  - from@tmpl: build/{{- include "artifacts.bin-name" . -}}
+    to@tmpl: |-
       {{- $suffix := "" -}}
       {{- if eq matrix.kernel "windows" -}}
         {{- $suffix = ".exe" -}}
@@ -29,19 +29,19 @@ archive:create:
 
   # license
   - from: LICENSE.txt
-    to@tpl: "{{- env.name_prefix -}}/LICENSE"
+    to@tmpl: "{{- env.name_prefix -}}/LICENSE"
 
   # signature
-  - from@tpl: build/{{- env.name_prefix -}}.sig
-    to@tpl: "{{- env.name_prefix -}}/dukkha.sig"
+  - from@tmpl: build/{{- env.name_prefix -}}.sig
+    to@tmpl: "{{- env.name_prefix -}}/dukkha.sig"
 
   # checksums
 
-  - from@tpl: build/{{- env.name_prefix -}}.sha256
-    to@tpl: "{{- env.name_prefix -}}/dukkha.sha256"
+  - from@tmpl: build/{{- env.name_prefix -}}.sha256
+    to@tmpl: "{{- env.name_prefix -}}/dukkha.sha256"
 
-  - from@tpl: build/{{- env.name_prefix -}}.sha512
-    to@tpl: "{{- env.name_prefix -}}/dukkha.sha512"
+  - from@tmpl: build/{{- env.name_prefix -}}.sha512
+    to@tmpl: "{{- env.name_prefix -}}/dukkha.sha512"
 
-  - from@tpl: build/{{- env.name_prefix -}}.md5
-    to@tpl: "{{- env.name_prefix -}}/dukkha.md5"
+  - from@tmpl: build/{{- env.name_prefix -}}.md5
+    to@tmpl: "{{- env.name_prefix -}}/dukkha.md5"

@@ -7,5 +7,5 @@ import (
 
 func CreateTemplate(rc dukkha.RenderingContext) *template.Template {
 	tfs := CreateTemplateFuncs(rc)
-	return template.New("tpl").Funcs(&tfs)
+	return template.New("tmpl").Funcs(&tfs)
 }

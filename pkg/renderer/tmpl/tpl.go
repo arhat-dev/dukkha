@@ -1,4 +1,4 @@
-package tpl
+package tmpl
 
 import (
 	"bytes"
@@ -21,10 +21,12 @@ import (
 )
 
 const (
-	DefaultName = "tpl"
+	DefaultName = "tmpl"
 )
 
-func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
+func init() {
+	dukkha.RegisterRenderer(DefaultName, NewDefault)
+}
 
 func NewDefault(name string) dukkha.Renderer {
 	return &Driver{

@@ -9,7 +9,7 @@ foo@tl: |-
 
 `tl` is a derived scripting language from [golang template](https://golang.org/pkg/text/template/), without the emphasis of __text templating__.
 
-__NOTE:__ This renderer shares every feature of `tpl` renderer, see [`tpl`](./tpl.md) for general idea of golang template.
+__NOTE:__ This renderer shares every feature of `tmpl` renderer, see [`tmpl`](./tmpl.md) for general idea of golang template.
 
 ## Config Options
 

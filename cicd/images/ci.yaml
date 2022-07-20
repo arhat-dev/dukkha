@@ -22,13 +22,13 @@ workflow:run:
 # required by ci job
 - name: sign-images
   jobs:
-  - if@tpl: &github |-
+  - if@tmpl: &github |-
       {{- all (eq env.GITHUB_ACTIONS "true") git.tag -}}
     task:
       ref: docker:login(ghcr)
       matrix_filter: {}
 
-  - if@tpl: *github
+  - if@tmpl: *github
     task:
       ref: cosign:sign-image(dukkha)
       matrix_filter: {}

@@ -1,7 +1,7 @@
-result@tpl#use-spec?str:
+result@tmpl#use-spec?str:
   include:
-  - path: testdata/*.tpl
-  - path: testdata/**/*.tpl
+  - path: testdata/*.tmpl
+  - path: testdata/**/*.tmpl
   - text: |-
       {{- define "test-text-template" -}}
         test-text-template

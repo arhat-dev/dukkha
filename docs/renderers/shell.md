@@ -19,12 +19,12 @@ renderers:
 - String: To run a single script
 - List of Strings: To run a series of scripts in order
 
-## Interoperation with `tpl` renderer
+## Interoperation with `tmpl` renderer
 
-You can call template funcs by prefixing their names with `tpl:`
+You can call template funcs by prefixing their names with `tmpl:`
 
 ```yaml
-foo@shell: tpl:archconv.DebianTripleName "armv6"
+foo@shell: tmpl:archconv.DebianTripleName "armv6"
 ```
 
 ## Suggested Use Cases

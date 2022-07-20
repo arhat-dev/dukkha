@@ -41,7 +41,7 @@ foo@T:
   # Checksum verify data integrity, input value is returned as result
   - checksum:
       # check file or data, chose one
-      file@tpl: "{{ VALUE }}"
+      file@tmpl: "{{ VALUE }}"
       data@file: ${VALUE}
       # kind of the checksum, with
       kind: sha256

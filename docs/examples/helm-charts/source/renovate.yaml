@@ -1,1 +1,1 @@
-__@tpl?str: "{{ values.renovate_values.cronjob.schedule }}"
+__@tmpl?str: "{{ values.renovate_values.cronjob.schedule }}"

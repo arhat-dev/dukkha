@@ -8,7 +8,7 @@ task:
   compression:
     enabled: true
     method: zstd
-    level@tpl: |-
+    level@tmpl: |-
       {{ matrix.level }}
   files:
   - from: testdata/top-level.txt
@@ -16,13 +16,13 @@ task:
   - from: testdata/top-level.txt
     to: /
 
-  output@tpl: |-
+  output@tmpl: |-
     {{- fs.Join dukkha.CacheDir "test.zip" -}}
 ---
 actual:
-  top-level@tpl?str|af?str: |-
+  top-level@tmpl?str|af?str: |-
     {{- fs.Join dukkha.CacheDir "test.zip" -}}:top-level.txt
-  root-top-level@tpl?str|af?str: |-
+  root-top-level@tmpl?str|af?str: |-
     {{- fs.Join dukkha.CacheDir "test.zip" -}}:/top-level.txt
 expected:
   top-level@file?str: testdata/top-level.txt

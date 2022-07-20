@@ -17,13 +17,13 @@ import (
 )
 
 var (
-	//go:embed gen/funcs.tpl
+	//go:embed gen/funcs.tmpl
 	funcs_template string // nolint:revive
 
-	//go:embed gen/docs.tpl
+	//go:embed gen/docs.tmpl
 	funcs_docs string // nolint:revive
 
-	//go:embed gen/tengo_symbols.tpl
+	//go:embed gen/tengo_symbols.tmpl
 	funcs_tengo_symbols string // nolint:revive
 )
 

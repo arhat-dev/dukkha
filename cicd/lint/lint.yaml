@@ -9,13 +9,13 @@ workflow:run:
       - tools/golangci-lint/config.vendor.yaml
       output:
       - &golangci_lint_config
-        __@tpl: |-
+        __@tmpl: |-
           {{- fs.Join dukkha.CacheDir "golangci-lint.yaml" -}}
   jobs:
-  - idle@tpl: |-
+  - idle@tmpl: |-
       {{- mkdir "-p" dukkha.CacheDir -}}
   - shell: |-
-      tpl:dukkha.Self render --chdir . <<EOF > "${MATRIX_OUTPUT}"
+      tmpl:dukkha.Self render --chdir . <<EOF > "${MATRIX_OUTPUT}"
       __@!:
         value@presets: ${MATRIX_PRESET}
         merge:
@@ -44,4 +44,4 @@ workflow:run:
         matrix_filter: {}
 
   jobs:
-  - cmd@presets?str|tpl#use-spec: tools/presets.tpl
+  - cmd@presets?str|tmpl#use-spec: tools/presets.tpl

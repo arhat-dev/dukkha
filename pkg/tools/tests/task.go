@@ -16,7 +16,7 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
-	"arhat.dev/dukkha/pkg/renderer/tpl"
+	"arhat.dev/dukkha/pkg/renderer/tmpl"
 	"arhat.dev/dukkha/pkg/tools"
 )
 
@@ -141,7 +141,7 @@ func TestTask(
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
-			ctx.AddRenderer("tpl", tpl.NewDefault("tpl"))
+			ctx.AddRenderer("tmpl", tmpl.NewDefault("tmpl"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 
 			afr := af.NewDefault("af")

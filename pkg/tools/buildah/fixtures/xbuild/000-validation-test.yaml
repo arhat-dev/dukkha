@@ -10,7 +10,7 @@ task:
   image_names:
   - image: xbuild-validation
     manifest: xbuild-validation
-  - image@tpl: |-
+  - image@tmpl: |-
       xbuild-validation:with-tag-{{ matrix.arch }}
     manifest: xbuild-validation:with-tag
   steps@file: testdata/steps.yaml

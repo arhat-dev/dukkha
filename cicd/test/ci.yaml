@@ -8,7 +8,7 @@ workflow:run:
   # test shell PATH lookup
   # if any issue, fix it in https://github.com/arhat-dev/sh/tree/dukkha
   - name: test path lookup under cygwin
-    if@tpl: |-
+    if@tmpl: |-
       {{- eq matrix.kernel "windows" -}}
 
     shell: |-
@@ -21,42 +21,42 @@ workflow:run:
 
       make dukkha
 
-      tpl:dukkha.Self render <<EOF
+      tmpl:dukkha.Self render <<EOF
       sh@shell: command -v dukkha
-      tpl@tpl: |-
+      tmpl@tmpl: |-
         {{- fs.Lookup "dukkha" -}}
       EOF
 
   - name: test path lookup under wine64
-    if@tpl: |-
+    if@tmpl: |-
       {{- ne matrix.kernel "windows" -}}
     shell: |-
       set -x
 
       make dukkha
 
-      tpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=amd64
+      tmpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=amd64
 
       wine64 ./build/dukkha-windows-amd64.exe render <<EOF
       sh@shell: command -v winepath
-      tpl@tpl: |-
+      tmpl@tmpl: |-
         {{- fs.Lookup "winepath" -}}
       EOF
 
   - name: test path lookup under wine32
     # macos doesn't support running i386 wine
-    if@tpl: |-
+    if@tmpl: |-
       {{- eq matrix.kernel "linux" -}}
     shell: |-
       set -x
 
       # already built ./build/dukkha in previous step
 
-      tpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=x86
+      tmpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=x86
 
       wine ./build/dukkha-windows-x86.exe render <<EOF
       sh@shell: command -v winepath
-      tpl@tpl: |-
+      tmpl@tmpl: |-
         {{- fs.Lookup "winepath" -}}
       EOF
 
@@ -66,5 +66,5 @@ workflow:run:
     - sonar-scanner
   jobs:
   # only run sonar scan on linux and darwin during CI
-  - cmd@presets?str|tpl#use-spec: tools/presets.tpl
+  - cmd@presets?str|tmpl#use-spec: tools/presets.tmpl
     continue_on_error: true

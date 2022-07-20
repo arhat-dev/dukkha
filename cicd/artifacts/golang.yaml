@@ -1,7 +1,7 @@
 golang:build:
 - name: dukkha
   matrix@file: cicd/artifacts/matrix.yml
-  __@tpl#use-spec:
+  __@tmpl#use-spec:
     template: |-
       {{- include "golang.build.cmd" . -}}
     include:
@@ -18,7 +18,7 @@ golang:build:
   hooks:
     after:matrix:success:
     - chdir: build
-      shell@tpl: |-
+      shell@tmpl: |-
         {{- $suffix := "" -}}
         {{- if eq matrix.kernel "windows" -}}
           {{- $suffix = ".exe" -}}
@@ -28,6 +28,6 @@ golang:build:
 
         hashes="sha256 sha512 md5"
         for hash in $hashes ; do
-          printf "%s  dukkha{{- $suffix -}}" "$("tpl:$hash" <"$file")" \
+          printf "%s  dukkha{{- $suffix -}}" "$("tmpl:$hash" <"$file")" \
             > "dukkha-{{- matrix.kernel -}}-{{- matrix.arch -}}.$hash"
         done

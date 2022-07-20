@@ -12,7 +12,7 @@ task:
   image_names:
   - image: custom-dockerfile
     manifest: custom-dockerfile
-  - image@tpl: |-
+  - image@tmpl: |-
       custom-dockerfile:with-tag-{{ matrix.arch }}
     manifest: custom-dockerfile:with-tag
 ---

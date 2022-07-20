@@ -1,7 +1,7 @@
-# Template Renderer `tpl`
+# Template Renderer `tmpl`
 
 ```yaml
-foo@tpl: |-
+foo@tmpl: |-
   {{ matrix.arch }}
 ```
 
@@ -13,11 +13,11 @@ __NOTE:__ See [template_funcs.md](../generated/template_funcs.md) for overview o
 
 ```yaml
 renderers:
-- tpl:
+- tmpl:
     # include local template files, with glob pattern support
     include:
-    - path: foo/*.tpl
-    - text@file?str: bar.tpl
+    - path: foo/*.tmpl
+    - text@file?str: bar.tmpl
     - text: |-
         {{- define "my-template" -}}
           sample data
@@ -39,7 +39,7 @@ __NOTE:__ When using `path` for template inclusion (`include` option) reads file
 - Valid input spec (when `use-spec` attribute applied)
 
 ```yaml
-foo@tpl#use-spec:
+foo@tmpl#use-spec:
   # template to render
   template: |-
     !! if you have {{ define }} block in your template,
@@ -51,7 +51,7 @@ foo@tpl#use-spec:
 
     !! included file templates without {{ define }} can also be executed by index or file basename
     {{- template "1" -}} will execute second file template
-    {{- template "foo.tpl" -}} will execute last `foo.tpl`
+    {{- template "foo.tmpl" -}} will execute last `foo.tmpl`
 
     !! like file templates, included text templates without {{ define }} can be executed by index with prefix `#`
     {{- template "#1" -}} will execute second text template
@@ -60,8 +60,8 @@ foo@tpl#use-spec:
   #
   # NOTE: this option does not inherit `include` option from renderer config
   include:
-  - path: foo/*.tpl
-  - text@file?str: bar.tpl
+  - path: foo/*.tmpl
+  - text@file?str: bar.tmpl
   - text: foo
 
   # a map of arbitrary values accessible from
@@ -83,7 +83,7 @@ foo@tpl#use-spec:
 There is a template func `eval.Shell` for running shell commands in template.
 
 ```yaml
-foo@tpl: |-
+foo@tmpl: |-
   {{- (eval.Shell "echo 'Called From Template'").Stdout -}}
 ```
 

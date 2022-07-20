@@ -9,17 +9,17 @@ Renderers are the core components to make dukkha config dynamic.
 A renderer name consists of two parts:
 
 - mandatory first part: kind name of the renderer
-  - e.g. `af`, `tpl`, `http`
+  - e.g. `af`, `tmpl`, `http`
 - optional second part: instance name of the renderer
   - e.g. `my-rdr-name`
 
 If there is instance name, there MUST be a colon (`:`) between kind name and instance name.
 
-Examples for renderer kind `tpl`:
+Examples for renderer kind `tmpl`:
 
-- `tpl` (no instance name)
-- `tpl:` (empty instance name, same as no instance name)
-- `tpl:my-tpl` (with instance name `my-tpl`)
+- `tmpl` (no instance name)
+- `tmpl:` (empty instance name, same as no instance name)
+- `tmpl:my-tmpl` (with instance name `my-tmpl`)
 
 ### Alias
 
@@ -43,11 +43,11 @@ Renderer attributes are additional runtime rendering instructions, independent f
 
 Format: comma separated list of strings with start prefix `#`
 
-Examples for renderer `tpl`:
+Examples for renderer `tmpl`:
 
-- `tpl` (no attribute)
-- `tpl#` (empty attributes, same as no attribute)
-- `tpl#a,b,c` (attributes `a`, `b`, `c`)
+- `tmpl` (no attribute)
+- `tmpl#` (empty attributes, same as no attribute)
+- `tmpl#a,b,c` (attributes `a`, `b`, `c`)
 
 ### Default Attributes
 

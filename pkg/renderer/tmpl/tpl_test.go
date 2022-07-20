@@ -1,4 +1,4 @@
-package tpl
+package tmpl
 
 import (
 	"testing"
@@ -23,7 +23,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 
 	dt.TestFixturesUsingRenderingSuffix(t, "./fixtures",
 		map[string]dukkha.Renderer{
-			"tpl": NewDefault("tpl"),
+			"tmpl": NewDefault("tmpl"),
 		},
 		func() rs.Field { return &rs.AnyObjectMap{} },
 		func() rs.Field { return &rs.AnyObjectMap{} },

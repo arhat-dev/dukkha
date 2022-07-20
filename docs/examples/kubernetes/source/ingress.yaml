@@ -1,6 +1,6 @@
-apiVersion@tpl: "{{ values.versions.ingress }}"
+apiVersion@tmpl: "{{ values.versions.ingress }}"
 kind: Ingress
 metadata:
-  name@tpl: "{{ values.name }}"
+  name@tmpl: "{{ values.name }}"
   labels@file: &labels templates/labels.yaml
-spec@tpl|file: templates/{{ values.versions.ingress }}/ingress.spec.yaml
+spec@tmpl|file: templates/{{ values.versions.ingress }}/ingress.spec.yaml

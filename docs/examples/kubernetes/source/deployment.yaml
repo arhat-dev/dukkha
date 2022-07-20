@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels@file: &labels templates/labels.yaml
-  name@tpl: "{{ values.name }}"
+  name@tmpl: "{{ values.name }}"
 spec:
-  replicas@tpl: "{{ values.replicas }}"
+  replicas@tmpl: "{{ values.replicas }}"
   selector:
     matchLabels@file: *labels
   template:

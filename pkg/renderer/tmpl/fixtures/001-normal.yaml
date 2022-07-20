@@ -1,4 +1,4 @@
-result@tpl?str: |-
+result@tmpl?str: |-
   {{ printf "foo" }}
 ---
 result: foo

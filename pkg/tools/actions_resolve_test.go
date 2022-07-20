@@ -14,7 +14,7 @@ import (
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/echo"
 	"arhat.dev/dukkha/pkg/renderer/file"
-	"arhat.dev/dukkha/pkg/renderer/tpl"
+	"arhat.dev/dukkha/pkg/renderer/tmpl"
 )
 
 var _ dukkha.Resolvable = (*TestResolvable)(nil)
@@ -54,7 +54,7 @@ func TestResolveActions_steps(t *testing.T) {
 
 			mCtx := dt.NewTestContext(context.TODO())
 			mCtx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
-			mCtx.AddRenderer("tpl", tpl.NewDefault(""))
+			mCtx.AddRenderer("tmpl", tmpl.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))
 

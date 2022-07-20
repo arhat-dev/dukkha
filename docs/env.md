@@ -7,11 +7,11 @@ __NOTE:__ This doc should be synced with [pkg/cmd/env.go](../pkg/cmd/env.go), [p
 ## Usage
 
 - For renderer `env`, `shell`, and action `shell`: Use like unix shell env (e.g. `${SOME_ENV}`)
-- For `tpl` renderer: available under `env` object (e.g. `{{ env.SOME_ENV }}`)
+- For `tmpl` renderer: available under `env` object (e.g. `{{ env.SOME_ENV }}`)
 
 ## `dukkha` Runtime Information
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `dukkha`, example usage: `{{ dukkha.WorkDir }}`
+__NOTE for renderer `tmpl`:__ Environment variables in this section are also available under template object `dukkha`, example usage: `{{ dukkha.WorkDir }}`
 
 - `DUKKHA_WORKDIR`
   - Description: The absolute directory path in which you invoked `dukkha`
@@ -27,7 +27,7 @@ __NOTE for renderer `tpl`:__ Environment variables in this section are also avai
 
 ## `git` Repo Information
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `git`, example usage: `{{ git.branch }}`
+__NOTE for renderer `tmpl`:__ Environment variables in this section are also available under template object `git`, example usage: `{{ git.branch }}`
 
 - `GIT_BRANCH`
   - Description: Current working branch name
@@ -128,7 +128,7 @@ All time related values are based on local time
       - `armv7` (for `arm` and `armv7`)
   - Customization: Not Supported
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `host`, examples:
+__NOTE for renderer `tmpl`:__ Environment variables in this section are also available under template object `host`, examples:
 
 - `{{ host.kernel }}` to get value of env HOST_KERNEL
 - `{{ host.arch_simple }}` to get value of env HOST_ARCH_SIMPLE
@@ -145,4 +145,4 @@ __NOTE:__ Environment variables in this section are only available for tasks and
   - Description: same as `HOST_ARCH_SIMPLE`, but for `MATRIX_ARCH`
   - Default Value: `{{- archconv.SimpleArch matrix.arch -}}`
 
-__NOTE for renderer `tpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`
+__NOTE for renderer `tmpl`:__ Environment variables in this section are also available under template object `matrix`, example usage: `{{ matrix.kernel }}`

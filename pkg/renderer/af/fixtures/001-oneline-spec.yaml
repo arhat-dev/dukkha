@@ -1,11 +1,11 @@
-__@tpl: |-
+__@tmpl: |-
   {{- range $_, $name := split " " env.test_archives }}
   {{ $name }}-top@af: testdata/{{ $name }}:top-level-data.yaml
   {{ $name }}-internal-symlink-evaluated@af: testdata/{{ $name -}}
     :level-1/level-2/top-level-data-symlink
   {{ end }}
 ---
-__@tpl: |-
+__@tmpl: |-
   {{- range $_, $name := split " " env.test_archives }}
   {{ $name }}-top@file: testdata/_archive_content/top-level-data.yaml
   {{ $name }}-internal-symlink-evaluated@file: testdata/_archive_content/level-1/level-2/top-level-data-symlink

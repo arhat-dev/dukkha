@@ -118,7 +118,7 @@ workflow:run:
     - idle: {}
 
     # do nothing but resolve rendering suffix
-    - idle@tpl: |-
+    - idle@tmpl: |-
         {{ dukkha.Set "foo" "bar" }}
 
     after:matrix:failure:
@@ -136,9 +136,9 @@ workflow:run:
     # infinit loop is usually not what we want
     # use rendering suffix to do conditional next
     # - next: foo
-    - idle@tpl: |-
+    - idle@tmpl: |-
         {{- dukkha.Set "foo" "done" -}}
-      next@tpl: |-
+      next@tmpl: |-
         {{- if ne values.foo "done" -}}
           foo
         {{- end -}}

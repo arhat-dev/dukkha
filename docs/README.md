@@ -13,7 +13,7 @@
 
 1. [Major dukkha config sections](#configuration-overview)
 2. [Renderers' general concepts and config](./renderers.md)
-3. Renderer specific usage (e.g. [`tpl`](./renderers/tpl.md))
+3. Renderer specific usage (e.g. [`tmpl`](./renderers/tmpl.md))
 4. [Tools' concepts and general config](./tools.md)
 5. [Tasks' concepts and general config](./tasks.md)
 6. [Shells](./shells.md)
@@ -55,7 +55,7 @@ Before loading config, dukkha prepares serval essential renderers for bootstrapp
 - `echo`
 - `env` without arbitrary command execution support
 - `shell`
-- `tpl`
+- `tmpl`
 - `http`
 - `file`
 - `T`

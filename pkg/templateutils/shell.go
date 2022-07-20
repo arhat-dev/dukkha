@@ -332,7 +332,7 @@ func newExecHandler(
 		ctx context.Context,
 		args []string,
 	) error {
-		if !strings.HasPrefix(args[0], "tpl:") {
+		if !strings.HasPrefix(args[0], "tmpl:") {
 			err := defaultCmdExecHandler(ctx, args)
 			if err != nil {
 				return fmt.Errorf("exec: %q: %w", strings.Join(args, " "), err)
@@ -341,7 +341,7 @@ func newExecHandler(
 			return nil
 		}
 
-		// has `tpl:` prefix, execute as a template func
+		// has `tmpl:` prefix, execute as a template func
 
 		hc := interp.HandlerCtx(ctx)
 
@@ -358,7 +358,7 @@ func newExecHandler(
 			pipeWriter = hc.Stdout
 		}
 
-		args[0] = strings.TrimPrefix(args[0], "tpl:")
+		args[0] = strings.TrimPrefix(args[0], "tmpl:")
 
 		out, errOut, err := ExecCmdAsTemplateFuncCall(
 			rc,

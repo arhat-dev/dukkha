@@ -41,7 +41,7 @@ workflow:run:
       for hash in $hashes ; do
         printf "" >"$hash.txt"
         for file in *.tar* *.zip; do
-          printf "%s  %s\n" "$("tpl:$hash" <"$file")" "$file" >> "$hash.txt"
+          printf "%s  %s\n" "$("tmpl:$hash" <"$file")" "$file" >> "$hash.txt"
         done
       done
 
