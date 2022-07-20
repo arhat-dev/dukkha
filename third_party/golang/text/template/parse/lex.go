@@ -17,6 +17,8 @@ type item struct {
 	pos  Pos      // The starting position, in bytes, of this item in the input string.
 	val  string   // The value of this item.
 	line int      // The line number at the start of this item.
+
+	notEmpty bool
 }
 
 func (i item) String() string {
@@ -75,19 +77,35 @@ const (
 	itemWith     // with keyword
 )
 
-var key = map[string]itemType{
-	".":        itemDot,
-	"block":    itemBlock,
-	"break":    itemBreak,
-	"continue": itemContinue,
-	"define":   itemDefine,
-	"else":     itemElse,
-	"end":      itemEnd,
-	"if":       itemIf,
-	"range":    itemRange,
-	"nil":      itemNil,
-	"template": itemTemplate,
-	"with":     itemWith,
+func key(k string) itemType {
+	switch k {
+	case ".":
+		return itemDot
+	case "block":
+		return itemBlock
+	case "break":
+		return itemBreak
+	case "continue":
+		return itemContinue
+	case "define":
+		return itemDefine
+	case "else":
+		return itemElse
+	case "end":
+		return itemEnd
+	case "if":
+		return itemIf
+	case "range":
+		return itemRange
+	case "nil":
+		return itemNil
+	case "template":
+		return itemTemplate
+	case "with":
+		return itemWith
+	default:
+		return 0
+	}
 }
 
 const eof = -1
@@ -107,24 +125,25 @@ const (
 )
 
 // stateFn represents the state of the scanner as a function that returns the next state.
-type stateFn func(*lexer) stateFn
+type stateFn func(*lexer) (ret item, next stateFn)
 
 // lexer holds the state of the scanner.
 type lexer struct {
-	name        string    // the name of the input; used only for error reports
-	input       string    // the string being scanned
-	leftDelim   string    // start of action
-	rightDelim  string    // end of action
-	emitComment bool      // emit itemComment tokens.
-	pos         Pos       // current position in the input
-	start       Pos       // start position of this item
-	width       Pos       // width of last rune read from input
-	items       chan item // channel of scanned items
-	parenDepth  int       // nesting depth of ( ) exprs
-	line        int       // 1+number of newlines seen
-	startLine   int       // start line of this item
-	breakOK     bool      // break keyword allowed
-	continueOK  bool      // continue keyword allowed
+	name        string // the name of the input; used only for error reports
+	input       string // the string being scanned
+	leftDelim   string // start of action
+	rightDelim  string // end of action
+	emitComment bool   // emit itemComment tokens.
+	pos         Pos    // current position in the input
+	start       Pos    // start position of this item
+	width       Pos    // width of last rune read from input
+	parenDepth  int    // nesting depth of ( ) exprs
+	line        int    // 1+number of newlines seen
+	startLine   int    // start line of this item
+	breakOK     bool   // break keyword allowed
+	continueOK  bool   // continue keyword allowed
+
+	state stateFn
 }
 
 // next returns the next rune in the input.
@@ -159,10 +178,11 @@ func (l *lexer) backup() {
 }
 
 // emit passes an item back to the client.
-func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos], l.startLine}
+func (l *lexer) emit(t itemType) (ret item) {
+	ret = item{t, l.start, l.input[l.start:l.pos], l.startLine, true}
 	l.start = l.pos
 	l.startLine = l.line
+	return
 }
 
 // ignore skips over the pending input before this point.
@@ -190,22 +210,30 @@ func (l *lexer) acceptRun(valid string) {
 
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
-func (l *lexer) errorf(format string, args ...any) stateFn {
-	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...), l.startLine}
-	return nil
+func (l *lexer) errorf(format string, args ...any) item {
+	return item{itemError, l.start, fmt.Sprintf(format, args...), l.startLine, true}
 }
 
 // nextItem returns the next item from the input.
 // Called by the parser, not in the lexing goroutine.
-func (l *lexer) nextItem() item {
-	return <-l.items
-}
+func (l *lexer) nextItem() (ret item) {
+	for l.state != nil {
+		ret, l.state = l.state(l)
+		if l.state == nil {
+			// is the last state, return unconditionally
+			return
+		}
 
-// drain drains the output so the lexing goroutine will exit.
-// Called by the parser, not in the lexing goroutine.
-func (l *lexer) drain() {
-	for range l.items {
+		if ret.notEmpty {
+			// got a meaningful item
+			return
+		}
+
+		// empty item, scan next
 	}
+
+	// fake EOF
+	return l.emit(itemEOF)
 }
 
 // lex creates a new scanner for the input string.
@@ -222,20 +250,12 @@ func lex(name, input, left, right string, emitComment bool) *lexer {
 		leftDelim:   left,
 		rightDelim:  right,
 		emitComment: emitComment,
-		items:       make(chan item),
 		line:        1,
 		startLine:   1,
-	}
-	go l.run()
-	return l
-}
 
-// run runs the state machine for the lexer.
-func (l *lexer) run() {
-	for state := lexText; state != nil; {
-		state = state(l)
+		state: lexText,
 	}
-	close(l.items)
+	return l
 }
 
 // state functions
@@ -248,7 +268,7 @@ const (
 )
 
 // lexText scans until an opening action delimiter, "{{".
-func lexText(l *lexer) stateFn {
+func lexText(l *lexer) (ret item, next stateFn) {
 	l.width = 0
 	if x := strings.Index(l.input[l.pos:], l.leftDelim); x >= 0 {
 		ldn := Pos(len(l.leftDelim))
@@ -260,20 +280,22 @@ func lexText(l *lexer) stateFn {
 		l.pos -= trimLength
 		if l.pos > l.start {
 			l.line += strings.Count(l.input[l.start:l.pos], "\n")
-			l.emit(itemText)
+			ret = l.emit(itemText)
 		}
 		l.pos += trimLength
 		l.ignore()
-		return lexLeftDelim
+		next = lexLeftDelim
+		return
 	}
 	l.pos = Pos(len(l.input))
 	// Correctly reached EOF.
 	if l.pos > l.start {
 		l.line += strings.Count(l.input[l.start:l.pos], "\n")
-		l.emit(itemText)
+		ret = l.emit(itemText)
+		return
 	}
-	l.emit(itemEOF)
-	return nil
+	ret = l.emit(itemEOF)
+	return
 }
 
 // rightTrimLength returns the length of the spaces at the end of the string.
@@ -298,7 +320,7 @@ func leftTrimLength(s string) Pos {
 }
 
 // lexLeftDelim scans the left delimiter, which is known to be present, possibly with a trim marker.
-func lexLeftDelim(l *lexer) stateFn {
+func lexLeftDelim(l *lexer) (ret item, next stateFn) {
 	l.pos += Pos(len(l.leftDelim))
 	trimSpace := hasLeftTrimMarker(l.input[l.pos:])
 	afterMarker := Pos(0)
@@ -308,29 +330,33 @@ func lexLeftDelim(l *lexer) stateFn {
 	if strings.HasPrefix(l.input[l.pos+afterMarker:], leftComment) {
 		l.pos += afterMarker
 		l.ignore()
-		return lexComment
+		next = lexComment
+		return
 	}
-	l.emit(itemLeftDelim)
+	ret = l.emit(itemLeftDelim)
+	next = lexInsideAction
 	l.pos += afterMarker
 	l.ignore()
 	l.parenDepth = 0
-	return lexInsideAction
+	return
 }
 
 // lexComment scans a comment. The left comment marker is known to be present.
-func lexComment(l *lexer) stateFn {
+func lexComment(l *lexer) (ret item, next stateFn) {
 	l.pos += Pos(len(leftComment))
 	i := strings.Index(l.input[l.pos:], rightComment)
 	if i < 0 {
-		return l.errorf("unclosed comment")
+		ret = l.errorf("unclosed comment")
+		return
 	}
 	l.pos += Pos(i + len(rightComment))
 	delim, trimSpace := l.atRightDelim()
 	if !delim {
-		return l.errorf("comment ends before closing delimiter")
+		ret = l.errorf("comment ends before closing delimiter")
+		return
 	}
 	if l.emitComment {
-		l.emit(itemComment)
+		ret = l.emit(itemComment)
 	}
 	if trimSpace {
 		l.pos += trimMarkerLen
@@ -340,96 +366,114 @@ func lexComment(l *lexer) stateFn {
 		l.pos += leftTrimLength(l.input[l.pos:])
 	}
 	l.ignore()
-	return lexText
+	next = lexText
+	return
 }
 
 // lexRightDelim scans the right delimiter, which is known to be present, possibly with a trim marker.
-func lexRightDelim(l *lexer) stateFn {
+func lexRightDelim(l *lexer) (ret item, next stateFn) {
 	trimSpace := hasRightTrimMarker(l.input[l.pos:])
 	if trimSpace {
 		l.pos += trimMarkerLen
 		l.ignore()
 	}
 	l.pos += Pos(len(l.rightDelim))
-	l.emit(itemRightDelim)
+	ret = l.emit(itemRightDelim)
 	if trimSpace {
 		l.pos += leftTrimLength(l.input[l.pos:])
 		l.ignore()
 	}
-	return lexText
+	next = lexText
+	return
 }
 
 // lexInsideAction scans the elements inside action delimiters.
-func lexInsideAction(l *lexer) stateFn {
+func lexInsideAction(l *lexer) (ret item, next stateFn) {
 	// Either number, quoted string, or identifier.
 	// Spaces separate arguments; runs of spaces turn into itemSpace.
 	// Pipe symbols separate and are emitted.
 	delim, _ := l.atRightDelim()
 	if delim {
 		if l.parenDepth == 0 {
-			return lexRightDelim
+			next = lexRightDelim
+			return
 		}
-		return l.errorf("unclosed left paren")
+		ret = l.errorf("unclosed left paren")
+		return
 	}
 	switch r := l.next(); {
 	case r == eof:
-		return l.errorf("unclosed action")
+		ret = l.errorf("unclosed action")
+		return
 	case isSpace(r):
 		l.backup() // Put space back in case we have " -}}".
-		return lexSpace
+		next = lexSpace
+		return
 	case r == '=':
-		l.emit(itemAssign)
+		ret = l.emit(itemAssign)
 	case r == ':':
 		if l.next() != '=' {
-			return l.errorf("expected :=")
+			ret = l.errorf("expected :=")
+			return
 		}
-		l.emit(itemDeclare)
+		ret = l.emit(itemDeclare)
 	case r == '|':
-		l.emit(itemPipe)
+		ret = l.emit(itemPipe)
 	case r == '"':
-		return lexQuote
+		next = lexQuote
+		return
 	case r == '`':
-		return lexRawQuote
+		next = lexRawQuote
+		return
 	case r == '$':
-		return lexVariable
+		next = lexVariable
+		return
 	case r == '\'':
-		return lexChar
+		next = lexChar
+		return
 	case r == '.':
 		// special look-ahead for ".field" so we don't break l.backup().
 		if l.pos < Pos(len(l.input)) {
 			r := l.input[l.pos]
 			if r < '0' || '9' < r {
-				return lexField
+				next = lexField
+				return
 			}
 		}
 		fallthrough // '.' can start a number.
 	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
 		l.backup()
-		return lexNumber
+		next = lexNumber
+		return
 	case isAlphaNumeric(r):
 		l.backup()
-		return lexIdentifier
+		next = lexIdentifier
+		return
 	case r == '(':
-		l.emit(itemLeftParen)
+		ret = l.emit(itemLeftParen)
 		l.parenDepth++
 	case r == ')':
-		l.emit(itemRightParen)
+		ret = l.emit(itemRightParen)
 		l.parenDepth--
 		if l.parenDepth < 0 {
-			return l.errorf("unexpected right paren %#U", r)
+			ret = l.errorf("unexpected right paren %#U", r)
+			return
 		}
 	case r <= unicode.MaxASCII && unicode.IsPrint(r):
-		l.emit(itemChar)
+		ret = l.emit(itemChar)
 	default:
-		return l.errorf("unrecognized character in action: %#U", r)
+		ret = l.errorf("unrecognized character in action: %#U", r)
+		return
 	}
-	return lexInsideAction
+
+	next = lexInsideAction
+	return
 }
 
 // lexSpace scans a run of space characters.
 // We have not consumed the first space, which is known to be present.
 // Take care if there is a trim-marked right delimiter, which starts with a space.
-func lexSpace(l *lexer) stateFn {
+func lexSpace(l *lexer) (ret item, next stateFn) {
 	var r rune
 	var numSpaces int
 	for {
@@ -445,15 +489,16 @@ func lexSpace(l *lexer) stateFn {
 	if hasRightTrimMarker(l.input[l.pos-1:]) && strings.HasPrefix(l.input[l.pos-1+trimMarkerLen:], l.rightDelim) {
 		l.backup() // Before the space.
 		if numSpaces == 1 {
-			return lexRightDelim // On the delim, so go right to that.
+			next = lexRightDelim // On the delim, so go right to that.
+			return
 		}
 	}
-	l.emit(itemSpace)
-	return lexInsideAction
+
+	return l.emit(itemSpace), lexInsideAction
 }
 
 // lexIdentifier scans an alphanumeric.
-func lexIdentifier(l *lexer) stateFn {
+func lexIdentifier(l *lexer) (ret item, next stateFn) {
 Loop:
 	for {
 		switch r := l.next(); {
@@ -463,55 +508,56 @@ Loop:
 			l.backup()
 			word := l.input[l.start:l.pos]
 			if !l.atTerminator() {
-				return l.errorf("bad character %#U", r)
+				ret = l.errorf("bad character %#U", r)
+				return
 			}
 			switch {
-			case key[word] > itemKeyword:
-				item := key[word]
+			case key(word) > itemKeyword:
+				item := key(word)
 				if item == itemBreak && !l.breakOK || item == itemContinue && !l.continueOK {
-					l.emit(itemIdentifier)
+					ret = l.emit(itemIdentifier)
 				} else {
-					l.emit(item)
+					ret = l.emit(item)
 				}
 			case word[0] == '.':
-				l.emit(itemField)
+				ret = l.emit(itemField)
 			case word == "true", word == "false":
-				l.emit(itemBool)
+				ret = l.emit(itemBool)
 			default:
-				l.emit(itemIdentifier)
+				ret = l.emit(itemIdentifier)
 			}
 			break Loop
 		}
 	}
-	return lexInsideAction
+
+	next = lexInsideAction
+	return
 }
 
 // lexField scans a field: .Alphanumeric.
 // The . has been scanned.
-func lexField(l *lexer) stateFn {
+func lexField(l *lexer) (ret item, next stateFn) {
 	return lexFieldOrVariable(l, itemField)
 }
 
 // lexVariable scans a Variable: $Alphanumeric.
 // The $ has been scanned.
-func lexVariable(l *lexer) stateFn {
+func lexVariable(l *lexer) (ret item, next stateFn) {
 	if l.atTerminator() { // Nothing interesting follows -> "$".
-		l.emit(itemVariable)
-		return lexInsideAction
+		return l.emit(itemVariable), lexInsideAction
 	}
 	return lexFieldOrVariable(l, itemVariable)
 }
 
 // lexVariable scans a field or variable: [.$]Alphanumeric.
 // The . or $ has been scanned.
-func lexFieldOrVariable(l *lexer, typ itemType) stateFn {
+func lexFieldOrVariable(l *lexer, typ itemType) (ret item, next stateFn) {
 	if l.atTerminator() { // Nothing interesting follows -> "." or "$".
 		if typ == itemVariable {
-			l.emit(itemVariable)
-		} else {
-			l.emit(itemDot)
+			return l.emit(itemVariable), lexInsideAction
 		}
-		return lexInsideAction
+
+		return l.emit(itemDot), lexInsideAction
 	}
 	var r rune
 	for {
@@ -522,10 +568,11 @@ func lexFieldOrVariable(l *lexer, typ itemType) stateFn {
 		}
 	}
 	if !l.atTerminator() {
-		return l.errorf("bad character %#U", r)
+		ret = l.errorf("bad character %#U", r)
+		return
 	}
-	l.emit(typ)
-	return lexInsideAction
+
+	return l.emit(typ), lexInsideAction
 }
 
 // atTerminator reports whether the input is at valid termination character to
@@ -552,7 +599,7 @@ func (l *lexer) atTerminator() bool {
 
 // lexChar scans a character constant. The initial quote is already
 // scanned. Syntax checking is done by the parser.
-func lexChar(l *lexer) stateFn {
+func lexChar(l *lexer) (ret item, next stateFn) {
 Loop:
 	for {
 		switch l.next() {
@@ -562,33 +609,36 @@ Loop:
 			}
 			fallthrough
 		case eof, '\n':
-			return l.errorf("unterminated character constant")
+			ret = l.errorf("unterminated character constant")
+			return
 		case '\'':
 			break Loop
 		}
 	}
-	l.emit(itemCharConstant)
-	return lexInsideAction
+
+	return l.emit(itemCharConstant), lexInsideAction
 }
 
 // lexNumber scans a number: decimal, octal, hex, float, or imaginary. This
 // isn't a perfect number scanner - for instance it accepts "." and "0x0.2"
 // and "089" - but when it's wrong the input is invalid and the parser (via
 // strconv) will notice.
-func lexNumber(l *lexer) stateFn {
+func lexNumber(l *lexer) (ret item, next stateFn) {
 	if !l.scanNumber() {
-		return l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+		ret = l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+		return
 	}
 	if sign := l.peek(); sign == '+' || sign == '-' {
 		// Complex: 1+2i. No spaces, must end in 'i'.
 		if !l.scanNumber() || l.input[l.pos-1] != 'i' {
-			return l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+			ret = l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+			return
 		}
-		l.emit(itemComplex)
-	} else {
-		l.emit(itemNumber)
+
+		return l.emit(itemComplex), lexInsideAction
 	}
-	return lexInsideAction
+
+	return l.emit(itemNumber), lexInsideAction
 }
 
 func (l *lexer) scanNumber() bool {
@@ -629,7 +679,7 @@ func (l *lexer) scanNumber() bool {
 }
 
 // lexQuote scans a quoted string.
-func lexQuote(l *lexer) stateFn {
+func lexQuote(l *lexer) (ret item, next stateFn) {
 Loop:
 	for {
 		switch l.next() {
@@ -639,28 +689,30 @@ Loop:
 			}
 			fallthrough
 		case eof, '\n':
-			return l.errorf("unterminated quoted string")
+			ret = l.errorf("unterminated quoted string")
+			return
 		case '"':
 			break Loop
 		}
 	}
-	l.emit(itemString)
-	return lexInsideAction
+
+	return l.emit(itemString), lexInsideAction
 }
 
 // lexRawQuote scans a raw quoted string.
-func lexRawQuote(l *lexer) stateFn {
+func lexRawQuote(l *lexer) (ret item, next stateFn) {
 Loop:
 	for {
 		switch l.next() {
 		case eof:
-			return l.errorf("unterminated raw quoted string")
+			ret = l.errorf("unterminated raw quoted string")
+			return
 		case '`':
 			break Loop
 		}
 	}
-	l.emit(itemRawString)
-	return lexInsideAction
+
+	return l.emit(itemRawString), lexInsideAction
 }
 
 // isSpace reports whether r is a space character.

@@ -41,6 +41,11 @@ github.com/aoldershaw/ansi
 # github.com/bmatcuk/doublestar/v4 v4.0.2
 ## explicit; go 1.16
 github.com/bmatcuk/doublestar/v4
+# github.com/d5/tengo/v2 v2.12.0 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
+## explicit; go 1.18
+github.com/d5/tengo/v2
+github.com/d5/tengo/v2/parser
+github.com/d5/tengo/v2/token
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -298,5 +303,6 @@ mvdan.cc/sh/v3/expand
 mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
+# github.com/d5/tengo/v2 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
 # github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
 # mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491

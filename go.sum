@@ -12,6 +12,8 @@ github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191 h1:XJ/EVFZGeFdm5
 github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191/go.mod h1:QquiGW1TWJ/+xC933AiiKO09ggryYteH+gBbLhmf3Z0=
 github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491 h1:cSWAKNqxRYO1pQNP1Jf1MT7lp3XoOWomWTgURNbxJGM=
 github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491/go.mod h1:KJ0i3HGp81508NOP5blGbs3b20G+gM2/HcPDXzufUAc=
+github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d h1:xaK8/XBpeg/CM0oh2efcBRTF9stMH/h2fz8tOgaDsFs=
+github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d/go.mod h1:qO+DjFaZ54gSVSBTVGgGV6fKG/56iH/O/sTKnrdrXqI=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=

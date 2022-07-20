@@ -4,7 +4,7 @@
 foo@shell: echo "Woo"
 ```
 
-Run embedded shell script and use the output to stdout as the field value
+Run bash script and use the output to stdout as the field value
 
 ## Config Options
 

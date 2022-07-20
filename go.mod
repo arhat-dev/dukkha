@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/bmatcuk/doublestar/v4 v4.0.2
+	github.com/d5/tengo/v2 v2.12.0
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5
 	github.com/google/uuid v1.3.0
@@ -38,6 +39,8 @@ require (
 )
 
 replace (
+	// branch master
+	github.com/d5/tengo/v2 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
 	// branch master
 	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
 	// branch `dukkha`

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"mvdan.cc/sh/v3/syntax"
@@ -31,18 +32,23 @@ type Driver struct {
 
 func (d *Driver) RenderYaml(
 	rc dukkha.RenderingContext, rawData interface{}, _ []dukkha.RendererAttribute,
-) ([]byte, error) {
-	rawData, err := rs.NormalizeRawData(rawData)
+) (_ []byte, err error) {
+	rawData, err = rs.NormalizeRawData(rawData)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var scripts []string
+	var (
+		bufScripts [1]string
+		scripts    []string
+	)
 	switch t := rawData.(type) {
 	case string:
-		scripts = append(scripts, t)
+		bufScripts[0] = t
+		scripts = bufScripts[:]
 	case []byte:
-		scripts = append(scripts, string(t))
+		bufScripts[0] = stringhelper.Convert[string, byte](t)
+		scripts = bufScripts[:]
 	case []interface{}:
 		for _, v := range t {
 			var scriptBytes []byte
@@ -54,7 +60,7 @@ func (d *Driver) RenderYaml(
 				)
 			}
 
-			scripts = append(scripts, string(scriptBytes))
+			scripts = append(scripts, stringhelper.Convert[string, byte](scriptBytes))
 		}
 	default:
 		return nil, fmt.Errorf(

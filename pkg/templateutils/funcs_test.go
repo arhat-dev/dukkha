@@ -22,6 +22,9 @@ var (
 
 	//go:embed gen/docs.tpl
 	funcs_docs string // nolint:revive
+
+	//go:embed gen/tengo_symbols.tpl
+	funcs_tengo_symbols string // nolint:revive
 )
 
 func TestGenerateFuncs(t *testing.T) {
@@ -63,6 +66,25 @@ func TestGenerateFuncs(t *testing.T) {
 		}
 
 		err = os.WriteFile("funcs.go", data, 0644)
+		assert.NoError(t, err)
+	})
+
+	t.Run("tengo_symbols", func(t *testing.T) {
+		tpl, err := template.New("").Parse(funcs_tengo_symbols)
+		assert.NoError(t, err)
+
+		var out bytes.Buffer
+		err = tpl.Execute(&out, val)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		data, err := format.Source(out.Bytes())
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		err = os.WriteFile("../renderer/tengo/symbols.go", data, 0644)
 		assert.NoError(t, err)
 	})
 

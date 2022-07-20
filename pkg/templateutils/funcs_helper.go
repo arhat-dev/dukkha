@@ -8,10 +8,10 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-type FuncID uint32
+type FuncID int32
 
 type (
-	StaticFuncs      [FuncID_LAST_Static_FUNC]reflect.Value
+	StaticFuncs      [FuncID_LAST_Static_FUNC + 1]reflect.Value
 	ContextualFuncs  [FuncID_LAST_Contextual_FUNC - FuncID_LAST_Static_FUNC]reflect.Value
 	PlaceholderFuncs [FuncID_LAST_Placeholder_FUNC - FuncID_LAST_Contextual_FUNC]reflect.Value
 )
