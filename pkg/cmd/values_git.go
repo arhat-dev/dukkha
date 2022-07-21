@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang"
 )
 
 // GitBranch find git branch name of working dir wd
-func GitBranch(ctx context.Context, wd string) utils.LazyValue {
+func GitBranch(ctx context.Context, wd string) *tlang.LazyValue[string] {
 	return newLazyExecVal(
 		ctx,
 		wd,
@@ -32,7 +32,7 @@ func GitBranch(ctx context.Context, wd string) utils.LazyValue {
 }
 
 // GitCommit get git commit sha of working dir wd
-func GitCommit(ctx context.Context, dir string) utils.LazyValue {
+func GitCommit(ctx context.Context, dir string) *tlang.LazyValue[string] {
 	return newLazyExecVal(
 		ctx,
 		dir,
@@ -52,7 +52,7 @@ func GitCommit(ctx context.Context, dir string) utils.LazyValue {
 }
 
 // GitTag find current git tag name of working dir wd
-func GitTag(ctx context.Context, dir string) utils.LazyValue {
+func GitTag(ctx context.Context, dir string) *tlang.LazyValue[string] {
 	gitTagList := newLazyExecVal(
 		ctx,
 		dir,
@@ -77,7 +77,7 @@ func GitTag(ctx context.Context, dir string) utils.LazyValue {
 				return GitTagFromCI()
 			}
 
-			s := bufio.NewScanner(strings.NewReader(gitTagList.Get()))
+			s := bufio.NewScanner(strings.NewReader(gitTagList.GetLazyValue()))
 			s.Split(bufio.ScanLines)
 			for s.Scan() {
 				if strings.Contains(s.Text(), result) {
@@ -92,7 +92,7 @@ func GitTag(ctx context.Context, dir string) utils.LazyValue {
 
 // GitWorkTreeClean check whether current dir contains no new file
 // or uncommitted changes
-func GitWorkTreeClean(ctx context.Context, dir string) utils.LazyValue {
+func GitWorkTreeClean(ctx context.Context, dir string) *tlang.LazyValue[string] {
 	gitDiffIndex := newLazyExecVal(
 		ctx,
 		dir,
@@ -113,14 +113,14 @@ func GitWorkTreeClean(ctx context.Context, dir string) utils.LazyValue {
 				// no output means no new files
 				len(strings.TrimSpace(s)) == 0 &&
 					// git diff index exit 0 means no files modified
-					gitDiffIndex.Get() == "true",
+					gitDiffIndex.GetLazyValue() == "true",
 			)
 		},
 	)
 }
 
 // GitDefaultBranch find default git branch of dir
-func GitDefaultBranch(ctx context.Context, dir string) utils.LazyValue {
+func GitDefaultBranch(ctx context.Context, dir string) *tlang.LazyValue[string] {
 	return newLazyExecVal(
 		ctx,
 		dir,

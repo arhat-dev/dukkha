@@ -6,16 +6,16 @@ import (
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang"
 )
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
-	return NewTestContextWithGlobalEnv(ctx, make(map[string]utils.LazyValue))
+	return NewTestContextWithGlobalEnv(ctx, make(map[string]tlang.LazyValueType[string]))
 }
 
 func NewTestContextWithGlobalEnv(
 	ctx context.Context,
-	globalEnv map[string]utils.LazyValue,
+	globalEnv map[string]tlang.LazyValueType[string],
 ) dukkha.ConfigResolvingContext {
 	d := dukkha.NewConfigResolvingContext(
 		ctx,

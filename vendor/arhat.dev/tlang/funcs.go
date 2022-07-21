@@ -7,7 +7,11 @@ package tlang
 import (
 	"fmt"
 	"reflect"
+
+	"arhat.dev/tlang/parse"
 )
+
+var _ parse.TemplateFuncs = (*FuncMap)(nil)
 
 // FuncMap is the type of the map defining the mapping from names to functions.
 // Each function must have either a single return value, or two return values of
@@ -24,6 +28,15 @@ import (
 // of type reflect.Value. Similarly, functions meant to return a result of arbitrary
 // type can return interface{} or reflect.Value.
 type FuncMap map[string]any
+
+func (fm FuncMap) Has(name string) bool {
+	return fm[name] != nil
+}
+
+func (fm FuncMap) GetByName(name string) reflect.Value {
+	ref := fm[name]
+	return reflect.ValueOf(ref)
+}
 
 // goodFunc reports whether the function or method has the right result signature.
 func goodFunc(typ reflect.Type) bool {

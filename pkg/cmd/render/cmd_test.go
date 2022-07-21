@@ -10,6 +10,7 @@ import (
 
 	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
+	"arhat.dev/tlang"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -22,7 +23,6 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 func TestCmd(t *testing.T) {
@@ -64,8 +64,8 @@ func TestCmd(t *testing.T) {
 				}
 			})
 
-			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), map[string]utils.LazyValue{
-				constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),
+			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), map[string]tlang.LazyValueType[string]{
+				constant.ENV_DUKKHA_WORKDIR: tlang.ImmediateString(cwd),
 			})
 			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 

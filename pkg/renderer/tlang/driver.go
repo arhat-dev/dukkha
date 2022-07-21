@@ -1,4 +1,4 @@
-package tmpl
+package tlang
 
 import (
 	"bytes"
@@ -12,16 +12,16 @@ import (
 	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
+	"arhat.dev/tlang"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
 	"arhat.dev/dukkha/pkg/templateutils"
-	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
 const (
-	DefaultName = "tmpl"
+	DefaultName = "tlang"
 )
 
 func init() {
@@ -41,7 +41,7 @@ type Driver struct {
 
 	name string
 
-	Options configSpec `yaml:",inline"`
+	Options ConfigSpec `yaml:",inline"`
 
 	variables map[string]any
 }
@@ -84,14 +84,14 @@ func (d *Driver) RenderYaml(
 	}
 
 	var (
-		include   []*includeSpec
+		include   []*IncludeSpec
 		variables map[string]any
 		tplStr    string
 	)
 
 	if useSpec {
-		var spec inputSpec
-		err = resolveInputSpec(rc, tplBytes, &spec)
+		var spec InputSpec
+		err = ResolveInputSpec(rc, tplBytes, &spec)
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: %s", d.name, err)
 		}
@@ -105,7 +105,8 @@ func (d *Driver) RenderYaml(
 		variables = d.variables
 	}
 
-	data, err := renderTemplate(rc, include, variables, tplStr)
+	tfs := templateutils.CreateTemplateFuncs(rc)
+	data, err := RenderTlang(rc, &tfs, include, variables, tplStr)
 	if err != nil {
 		return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 	}
@@ -113,7 +114,7 @@ func (d *Driver) RenderYaml(
 	return data, nil
 }
 
-func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte, out *inputSpec) (err error) {
+func ResolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte, out *InputSpec) (err error) {
 	rs.InitAny(out, nil)
 
 	err = yaml.Unmarshal(tplBytes, out)
@@ -129,9 +130,10 @@ func resolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte, out *inputSpe
 	return
 }
 
-func renderTemplate(
+func RenderTlang(
 	rc dukkha.RenderingContext,
-	inc []*includeSpec,
+	tfs *templateutils.TemplateFuncs,
+	inc []*IncludeSpec,
 	variables map[string]any,
 
 	tplStr string,
@@ -159,14 +161,14 @@ func renderTemplate(
 		}
 	}
 
-	tpl := templateutils.CreateTemplate(rc)
+	tpl := tlang.New("tl").Funcs(tfs)
 
 	// arrange included template files in order
 	// so we can include templates without {{ define "name" }} block
 	// by filename and index in include
 
 	definedTemplates := make(map[string]struct{})
-	var tplList []*template.Template
+	var tplList []*tlang.Template
 
 	for _, inc := range includeFiles {
 		// TODO: cache template files in memory
@@ -264,9 +266,8 @@ func renderTemplate(
 		return buf.String(), nil
 	}
 
-	tplFuncs := tpl.GetExecFuncs().(*templateutils.TemplateFuncs)
-	tplFuncs.Override(templateutils.FuncID_var, reflect.ValueOf(fnVar))
-	tplFuncs.Override(templateutils.FuncID_include, reflect.ValueOf(fnInclude))
+	tfs.Override(templateutils.FuncID_var, reflect.ValueOf(fnVar))
+	tfs.Override(templateutils.FuncID_include, reflect.ValueOf(fnInclude))
 
 	var buf bytes.Buffer
 	err = tpl.Execute(&buf, rc)

@@ -19,10 +19,9 @@ import (
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
+	"arhat.dev/tlang"
 	"github.com/itchyny/gojq"
 	"mvdan.cc/sh/v3/expand"
-
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type RenderingContext interface {
@@ -38,7 +37,7 @@ type RenderingContext interface {
 	// AddValues will merge provided values into existing values
 	AddValues(values map[string]any) error
 
-	Env() map[string]utils.LazyValue
+	Env() map[string]tlang.LazyValueType[string]
 
 	Values() map[string]any
 
@@ -53,7 +52,7 @@ type RenderingContext interface {
 func newContextRendering(
 	ctx contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]utils.LazyValue,
+	globalEnv map[string]tlang.LazyValueType[string],
 ) contextRendering {
 	envValues := newEnvValues(globalEnv)
 	return contextRendering{
@@ -198,7 +197,7 @@ func lazyEnsuredSubFS(ofs *fshelper.OSFS, subdir string) *fshelper.OSFS {
 
 // Env returns all environment variables available
 // global environment variables are always kept
-func (c *contextRendering) Env() map[string]utils.LazyValue {
+func (c *contextRendering) Env() map[string]tlang.LazyValueType[string] {
 	for k, v := range c.envValues.globalEnv {
 		c.envValues.env[k] = v
 	}
@@ -256,12 +255,12 @@ func (c *contextRendering) AllRenderers() map[string]Renderer {
 func (c *contextRendering) Get(name string) expand.Variable {
 	v, exists := c.globalEnv[name]
 	if exists {
-		return createVariable(v.Get())
+		return createVariable(v.GetLazyValue())
 	}
 
 	v, exists = c.env[name]
 	if exists {
-		return createVariable(v.Get())
+		return createVariable(v.GetLazyValue())
 	}
 
 	// non existing env
@@ -269,17 +268,17 @@ func (c *contextRendering) Get(name string) expand.Variable {
 	// TODO: can we remove all these cases? (except the default case)
 	switch name {
 	case "IFS":
-		v = utils.ImmediateString(" \t\n")
+		v = tlang.ImmediateString(" \t\n")
 	case "OPTIND":
-		v = utils.ImmediateString("1")
+		v = tlang.ImmediateString("1")
 	case "PWD":
-		v = utils.ImmediateString(c.WorkDir())
+		v = tlang.ImmediateString(c.WorkDir())
 	case "UID":
-		v = utils.ImmediateString(
+		v = tlang.ImmediateString(
 			strconv.FormatInt(int64(os.Getuid()), 10),
 		)
 	case "GID":
-		v = utils.ImmediateString(
+		v = tlang.ImmediateString(
 			strconv.FormatInt(int64(os.Getegid()), 10),
 		)
 	default:
@@ -302,13 +301,13 @@ func (c *contextRendering) Get(name string) expand.Variable {
 			}
 
 			kind = expand.String
-			v = utils.ImmediateString(textquery.MarshalJsonOrYamlQueryResult(result, json.Marshal))
+			v = tlang.ImmediateString(textquery.MarshalJsonOrYamlQueryResult(result, json.Marshal))
 		}
 
 	ret:
 		str := ""
 		if v != nil {
-			str = v.Get()
+			str = v.GetLazyValue()
 		}
 		return expand.Variable{
 			Local:    false,
@@ -319,7 +318,7 @@ func (c *contextRendering) Get(name string) expand.Variable {
 		}
 	}
 
-	return createVariable(v.Get())
+	return createVariable(v.GetLazyValue())
 }
 
 // Each implements expand.Environ
@@ -329,7 +328,7 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 	for k, v := range c.globalEnv {
 		visited[k] = struct{}{}
 
-		if !do(k, createVariable(v.Get())) {
+		if !do(k, createVariable(v.GetLazyValue())) {
 			return
 		}
 	}
@@ -340,7 +339,7 @@ func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
 			continue
 		}
 
-		if !do(k, createVariable(v.Get())) {
+		if !do(k, createVariable(v.GetLazyValue())) {
 			return
 		}
 	}

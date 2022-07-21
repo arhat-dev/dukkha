@@ -23,8 +23,7 @@ workflow:run:
 
       tmpl:dukkha.Self render <<EOF
       sh@shell: command -v dukkha
-      tmpl@tmpl: |-
-        {{- fs.Lookup "dukkha" -}}
+      tmpl@tlang: fs.Lookup "dukkha"
       EOF
 
   - name: test path lookup under wine64
@@ -39,8 +38,7 @@ workflow:run:
 
       wine64 ./build/dukkha-windows-amd64.exe render <<EOF
       sh@shell: command -v winepath
-      tmpl@tmpl: |-
-        {{- fs.Lookup "winepath" -}}
+      tmpl@tlang: fs.Lookup "winepath"
       EOF
 
   - name: test path lookup under wine32
@@ -56,8 +54,7 @@ workflow:run:
 
       wine ./build/dukkha-windows-x86.exe render <<EOF
       sh@shell: command -v winepath
-      tmpl@tmpl: |-
-        {{- fs.Lookup "winepath" -}}
+      tmpl@tlang: fs.Lookup "winepath"
       EOF
 
 - name: report

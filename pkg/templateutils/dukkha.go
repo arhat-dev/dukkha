@@ -511,7 +511,7 @@ func JQ(
 		0: gojq.WithEnvironLoader(func() (ret []string) {
 			allEnv := rc.Env()
 			for k, v := range allEnv {
-				ret = append(ret, k+"="+v.Get())
+				ret = append(ret, k+"="+v.GetLazyValue())
 			}
 
 			return

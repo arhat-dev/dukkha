@@ -1,0 +1,20 @@
+result@tl#use-spec?str:
+  include:
+  - path: testdata/*.tl
+  - path: testdata/**/*.tl
+  - text: |-
+      define "test-text-template"
+        `test-text-template`
+      end
+  template: |-
+    template "foo"
+    template "bar"
+    template "test-text-template"
+  variables:
+    foo: "foo"
+    bar: "bar"
+---
+result: |-
+  foo: foo
+  bar: bar
+  test-text-template

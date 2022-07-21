@@ -1,0 +1,11 @@
+result@tl#use-spec?str:
+  include:
+  - path: testdata/foo.tl
+  - path: testdata/foo.tl
+  - path: testdata/foo.tl
+  - path: testdata/foo.tl
+  - path: testdata/no-define.tl
+  template: include "4" .
+---
+result: |
+  no-define: no-define

@@ -1,10 +1,8 @@
 buildah:login:
 - name: ghcr
   registry: ghcr.io
-  username@tmpl: |-
-    {{- env.GHCR_USER -}}
-  password@tmpl: |-
-    {{- env.GHCR_PASS -}}
+  username@tlang: env.GHCR_USER
+  password@tlang: env.GHCR_PASS
 
 buildah:push:
 - name: dukkha

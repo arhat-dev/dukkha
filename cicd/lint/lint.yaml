@@ -9,11 +9,9 @@ workflow:run:
       - tools/golangci-lint/config.vendor.yaml
       output:
       - &golangci_lint_config
-        __@tmpl: |-
-          {{- fs.Join dukkha.CacheDir "golangci-lint.yaml" -}}
+        __@tlang: fs.Join dukkha.CacheDir "golangci-lint.yaml"
   jobs:
-  - idle@tmpl: |-
-      {{- mkdir "-p" dukkha.CacheDir -}}
+  - idle@tlang: mkdir "-p" dukkha.CacheDir
   - shell: |-
       tmpl:dukkha.Self render --chdir . <<EOF > "${MATRIX_OUTPUT}"
       __@!:

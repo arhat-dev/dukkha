@@ -1,4 +1,4 @@
-package tmpl
+package tlang
 
 import "arhat.dev/rs"
 

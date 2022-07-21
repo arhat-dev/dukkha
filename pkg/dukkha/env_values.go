@@ -6,7 +6,7 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/matrix"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang"
 )
 
 // This file describes runtime values derived from env
@@ -20,14 +20,14 @@ type GlobalEnvValues interface {
 	GitTag() string
 	GitDefaultBranch() string
 	GitCommit() string
-	GitValues() map[string]utils.LazyValue
+	GitValues() map[string]tlang.LazyValueType[string]
 
 	HostKernel() string
 	HostKernelVersion() string
 	HostArch() string
 	HostOS() string
 	HostOSVersion() string
-	HostValues() map[string]utils.LazyValue
+	HostValues() map[string]tlang.LazyValueType[string]
 }
 
 type EnvValues interface {
@@ -44,11 +44,11 @@ type EnvValues interface {
 	AddListEnv(env ...string)
 }
 
-func newEnvValues(globalEnv map[string]utils.LazyValue) envValues {
+func newEnvValues(globalEnv map[string]tlang.LazyValueType[string]) envValues {
 	return envValues{
 		globalEnv: globalEnv,
 
-		env: make(map[string]utils.LazyValue),
+		env: make(map[string]tlang.LazyValueType[string]),
 		mu:  new(sync.RWMutex),
 	}
 }
@@ -58,16 +58,16 @@ var _ EnvValues = (*envValues)(nil)
 type envValues struct {
 	matrixFilter matrix.Filter
 
-	globalEnv map[string]utils.LazyValue
+	globalEnv map[string]tlang.LazyValueType[string]
 
-	env map[string]utils.LazyValue
+	env map[string]tlang.LazyValueType[string]
 	mu  *sync.RWMutex
 }
 
 func (c *envValues) clone() envValues {
 	newValues := envValues{
 		globalEnv: c.globalEnv,
-		env:       make(map[string]utils.LazyValue),
+		env:       make(map[string]tlang.LazyValueType[string]),
 		mu:        new(sync.RWMutex),
 	}
 
@@ -111,7 +111,7 @@ func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
 			continue
 		}
 
-		c.env[e.Name] = utils.ImmediateString(e.Value)
+		c.env[e.Name] = tlang.ImmediateString(e.Value)
 	}
 }
 
@@ -123,7 +123,7 @@ func (c *envValues) AddListEnv(env ...string) {
 			value = parts[1]
 		}
 
-		c.env[key] = utils.ImmediateString(value)
+		c.env[key] = tlang.ImmediateString(value)
 	}
 }
 
@@ -135,8 +135,8 @@ func (c *envValues) CacheDir() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
 }
 
-func (c *envValues) GitValues() map[string]utils.LazyValue {
-	return map[string]utils.LazyValue{
+func (c *envValues) GitValues() map[string]tlang.LazyValueType[string] {
+	return map[string]tlang.LazyValueType[string]{
 		"branch":         c.globalEnv[constant.ENV_GIT_BRANCH],
 		"worktree_clean": c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN],
 		"tag":            c.globalEnv[constant.ENV_GIT_TAG],
@@ -165,8 +165,8 @@ func (c *envValues) GitCommit() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_COMMIT])
 }
 
-func (c *envValues) HostValues() map[string]utils.LazyValue {
-	return map[string]utils.LazyValue{
+func (c *envValues) HostValues() map[string]tlang.LazyValueType[string] {
+	return map[string]tlang.LazyValueType[string]{
 		"arch":           c.globalEnv[constant.ENV_HOST_ARCH],
 		"arch_simple":    c.globalEnv[constant.ENV_HOST_ARCH_SIMPLE],
 		"kernel":         c.globalEnv[constant.ENV_HOST_KERNEL],
@@ -196,10 +196,10 @@ func (c *envValues) HostOSVersion() string {
 	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS_VERSION])
 }
 
-func getValueOrDefault(v utils.LazyValue) string {
+func getValueOrDefault(v tlang.LazyValueType[string]) string {
 	if v == nil {
 		return ""
 	}
 
-	return v.Get()
+	return v.GetLazyValue()
 }

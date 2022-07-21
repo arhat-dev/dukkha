@@ -11,7 +11,7 @@ import (
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang"
 )
 
 func TestSetDefaultImageTag(t *testing.T) {
@@ -51,9 +51,9 @@ func TestSetDefaultImageTag(t *testing.T) {
 	for _, mat := range tests {
 		spec := matrix.Entry(mat)
 
-		genv := make(map[string]utils.LazyValue, len(mat))
+		genv := make(map[string]tlang.LazyValueType[string], len(mat))
 		for k, v := range mat {
-			genv[k] = utils.ImmediateString(v)
+			genv[k] = tlang.ImmediateString(v)
 		}
 
 		rc := dt.NewTestContextWithGlobalEnv(context.TODO(), genv)

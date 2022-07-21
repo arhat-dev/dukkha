@@ -312,7 +312,7 @@
 - `dukkha.WorkDir() string`
 - `dukkha.YQ(...any) (string, error)`
 - `dukkha.YQObj(...any) (any, error)`
-- `env() map[string]string`
+- `env() map[string]tlang.LazyValueType[string]`
 - `eval.Env(...String) (string, error)`
 - `eval.Shell(String, ...Bytes) (struct { Stdout string; Stderr string }, error)`
 - `eval.Template(String) (string, error)`
@@ -354,8 +354,8 @@
 - `fs.UserHomeDir() string`
 - `fs.VolumeName(String) string`
 - `fs.WriteFile(String, ...any) (None, error)`
-- `git() map[string]string`
-- `host() map[string]string`
+- `git() map[string]tlang.LazyValueType[string]`
+- `host() map[string]tlang.LazyValueType[string]`
 - `jq(...any) (string, error)`
 - `jqObj(...any) (any, error)`
 - `matrix() map[string]string`

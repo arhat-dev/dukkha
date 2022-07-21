@@ -2,7 +2,7 @@ package dukkha
 
 import (
 	"arhat.dev/dukkha/pkg/constant"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang"
 )
 
 // implementation for internal interfaces in arhat.dev/dukkha/internal
@@ -17,19 +17,19 @@ func (c *contextRendering) VALUE() interface{} { return c._VALUE }
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) SetCacheDir(dir string) {
-	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = utils.ImmediateString(dir)
+	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = tlang.ImmediateString(dir)
 }
 
 // OverrideDefaultGitBranch set env GIT_DEFAULT_BRANCH
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) OverrideDefaultGitBranch(branch string) {
-	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = utils.ImmediateString(branch)
+	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = tlang.ImmediateString(branch)
 }
 
 // OverrideWorkDir set env DUKKHA_WORKDIR to cwd
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) OverrideWorkDir(cwd string) {
-	c.globalEnv[constant.ENV_DUKKHA_WORKDIR] = utils.ImmediateString(cwd)
+	c.globalEnv[constant.ENV_DUKKHA_WORKDIR] = tlang.ImmediateString(cwd)
 }

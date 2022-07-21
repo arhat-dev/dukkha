@@ -5,6 +5,7 @@ go 1.18
 require (
 	arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b
 	arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74
+	arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
 	github.com/bmatcuk/doublestar/v4 v4.0.2
@@ -25,7 +26,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.14
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	github.com/ulikunitz/xz v0.5.10
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	go.uber.org/multierr v1.8.0

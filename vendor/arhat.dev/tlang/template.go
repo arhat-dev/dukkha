@@ -7,7 +7,7 @@ package tlang
 import (
 	"sync"
 
-	"arhat.dev/dukkha/pkg/renderer/tl/tlang/parse"
+	"arhat.dev/tlang/parse"
 )
 
 // common holds the information shared by related templates.
@@ -28,8 +28,6 @@ type Template struct {
 	name string
 	*parse.Tree
 	*common
-	leftDelim  string
-	rightDelim string
 }
 
 // New allocates a new, undefined template with the given name.
@@ -56,10 +54,8 @@ func (t *Template) Name() string {
 func (t *Template) New(name string) *Template {
 	t.init()
 	nt := &Template{
-		name:       name,
-		common:     t.common,
-		leftDelim:  t.leftDelim,
-		rightDelim: t.rightDelim,
+		name:   name,
+		common: t.common,
 	}
 	return nt
 }
@@ -104,11 +100,9 @@ func (t *Template) Clone() (*Template, error) {
 // copy returns a shallow copy of t, with common set to the argument.
 func (t *Template) copy(c *common) *Template {
 	return &Template{
-		name:       t.name,
-		Tree:       t.Tree,
-		common:     c,
-		leftDelim:  t.leftDelim,
-		rightDelim: t.rightDelim,
+		name:   t.name,
+		Tree:   t.Tree,
+		common: c,
 	}
 }
 
@@ -153,8 +147,6 @@ func (t *Template) Templates() []*Template {
 // The return value is the template, so calls can be chained.
 func (t *Template) Delims(left, right string) *Template {
 	t.init()
-	t.leftDelim = left
-	t.rightDelim = right
 	return t
 }
 
@@ -194,7 +186,7 @@ func (t *Template) Lookup(name string) *Template {
 // overwriting the main template body.
 func (t *Template) Parse(text string) (*Template, error) {
 	t.init()
-	trees, err := parse.Parse(t.name, text, t.leftDelim, t.rightDelim, t.funcs)
+	trees, err := parse.Parse(t.name, text, t.funcs)
 	if err != nil {
 		return nil, err
 	}

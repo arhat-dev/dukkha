@@ -12,23 +12,15 @@ import (
 	"runtime"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/renderer/tl/internal/fmtsort"
-	"arhat.dev/dukkha/pkg/renderer/tl/tlang/parse"
-	"arhat.dev/dukkha/pkg/utils"
+	"arhat.dev/tlang/internal/fmtsort"
+	"arhat.dev/tlang/parse"
 )
 
 // maxExecDepth specifies the maximum stack depth of templates within
 // templates. This limit is only practically reached by accidentally
 // recursive template invocations. This limit allows us to return
 // an error instead of triggering a stack overflow.
-var maxExecDepth = initMaxExecDepth()
-
-func initMaxExecDepth() int {
-	if runtime.GOARCH == "wasm" {
-		return 1000
-	}
-	return 100000
-}
+const maxExecDepth = 100000
 
 // state represents the state of an execution. It's not part of the
 // template so that multiple executions of the same template
@@ -668,7 +660,7 @@ func (s *state) evalField(dot reflect.Value, fieldName string, node parse.Node, 
 					s.errorf("map has no entry for key %q", fieldName)
 				}
 			}
-			return utils.GetLazyValue(result)
+			return GetLazyValue(result)
 		}
 	case reflect.Pointer:
 		etyp := receiver.Type().Elem()

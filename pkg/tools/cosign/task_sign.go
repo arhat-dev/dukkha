@@ -151,7 +151,7 @@ func (s *blobSigningOptions) genSignAndVerifySpec(
 			"sign-blob",
 			"--key", keyFile,
 			"--slot", "signature",
-			"--output", signatureFile,
+			"--output-signature", signatureFile,
 			file,
 		}
 

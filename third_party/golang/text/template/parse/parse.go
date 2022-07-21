@@ -358,20 +358,21 @@ func (t *Tree) itemList() (list *ListNode, next Node) {
 
 // textOrAction:
 //	text | comment | action
-func (t *Tree) textOrAction() Node {
+func (t *Tree) textOrAction() (ret Node) {
 	switch token := t.nextNonSpace(); token.typ {
 	case itemText:
 		return t.newText(token.pos, token.val)
 	case itemLeftDelim:
 		t.actionLine = token.line
-		defer t.clearActionLine()
-		return t.action()
+		ret = t.action()
+		t.clearActionLine()
+		return
 	case itemComment:
 		return t.newComment(token.pos, token.val)
 	default:
 		t.unexpected(token, "input")
+		return nil
 	}
-	return nil
 }
 
 func (t *Tree) clearActionLine() {

@@ -8,9 +8,8 @@ import (
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/rs"
+	"arhat.dev/tlang"
 	"github.com/huandu/xstrings"
-
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
@@ -79,7 +78,7 @@ type dukkhaContext struct {
 func NewConfigResolvingContext(
 	parent context.Context,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]utils.LazyValue,
+	globalEnv map[string]tlang.LazyValueType[string],
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{

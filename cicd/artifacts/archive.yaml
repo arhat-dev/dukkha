@@ -8,40 +8,32 @@ archive:create:
   compression:
     enabled: true
     level: "9"
-  output@tmpl: |-
-    build/{{- env.name_prefix -}}
-    {{- if eq matrix.kernel "windows" -}}
-      .zip
-    {{- else -}}
-      .tar.gz
-    {{- end -}}
+  output@tlang: |-
+    "build/"; env.name_prefix
+    if eq matrix.kernel "windows"; ".zip"; else; ".tar.gz"; end
 
   files:
   # dukkha executable
   - from@tmpl: build/{{- include "artifacts.bin-name" . -}}
-    to@tmpl: |-
-      {{- $suffix := "" -}}
-      {{- if eq matrix.kernel "windows" -}}
-        {{- $suffix = ".exe" -}}
-      {{- end -}}
-
-      {{- include "artifacts.bin-name" . -}}/dukkha{{- $suffix -}}
+    to@tlang: |-
+      include "artifacts.bin-name" . ; "/dukkha"
+      if eq matrix.kernel "windows"; ".exe"; end
 
   # license
   - from: LICENSE.txt
-    to@tmpl: "{{- env.name_prefix -}}/LICENSE"
+    to@tlang: env.name_prefix ; "/LICENSE"
 
   # signature
   - from@tmpl: build/{{- env.name_prefix -}}.sig
-    to@tmpl: "{{- env.name_prefix -}}/dukkha.sig"
+    to@tlang: env.name_prefix ; "/dukkha.sig"
 
   # checksums
 
   - from@tmpl: build/{{- env.name_prefix -}}.sha256
-    to@tmpl: "{{- env.name_prefix -}}/dukkha.sha256"
+    to@tlang: env.name_prefix ; "/dukkha.sha256"
 
   - from@tmpl: build/{{- env.name_prefix -}}.sha512
-    to@tmpl: "{{- env.name_prefix -}}/dukkha.sha512"
+    to@tlang: env.name_prefix ; "/dukkha.sha512"
 
   - from@tmpl: build/{{- env.name_prefix -}}.md5
-    to@tmpl: "{{- env.name_prefix -}}/dukkha.md5"
+    to@tlang: env.name_prefix ; "/dukkha.md5"

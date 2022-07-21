@@ -295,7 +295,7 @@ func doRun(
 
 		env := make(map[string]string, len(ctx.Env()))
 		for k, v := range ctx.Env() {
-			env[k] = v.Get()
+			env[k] = v.GetLazyValue()
 		}
 
 		ctx.SetState(dukkha.TaskExecWorking)

@@ -1,0 +1,16 @@
+result@tl#use-spec?str:
+  include:
+  - text: |-
+      `testdata/foo.tl`
+  - text: |-
+      `testdata/foo.tl`
+  - text: |-
+      `testdata/foo.tl`
+  - text: |-
+      `testdata/foo.tl`
+  - text: |-
+      `testdata/no-define.tl`
+  template: include "#4" .
+---
+result: |-
+  testdata/no-define.tl

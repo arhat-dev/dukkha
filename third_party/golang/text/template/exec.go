@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/utils"
 	"arhat.dev/dukkha/third_party/golang/internal/fmtsort"
 	"arhat.dev/dukkha/third_party/golang/text/template/parse"
+	"arhat.dev/tlang"
 )
 
 // maxExecDepth specifies the maximum stack depth of templates within
@@ -668,7 +668,7 @@ func (s *state) evalField(dot reflect.Value, fieldName string, node parse.Node, 
 					s.errorf("map has no entry for key %q", fieldName)
 				}
 			}
-			return utils.GetLazyValue(result)
+			return tlang.GetLazyValue(result)
 		}
 	case reflect.Pointer:
 		etyp := receiver.Type().Elem()

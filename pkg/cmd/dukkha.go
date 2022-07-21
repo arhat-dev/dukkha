@@ -40,6 +40,7 @@ import (
 	"arhat.dev/dukkha/pkg/renderer/env"
 	"arhat.dev/dukkha/pkg/renderer/file"
 	"arhat.dev/dukkha/pkg/renderer/shell"
+	"arhat.dev/dukkha/pkg/renderer/tlang"
 	"arhat.dev/dukkha/pkg/renderer/tmpl"
 	"arhat.dev/dukkha/pkg/renderer/transform"
 )
@@ -128,6 +129,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 				_appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
 				_appCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
 				_appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
+				_appCtx.AddRenderer(tlang.DefaultName, tlang.NewDefault(tlang.DefaultName))
 				_appCtx.AddRenderer(tmpl.DefaultName, tmpl.NewDefault(tmpl.DefaultName))
 				_appCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
 				_appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))

@@ -1,7 +1,0 @@
-!!template2
-
-define "y"
-  y
-end
-
-template "x"

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"io"
 	"os"
@@ -12,54 +11,54 @@ import (
 	"time"
 
 	"arhat.dev/pkg/exechelper"
+	"arhat.dev/tlang"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/sysinfo"
-	"arhat.dev/dukkha/pkg/utils"
 )
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(ctx context.Context, cwd string) map[string]utils.LazyValue {
+func createGlobalEnv(ctx context.Context, cwd string) map[string]tlang.LazyValueType[string] {
 	now := time.Now().Local()
 	zone, offset := now.Zone()
 
-	osNameAndVersion := utils.NewLazyValue(func() string {
+	osNameAndVersion := tlang.LazyValue[string]{Create: func() string {
 		name, version := getOSNameAndVersion()
 		return name + "," + version
-	})
+	}}
 
-	hostArch := utils.NewLazyValue(sysinfo.Arch)
+	hostArch := &tlang.LazyValue[string]{Create: sysinfo.Arch}
 
-	return map[string]utils.LazyValue{
-		constant.ENV_DUKKHA_WORKDIR: utils.ImmediateString(cwd),
+	return map[string]tlang.LazyValueType[string]{
+		constant.ENV_DUKKHA_WORKDIR: tlang.ImmediateString(cwd),
 
-		constant.ENV_TIME_ZONE:        utils.ImmediateString(zone),
-		constant.ENV_TIME_ZONE_OFFSET: utils.ImmediateString(strconv.FormatInt(int64(offset), 10)),
-		constant.ENV_TIME_YEAR:        utils.ImmediateString(strconv.FormatInt(int64(now.Year()), 10)),
-		constant.ENV_TIME_MONTH:       utils.ImmediateString(strconv.FormatInt(int64(now.Month()), 10)),
-		constant.ENV_TIME_DAY:         utils.ImmediateString(strconv.FormatInt(int64(now.Day()), 10)),
-		constant.ENV_TIME_HOUR:        utils.ImmediateString(strconv.FormatInt(int64(now.Hour()), 10)),
-		constant.ENV_TIME_MINUTE:      utils.ImmediateString(strconv.FormatInt(int64(now.Minute()), 10)),
-		constant.ENV_TIME_SECOND:      utils.ImmediateString(strconv.FormatInt(int64(now.Second()), 10)),
+		constant.ENV_TIME_ZONE:        tlang.ImmediateString(zone),
+		constant.ENV_TIME_ZONE_OFFSET: tlang.ImmediateString(strconv.FormatInt(int64(offset), 10)),
+		constant.ENV_TIME_YEAR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Year()), 10)),
+		constant.ENV_TIME_MONTH:       tlang.ImmediateString(strconv.FormatInt(int64(now.Month()), 10)),
+		constant.ENV_TIME_DAY:         tlang.ImmediateString(strconv.FormatInt(int64(now.Day()), 10)),
+		constant.ENV_TIME_HOUR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Hour()), 10)),
+		constant.ENV_TIME_MINUTE:      tlang.ImmediateString(strconv.FormatInt(int64(now.Minute()), 10)),
+		constant.ENV_TIME_SECOND:      tlang.ImmediateString(strconv.FormatInt(int64(now.Second()), 10)),
 
-		constant.ENV_HOST_KERNEL:         utils.ImmediateString(runtime.GOOS),
-		constant.ENV_HOST_KERNEL_VERSION: utils.NewLazyValue(sysinfo.KernelVersion),
+		constant.ENV_HOST_KERNEL:         tlang.ImmediateString(runtime.GOOS),
+		constant.ENV_HOST_KERNEL_VERSION: &tlang.LazyValue[string]{Create: sysinfo.KernelVersion},
 
-		constant.ENV_HOST_OS: utils.NewLazyValue(func() string {
-			nameAndVer := osNameAndVersion.Get()
+		constant.ENV_HOST_OS: &tlang.LazyValue[string]{Create: func() string {
+			nameAndVer := osNameAndVersion.GetLazyValue()
 			return nameAndVer[:strings.IndexByte(nameAndVer, ',')]
-		}),
+		}},
 
-		constant.ENV_HOST_OS_VERSION: utils.NewLazyValue(func() string {
-			nameAndVer := osNameAndVersion.Get()
+		constant.ENV_HOST_OS_VERSION: &tlang.LazyValue[string]{Create: func() string {
+			nameAndVer := osNameAndVersion.GetLazyValue()
 			return nameAndVer[strings.IndexByte(nameAndVer, ',')+1:]
-		}),
+		}},
 
 		constant.ENV_HOST_ARCH: hostArch,
-		constant.ENV_HOST_ARCH_SIMPLE: utils.NewLazyValue(func() string {
-			return constant.SimpleArch(hostArch.Get())
-		}),
+		constant.ENV_HOST_ARCH_SIMPLE: &tlang.LazyValue[string]{Create: func() string {
+			return constant.SimpleArch(hostArch.GetLazyValue())
+		}},
 		constant.ENV_GIT_BRANCH: GitBranch(ctx, cwd),
 		constant.ENV_GIT_COMMIT: GitCommit(ctx, cwd),
 		constant.ENV_GIT_TAG:    GitTag(ctx, cwd),
@@ -107,25 +106,27 @@ func newLazyExecVal(
 	command []string,
 	onError func() string,
 	onSuccess func(string) string,
-) utils.LazyValue {
-	var buf bytes.Buffer
-	return utils.NewLazyValue(func() string {
-		cmd, err2 := exechelper.Do(exechelper.Spec{
-			Context: ctx,
-			Dir:     dir,
-			Command: command,
-			Stdout:  &buf,
-			Stderr:  io.Discard,
-		})
-		if err2 != nil {
-			return onError()
-		}
+) *tlang.LazyValue[string] {
+	return &tlang.LazyValue[string]{
+		Create: func() string {
+			var buf strings.Builder
+			cmd, err2 := exechelper.Do(exechelper.Spec{
+				Context: ctx,
+				Dir:     dir,
+				Command: command,
+				Stdout:  &buf,
+				Stderr:  io.Discard,
+			})
+			if err2 != nil {
+				return onError()
+			}
 
-		_, err2 = cmd.Wait()
-		if err2 != nil {
-			return onError()
-		}
+			_, err2 = cmd.Wait()
+			if err2 != nil {
+				return onError()
+			}
 
-		return onSuccess(string(buf.Next(buf.Len())))
-	})
+			return onSuccess(buf.String())
+		},
+	}
 }

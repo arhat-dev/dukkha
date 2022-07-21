@@ -32,6 +32,11 @@ arhat.dev/pty
 # arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74
 ## explicit; go 1.18
 arhat.dev/rs
+# arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
+## explicit; go 1.18
+arhat.dev/tlang
+arhat.dev/tlang/internal/fmtsort
+arhat.dev/tlang/parse
 # github.com/Masterminds/goutils v1.1.1
 ## explicit
 github.com/Masterminds/goutils
@@ -198,7 +203,7 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.7.2
+# github.com/stretchr/testify v1.8.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/ulikunitz/xz v0.5.10

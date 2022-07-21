@@ -171,9 +171,9 @@ func (c *CommentNode) String() string {
 }
 
 func (c *CommentNode) writeTo(sb *strings.Builder) {
-	sb.WriteString("{{")
+	sb.WriteString("{{/*")
 	sb.WriteString(c.Text)
-	sb.WriteString("}}")
+	sb.WriteString("*/}}")
 }
 
 func (c *CommentNode) tree() *Tree {

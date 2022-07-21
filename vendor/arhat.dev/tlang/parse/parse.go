@@ -59,11 +59,11 @@ func (t *Tree) Copy() *Tree {
 // templates described in the argument string. The top-level template will be
 // given the specified name. If an error is encountered, parsing stops and an
 // empty map is returned with the error.
-func Parse(name, text, leftDelim, rightDelim string, funcs TemplateFuncs) (map[string]*Tree, error) {
+func Parse(name, text string, funcs TemplateFuncs) (map[string]*Tree, error) {
 	treeSet := make(map[string]*Tree)
 	t := New(name, funcs)
 	t.text = text
-	_, err := t.Parse(text, leftDelim, rightDelim, treeSet, funcs)
+	_, err := t.Parse(text, treeSet, funcs)
 	return treeSet, err
 }
 
@@ -223,8 +223,6 @@ func (t *Tree) startParse(funcs TemplateFuncs, lex *lexer, treeSet map[string]*T
 	t.vars = []string{"$"}
 	t.funcs = funcs
 	t.treeSet = treeSet
-	lex.breakOK = !t.hasFunction("break")
-	lex.continueOK = !t.hasFunction("continue")
 }
 
 // stopParse terminates parsing.
@@ -239,11 +237,11 @@ func (t *Tree) stopParse() {
 // the template for execution. If either action delimiter string is empty, the
 // default ("{{" or "}}") is used. Embedded template definitions are added to
 // the treeSet map.
-func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs TemplateFuncs) (tree *Tree, err error) {
+func (t *Tree) Parse(text string, treeSet map[string]*Tree, funcs TemplateFuncs) (tree *Tree, err error) {
 	defer t.recover(&err)
 	t.ParseName = t.Name
 	emitComment := t.Mode&ParseComments != 0
-	t.startParse(funcs, lex(t.Name, text, leftDelim, rightDelim, emitComment), treeSet)
+	t.startParse(funcs, lex(t.Name, text, emitComment), treeSet)
 	t.text = text
 	t.parse()
 	t.add()
@@ -358,20 +356,19 @@ func (t *Tree) itemList() (list *ListNode, next Node) {
 
 // textOrAction:
 //	text | comment | action
-func (t *Tree) textOrAction() Node {
+func (t *Tree) textOrAction() (ret Node) {
 	switch token := t.nextNonSpace(); token.typ {
-	case itemText:
-		return t.newText(token.pos, token.val)
-	case itemLeftDelim:
-		t.actionLine = token.line
-		defer t.clearActionLine()
-		return t.action()
 	case itemComment:
 		return t.newComment(token.pos, token.val)
+	case itemLeftDelim:
+		t.actionLine = token.line
+		ret = t.action()
+		t.clearActionLine()
+		return
 	default:
 		t.unexpected(token, "input")
+		return nil
 	}
-	return nil
 }
 
 func (t *Tree) clearActionLine() {

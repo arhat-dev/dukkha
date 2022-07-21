@@ -1969,7 +1969,7 @@ const (
 	FuncID_dukkha_WorkDir       // func() string
 	FuncID_dukkha_YQ            // func(...any) (string, error)
 	FuncID_dukkha_YQObj         // func(...any) (any, error)
-	FuncID_env                  // func() map[string]string
+	FuncID_env                  // func() map[string]tlang.LazyValueType[string]
 	FuncID_eval                 // func() evalNS
 	FuncID_eval_Env             // func(...String) (string, error)
 	FuncID_eval_Shell           // func(String, ...Bytes) (struct { Stdout string; Stderr string }, error)
@@ -2013,8 +2013,8 @@ const (
 	FuncID_fs_UserHomeDir       // func() string
 	FuncID_fs_VolumeName        // func(String) string
 	FuncID_fs_WriteFile         // func(String, ...any) (None, error)
-	FuncID_git                  // func() map[string]string
-	FuncID_host                 // func() map[string]string
+	FuncID_git                  // func() map[string]tlang.LazyValueType[string]
+	FuncID_host                 // func() map[string]tlang.LazyValueType[string]
 	FuncID_jq                   // func(...any) (string, error)
 	FuncID_jqObj                // func(...any) (any, error)
 	FuncID_matrix               // func() map[string]string

@@ -1,0 +1,4 @@
+result@tl?str: |-
+  printf "foo"
+---
+result: foo
