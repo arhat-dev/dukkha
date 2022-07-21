@@ -4,9 +4,10 @@ import (
 	"context"
 	"os"
 
+	"arhat.dev/tlang"
+
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/tlang"
 )
 
 func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {

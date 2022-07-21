@@ -1,9 +1,10 @@
 package templateutils
 
 import (
+	"arhat.dev/tlang"
+
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/tlang"
 )
 
 func createMiscNS(rc dukkha.RenderingContext) miscNS {

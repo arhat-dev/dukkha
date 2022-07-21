@@ -22,8 +22,8 @@ import (
 	"arhat.dev/pkg/stringhelper"
 	"github.com/spf13/pflag"
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/crypto/md4"
-	"golang.org/x/crypto/ripemd160"
+	"golang.org/x/crypto/md4"       // nolint:staticcheck
+	"golang.org/x/crypto/ripemd160" // nolint:staticcheck
 )
 
 // hashNS for hashing and hmac

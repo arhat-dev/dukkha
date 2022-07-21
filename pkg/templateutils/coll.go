@@ -1874,6 +1874,9 @@ func mapContainsAny[V any](m map[string]V, target []any) (_ bool, err error) {
 
 	for _, tgt := range target {
 		key, err = toString(tgt)
+		if err != nil {
+			return
+		}
 		_, ok = m[key]
 		if ok {
 			return true, nil
@@ -2075,6 +2078,9 @@ func mapContainsAll[V any](m map[string]V, target []any) (_ bool, err error) {
 
 	for _, tgt := range target {
 		key, err = toString(tgt)
+		if err != nil {
+			return
+		}
 		_, ok = m[key]
 		if !ok {
 			return false, nil

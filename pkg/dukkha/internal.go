@@ -1,8 +1,9 @@
 package dukkha
 
 import (
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/tlang"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 // implementation for internal interfaces in arhat.dev/dukkha/internal

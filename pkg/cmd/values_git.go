@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/tlang"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 // GitBranch find git branch name of working dir wd

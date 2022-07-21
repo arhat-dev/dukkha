@@ -4,9 +4,10 @@ import (
 	"strings"
 	"sync"
 
+	"arhat.dev/tlang"
+
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/matrix"
-	"arhat.dev/tlang"
 )
 
 // This file describes runtime values derived from env

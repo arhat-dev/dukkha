@@ -3,10 +3,11 @@ package tlang
 import (
 	"testing"
 
-	"arhat.dev/dukkha/pkg/dukkha"
-	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/dukkha"
+	dt "arhat.dev/dukkha/pkg/dukkha/test"
 )
 
 var _ dukkha.Renderer = (*Driver)(nil)

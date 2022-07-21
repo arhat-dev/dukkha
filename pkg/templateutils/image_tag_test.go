@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"arhat.dev/tlang"
 	"github.com/stretchr/testify/assert"
 
 	di "arhat.dev/dukkha/internal"
@@ -11,7 +12,6 @@ import (
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
-	"arhat.dev/tlang"
 )
 
 func TestSetDefaultImageTag(t *testing.T) {

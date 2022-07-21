@@ -83,10 +83,6 @@ func parseYaml(dec *yaml.Decoder) ([]*rs.AnyObject, error) {
 			return ret, err
 		}
 
-		if obj == nil {
-			continue
-		}
-
 		ret = append(ret, obj)
 	}
 }

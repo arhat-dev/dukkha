@@ -204,6 +204,7 @@ func (stringsNS) NoSpace(s String) (_ string, err error) {
 }
 
 func (stringsNS) Title(s String) (string, error) {
+	// nolint:staticcheck
 	return handleText1(s, strings.Title)
 }
 
