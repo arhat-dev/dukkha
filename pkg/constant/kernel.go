@@ -72,7 +72,7 @@ const (
 	kernelID_iOS
 	kernelID_Plan9
 
-	kernelID_COUNT // nolint:deadcode,varcheck,unused
+	kernelID_COUNT // nolint:deadcode,varcheck
 )
 
 func kernel_id_of(kernel string) kernelID {

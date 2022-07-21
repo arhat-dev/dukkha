@@ -60,55 +60,54 @@ func doRun(
 			stdin = ctx.Stdin()
 		}
 
-		if !ctx.TranslateANSIStream() {
-			stdout = ctx.Stdout()
-			stderr = ctx.Stderr()
-		} else {
-			stdout = ctx.Stdout()
-			stderr = ctx.Stderr()
+		stdout, stderr = ctx.Stdout(), ctx.Stderr()
 
-			// TODO: add back ansi writer support, currently disable due to messy output
-			// 			stdoutW := utils.NewANSIWriter(
-			// 				ctx.Stdout(), ctx.RetainANSIStyle(),
-			// 			)
-			//
-			// 			stdout = stdoutW
-			// 			stderr = stdoutW
-			//
-			// 			ansiTranslationExitSig = make(chan struct{})
-			//
-			// 			go func() {
-			// 				// TODO: make flush interval customizable
-			// 				ticker := time.NewTicker(2 * time.Second)
-			//
-			// 				defer func() {
-			// 					ticker.Stop()
-			// 					_, err := stdoutW.Flush()
-			// 					if err != nil {
-			// 						log.Log.I(
-			// 							"flushing translated plain text data to stdout when closing",
-			// 							log.Error(err),
-			// 						)
-			// 					}
-			// 				}()
-			//
-			// 				for {
-			// 					select {
-			// 					case <-ticker.C:
-			// 						_, err := stdoutW.Flush()
-			// 						if err != nil {
-			// 							log.Log.I(
-			// 								"flushing translated plain text data to stdout",
-			// 								log.Error(err),
-			// 							)
-			// 							return
-			// 						}
-			// 					case <-ansiTranslationExitSig:
-			// 						return
-			// 					}
-			// 				}
-			// 			}()
-		}
+		// 		if !ctx.TranslateANSIStream() {
+		// 			stdout = ctx.Stdout()
+		// 			stderr = ctx.Stderr()
+		// 		} else {
+		// 			// TODO: add back ansi writer support, currently disable due to messy output
+		// 			stdoutW := utils.NewANSIWriter(
+		// 				ctx.Stdout(), ctx.RetainANSIStyle(),
+		// 			)
+		//
+		// 			stdout = stdoutW
+		// 			stderr = stdoutW
+		//
+		// 			ansiTranslationExitSig = make(chan struct{})
+		//
+		// 			go func() {
+		// 				// TODO: make flush interval customizable
+		// 				ticker := time.NewTicker(2 * time.Second)
+		//
+		// 				defer func() {
+		// 					ticker.Stop()
+		// 					_, err := stdoutW.Flush()
+		// 					if err != nil {
+		// 						log.Log.I(
+		// 							"flushing translated plain text data to stdout when closing",
+		// 							log.Error(err),
+		// 						)
+		// 					}
+		// 				}()
+		//
+		// 				for {
+		// 					select {
+		// 					case <-ticker.C:
+		// 						_, err := stdoutW.Flush()
+		// 						if err != nil {
+		// 							log.Log.I(
+		// 								"flushing translated plain text data to stdout",
+		// 								log.Error(err),
+		// 							)
+		// 							return
+		// 						}
+		// 					case <-ansiTranslationExitSig:
+		// 						return
+		// 					}
+		// 				}
+		// 			}()
+		// 		}
 
 		stdout = utils.TermWriter(
 			ctx.OutputPrefix(), ctx.ColorOutput(),
