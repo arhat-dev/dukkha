@@ -2336,8 +2336,8 @@
           "x-intellij-html-description": "specific to this action"
         },
         "idle": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tlang` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tlang</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "if": {
           "type": "boolean",
@@ -2420,8 +2420,8 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^idle@.*": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tpl` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tpl</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tlang` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tlang</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
         },
         "^idle@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

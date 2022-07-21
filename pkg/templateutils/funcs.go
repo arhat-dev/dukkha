@@ -60,8 +60,8 @@ func FuncNameToFuncID(name string) FuncID {
 		return FuncID_archconv_GolangOS
 	case FuncName_archconv_HF:
 		return FuncID_archconv_HF
-	case FuncName_archconv_HardFloadArch:
-		return FuncID_archconv_HardFloadArch
+	case FuncName_archconv_HardFloatArch:
+		return FuncID_archconv_HardFloatArch
 	case FuncName_archconv_LLVMArch:
 		return FuncID_archconv_LLVMArch
 	case FuncName_archconv_LLVMTripleName:
@@ -78,8 +78,8 @@ func FuncNameToFuncID(name string) FuncID {
 		return FuncID_archconv_SF
 	case FuncName_archconv_SimpleArch:
 		return FuncID_archconv_SimpleArch
-	case FuncName_archconv_SoftFloadArch:
-		return FuncID_archconv_SoftFloadArch
+	case FuncName_archconv_SoftFloatArch:
+		return FuncID_archconv_SoftFloatArch
 	case FuncName_base64:
 		return FuncID_base64
 	case FuncName_call:
@@ -873,8 +873,8 @@ func (id FuncID) String() string {
 		return FuncName_archconv_GolangOS
 	case FuncID_archconv_HF:
 		return FuncName_archconv_HF
-	case FuncID_archconv_HardFloadArch:
-		return FuncName_archconv_HardFloadArch
+	case FuncID_archconv_HardFloatArch:
+		return FuncName_archconv_HardFloatArch
 	case FuncID_archconv_LLVMArch:
 		return FuncName_archconv_LLVMArch
 	case FuncID_archconv_LLVMTripleName:
@@ -891,8 +891,8 @@ func (id FuncID) String() string {
 		return FuncName_archconv_SF
 	case FuncID_archconv_SimpleArch:
 		return FuncName_archconv_SimpleArch
-	case FuncID_archconv_SoftFloadArch:
-		return FuncName_archconv_SoftFloadArch
+	case FuncID_archconv_SoftFloatArch:
+		return FuncName_archconv_SoftFloatArch
 	case FuncID_base64:
 		return FuncName_base64
 	case FuncID_call:
@@ -1661,7 +1661,7 @@ const (
 	FuncID_archconv_GolangArch         // func(String) string
 	FuncID_archconv_GolangOS           // func(String) string
 	FuncID_archconv_HF                 // func(String) string
-	FuncID_archconv_HardFloadArch      // func(String) string
+	FuncID_archconv_HardFloatArch      // func(String) string
 	FuncID_archconv_LLVMArch           // func(String) string
 	FuncID_archconv_LLVMTripleName     // func(String, ...String) string
 	FuncID_archconv_OciArch            // func(String) string
@@ -1670,7 +1670,7 @@ const (
 	FuncID_archconv_QemuArch           // func(String) string
 	FuncID_archconv_SF                 // func(String) string
 	FuncID_archconv_SimpleArch         // func(String) string
-	FuncID_archconv_SoftFloadArch      // func(String) string
+	FuncID_archconv_SoftFloatArch      // func(String) string
 	FuncID_base64                      // func(...any) (string, error)
 	FuncID_call                        // func(any, ...any) (any, error)
 	FuncID_close                       // func(any) (None, error)
@@ -2079,7 +2079,7 @@ const (
 	FuncName_archconv_GolangArch         = "archconv.GolangArch"
 	FuncName_archconv_GolangOS           = "archconv.GolangOS"
 	FuncName_archconv_HF                 = "archconv.HF"
-	FuncName_archconv_HardFloadArch      = "archconv.HardFloadArch"
+	FuncName_archconv_HardFloatArch      = "archconv.HardFloatArch"
 	FuncName_archconv_LLVMArch           = "archconv.LLVMArch"
 	FuncName_archconv_LLVMTripleName     = "archconv.LLVMTripleName"
 	FuncName_archconv_OciArch            = "archconv.OciArch"
@@ -2088,7 +2088,7 @@ const (
 	FuncName_archconv_QemuArch           = "archconv.QemuArch"
 	FuncName_archconv_SF                 = "archconv.SF"
 	FuncName_archconv_SimpleArch         = "archconv.SimpleArch"
-	FuncName_archconv_SoftFloadArch      = "archconv.SoftFloadArch"
+	FuncName_archconv_SoftFloatArch      = "archconv.SoftFloatArch"
 	FuncName_base64                      = "base64"
 	FuncName_call                        = "call"
 	FuncName_close                       = "close"
@@ -2488,7 +2488,7 @@ var staticFuncs = [FuncID_LAST_Static_FUNC + 1]any{
 	FuncID_archconv_GolangArch:         ns_archconv.GolangArch,
 	FuncID_archconv_GolangOS:           ns_archconv.GolangOS,
 	FuncID_archconv_HF:                 ns_archconv.HF,
-	FuncID_archconv_HardFloadArch:      ns_archconv.HardFloadArch,
+	FuncID_archconv_HardFloatArch:      ns_archconv.HardFloatArch,
 	FuncID_archconv_LLVMArch:           ns_archconv.LLVMArch,
 	FuncID_archconv_LLVMTripleName:     ns_archconv.LLVMTripleName,
 	FuncID_archconv_OciArch:            ns_archconv.OciArch,
@@ -2497,7 +2497,7 @@ var staticFuncs = [FuncID_LAST_Static_FUNC + 1]any{
 	FuncID_archconv_QemuArch:           ns_archconv.QemuArch,
 	FuncID_archconv_SF:                 ns_archconv.SF,
 	FuncID_archconv_SimpleArch:         ns_archconv.SimpleArch,
-	FuncID_archconv_SoftFloadArch:      ns_archconv.SoftFloadArch,
+	FuncID_archconv_SoftFloatArch:      ns_archconv.SoftFloatArch,
 	FuncID_base64:                      ns_enc.Base64,
 	FuncID_call:                        ns_golang.Call,
 	FuncID_close:                       ns_type.Close,

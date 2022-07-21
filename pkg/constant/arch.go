@@ -32,8 +32,8 @@ func SimpleArch(arch string) string {
 	return s.String()
 }
 
-// HardFloadArch returns hardfloat version of arch
-func HardFloadArch(arch string) string {
+// HardFloatArch returns hardfloat version of arch
+func HardFloatArch(arch string) string {
 	spec, ok := Parse[byte](arch)
 	if !ok {
 		// unknown, assume hardfloat arch
@@ -44,8 +44,8 @@ func HardFloadArch(arch string) string {
 	return spec.String()
 }
 
-// SoftFloadArch returns hardfloat version of arch
-func SoftFloadArch(arch string) string {
+// SoftFloatArch returns hardfloat version of arch
+func SoftFloatArch(arch string) string {
 	spec, ok := Parse[byte](arch)
 	if !ok {
 		// unknown, assume softfloat arch

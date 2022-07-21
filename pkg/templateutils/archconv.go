@@ -8,16 +8,16 @@ type archconvNS struct{}
 
 func (archconvNS) SimpleArch(arch String) string { return constant.SimpleArch(must(toString(arch))) }
 
-// HF is an alias of HardFloadArch
-func (archconvNS) HF(arch String) string { return constant.HardFloadArch(must(toString(arch))) }
-func (archconvNS) HardFloadArch(arch String) string {
-	return constant.HardFloadArch(must(toString(arch)))
+// HF is an alias of HardFloatArch
+func (archconvNS) HF(arch String) string { return constant.HardFloatArch(must(toString(arch))) }
+func (archconvNS) HardFloatArch(arch String) string {
+	return constant.HardFloatArch(must(toString(arch)))
 }
 
-// SF is an alias of SoftFloadArch
-func (archconvNS) SF(arch String) string { return constant.SoftFloadArch(must(toString(arch))) }
-func (archconvNS) SoftFloadArch(arch String) string {
-	return constant.SoftFloadArch(must(toString(arch)))
+// SF is an alias of SoftFloatArch
+func (archconvNS) SF(arch String) string { return constant.SoftFloatArch(must(toString(arch))) }
+func (archconvNS) SoftFloatArch(arch String) string {
+	return constant.SoftFloatArch(must(toString(arch)))
 }
 
 func (archconvNS) AlpineArch(arch String) string {

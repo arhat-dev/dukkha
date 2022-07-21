@@ -22,7 +22,7 @@
 - `archconv.GolangArch(String) string`
 - `archconv.GolangOS(String) string`
 - `archconv.HF(String) string`
-- `archconv.HardFloadArch(String) string`
+- `archconv.HardFloatArch(String) string`
 - `archconv.LLVMArch(String) string`
 - `archconv.LLVMTripleName(String, ...String) string`
 - `archconv.OciArch(String) string`
@@ -31,7 +31,7 @@
 - `archconv.QemuArch(String) string`
 - `archconv.SF(String) string`
 - `archconv.SimpleArch(String) string`
-- `archconv.SoftFloadArch(String) string`
+- `archconv.SoftFloatArch(String) string`
 - `base64(...any) (string, error)`
 - `call(any, ...any) (any, error)`
 - `close(any) (None, error)`
