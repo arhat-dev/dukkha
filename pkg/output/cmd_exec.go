@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/muesli/termenv"
+	"mvdan.cc/sh/v3/syntax"
 
 	"arhat.dev/dukkha/pkg/dukkha"
 )
@@ -14,25 +15,36 @@ func WriteExecStart(
 	stdout io.Writer,
 	prefixColor termenv.Color,
 	k dukkha.ToolKey,
-	cmd []string,
+	cmds []string,
 	scriptName string,
 ) {
-	output := []string{
-		">>>",
-		// task name
-		string(k.Name),
-		// commands
-		"[", strings.Join(cmd, " "), "]",
+	var sb strings.Builder
+	sb.WriteString(">>> ")
+	sb.WriteString(string(k.Name))
+	sb.WriteString(" [")
+	for _, c := range cmds {
+		sb.WriteByte(' ')
+
+		s, err := syntax.Quote(c, syntax.LangBash)
+		if err != nil {
+			sb.WriteString(c)
+		} else {
+			sb.WriteString(s)
+		}
+
+		sb.WriteByte(' ')
 	}
+	sb.WriteString("]")
 
 	if len(scriptName) != 0 {
-		output = append(output, "@", scriptName)
+		sb.WriteString(" @ ")
+		sb.WriteString(scriptName)
 	}
 
 	if prefixColor != nil {
-		printlnWithColor(stdout, output, prefixColor)
+		printlnWithColor(stdout, sb.String(), prefixColor)
 	} else {
-		_, _ = fmt.Fprintln(stdout, strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stdout, sb.String())
 	}
 }
 
@@ -44,27 +56,29 @@ func WriteExecResult(
 	matrixSpec string,
 	err error,
 ) {
-	resultKind := "DONE"
+	var sb strings.Builder
 	if err != nil {
-		resultKind = "ERROR"
-	}
-
-	output := []string{
-		resultKind,
-		AssembleTaskKindID(k, tk.Kind),
-		"[", string(tk.Name), "]",
-		"{", matrixSpec,
-	}
-
-	if err != nil {
-		output = append(output, "}:", err.Error())
+		sb.WriteString("ERROR ")
 	} else {
-		output = append(output, "}")
+		sb.WriteString("DONE ")
+	}
+
+	sb.WriteString(AssembleTaskKindID(k, tk.Kind))
+	sb.WriteString(" [ ")
+	sb.WriteString(string(tk.Name))
+	sb.WriteString(" ] { ")
+	sb.WriteString(matrixSpec)
+
+	if err != nil {
+		sb.WriteString(" }: ")
+		sb.WriteString(err.Error())
+	} else {
+		sb.WriteString(" }")
 	}
 
 	if prefixColor != nil {
-		printlnWithColor(stderr, output, prefixColor)
+		printlnWithColor(stderr, sb.String(), prefixColor)
 	} else {
-		_, _ = fmt.Fprintln(stderr, strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stderr, sb.String())
 	}
 }

@@ -190,19 +190,19 @@ func NewFilterReader(
 ) FilterReader {
 	return FilterReader{
 		underlay: underlay,
-		doFilter: doFilter,
+		filter:   doFilter,
 	}
 }
 
 type FilterReader struct {
 	underlay io.Reader
 
-	doFilter func(p []byte) int
+	filter func(p []byte) int
 }
 
 func (fr FilterReader) Read(p []byte) (n int, err error) {
 	n, err = fr.underlay.Read(p)
-	n = fr.doFilter(p[:n])
+	n = fr.filter(p[:n])
 	return
 }
 

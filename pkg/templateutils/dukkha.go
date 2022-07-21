@@ -167,14 +167,11 @@ func genNewVal(key string, value any, ret *map[string]any) error {
 	)
 
 	if strings.HasPrefix(key, `"`) {
-		key = key[1:]
-		quoteIdx := strings.IndexByte(key, '"')
-		if quoteIdx < 0 {
-			return fmt.Errorf("invalid unclosed quote in string `%s'", key)
+		var found bool
+		thisKey, nextKey, found = strings.Cut(key[1:], `"`)
+		if !found {
+			return fmt.Errorf("unclosed quote `%s'", key)
 		}
-
-		thisKey = key[:quoteIdx]
-		nextKey = key[quoteIdx+1:]
 
 		if len(nextKey) == 0 {
 			// no more nested maps
@@ -182,15 +179,13 @@ func genNewVal(key string, value any, ret *map[string]any) error {
 			return nil
 		}
 	} else {
-		dotIdx := strings.IndexByte(key, '.')
-		if dotIdx < 0 {
+		var found bool
+		thisKey, nextKey, found = strings.Cut(key, ".")
+		if !found {
 			// no more dots, no more nested maps
 			(*ret)[key] = value
 			return nil
 		}
-
-		thisKey = key[:dotIdx]
-		nextKey = key[dotIdx+1:]
 	}
 
 	newValParent := make(map[string]any)

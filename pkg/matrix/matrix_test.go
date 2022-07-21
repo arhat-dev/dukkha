@@ -25,7 +25,6 @@ func TestSpec_GenerateFilter(t *testing.T) {
 func TestSpec_GenerateEntries(t *testing.T) {
 	t.Parallel()
 
-	
 	tests := []struct {
 		name string
 		in   *Spec

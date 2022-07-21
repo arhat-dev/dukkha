@@ -204,6 +204,7 @@ func (stringsNS) NoSpace(s String) (_ string, err error) {
 }
 
 func (stringsNS) Title(s String) (string, error) {
+	// TODO: use golang.org/x/text/cases per Deprecation note to strings.Title
 	// nolint:staticcheck
 	return handleText1(s, strings.Title)
 }
@@ -527,6 +528,8 @@ func (stringsNS) RemoveSuffix(args ...String) (string, error) {
 	return handleMultiSectionText_OPDATA_OptionalSep_DATA(args, RemoveSuffix)
 }
 
+// forEachTextSection: you text is divided into multiple sections by sep
+// it calls do on each section
 func forEachTextSection(s, sep string, do func(section string)) {
 	n := len(s)
 	szSep := len(sep)
@@ -596,6 +599,10 @@ func RemoveSuffix(s, suffix, sep string) string {
 	return sb.String()
 }
 
+// it handles following function calls
+//
+// - fn(op, sep, data string)
+// - fn(op, data string)
 func handleMultiSectionText_OPDATA_OptionalSep_DATA(
 	args []String,
 	do func(str, op, sep string) string,

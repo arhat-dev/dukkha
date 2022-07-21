@@ -18,22 +18,24 @@ func WriteTaskStart(
 	tk dukkha.TaskKey,
 	matrixSpec matrix.Entry,
 ) {
-	output := []string{
-		"---",
-		AssembleTaskKindID(k, tk.Kind),
-		"[", string(tk.Name), "]",
-		"{", matrixSpec.String(), "}",
-	}
+	var sb strings.Builder
+	sb.WriteString("--- ")
+	sb.WriteString(AssembleTaskKindID(k, tk.Kind))
+	sb.WriteString(" [ ")
+	sb.WriteString(string(tk.Name))
+	sb.WriteString(" ] { ")
+	sb.WriteString(matrixSpec.String())
+	sb.WriteString(" }")
 
 	if prefixColor != nil {
-		printlnWithColor(stdout, output, prefixColor)
+		printlnWithColor(stdout, sb.String(), prefixColor)
 	} else {
-		_, _ = fmt.Fprintln(stdout, strings.Join(output, " "))
+		_, _ = fmt.Fprintln(stdout, sb.String())
 	}
 }
 
-func printlnWithColor(stdout io.Writer, parts []string, color termenv.Color) {
-	style := termenv.String(parts...).Foreground(color)
+func printlnWithColor(stdout io.Writer, str string, color termenv.Color) {
+	style := termenv.String(str).Foreground(color)
 	_, _ = fmt.Fprintln(stdout, style.String())
 }
 

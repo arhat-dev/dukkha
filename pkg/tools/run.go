@@ -6,7 +6,6 @@ import (
 	"io"
 	"path"
 	"strings"
-	"time"
 
 	"arhat.dev/pkg/exechelper"
 	"arhat.dev/pkg/log"
@@ -65,46 +64,50 @@ func doRun(
 			stdout = ctx.Stdout()
 			stderr = ctx.Stderr()
 		} else {
-			stdoutW := utils.NewANSIWriter(
-				ctx.Stdout(), ctx.RetainANSIStyle(),
-			)
+			stdout = ctx.Stdout()
+			stderr = ctx.Stderr()
 
-			stdout = stdoutW
-			stderr = stdoutW
-
-			ansiTranslationExitSig = make(chan struct{})
-
-			go func() {
-				// TODO: make flush interval customizable
-				ticker := time.NewTicker(2 * time.Second)
-
-				defer func() {
-					ticker.Stop()
-					_, err := stdoutW.Flush()
-					if err != nil {
-						log.Log.I(
-							"flushing translated plain text data to stdout when closing",
-							log.Error(err),
-						)
-					}
-				}()
-
-				for {
-					select {
-					case <-ticker.C:
-						_, err := stdoutW.Flush()
-						if err != nil {
-							log.Log.I(
-								"flushing translated plain text data to stdout",
-								log.Error(err),
-							)
-							return
-						}
-					case <-ansiTranslationExitSig:
-						return
-					}
-				}
-			}()
+			// TODO: add back ansi writer support, currently disable due to messy output
+			// 			stdoutW := utils.NewANSIWriter(
+			// 				ctx.Stdout(), ctx.RetainANSIStyle(),
+			// 			)
+			//
+			// 			stdout = stdoutW
+			// 			stderr = stdoutW
+			//
+			// 			ansiTranslationExitSig = make(chan struct{})
+			//
+			// 			go func() {
+			// 				// TODO: make flush interval customizable
+			// 				ticker := time.NewTicker(2 * time.Second)
+			//
+			// 				defer func() {
+			// 					ticker.Stop()
+			// 					_, err := stdoutW.Flush()
+			// 					if err != nil {
+			// 						log.Log.I(
+			// 							"flushing translated plain text data to stdout when closing",
+			// 							log.Error(err),
+			// 						)
+			// 					}
+			// 				}()
+			//
+			// 				for {
+			// 					select {
+			// 					case <-ticker.C:
+			// 						_, err := stdoutW.Flush()
+			// 						if err != nil {
+			// 							log.Log.I(
+			// 								"flushing translated plain text data to stdout",
+			// 								log.Error(err),
+			// 							)
+			// 							return
+			// 						}
+			// 					case <-ansiTranslationExitSig:
+			// 						return
+			// 					}
+			// 				}
+			// 			}()
 		}
 
 		stdout = utils.TermWriter(

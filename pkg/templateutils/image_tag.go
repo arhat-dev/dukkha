@@ -106,6 +106,6 @@ func hasTag(name string) bool {
 		return false
 	}
 
-	// has tag if there is no more slash after (to handle port number in host)
-	return strings.IndexByte(name[tagIndex+1:], '/') < 0
+	// has tag if there is no slash after (to handle port number in host)
+	return strings.IndexByte(name[tagIndex+1:], '/') == -1
 }
