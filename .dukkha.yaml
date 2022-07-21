@@ -62,7 +62,7 @@ tools:
       template: |-
         {{- include "golang.cmd.ctr" . -}}
       include:
-      - path@presets#cached-file: templates/image/flavored-tag.tpl
+      - path@presets#cached-file: templates/image/flavored-tag.tmpl
       - path@presets#cached-file: golang/cmd/ctr.yml
 
       variables:

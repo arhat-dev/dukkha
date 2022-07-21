@@ -39,7 +39,7 @@ type Action struct {
 	Run *bool `yaml:"if"`
 
 	// Idle does nothing but serves as a placeholder for preparation purpose
-	// recommended usage of Idle action is to apply renderers like `tpl`
+	// recommended usage of Idle action is to apply renderers like `tlang`
 	// to do some task execution state related operation (e.g. set global
 	// value with `dukkha.SetValue`)
 	Idle interface{} `yaml:"idle,omitempty"`

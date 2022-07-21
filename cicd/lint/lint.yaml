@@ -42,4 +42,4 @@ workflow:run:
         matrix_filter: {}
 
   jobs:
-  - cmd@presets?str|tmpl#use-spec: tools/presets.tpl
+  - cmd@presets?str|tmpl#use-spec: tools/presets.tmpl
