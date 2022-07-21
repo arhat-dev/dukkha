@@ -33,22 +33,23 @@ jobs:
   stylecheck:
     uses: arhat-dev/dukkha-presets/.github/workflows/stylecheck.yml@master
     with:
-      # replace installed dukkha
+      install_dukkha: false
       prepare: |-
         make dukkha
-        mv build/dukkha "$(command -v dukkha)"
+        cache_dir="$(mktemp -d)"
+        mv build/dukkha "${cache_dir}"
+        echo "${cache_dir}" >>"${GITHUB_PATH}"
 
   test:
     uses: arhat-dev/dukkha-presets/.github/workflows/test.yml@master
     with:
-      # replace installed dukkha
-      prepare: |-
-        set -x
-
-        make dukkha
-        mv build/dukkha "$(command -v dukkha)"
-
       install_wine: true
+      install_dukkha: false
+      prepare: |-
+        make dukkha
+        cache_dir="$(mktemp -d)"
+        mv build/dukkha "${cache_dir}"
+        echo "${cache_dir}" >>"${GITHUB_PATH}"
       matrix: |-
         {
           "os": [
@@ -71,10 +72,12 @@ jobs:
     uses: arhat-dev/dukkha-presets/.github/workflows/artifacts.yml@master
     with:
       release: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
-      # replace installed dukkha
+      install_dukkha: false
       prepare: |-
         make dukkha
-        mv build/dukkha "$(command -v dukkha)"
+        cache_dir="$(mktemp -d)"
+        mv build/dukkha "${cache_dir}"
+        echo "${cache_dir}" >>"${GITHUB_PATH}"
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
       cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
@@ -86,10 +89,12 @@ jobs:
     - test
     uses: arhat-dev/dukkha-presets/.github/workflows/images.yml@master
     with:
-      # replace installed dukkha
+      install_dukkha: false
       prepare: |-
         make dukkha
-        mv build/dukkha "$(command -v dukkha)"
+        cache_dir="$(mktemp -d)"
+        mv build/dukkha "${cache_dir}"
+        echo "${cache_dir}" >>"${GITHUB_PATH}"
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
       cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
