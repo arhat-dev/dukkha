@@ -1,5 +1,7 @@
 # Tengo Script Renderer `tengo`
 
+WIP: this renderer is currently not available
+
 ```yaml
 foo@tengo: |-
   fmt := import("fmt")

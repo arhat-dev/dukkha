@@ -1,21 +1,21 @@
-# Template Language Renderer `tl`
+# Template Language Renderer `tlang`
 
 ```yaml
-foo@tl: |-
-  define x
+foo@tlang: |-
+  define "x"
     val
   end
 ```
 
-`tl` is a derived scripting language from [golang template](https://golang.org/pkg/text/template/), without the emphasis of __text templating__.
+[`tlang`](https://github.com/arhat-dev/tlang) is a simple scripting & templating language derived from [golang template](https://golang.org/pkg/text/template/), without the emphasis of __text templating__.
 
-__NOTE:__ This renderer shares every feature of `tmpl` renderer, see [`tmpl`](./tmpl.md) for general idea of golang template.
+__NOTE:__ This renderer shares almost every feature of `tmpl` renderer, see [`tmpl`](./tmpl.md) for general idea of golang template.
 
 ## Config Options
 
 ```yaml
 renderers:
-- tl:
+- tlang:
     # include local template files, with glob pattern support
     include:
     - path: foo/*.tl
@@ -41,25 +41,21 @@ __NOTE:__ When using `path` for template inclusion (`include` option) reads file
 - Valid input spec (when `use-spec` attribute applied)
 
 ```yaml
-foo@tl#use-spec:
+foo@tlang#use-spec:
   # template to render
   template: |-
-    !! if you have {{ define }} block in your template,
-    !! you can execute it by name
     template "foo"
 
-    !! and access variables here and in included templates
+    # access variables here and in included templates
     var.data
 
-    !! included file templates without {{ define }} can also be executed by index or file basename
-    template "1"
-    !! will execute second file template
-    template "foo.tl"
-    !! will execute last `foo.tl`
+    # included files can be invoked by index or file basename
+    template "1"       # will invoke the second file template
+    template "foo.tl"  # will invoke the last `foo.tl`
 
-    !! like file templates, included text templates without {{ define }} can be executed by index with prefix `#`
-    template "#1"
-    !! will execute second text template
+    # like file templates, included text templates without explicit `define` block
+    # can be invoked by its index prefixed with `#`
+    template "#1"      # will invoke the second text template
 
   # include template files (with glob pattern support) and plain text tempaltes
   #
@@ -88,9 +84,9 @@ foo@tl#use-spec:
 There is a template func `eval.Shell` for running shell commands in template.
 
 ```yaml
-foo@tl: (eval.Shell "echo 'Called From Template'").Stdout
+foo@tlang: (eval.Shell "echo 'Called From Template'").Stdout
 ```
 
 ## Suggested Use Cases
 
-TBD.
+When you are handling cases do need text templating but most parts of it are about calling functions, `tmpl` can be verbose in this case, use `tlang` will keep your config clean.

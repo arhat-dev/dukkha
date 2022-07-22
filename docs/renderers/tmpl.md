@@ -43,18 +43,18 @@ foo@tmpl#use-spec:
   # template to render
   template: |-
     !! if you have {{ define }} block in your template,
-    !! you can execute it by name
+    !! you can invoke it by name
     {{- template "foo" -}}
 
-    !! and access variables here and in included templates
+    {{/* access variables using var */}}
     {{- var.data -}}
 
-    !! included file templates without {{ define }} can also be executed by index or file basename
-    {{- template "1" -}} will execute second file template
-    {{- template "foo.tmpl" -}} will execute last `foo.tmpl`
+    {{/* included file templates can be invoked by index or file basename */}}
+    {{- template "1" -}}         will invoke second file template
+    {{- template "foo.tmpl" -}}  will invoke the last `foo.tmpl`
 
-    !! like file templates, included text templates without {{ define }} can be executed by index with prefix `#`
-    {{- template "#1" -}} will execute second text template
+    {{/* included text templates can be invoked by index with additional prefix `#` */}}
+    {{- template "#1" -}}        will invoke the second text template
 
   # include template files (with glob pattern support) and plain text tempaltes
   #
