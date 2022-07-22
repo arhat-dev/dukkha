@@ -2,20 +2,18 @@ golang:test:
 - name: dukkha
   env:
   - name: PROFILE_DIR
-    value@tmpl: |-
-      {{- fs.Join dukkha.WorkDir "build" "test-profile" -}}
+    value@tlang: fs.Join dukkha.WorkDir "build" "test-profile"
 
   matrix:
-    pkg@tmpl: |-
-      {{-
-        (eval.Shell "go list ./pkg/... ./cmd/... ./internal/...").Stdout
-        | removePrefix ((eval.Shell "go list -m").Stdout | trimSpace)
-        | removePrefix "/"
+    pkg@tlang: |-
+      (eval.Shell "go list ./pkg/... ./cmd/... ./internal/...").Stdout \
+        | removePrefix ((eval.Shell "go list -m").Stdout | trimSpace) \
+        | removePrefix "/" \
         | addPrefix "- "
-      -}}
+
   hooks:
     before:
-    - shell: tmpl:mkdir -p "${PROFILE_DIR}" >/dev/null
+    - idle@tlang: mkdir "-p" env.PROFILE_DIR
 
   tags:
   # build dukkha_internal.RunSelf in tests requires invoking go tool link manaully to
@@ -27,8 +25,7 @@ golang:test:
     template: |-
       {{- include "golang.test.pkg" . -}}
     include:
-    - path@presets#cached-file: golang/test/pkg.yml
+    - path@presets#cached-file: golang/test/pkg.tmpl
     variables:
-      profile_dir@tmpl: |-
-        {{- env.PROFILE_DIR -}}
+      profile_dir@tlang: env.PROFILE_DIR
       cover_pkg: ./...

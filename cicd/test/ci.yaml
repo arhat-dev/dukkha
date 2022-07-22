@@ -8,8 +8,7 @@ workflow:run:
   # test shell PATH lookup
   # if any issue, fix it in https://github.com/arhat-dev/sh/tree/dukkha
   - name: test path lookup under cygwin
-    if@tmpl: |-
-      {{- eq matrix.kernel "windows" -}}
+    if@tlang: eq matrix.kernel "windows"
 
     shell: |-
       set -x
@@ -27,8 +26,7 @@ workflow:run:
       EOF
 
   - name: test path lookup under wine64
-    if@tmpl: |-
-      {{- ne matrix.kernel "windows" -}}
+    if@tlang: ne matrix.kernel "windows"
     shell: |-
       set -x
 
@@ -43,8 +41,7 @@ workflow:run:
 
   - name: test path lookup under wine32
     # macos doesn't support running i386 wine
-    if@tmpl: |-
-      {{- eq matrix.kernel "linux" -}}
+    if@tlang: eq matrix.kernel "linux"
     shell: |-
       set -x
 

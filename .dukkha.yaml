@@ -44,7 +44,7 @@ global:
     value: "1.18"
   values:
     cmd:
-      run_ctr@presets?str|tmpl: templates/run-ctr.yml
+      run_ctr@presets?str|tlang: templates/run-ctr.tl
 
 tools:
   archive:
@@ -58,12 +58,11 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@tmpl#use-spec:
-      template: |-
-        {{- include "golang.cmd.ctr" . -}}
+    cmd@tlang#use-spec:
+      template: include "golang.cmd.ctr" .
       include:
-      - path@presets#cached-file: templates/image/flavored-tag.tmpl
-      - path@presets#cached-file: golang/cmd/ctr.yml
+      - text@presets?str: templates/image/flavored-tag.tl
+      - text@presets?str: golang/cmd/ctr.tl
 
       variables:
         version@env?str: ${GO_VERSION}
@@ -72,11 +71,10 @@ tools:
   cosign:
   - name: local
   - name: in-ctr
-    cmd@tmpl#use-spec:
-      template: |-
-        {{- include "cosign.cmd.ctr" . -}}
+    cmd@tlang#use-spec:
+      template: include "cosign.cmd.ctr" .
       include:
-      - path@presets#cached-file?str: cosign/cmd/ctr.yml
+      - text@presets?str: cosign/cmd/ctr.tl
 
   # docker is required by cosign upload (login to docker registry)
   docker:
@@ -91,16 +89,15 @@ tools:
   buildah:
   - name: local
   - name: in-ctr
-    cmd@tmpl#use-spec:
-      template: |-
-        {{- include "buildah.cmd.ctr" . -}}
+    cmd@tlang#use-spec:
+      template: include "buildah.cmd.ctr" .
 
       include:
-      - path@presets#cached-file?str: buildah/cmd/ctr.yml
+      - text@presets?str: buildah/cmd/ctr.tl
 
       variables:
-        run_ctr@tmpl#use-spec:
-          template@presets?str: templates/run-ctr.yml
+        run_ctr@tlang#use-spec:
+          template@presets?str: templates/run-ctr.tl
           variables:
             privileged: true
         # version: latest

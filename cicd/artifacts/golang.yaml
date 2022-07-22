@@ -5,7 +5,7 @@ golang:build:
     template: |-
       {{- include "golang.build.cmd" . -}}
     include:
-    - path@presets#cached-file: golang/build/cmd.yml
+    - path@presets#cached-file: golang/build/cmd.tmpl
   tags:
   - netgo
   - osusergo
