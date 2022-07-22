@@ -342,18 +342,24 @@ func FuncNameToFuncID(name string) FuncID {
 		return FuncID_quote
 	case FuncName_re:
 		return FuncID_re
-	case FuncName_re_Find:
-		return FuncID_re_Find
 	case FuncName_re_FindAll:
 		return FuncID_re_FindAll
+	case FuncName_re_FindFirst:
+		return FuncID_re_FindFirst
+	case FuncName_re_FindN:
+		return FuncID_re_FindN
 	case FuncName_re_Match:
 		return FuncID_re_Match
 	case FuncName_re_QuoteMeta:
 		return FuncID_re_QuoteMeta
-	case FuncName_re_Replace:
-		return FuncID_re_Replace
-	case FuncName_re_ReplaceLiteral:
-		return FuncID_re_ReplaceLiteral
+	case FuncName_re_ReplaceAll:
+		return FuncID_re_ReplaceAll
+	case FuncName_re_ReplaceAllNoExpand:
+		return FuncID_re_ReplaceAllNoExpand
+	case FuncName_re_ReplaceFirst:
+		return FuncID_re_ReplaceFirst
+	case FuncName_re_ReplaceFirstNoExpand:
+		return FuncID_re_ReplaceFirstNoExpand
 	case FuncName_re_Split:
 		return FuncID_re_Split
 	case FuncName_removePrefix:
@@ -1155,18 +1161,24 @@ func (id FuncID) String() string {
 		return FuncName_quote
 	case FuncID_re:
 		return FuncName_re
-	case FuncID_re_Find:
-		return FuncName_re_Find
 	case FuncID_re_FindAll:
 		return FuncName_re_FindAll
+	case FuncID_re_FindFirst:
+		return FuncName_re_FindFirst
+	case FuncID_re_FindN:
+		return FuncName_re_FindN
 	case FuncID_re_Match:
 		return FuncName_re_Match
 	case FuncID_re_QuoteMeta:
 		return FuncName_re_QuoteMeta
-	case FuncID_re_Replace:
-		return FuncName_re_Replace
-	case FuncID_re_ReplaceLiteral:
-		return FuncName_re_ReplaceLiteral
+	case FuncID_re_ReplaceAll:
+		return FuncName_re_ReplaceAll
+	case FuncID_re_ReplaceAllNoExpand:
+		return FuncName_re_ReplaceAllNoExpand
+	case FuncID_re_ReplaceFirst:
+		return FuncName_re_ReplaceFirst
+	case FuncID_re_ReplaceFirstNoExpand:
+		return FuncName_re_ReplaceFirstNoExpand
 	case FuncID_re_Split:
 		return FuncName_re_Split
 	case FuncID_removePrefix:
@@ -1802,12 +1814,15 @@ const (
 	FuncID_println                     // func(...any) string
 	FuncID_quote                       // func(String) (string, error)
 	FuncID_re                          // func() regexpNS
-	FuncID_re_Find                     // func(...String) (string, error)
 	FuncID_re_FindAll                  // func(...String) ([]string, error)
+	FuncID_re_FindFirst                // func(...String) (string, error)
+	FuncID_re_FindN                    // func(...String) ([]string, error)
 	FuncID_re_Match                    // func(...String) (bool, error)
 	FuncID_re_QuoteMeta                // func(String) string
-	FuncID_re_Replace                  // func(...String) (string, error)
-	FuncID_re_ReplaceLiteral           // func(...String) (string, error)
+	FuncID_re_ReplaceAll               // func(...String) (string, error)
+	FuncID_re_ReplaceAllNoExpand       // func(...String) (string, error)
+	FuncID_re_ReplaceFirst             // func(...String) (string, error)
+	FuncID_re_ReplaceFirstNoExpand     // func(...String) (string, error)
 	FuncID_re_Split                    // func(...String) ([]string, error)
 	FuncID_removePrefix                // func(...String) (string, error)
 	FuncID_removeSuffix                // func(...String) (string, error)
@@ -2220,12 +2235,15 @@ const (
 	FuncName_println                     = "println"
 	FuncName_quote                       = "quote"
 	FuncName_re                          = "re"
-	FuncName_re_Find                     = "re.Find"
 	FuncName_re_FindAll                  = "re.FindAll"
+	FuncName_re_FindFirst                = "re.FindFirst"
+	FuncName_re_FindN                    = "re.FindN"
 	FuncName_re_Match                    = "re.Match"
 	FuncName_re_QuoteMeta                = "re.QuoteMeta"
-	FuncName_re_Replace                  = "re.Replace"
-	FuncName_re_ReplaceLiteral           = "re.ReplaceLiteral"
+	FuncName_re_ReplaceAll               = "re.ReplaceAll"
+	FuncName_re_ReplaceAllNoExpand       = "re.ReplaceAllNoExpand"
+	FuncName_re_ReplaceFirst             = "re.ReplaceFirst"
+	FuncName_re_ReplaceFirstNoExpand     = "re.ReplaceFirstNoExpand"
 	FuncName_re_Split                    = "re.Split"
 	FuncName_removePrefix                = "removePrefix"
 	FuncName_removeSuffix                = "removeSuffix"
@@ -2629,12 +2647,15 @@ var staticFuncs = [FuncID_LAST_Static_FUNC + 1]any{
 	FuncID_println:                     ns_golang.Sprintln,
 	FuncID_quote:                       ns_strings.DoubleQuote,
 	FuncID_re:                          get_ns_re,
-	FuncID_re_Find:                     ns_re.Find,
 	FuncID_re_FindAll:                  ns_re.FindAll,
+	FuncID_re_FindFirst:                ns_re.FindFirst,
+	FuncID_re_FindN:                    ns_re.FindN,
 	FuncID_re_Match:                    ns_re.Match,
 	FuncID_re_QuoteMeta:                ns_re.QuoteMeta,
-	FuncID_re_Replace:                  ns_re.Replace,
-	FuncID_re_ReplaceLiteral:           ns_re.ReplaceLiteral,
+	FuncID_re_ReplaceAll:               ns_re.ReplaceAll,
+	FuncID_re_ReplaceAllNoExpand:       ns_re.ReplaceAllNoExpand,
+	FuncID_re_ReplaceFirst:             ns_re.ReplaceFirst,
+	FuncID_re_ReplaceFirstNoExpand:     ns_re.ReplaceFirstNoExpand,
 	FuncID_re_Split:                    ns_re.Split,
 	FuncID_removePrefix:                ns_strings.RemovePrefix,
 	FuncID_removeSuffix:                ns_strings.RemoveSuffix,

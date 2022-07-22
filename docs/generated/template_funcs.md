@@ -155,12 +155,15 @@
 - `printf(String, ...any) string`
 - `println(...any) string`
 - `quote(String) (string, error)`
-- `re.Find(...String) (string, error)`
 - `re.FindAll(...String) ([]string, error)`
+- `re.FindFirst(...String) (string, error)`
+- `re.FindN(...String) ([]string, error)`
 - `re.Match(...String) (bool, error)`
 - `re.QuoteMeta(String) string`
-- `re.Replace(...String) (string, error)`
-- `re.ReplaceLiteral(...String) (string, error)`
+- `re.ReplaceAll(...String) (string, error)`
+- `re.ReplaceAllNoExpand(...String) (string, error)`
+- `re.ReplaceFirst(...String) (string, error)`
+- `re.ReplaceFirstNoExpand(...String) (string, error)`
 - `re.Split(...String) ([]string, error)`
 - `removePrefix(...String) (string, error)`
 - `removeSuffix(...String) (string, error)`

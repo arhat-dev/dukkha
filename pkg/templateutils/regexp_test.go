@@ -14,8 +14,12 @@ func convertAnySlice[T any](x []any) []T {
 func TestRegexpNS(t *testing.T) {
 	var ns regexpNS
 
-	findFn := func(args ...any) (any, error) {
-		return ns.Find(convertAnySlice[String](args)...)
+	findFirstFn := func(args ...any) (any, error) {
+		return ns.FindFirst(convertAnySlice[String](args)...)
+	}
+
+	findNFn := func(args ...any) (any, error) {
+		return ns.FindN(convertAnySlice[String](args)...)
 	}
 
 	findAllFn := func(args ...any) (any, error) {
@@ -26,8 +30,12 @@ func TestRegexpNS(t *testing.T) {
 		return ns.Match(convertAnySlice[String](args)...)
 	}
 
-	replaceFn := func(args ...any) (any, error) {
-		return ns.Replace(convertAnySlice[String](args)...)
+	replaceFirstFn := func(args ...any) (any, error) {
+		return ns.ReplaceFirst(convertAnySlice[String](args)...)
+	}
+
+	replaceAllFn := func(args ...any) (any, error) {
+		return ns.ReplaceAll(convertAnySlice[String](args)...)
 	}
 
 	for _, test := range []struct {
@@ -39,22 +47,22 @@ func TestRegexpNS(t *testing.T) {
 		expected any
 	}{
 		{
-			name:     "Find dot-newline",
-			args:     []any{"a.bc", "-s", "a\nbc"},
-			fn:       findFn,
-			expected: "a\nbc",
+			name:     "FindFirst dot match",
+			args:     []any{".", "--dot-newline", "abc"},
+			fn:       findFirstFn,
+			expected: "a",
+		},
+		{
+			name:     "FindN dot match",
+			args:     []any{".", "--dot-newline", 2, "abc"},
+			fn:       findNFn,
+			expected: []string{"a", "b"},
 		},
 		{
 			name:     "FindAll",
-			args:     []any{"abc", "abc,abc,abc,abc"},
+			args:     []any{"a", "abc,abc,abc,abc"},
 			fn:       findAllFn,
-			expected: []string{"abc", "abc", "abc", "abc"},
-		},
-		{
-			name:     "FindAll Int N",
-			args:     []any{"abc", 2, "abc,abc,abc,abc"},
-			fn:       findAllFn,
-			expected: []string{"abc", "abc"},
+			expected: []string{"a", "a", "a", "a"},
 		},
 		{
 			name:     "Match case-insensitive",
@@ -63,16 +71,34 @@ func TestRegexpNS(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "Replace",
+			args:     []any{"a", "foo", "aaa"},
+			fn:       replaceFirstFn,
+			expected: "fooaa",
+		},
+		{
 			name:     "Replace greedy",
 			args:     []any{"a.*c", "foo", "abcdbc"},
-			fn:       replaceFn,
+			fn:       replaceFirstFn,
 			expected: "foo",
 		},
 		{
 			name:     "Replace ungreedy",
 			args:     []any{"a.*c", "-U", "foo", "abcdbc"},
-			fn:       replaceFn,
+			fn:       replaceFirstFn,
 			expected: "foodbc",
+		},
+		{
+			name:     "ReplaceAll",
+			args:     []any{"a", "foo", "aaa"},
+			fn:       replaceAllFn,
+			expected: "foofoofoo",
+		},
+		{
+			name:     `Replace including newline`,
+			args:     []any{`//.*build.*\n`, "", "//go:build darwin && go1.18 && !go1.19\n// +build darwin,go1.18,!go1.19\n"},
+			fn:       replaceAllFn,
+			expected: "",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

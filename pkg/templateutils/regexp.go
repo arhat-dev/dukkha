@@ -3,9 +3,11 @@ package templateutils
 import (
 	"fmt"
 	"regexp"
+	"unicode/utf8"
 
 	"arhat.dev/pkg/clihelper"
 	"arhat.dev/pkg/regexphelper"
+	"arhat.dev/pkg/stringhelper"
 	"github.com/spf13/pflag"
 )
 
@@ -20,58 +22,178 @@ import (
 // - `--multi-line` or `-m`: run in multi-line mode
 // - `--dot-newline` or `-s`: match newline with dots(`.`)
 // - `--ungreedy` or `-U`: reverse meaning of `.*?` and `.*`
+// - `--in-place`: operate on input directly, do not copy
+//    only applicable when the size of result is less than or equal to the input data
 type regexpNS struct{}
 
-func (regexpNS) Find(args ...String) (ret string, err error) {
-	err = handleReTemplateFunc_DATA(args, func(re *regexp.Regexp, data string) error {
-		ret = re.FindString(data)
+// FindFirst returns first matched string
+//
+// FindFirst(expr string, args ...string, data string)
+func (regexpNS) FindFirst(args ...String) (ret string, err error) {
+	err = handleRE_DATA(args, func(re *regexp.Regexp, data []byte) error {
+		ret = re.FindString(stringhelper.Convert[string, byte](data))
 		return nil
 	})
 
 	return
 }
 
+// FindN returns n matched (non-overlapped) strings
+//
+// FindN(expr string, args ...string, data string): this is FindAll
+// FindN(expr string, args ...string, count int, data string): when count < 0, it's FindAll
+func (regexpNS) FindN(args ...String) (ret []string, err error) {
+	err = handleRE_OptionalN_DATA(args, func(re *regexp.Regexp, data []byte, c int) error {
+		ret = re.FindAllString(stringhelper.Convert[string, byte](data), c)
+		return nil
+	})
+
+	return
+}
+
+// Find returns all matched (non-overlapped) string
+//
+// FindAll(expr string, args ...string, data string)
 func (regexpNS) FindAll(args ...String) (ret []string, err error) {
-	err = handleRETemplateFunc_OptionalN_DATA(args, func(re *regexp.Regexp, data string, c int) error {
-		ret = re.FindAllString(data, c)
+	err = handleRE_OptionalN_DATA(args, func(re *regexp.Regexp, data []byte, c int) error {
+		ret = re.FindAllString(stringhelper.Convert[string, byte](data), -1)
 		return nil
 	})
-
 	return
 }
 
+// Match returns true when data matched expr
+// Match(expr string, args ...string, data string)
 func (regexpNS) Match(args ...String) (matched bool, err error) {
-	err = handleReTemplateFunc_DATA(args, func(re *regexp.Regexp, data string) error {
-		matched = re.MatchString(data)
+	err = handleRE_DATA(args, func(re *regexp.Regexp, data []byte) error {
+		matched = re.Match(data)
 		return nil
 	})
 
 	return
 }
 
+// Replace first matched string, it will expand capture group references (e.g. `$1`) in expr
+//
+// Replace(expr string, args ...string, data string)
 // TODO: support writer as the second last argument
-func (regexpNS) Replace(args ...String) (ret string, err error) {
-	err = handleReTemplateFunc_OPDATA_DATA(args, func(re *regexp.Regexp, opData, data string) error {
-		ret = re.ReplaceAllString(data, opData)
+func (regexpNS) ReplaceFirst(args ...String) (ret string, err error) {
+	err = handleRE_OPDATA_DATA(args, func(re *regexp.Regexp, inplace bool, opData, data []byte) error {
+		ret0 := RegexpReplaceExpandN(re, data, opData, 1)
+		ret = stringhelper.Convert[string, byte](ret0)
 		return nil
 	})
 
 	return
 }
 
+// ReplaceAll replace all matched string (non-overlapped)
 // TODO: support writer as the second last argument
-func (regexpNS) ReplaceLiteral(args ...String) (ret string, err error) {
-	err = handleReTemplateFunc_OPDATA_DATA(args, func(re *regexp.Regexp, opData, data string) error {
-		ret = re.ReplaceAllLiteralString(data, opData)
+func (regexpNS) ReplaceAll(args ...String) (ret string, err error) {
+	err = handleRE_OPDATA_DATA(args, func(re *regexp.Regexp, inplace bool, repl, src []byte) error {
+		ret0 := RegexpReplaceExpandN(re, src, repl, -1)
+		ret = stringhelper.Convert[string, byte](ret0)
 		return nil
 	})
 
 	return
+}
+
+// Replace first matched string, it will expand capture group references (e.g. `$1`) in expr
+//
+// Replace(expr string, args ...string, data string)
+// TODO: support writer as the second last argument
+func (regexpNS) ReplaceFirstNoExpand(args ...String) (ret string, err error) {
+	err = handleRE_OPDATA_DATA(args, func(re *regexp.Regexp, inplace bool, opData, data []byte) error {
+		ret0 := RegexpReplaceNoExpandN(re, data, opData, 1)
+		ret = stringhelper.Convert[string, byte](ret0)
+		return nil
+	})
+
+	return
+}
+
+// ReplaceAll replace all matched string (non-overlapped)
+// TODO: support writer as the second last argument
+func (regexpNS) ReplaceAllNoExpand(args ...String) (ret string, err error) {
+	err = handleRE_OPDATA_DATA(args, func(re *regexp.Regexp, inplace bool, opData, data []byte) error {
+		ret0 := RegexpReplaceNoExpandN(re, data, opData, -1)
+		ret = stringhelper.Convert[string, byte](ret0)
+		return nil
+	})
+
+	return
+}
+
+func RegexpReplaceExpandN(re *regexp.Regexp, src, repl []byte, n int) []byte {
+	template := stringhelper.Convert[string, byte](repl)
+	data := stringhelper.Convert[string, byte](src)
+	return RegexpReplaceN(re, src, n, func(dest []byte, match []int) []byte {
+		// here we use re.ExpandString because it doesn't do type conversion
+		// and re.Expand converts []byte to string
+		return re.ExpandString(dest, template, data, match)
+	})
+}
+
+func RegexpReplaceNoExpandN(re *regexp.Regexp, src, repl []byte, n int) []byte {
+	return RegexpReplaceN(re, src, n, func(dest []byte, match []int) []byte {
+		return append(dest, repl...)
+	})
+}
+
+func RegexpReplaceN(re *regexp.Regexp, src []byte, n int, repl func(dest []byte, match []int) []byte) (buf []byte) {
+	lastMatchEnd := 0 // end position of the most recent match
+	offset := 0       // position where we next look for a match
+	end := len(src)
+	if n < 0 {
+		n = end + 1
+	}
+
+	for i := 0; offset <= end && i < n; {
+		a := re.FindIndex(src[offset:])
+		if len(a) == 0 {
+			break // no more matches
+		}
+
+		a[0], a[1] = a[0]+offset, a[1]+offset
+
+		// Copy the unmatched characters before this match.
+		buf = append(buf, src[lastMatchEnd:a[0]]...)
+
+		// Now insert a copy of the replacement string, but not for a
+		// match of the empty string immediately after another match.
+		// (Otherwise, we get double replacement for patterns that
+		// match both empty and nonempty strings.)
+		if a[1] > lastMatchEnd || a[0] == 0 {
+			buf = repl(buf, a)
+			i++
+		}
+		lastMatchEnd = a[1]
+
+		// Advance past this match; always advance at least one character.
+		var width int
+		_, width = utf8.DecodeRune(src[offset:])
+		switch {
+		case offset+width > a[1]:
+			offset += width
+		case offset+1 > a[1]:
+			// This clause is only needed at the end of the input
+			// string. In that case, DecodeRuneInString returns width=0.
+			offset++
+		default:
+			offset = a[1]
+		}
+	}
+
+	// Copy the unmatched characters after the last match.
+	buf = append(buf, src[lastMatchEnd:]...)
+
+	return buf
 }
 
 func (regexpNS) Split(args ...String) (ret []string, err error) {
-	err = handleRETemplateFunc_OptionalN_DATA(args, func(re *regexp.Regexp, data string, c int) error {
-		ret = re.Split(data, c)
+	err = handleRE_OptionalN_DATA(args, func(re *regexp.Regexp, data []byte, c int) error {
+		ret = re.Split(stringhelper.Convert[string, byte](data), c)
 		return nil
 	})
 
@@ -81,18 +203,21 @@ func (regexpNS) Split(args ...String) (ret []string, err error) {
 func (regexpNS) QuoteMeta(expr String) string { return regexp.QuoteMeta(must(toString(expr))) }
 
 // last arg is the input data
-func handleReTemplateFunc_DATA(args []String, doRE func(re *regexp.Regexp, data string) error) (err error) {
+func handleRE_DATA(
+	args []String,
+	doRE func(re *regexp.Regexp, data []byte) error,
+) (err error) {
 	n := len(args)
 	if n < 2 {
 		return fmt.Errorf("at least 2 args expected: got %d", n)
 	}
 
-	re, err := parseRegexp(args[:n-1])
+	re, _, err := parseRegexp(args[:n-1])
 	if err != nil {
 		return err
 	}
 
-	data, err := toString(args[n-1])
+	data, err := toBytes(args[n-1])
 	if err != nil {
 		return
 	}
@@ -100,38 +225,38 @@ func handleReTemplateFunc_DATA(args []String, doRE func(re *regexp.Regexp, data 
 	return doRE(re, data)
 }
 
-// last two arga are: opration action data (e.g. replacement text) and data
-func handleReTemplateFunc_OPDATA_DATA(
+// last two args are: opration action data (e.g. replacement text) and data
+func handleRE_OPDATA_DATA(
 	args []String,
-	doRE func(re *regexp.Regexp, opData, data string) error,
+	doRE func(re *regexp.Regexp, inplace bool, opData, data []byte) error,
 ) (err error) {
 	n := len(args)
 	if n < 3 {
 		return fmt.Errorf("at least 3 args expected: got %d", n)
 	}
 
-	re, err := parseRegexp(args[:n-2])
+	re, inplace, err := parseRegexp(args[:n-2])
 	if err != nil {
 		return err
 	}
 
-	opData, err := toString(args[n-2])
+	opData, err := toBytes(args[n-2])
 	if err != nil {
 		return
 	}
 
-	data, err := toString(args[n-1])
+	data, err := toBytes(args[n-1])
 	if err != nil {
 		return
 	}
 
-	return doRE(re, opData, data)
+	return doRE(re, inplace, opData, data)
 }
 
 // last two args are: an optional number, input data
-func handleRETemplateFunc_OptionalN_DATA(
+func handleRE_OptionalN_DATA(
 	args []String,
-	doRE func(re *regexp.Regexp, data string, c int) error,
+	doRE func(re *regexp.Regexp, data []byte, c int) error,
 ) (err error) {
 	n := len(args)
 	if n < 2 {
@@ -150,12 +275,12 @@ func handleRETemplateFunc_OptionalN_DATA(
 		}
 	}
 
-	re, err := parseRegexp(args[:n-1])
+	re, _, err := parseRegexp(args[:n-1])
 	if err != nil {
 		return err
 	}
 
-	data, err := toString(args[n-1])
+	data, err := toBytes(args[n-1])
 	if err != nil {
 		return
 	}
@@ -163,49 +288,55 @@ func handleRETemplateFunc_OptionalN_DATA(
 	return doRE(re, data, c)
 }
 
-// parseRegexp args[0] is expected to be expr
+// parseRegexp args[0] is expected to be the regular expression
 // args[1:] is a list of regexp flags
-func parseRegexp(args []String) (_ *regexp.Regexp, err error) {
-	n := len(args)
-
+func parseRegexp(args []String) (ret *regexp.Regexp, inplace bool, err error) {
 	var expr string
-	if len(args) == 0 {
+	switch len(args) {
+	case 0:
 		err = errAtLeastOneArgGotZero
 		return
-	}
+	case 1:
+		expr, err = toString(args[0])
+		if err != nil {
+			return
+		}
 
-	expr, err = toString(args[0])
-	if err != nil {
+		ret, err = regexp.Compile(expr)
 		return
-	}
+	default:
+		expr, err = toString(args[0])
+		if err != nil {
+			return
+		}
 
-	if n == 1 {
-		return regexp.Compile(expr)
 	}
 
 	var (
-		fs pflag.FlagSet
+		pfs pflag.FlagSet
 
 		flags []string
 		opts  regexphelper.Options
 	)
 
-	clihelper.InitFlagSet(&fs, "regexp")
+	clihelper.InitFlagSet(&pfs, "regexp")
 
-	fs.BoolVarP(&opts.CaseInsensitive, "case-insensitive", "i", false, "")
-	fs.BoolVarP(&opts.Multiline, "multi-line", "m", false, "")
-	fs.BoolVarP(&opts.DotNewLine, "dot-newline", "s", false, "")
-	fs.BoolVarP(&opts.Ungreedy, "ungreedy", "U", false, "")
+	pfs.BoolVarP(&opts.CaseInsensitive, "case-insensitive", "i", false, "")
+	pfs.BoolVarP(&opts.Multiline, "multi-line", "m", false, "")
+	pfs.BoolVarP(&opts.DotNewLine, "dot-newline", "s", false, "")
+	pfs.BoolVarP(&opts.Ungreedy, "ungreedy", "U", false, "")
+	pfs.BoolVar(&inplace, "in-place", false, "")
 
 	flags, err = toStrings(args[1:])
 	if err != nil {
 		return
 	}
 
-	err = fs.Parse(flags)
+	err = pfs.Parse(flags)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return regexp.Compile(opts.Wrap(expr))
+	ret, err = regexp.Compile(opts.Wrap(expr))
+	return
 }
