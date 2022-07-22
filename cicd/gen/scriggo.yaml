@@ -1,0 +1,28 @@
+workflow:run:
+- name: install-scriggo
+  jobs:
+  - env:
+    - name: GOBIN
+      value@tlang: &gobin fs.Join dukkha.CacheDir "bin" ; ":"; fs.Dir (fs.Lookup "go")
+    shell:
+      go install github.com/open2b/scriggo/cmd/scriggo@v0.55.0
+
+- name: gen-scriggo
+  env:
+  - name: PATH
+    value@tlang: *gobin
+  - name: interp_dir
+    value@tlang: fs.Join dukkha.WorkDir "pkg" "plugins" "internal"
+  - name: CONFIG_FILE
+    value@tlang: fs.Join env.interp_dir "Scriggofile"
+  - name: OUTPUT_FILE
+    value@tlang: fs.Join env.interp_dir "packages.go"
+  jobs:
+  - shell: |-
+      scriggo import -f "${CONFIG_FILE}" -o "${OUTPUT_FILE}" "${DUKKHA_WORKDIR}"
+  - idle@tlang: |-
+      $file := fs.ReadFile env.OUTPUT_FILE
+      $file = $file | strings.ReplaceAll "archconst.Format" "archconst.Format[string, byte, string]"
+      $file = $file | strings.ReplaceAll "archconst.Parse" "archconst.Parse[byte, string]"
+      $file = $file | re.ReplaceAll `//.*build.*\n` ""
+      $file | fs.WriteFile env.OUTPUT_FILE

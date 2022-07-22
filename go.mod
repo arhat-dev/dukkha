@@ -23,6 +23,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/muesli/termenv v0.11.0
 	github.com/nwaples/rardecode v1.1.3
+	github.com/open2b/scriggo v0.55.0
 	github.com/pierrec/lz4/v4 v4.1.14
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
