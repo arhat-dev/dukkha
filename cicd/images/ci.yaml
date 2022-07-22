@@ -27,7 +27,7 @@ workflow:run:
       ref: docker:login(ghcr)
       matrix_filter: {}
 
-  - if@tmpl: *github
+  - if@tlang: *github
     task:
       ref: cosign:sign-image(dukkha)
       matrix_filter: {}
