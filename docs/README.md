@@ -50,25 +50,17 @@ shells: []
 
 ### Loading
 
-Before loading config, dukkha prepares serval essential renderers for bootstrapping, these renderers are
+Before loading config, dukkha prepares serval essential renderers for bootstrapping, these renderers are `echo`, `env` (without arbitrary command execution support), `shell`, `tmpl`, `tlang`, `http`, `file`, `T`
 
-- `echo`
-- `env` without arbitrary command execution support
-- `shell`
-- `tmpl`
-- `http`
-- `file`
-- `T`
+To load config, there must be an entrypoint config for dukkha, that can be specified by cli flag `--config` (or `-c`), `.dukkha.yaml` in the current working directory will be used by default.
 
-To load config, there must be an entrypoint file/dir for dukkha, the entrypoint(s) can be specified by cli flag `--config` (or `-c`), `.dukkha.yaml` in the current working directory will be used when no `--config` flag is provided.
+1) Read the config, unmarshals as yaml doc, resolves `renderers` section, add them all, if there are renderers with same name, last appeared becomes effective.
 
-1) dukkha reads the config file, unmarshal it as yaml doc, resolve `renderers` section in the config, add all renderers defined in this section, if there are renderers with same name, last appeared will be effective.
+2) Resolve `include` section to find references to other config, but instead of reading referenced config immediately, dukkha merges all exisitng config first (excluding `include` and `renderers`).
 
-2) Combined with essential renderers, dukkha resolves `include` section to find references to other config, but instead of reading referenced config immediately, dukkha merges all exisitng config first (excluding `include` and `renderers`).
+3) Same routine from 1) for referenced config
 
-3) Go over same process as 1) for referenced config files/texts
-
-4) After all config been loaded into memory, resolve tools and tasks
+4) After all config been loaded, resolve tools and tasks
 
 ```mermaid
 sequenceDiagram
@@ -167,6 +159,7 @@ sequenceDiagram
 ### `run` task
 
 - `run <tool-kind> <tool-name> <task-kind> <task-name>`
+  - e.g. `dukkha run golang local build app`
 
 ### `debug` config
 
@@ -183,5 +176,8 @@ sequenceDiagram
 ### `diff` yaml files with reasoning
 
 - `diff [file-source] <file-original> <file-updated>`
+  - (optional) file-source is the yaml file using rendering suffix
+  - (required) file-original is the old yaml file
+  - (required) file-updated is the new yaml file
 
 __NOTICE:__ This command is still a work in progress to showcase potential rendering suffix usage, and doesn't produce useful output.
