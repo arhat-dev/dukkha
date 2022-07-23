@@ -353,9 +353,9 @@ func CreateTaskMatrixContext(
 			Value: v,
 		})
 
-		if name == constant.ENV_MATRIX_ARCH {
+		if name == constant.EnvName_MATRIX_ARCH {
 			mCtx.AddEnv(true, &dukkha.EnvEntry{
-				Name:  constant.ENV_MATRIX_ARCH_SIMPLE,
+				Name:  constant.EnvName_MATRIX_ARCH_SIMPLE,
 				Value: constant.SimpleArch(v),
 			})
 		}

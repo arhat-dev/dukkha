@@ -48,7 +48,7 @@ func TestTwoTierCache(t *testing.T) {
 		})
 
 		cacheDir := t.TempDir()
-		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), 0, 0, 0)
 
@@ -125,7 +125,7 @@ func TestTwoTierCache(t *testing.T) {
 		})
 
 		cacheDir := t.TempDir()
-		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), -1, -1, 100)
 
@@ -161,7 +161,7 @@ func TestTwoTierCache(t *testing.T) {
 		})
 
 		cacheDir := t.TempDir()
-		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), 1, 1024, 100)
 		data, expired, err := cache.Get(obj, 1111111111, true, fetchRemoteAlwaysOk)
@@ -186,7 +186,7 @@ func TestTwoTierCache(t *testing.T) {
 		})
 
 		cacheDir := t.TempDir()
-		cache := NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		cache := NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), 0, 1, 100)
 		data, expired, err := cache.Get(obj, 1111111111, true, fetchRemoteAlwaysOk)
@@ -277,7 +277,7 @@ func TestStoreLocalCache(t *testing.T) {
 
 		tmpdir := t.TempDir()
 
-		ofs := fshelper.NewOSFS(true, func() (string, error) {
+		ofs := fshelper.NewOSFS(true, func(fshelper.Op) (string, error) {
 			return tmpdir, nil
 		})
 
@@ -292,7 +292,7 @@ func TestStoreLocalCache(t *testing.T) {
 
 		tmpdir := t.TempDir()
 
-		ofs := fshelper.NewOSFS(true, func() (string, error) {
+		ofs := fshelper.NewOSFS(true, func(fshelper.Op) (string, error) {
 			return tmpdir, nil
 		})
 
@@ -315,7 +315,7 @@ func TestStoreLocalCache(t *testing.T) {
 
 			tmpdir := t.TempDir()
 
-			ofs := fshelper.NewOSFS(true, func() (string, error) {
+			ofs := fshelper.NewOSFS(true, func(fshelper.Op) (string, error) {
 				return tmpdir, nil
 			})
 

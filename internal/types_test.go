@@ -7,20 +7,23 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/tlang"
 )
 
 func TestInternalTypes(t *testing.T) {
 	t.Parallel()
 
-	ctx := dukkha.NewConfigResolvingContext(context.TODO(), nil, nil)
+	fakeGlobalEnv := &dukkha.GlobalEnvSet{}
+	for i := range fakeGlobalEnv {
+		fakeGlobalEnv[i] = tlang.ImmediateString("")
+	}
+
+	ctx := dukkha.NewConfigResolvingContext(context.TODO(), nil, fakeGlobalEnv)
 
 	_, ok := ctx.(DefaultGitBranchOverrider)
 	assert.True(t, ok)
 
 	_, ok = ctx.(WorkDirOverrider)
-	assert.True(t, ok)
-
-	_, ok = ctx.(CacheDirSetter)
 	assert.True(t, ok)
 
 	_, ok = ctx.(VALUEGetter)

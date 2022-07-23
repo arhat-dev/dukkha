@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"arhat.dev/tlang"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +31,12 @@ func (*canceledContext) Value(interface{}) interface{} { return nil }
 func TestContext_SetCustomParent(t *testing.T) {
 	t.Parallel()
 
-	_ctx := NewConfigResolvingContext(context.Background(), nil, nil)
+	fakeGlobalEnv := &GlobalEnvSet{}
+	for i := range fakeGlobalEnv {
+		fakeGlobalEnv[i] = tlang.ImmediateString("")
+	}
+
+	_ctx := NewConfigResolvingContext(context.Background(), nil, fakeGlobalEnv)
 
 	ctx := _ctx.WithCustomParent(&canceledContext{})
 	select {

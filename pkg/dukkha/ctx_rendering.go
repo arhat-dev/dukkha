@@ -11,17 +11,19 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"unsafe"
 
 	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/textquery"
 	"arhat.dev/rs"
 	"arhat.dev/tlang"
 	"github.com/itchyny/gojq"
 	"mvdan.cc/sh/v3/expand"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 type RenderingContext interface {
@@ -52,7 +54,7 @@ type RenderingContext interface {
 func newContextRendering(
 	ctx contextStd,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]tlang.LazyValueType[string],
+	globalEnv *GlobalEnvSet,
 ) contextRendering {
 	envValues := newEnvValues(globalEnv)
 	return contextRendering{
@@ -64,12 +66,12 @@ func newContextRendering(
 		renderers:        make(map[string]Renderer),
 		values:           make(map[string]any),
 
-		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return envValues.WorkDir(), nil
-		}), "."),
-		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return envValues.CacheDir(), nil
-		}), "."),
+		fs: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
+			return globalEnv[constant.GlobalEnv_DUKKHA_WORKDIR].GetLazyValue(), nil
+		}), true, "."),
+		cacheFS: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
+			return globalEnv[constant.GlobalEnv_DUKKHA_CACHE_DIR].GetLazyValue(), nil
+		}), false, "."),
 	}
 }
 
@@ -111,12 +113,8 @@ func (c *contextRendering) clone(newCtx contextStd, separateEnv bool) contextRen
 		// values are global scoped, DO NOT deep copy in any case
 		values: c.values,
 
-		fs: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return vals.WorkDir(), nil
-		}), "."),
-		cacheFS: lazyEnsuredSubFS(fshelper.NewOSFS(false, func() (string, error) {
-			return vals.CacheDir(), nil
-		}), "."),
+		fs:      c.fs,
+		cacheFS: c.cacheFS,
 
 		stdin:  c.stdin,
 		stdout: c.stdout,
@@ -155,51 +153,78 @@ func (c *contextRendering) SetStdIO(stdin io.Reader, stdout, stderr io.Writer) {
 func (c *contextRendering) FS() *fshelper.OSFS { return c.fs }
 
 func (c *contextRendering) GlobalCacheFS(subdir string) *fshelper.OSFS {
-	return lazyEnsuredSubFS(c.cacheFS, subdir)
+	return lazilyEnsuredSubFS(c.cacheFS, false, subdir)
 }
 
-func lazyEnsuredSubFS(ofs *fshelper.OSFS, subdir string) *fshelper.OSFS {
+// lazilyEnsuredSubFS creates a fs representing a subdir relative to ofs
+// subdir may not exist until there is read/write/check operation to it
+//
+// subdir is always relative to ofs when alwaysRelative is true, in that case
+// when ofs changes working dir, subdir changes as well
+func lazilyEnsuredSubFS(ofs *fshelper.OSFS, alwaysRelative bool, subdir string) *fshelper.OSFS {
 	if path.IsAbs(subdir) || filepath.IsAbs(subdir) {
 		panic(fmt.Errorf("expecting relative path, got %q", subdir))
 	}
 
-	return fshelper.NewOSFS(false, func() (string, error) {
-		pc, _, _, ok := runtime.Caller(2)
-		if ok {
-			callerFunc := runtime.FuncForPC(pc).Name()
-			switch {
-			case strings.HasSuffix(callerFunc, "Abs"):
-				// do nothing but return base dir when calling Abs
+	if alwaysRelative {
+		return fshelper.NewOSFS(false, func(op fshelper.Op) (_ string, err error) {
+			switch op {
+			case fshelper.Op_Abs, fshelper.Op_Sub, fshelper.Op_Unknown:
 				return ofs.Abs(subdir)
-			default:
 			}
-		}
 
-		_, err := ofs.Stat(subdir)
-		if err == nil {
+			_, err = ofs.Stat(subdir)
+			if err == nil {
+				return ofs.Abs(subdir)
+			}
+
+			if !errors.Is(err, fs.ErrNotExist) {
+				panic(err)
+			}
+
+			err = ofs.MkdirAll(subdir, 0755)
+			if err != nil && !errors.Is(err, fs.ErrExist) {
+				panic(err)
+			}
+
 			return ofs.Abs(subdir)
+		})
+	}
+
+	absDir, err := ofs.Abs(subdir)
+	if err != nil {
+		panic(err)
+	}
+
+	return fshelper.NewOSFS(false, func(op fshelper.Op) (_ string, err error) {
+		switch op {
+		case fshelper.Op_Abs, fshelper.Op_Sub, fshelper.Op_Unknown:
+			return absDir, nil
 		}
 
-		// we can only handle dir not exist error
+		_, err = os.Stat(absDir)
+		if err == nil {
+			return absDir, nil
+		}
 
 		if !errors.Is(err, fs.ErrNotExist) {
-			return "", err
+			panic(err)
 		}
 
-		err = ofs.MkdirAll(subdir, 0755)
+		err = os.MkdirAll(absDir, 0755)
 		if err != nil && !errors.Is(err, fs.ErrExist) {
-			return "", err
+			panic(err)
 		}
 
-		return ofs.Abs(subdir)
+		return absDir, nil
 	})
 }
 
 // Env returns all environment variables available
 // global environment variables are always kept
 func (c *contextRendering) Env() map[string]tlang.LazyValueType[string] {
-	for k, v := range c.envValues.globalEnv {
-		c.envValues.env[k] = v
+	for id, k := range constant.GlobalEnvNames {
+		c.envValues.env[k] = c.envValues.globalEnv[id]
 	}
 
 	return c.envValues.env
@@ -239,6 +264,7 @@ func (c *contextRendering) RenderYaml(renderer string, rawData any) ([]byte, err
 	return v.RenderYaml((*dukkhaContext)(unsafe.Pointer(c)), rawData, attributes)
 }
 
+// Create implements RenderingContext
 func (c *contextRendering) Create(typ reflect.Type, yamlKey string) (any, error) {
 	return c.ifaceTypeHandler.Create(typ, yamlKey)
 }
@@ -253,7 +279,7 @@ func (c *contextRendering) AllRenderers() map[string]Renderer {
 
 // Get implements expand.Environ
 func (c *contextRendering) Get(name string) expand.Variable {
-	v, exists := c.globalEnv[name]
+	v, exists := c.globalEnv.Get(name)
 	if exists {
 		return createVariable(v.GetLazyValue())
 	}
@@ -322,80 +348,62 @@ func (c *contextRendering) Get(name string) expand.Variable {
 }
 
 // Each implements expand.Environ
-func (c *contextRendering) Each(do func(name string, vr expand.Variable) bool) {
-	visited := make(map[string]struct{})
-
-	for k, v := range c.globalEnv {
-		visited[k] = struct{}{}
-
+func (c *contextRendering) Each(do envVisitFunc) {
+	env := c.Env()
+	for k, v := range env {
 		if !do(k, createVariable(v.GetLazyValue())) {
 			return
 		}
 	}
 
-	for k, v := range c.env {
-		// do not override
-		if _, ok := visited[k]; ok {
-			continue
-		}
-
-		if !do(k, createVariable(v.GetLazyValue())) {
-			return
-		}
-	}
-
-	values, _ := genEnvFromValues(c.values)
-	for k, v := range values {
-		if !do(k, v) {
-			return
-		}
-	}
+	visitValuesAsEnv(c.values, do)
 }
+
+type envVisitFunc = func(name string, vr expand.Variable) bool
 
 const valuesEnvPrefix = "values."
 
-func genEnvFromValues(values map[string]any) (map[string]expand.Variable, error) {
-	out := make(map[string]expand.Variable)
+func visitValuesAsEnv(values map[string]any, do envVisitFunc) {
 	for k, v := range values {
-		err := genEnvFromInterface(valuesEnvPrefix+k, v, &out)
-		if err != nil {
-			return nil, err
+		if !genEnvFromInterface(valuesEnvPrefix+k, v, do) {
+			return
 		}
 	}
-
-	return out, nil
 }
 
-func genEnvFromInterface(prefix string, v any, out *map[string]expand.Variable) error {
+func genEnvFromInterface(prefix string, v any, do envVisitFunc) bool {
 	switch t := v.(type) {
 	case map[string]any:
 		dataBytes, err := json.Marshal(v)
 		if err != nil {
-			return err
+			// TODO: log error
+			return false
 		}
 
-		(*out)[prefix] = createVariable(string(dataBytes))
+		if !do(prefix, createVariable(stringhelper.Convert[string, byte](dataBytes))) {
+			return false
+		}
 
 		for k, v := range t {
-			err = genEnvFromInterface(prefix+"."+k, v, out)
-			if err != nil {
-				return err
+			if !genEnvFromInterface(prefix+"."+k, v, do) {
+				return false
 			}
 		}
+
+		return true
 	case string:
-		(*out)[prefix] = createVariable(t)
+		return do(prefix, createVariable(t))
 	case []byte:
-		(*out)[prefix] = createVariable(string(t))
+		return do(prefix, createVariable(string(t)))
 	default:
 		dataBytes, err := json.Marshal(t)
 		if err != nil {
-			return err
+			// TODO: log error
+			return false
 		}
 
-		(*out)[prefix] = createVariable(string(dataBytes))
+		return do(prefix, createVariable(stringhelper.Convert[string, byte](dataBytes)))
 	}
-
-	return nil
 }
 
 // createVariable for embedded shell, if exists is false, will lookup values for the name

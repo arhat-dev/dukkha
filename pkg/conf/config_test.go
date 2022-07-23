@@ -7,7 +7,6 @@ import (
 	"arhat.dev/pkg/testhelper"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/conf"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -26,8 +25,7 @@ func TestConfig(t *testing.T) {
 			assert.NoError(t, actual.Merge(spec.(*conf.Config)))
 			expected := exp.(*conf.Config)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			// ctx.AddRenderer("file", file.NewDefault("file"))
 

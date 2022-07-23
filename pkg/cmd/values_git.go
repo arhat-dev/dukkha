@@ -128,7 +128,7 @@ func GitDefaultBranch(ctx context.Context, dir string) *tlang.LazyValue[string] 
 		[]string{
 			"git", "remote", "show", "origin",
 		},
-		func() string { return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH) },
+		func() string { return os.Getenv(constant.EnvName_GIT_DEFAULT_BRANCH) },
 		func(result string) string {
 			s := bufio.NewScanner(strings.NewReader(result))
 			s.Split(bufio.ScanLines)
@@ -140,7 +140,7 @@ func GitDefaultBranch(ctx context.Context, dir string) *tlang.LazyValue[string] 
 				}
 			}
 
-			return os.Getenv(constant.ENV_GIT_DEFAULT_BRANCH)
+			return os.Getenv(constant.EnvName_GIT_DEFAULT_BRANCH)
 		},
 	)
 }

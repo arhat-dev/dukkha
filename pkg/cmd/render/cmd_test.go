@@ -64,15 +64,16 @@ func TestCmd(t *testing.T) {
 				}
 			})
 
-			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), map[string]tlang.LazyValueType[string]{
-				constant.ENV_DUKKHA_WORKDIR: tlang.ImmediateString(cwd),
+			tmpdir := t.TempDir()
+			ctx := dt.NewTestContextWithGlobalEnv(context.TODO(), &dukkha.GlobalEnvSet{
+				constant.GlobalEnv_DUKKHA_WORKDIR:   tlang.ImmediateString(cwd),
+				constant.GlobalEnv_DUKKHA_CACHE_DIR: tlang.ImmediateString(tmpdir),
 			})
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
 
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
-			outputDir := filepath.Join(t.TempDir(), "output")
+			outputDir := filepath.Join(tmpdir, "output")
 			ctx.AddEnv(true, &dukkha.EnvEntry{
 				Name:  "out_dir",
 				Value: outputDir,

@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.9.1-0.20220527160521-12b7b771a58b
+# arhat.dev/pkg v0.9.1-0.20220723201621-be75f3e04b1f
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper
@@ -312,12 +312,13 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# mvdan.cc/sh/v3 v3.5.1 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491
+# mvdan.cc/sh/v3 v3.5.1 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220723194407-b237320fa712
 ## explicit; go 1.18
 mvdan.cc/sh/v3/expand
+mvdan.cc/sh/v3/fileutil
 mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/d5/tengo/v2 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
 # github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
-# mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220512171802-f339f8100491
+# mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220723194407-b237320fa712

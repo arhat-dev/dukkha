@@ -1064,11 +1064,6 @@
     },
     "arhat.dev.dukkha.pkg.conf.GlobalConfig": {
       "properties": {
-        "cache_dir": {
-          "type": "string",
-          "description": "set DUKKHA_CACHE_DIR to store script files, renderer cache and intermediate task execution data",
-          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script files, renderer cache and intermediate task execution data"
-        },
         "default_git_branch": {
           "type": "string",
           "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",
@@ -1086,21 +1081,12 @@
         }
       },
       "preferredOrder": [
-        "cache_dir",
         "default_git_branch",
         "env",
         "values"
       ],
       "additionalProperties": false,
       "patternProperties": {
-        "^cache_dir@.*": {
-          "type": "string",
-          "description": "set DUKKHA_CACHE_DIR to store script files, renderer cache and intermediate task execution data",
-          "x-intellij-html-description": "set DUKKHA<em>CACHE</em>DIR to store script files, renderer cache and intermediate task execution data"
-        },
-        "^cache_dir@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
         "^default_git_branch@.*": {
           "type": "string",
           "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",

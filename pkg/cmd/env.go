@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -14,12 +15,13 @@ import (
 	"arhat.dev/tlang"
 
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sysinfo"
 )
 
 // TODO(all): Update docs/environment-variables.md when updating this file
 
-func createGlobalEnv(ctx context.Context, cwd string) map[string]tlang.LazyValueType[string] {
+func createGlobalEnv(ctx context.Context, cwd string) *dukkha.GlobalEnvSet {
 	now := time.Now().Local()
 	zone, offset := now.Zone()
 
@@ -28,43 +30,50 @@ func createGlobalEnv(ctx context.Context, cwd string) map[string]tlang.LazyValue
 		return name + "," + version
 	}}
 
+	cacheDir, hasCacheDir := os.LookupEnv(constant.EnvName_DUKKHA_CACHE_DIR)
+	if !hasCacheDir {
+		cacheDir = filepath.Join(cwd, constant.DefaultCacheDir)
+	}
+
 	hostArch := &tlang.LazyValue[string]{Create: sysinfo.Arch}
 
-	return map[string]tlang.LazyValueType[string]{
-		constant.ENV_DUKKHA_WORKDIR: tlang.ImmediateString(cwd),
+	return &dukkha.GlobalEnvSet{
+		constant.GlobalEnv_DUKKHA_WORKDIR: tlang.ImmediateString(cwd),
+		// cache dir can be set in config
+		constant.GlobalEnv_DUKKHA_CACHE_DIR: tlang.ImmediateString(cacheDir),
 
-		constant.ENV_TIME_ZONE:        tlang.ImmediateString(zone),
-		constant.ENV_TIME_ZONE_OFFSET: tlang.ImmediateString(strconv.FormatInt(int64(offset), 10)),
-		constant.ENV_TIME_YEAR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Year()), 10)),
-		constant.ENV_TIME_MONTH:       tlang.ImmediateString(strconv.FormatInt(int64(now.Month()), 10)),
-		constant.ENV_TIME_DAY:         tlang.ImmediateString(strconv.FormatInt(int64(now.Day()), 10)),
-		constant.ENV_TIME_HOUR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Hour()), 10)),
-		constant.ENV_TIME_MINUTE:      tlang.ImmediateString(strconv.FormatInt(int64(now.Minute()), 10)),
-		constant.ENV_TIME_SECOND:      tlang.ImmediateString(strconv.FormatInt(int64(now.Second()), 10)),
+		constant.GlobalEnv_TIME_ZONE:        tlang.ImmediateString(zone),
+		constant.GlobalEnv_TIME_ZONE_OFFSET: tlang.ImmediateString(strconv.FormatInt(int64(offset), 10)),
+		constant.GlobalEnv_TIME_YEAR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Year()), 10)),
+		constant.GlobalEnv_TIME_MONTH:       tlang.ImmediateString(strconv.FormatInt(int64(now.Month()), 10)),
+		constant.GlobalEnv_TIME_DAY:         tlang.ImmediateString(strconv.FormatInt(int64(now.Day()), 10)),
+		constant.GlobalEnv_TIME_HOUR:        tlang.ImmediateString(strconv.FormatInt(int64(now.Hour()), 10)),
+		constant.GlobalEnv_TIME_MINUTE:      tlang.ImmediateString(strconv.FormatInt(int64(now.Minute()), 10)),
+		constant.GlobalEnv_TIME_SECOND:      tlang.ImmediateString(strconv.FormatInt(int64(now.Second()), 10)),
 
-		constant.ENV_HOST_KERNEL:         tlang.ImmediateString(runtime.GOOS),
-		constant.ENV_HOST_KERNEL_VERSION: &tlang.LazyValue[string]{Create: sysinfo.KernelVersion},
+		constant.GlobalEnv_HOST_KERNEL:         tlang.ImmediateString(runtime.GOOS),
+		constant.GlobalEnv_HOST_KERNEL_VERSION: &tlang.LazyValue[string]{Create: sysinfo.KernelVersion},
 
-		constant.ENV_HOST_OS: &tlang.LazyValue[string]{Create: func() string {
+		constant.GlobalEnv_HOST_OS: &tlang.LazyValue[string]{Create: func() string {
 			nameAndVer := osNameAndVersion.GetLazyValue()
 			return nameAndVer[:strings.IndexByte(nameAndVer, ',')]
 		}},
 
-		constant.ENV_HOST_OS_VERSION: &tlang.LazyValue[string]{Create: func() string {
+		constant.GlobalEnv_HOST_OS_VERSION: &tlang.LazyValue[string]{Create: func() string {
 			nameAndVer := osNameAndVersion.GetLazyValue()
 			return nameAndVer[strings.IndexByte(nameAndVer, ',')+1:]
 		}},
 
-		constant.ENV_HOST_ARCH: hostArch,
-		constant.ENV_HOST_ARCH_SIMPLE: &tlang.LazyValue[string]{Create: func() string {
+		constant.GlobalEnv_HOST_ARCH: hostArch,
+		constant.GlobalEnv_HOST_ARCH_SIMPLE: &tlang.LazyValue[string]{Create: func() string {
 			return constant.SimpleArch(hostArch.GetLazyValue())
 		}},
-		constant.ENV_GIT_BRANCH: GitBranch(ctx, cwd),
-		constant.ENV_GIT_COMMIT: GitCommit(ctx, cwd),
-		constant.ENV_GIT_TAG:    GitTag(ctx, cwd),
+		constant.GlobalEnv_GIT_BRANCH: GitBranch(ctx, cwd),
+		constant.GlobalEnv_GIT_COMMIT: GitCommit(ctx, cwd),
+		constant.GlobalEnv_GIT_TAG:    GitTag(ctx, cwd),
 
-		constant.ENV_GIT_WORKTREE_CLEAN: GitWorkTreeClean(ctx, cwd),
-		constant.ENV_GIT_DEFAULT_BRANCH: GitDefaultBranch(ctx, cwd),
+		constant.GlobalEnv_GIT_WORKTREE_CLEAN: GitWorkTreeClean(ctx, cwd),
+		constant.GlobalEnv_GIT_DEFAULT_BRANCH: GitDefaultBranch(ctx, cwd),
 	}
 }
 

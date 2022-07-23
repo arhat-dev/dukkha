@@ -8,7 +8,6 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
@@ -39,8 +38,7 @@ func TestDriver_RenderYaml(t *testing.T) {
 			actual := spec.(*TestSpec)
 			expected := exp.(*CheckSpec)
 
-			ctx := dt.NewTestContext(context.TODO())
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 
 			ctx.AddRenderer("T", NewDefault("T"))
 			ctx.AddRenderer("file", file.NewDefault("file"))

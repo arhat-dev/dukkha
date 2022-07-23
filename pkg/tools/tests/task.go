@@ -9,7 +9,6 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/af"
@@ -137,8 +136,7 @@ func TestTask(
 			spec := in.(*TestCase)
 			e := exp.(*CheckSpec)
 
-			ctx := dt.NewTestContext(context.TODO())
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("tmpl", tmpl.NewDefault("tmpl"))

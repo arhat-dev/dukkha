@@ -8,7 +8,6 @@ import (
 
 	"arhat.dev/pkg/archconst"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dukkha_test "arhat.dev/dukkha/pkg/dukkha/test"
@@ -33,14 +32,13 @@ func TestCreateBuildEnv(t *testing.T) {
 				{Name: "CGO_ENABLED", Value: "0"},
 			}
 
-			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 
 			rc.AddEnv(true, &dukkha.EnvEntry{
-				Name:  constant.ENV_MATRIX_KERNEL,
+				Name:  constant.EnvName_MATRIX_KERNEL,
 				Value: test.mKernel,
 			}, &dukkha.EnvEntry{
-				Name:  constant.ENV_MATRIX_ARCH,
+				Name:  constant.EnvName_MATRIX_ARCH,
 				Value: archconst.ARCH_S390X,
 			})
 
@@ -178,13 +176,12 @@ func TestCreateBuildEnv(t *testing.T) {
 				Value: "0",
 			})
 
-			rc := dukkha_test.NewTestContext(context.TODO())
-			rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			rc.AddEnv(true, &dukkha.EnvEntry{
-				Name:  constant.ENV_MATRIX_KERNEL,
+				Name:  constant.EnvName_MATRIX_KERNEL,
 				Value: constant.KERNEL_Linux,
 			}, &dukkha.EnvEntry{
-				Name:  constant.ENV_MATRIX_ARCH,
+				Name:  constant.EnvName_MATRIX_ARCH,
 				Value: test.mArch,
 			})
 

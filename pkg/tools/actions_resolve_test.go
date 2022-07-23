@@ -9,7 +9,6 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/echo"
@@ -52,8 +51,7 @@ func TestResolveActions_steps(t *testing.T) {
 			in := spec.(*TestResolvable)
 			cs := exp.(*CheckSpec)
 
-			mCtx := dt.NewTestContext(context.TODO())
-			mCtx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			mCtx := dt.NewTestContext(context.TODO(), t.TempDir())
 			mCtx.AddRenderer("tmpl", tmpl.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))

@@ -34,9 +34,12 @@ workflow:run:
 
       tmpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=amd64
 
+      DUKKHA_CACHE_DIR="$(wine64 winepath -w "${DUKKHA_CACHE_DIR}")" \
       wine64 ./build/dukkha-windows-amd64.exe render <<EOF
+
       sh@shell: command -v winepath
       tmpl@tlang: fs.Lookup "winepath"
+
       EOF
 
   - name: test path lookup under wine32
@@ -49,9 +52,12 @@ workflow:run:
 
       tmpl:dukkha.Self run golang local build dukkha -m kernel=windows -m arch=x86
 
+      DUKKHA_CACHE_DIR="$(wine winepath -w "${DUKKHA_CACHE_DIR}" 2>/dev/null)" \
       wine ./build/dukkha-windows-x86.exe render <<EOF
+
       sh@shell: command -v winepath
       tmpl@tlang: fs.Lookup "winepath"
+
       EOF
 
 - name: report

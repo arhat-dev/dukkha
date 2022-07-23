@@ -75,7 +75,7 @@ func TestCollectFiles(t *testing.T) {
 			spec := in.(*TestCase)
 			expected := *exp.(*map[string]*ExpectedEntry)
 
-			ctx := dukkha_test.NewTestContext(context.TODO())
+			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			assert.NoError(t, spec.ResolveFields(ctx, -1))
 
 			actualFiles, err := collectFiles(ctx.FS(), spec.Task.Files)

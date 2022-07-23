@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"arhat.dev/dukkha/third_party/golang/text/template/parse"
+	tp "arhat.dev/tlang/parse"
 )
 
 // common holds the information shared by related templates.
@@ -18,7 +19,7 @@ type common struct {
 	// We use two maps, one for parsing and one for execution.
 	// This separation makes the API cleaner since it doesn't
 	// expose reflection to the client.
-	funcs parse.TemplateFuncs
+	funcs tp.TemplateFuncs
 }
 
 // Template is the representation of a parsed template. The *parse.Tree
@@ -164,7 +165,7 @@ func (t *Template) Delims(left, right string) *Template {
 // type or if the name cannot be used syntactically as a function in a template.
 // It is legal to overwrite elements of the map. The return value is the template,
 // so calls can be chained.
-func (t *Template) Funcs(funcMap parse.TemplateFuncs) *Template {
+func (t *Template) Funcs(funcMap tp.TemplateFuncs) *Template {
 	t.init()
 	t.funcs = funcMap
 

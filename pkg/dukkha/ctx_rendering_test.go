@@ -58,8 +58,12 @@ func TestGenEnvForValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			values, err := genEnvFromValues(test.values)
-			assert.NoError(t, err)
+			values := make(map[string]expand.Variable)
+			visitValuesAsEnv(test.values, func(name string, vr expand.Variable) bool {
+				values[name] = vr
+				return true
+			})
+
 			assert.EqualValues(t, test.expected, values)
 		})
 	}

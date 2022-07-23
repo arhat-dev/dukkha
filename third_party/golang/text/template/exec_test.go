@@ -14,6 +14,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"arhat.dev/tlang"
 )
 
 var debug = flag.Bool("debug", false, "show the errors produced by the tests")
@@ -773,7 +775,7 @@ func mapOfThree() any {
 
 func testExecute(execTests []execTest, template *Template, t *testing.T) {
 	b := new(bytes.Buffer)
-	funcs := FuncMap{
+	funcs := tlang.FuncMap{
 		"add":         add,
 		"count":       count,
 		"dddArg":      dddArg,
@@ -926,7 +928,7 @@ func TestExecError_CustomError(t *testing.T) {
 	failingFunc := func() (string, error) {
 		return "", &CustomError{}
 	}
-	tmpl := Must(New("top").Funcs(FuncMap{
+	tmpl := Must(New("top").Funcs(tlang.FuncMap{
 		"err": failingFunc,
 	}).Parse("{{ err }}"))
 
@@ -1375,7 +1377,7 @@ func TestGoodFuncNames(t *testing.T) {
 	}
 	for _, name := range names {
 		tmpl := New("X").Funcs(
-			FuncMap{
+			tlang.FuncMap{
 				name: funcNameTestFunc,
 			},
 		)
@@ -1402,7 +1404,7 @@ func testBadFuncName(name string, t *testing.T) {
 		recover()
 	}()
 	New("X").Funcs(
-		FuncMap{
+		tlang.FuncMap{
 			name: funcNameTestFunc,
 		},
 	)
@@ -1619,7 +1621,7 @@ func TestInterfaceValues(t *testing.T) {
 
 // Check that panics during calls are recovered and returned as errors.
 func TestExecutePanicDuringCall(t *testing.T) {
-	funcs := FuncMap{
+	funcs := tlang.FuncMap{
 		"doPanic": func() string {
 			panic("custom panic string")
 		},

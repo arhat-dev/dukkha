@@ -53,7 +53,7 @@ func TestDriver_Render(t *testing.T) {
 		return
 	}
 
-	rc := dukkha_test.NewTestContext(context.TODO())
+	rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 
 	t.Run("Valid File Exists", func(t *testing.T) {
 		ret, err := d.RenderYaml(rc, tempFilePath, nil)
@@ -79,7 +79,7 @@ func TestDriver_readFile(t *testing.T) {
 
 	d := NewDefault("").(*Driver)
 
-	err := d.Init(fshelper.NewOSFS(false, func() (string, error) {
+	err := d.Init(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 		return tmpdir, nil
 	}))
 	assert.NoError(t, err)
@@ -92,7 +92,7 @@ func TestDriver_readFile(t *testing.T) {
 
 	d.BasePath = tmpdir
 
-	ofs := fshelper.NewOSFS(false, func() (string, error) {
+	ofs := fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 		return "no-where", nil
 	})
 	actual, err := d.readFile(ofs, testfile, false)
@@ -110,7 +110,7 @@ func TestDriver_cacheData(t *testing.T) {
 	tmpdir := t.TempDir()
 
 	d := NewDefault("").(*Driver)
-	err := d.Init(fshelper.NewOSFS(false, func() (string, error) {
+	err := d.Init(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 		return tmpdir, nil
 	}))
 	assert.NoError(t, err)

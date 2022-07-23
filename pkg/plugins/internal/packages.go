@@ -124,7 +124,7 @@ func init() {
 		Declarations: decs,
 	}
 	// "arhat.dev/dukkha/pkg/constant"
-	decs = make(native.Declarations, 108)
+	decs = make(native.Declarations, 132)
 	decs["ArchiveFormat_Tar"] = native.UntypedStringConst("tar")
 	decs["ArchiveFormat_Zip"] = native.UntypedStringConst("zip")
 	decs["CompressionMethod_Bzip2"] = native.UntypedStringConst("bzip2")
@@ -136,31 +136,31 @@ func init() {
 	decs["CrossPlatform"] = constant.CrossPlatform
 	decs["DUKKHA_TOOL_CMD"] = native.UntypedStringConst("DUKKHA_TOOL_CMD")
 	decs["DefaultCacheDir"] = native.UntypedStringConst(".dukkha/cache")
-	decs["ENV_DUKKHA_CACHE_DIR"] = native.UntypedStringConst("DUKKHA_CACHE_DIR")
-	decs["ENV_DUKKHA_WORKDIR"] = native.UntypedStringConst("DUKKHA_WORKDIR")
-	decs["ENV_GIT_BRANCH"] = native.UntypedStringConst("GIT_BRANCH")
-	decs["ENV_GIT_COMMIT"] = native.UntypedStringConst("GIT_COMMIT")
-	decs["ENV_GIT_DEFAULT_BRANCH"] = native.UntypedStringConst("GIT_DEFAULT_BRANCH")
-	decs["ENV_GIT_TAG"] = native.UntypedStringConst("GIT_TAG")
-	decs["ENV_GIT_WORKTREE_CLEAN"] = native.UntypedStringConst("GIT_WORKTREE_CLEAN")
-	decs["ENV_HOST_ARCH"] = native.UntypedStringConst("HOST_ARCH")
-	decs["ENV_HOST_ARCH_SIMPLE"] = native.UntypedStringConst("HOST_ARCH_SIMPLE")
-	decs["ENV_HOST_KERNEL"] = native.UntypedStringConst("HOST_KERNEL")
-	decs["ENV_HOST_KERNEL_VERSION"] = native.UntypedStringConst("HOST_KERNEL_VERSION")
-	decs["ENV_HOST_OS"] = native.UntypedStringConst("HOST_OS")
-	decs["ENV_HOST_OS_VERSION"] = native.UntypedStringConst("HOST_OS_VERSION")
-	decs["ENV_MATRIX_ARCH"] = native.UntypedStringConst("MATRIX_ARCH")
-	decs["ENV_MATRIX_ARCH_SIMPLE"] = native.UntypedStringConst("MATRIX_ARCH_SIMPLE")
-	decs["ENV_MATRIX_KERNEL"] = native.UntypedStringConst("MATRIX_KERNEL")
-	decs["ENV_MATRIX_LIBC"] = native.UntypedStringConst("MATRIX_LIBC")
-	decs["ENV_TIME_DAY"] = native.UntypedStringConst("TIME_DAY")
-	decs["ENV_TIME_HOUR"] = native.UntypedStringConst("TIME_HOUR")
-	decs["ENV_TIME_MINUTE"] = native.UntypedStringConst("TIME_MINUTE")
-	decs["ENV_TIME_MONTH"] = native.UntypedStringConst("TIME_MONTH")
-	decs["ENV_TIME_SECOND"] = native.UntypedStringConst("TIME_SECOND")
-	decs["ENV_TIME_YEAR"] = native.UntypedStringConst("TIME_YEAR")
-	decs["ENV_TIME_ZONE"] = native.UntypedStringConst("TIME_ZONE")
-	decs["ENV_TIME_ZONE_OFFSET"] = native.UntypedStringConst("TIME_ZONE_OFFSET")
+	decs["EnvName_DUKKHA_CACHE_DIR"] = native.UntypedStringConst("DUKKHA_CACHE_DIR")
+	decs["EnvName_DUKKHA_WORKDIR"] = native.UntypedStringConst("DUKKHA_WORKDIR")
+	decs["EnvName_GIT_BRANCH"] = native.UntypedStringConst("GIT_BRANCH")
+	decs["EnvName_GIT_COMMIT"] = native.UntypedStringConst("GIT_COMMIT")
+	decs["EnvName_GIT_DEFAULT_BRANCH"] = native.UntypedStringConst("GIT_DEFAULT_BRANCH")
+	decs["EnvName_GIT_TAG"] = native.UntypedStringConst("GIT_TAG")
+	decs["EnvName_GIT_WORKTREE_CLEAN"] = native.UntypedStringConst("GIT_WORKTREE_CLEAN")
+	decs["EnvName_HOST_ARCH"] = native.UntypedStringConst("HOST_ARCH")
+	decs["EnvName_HOST_ARCH_SIMPLE"] = native.UntypedStringConst("HOST_ARCH_SIMPLE")
+	decs["EnvName_HOST_KERNEL"] = native.UntypedStringConst("HOST_KERNEL")
+	decs["EnvName_HOST_KERNEL_VERSION"] = native.UntypedStringConst("HOST_KERNEL_VERSION")
+	decs["EnvName_HOST_OS"] = native.UntypedStringConst("HOST_OS")
+	decs["EnvName_HOST_OS_VERSION"] = native.UntypedStringConst("HOST_OS_VERSION")
+	decs["EnvName_MATRIX_ARCH"] = native.UntypedStringConst("MATRIX_ARCH")
+	decs["EnvName_MATRIX_ARCH_SIMPLE"] = native.UntypedStringConst("MATRIX_ARCH_SIMPLE")
+	decs["EnvName_MATRIX_KERNEL"] = native.UntypedStringConst("MATRIX_KERNEL")
+	decs["EnvName_MATRIX_LIBC"] = native.UntypedStringConst("MATRIX_LIBC")
+	decs["EnvName_TIME_DAY"] = native.UntypedStringConst("TIME_DAY")
+	decs["EnvName_TIME_HOUR"] = native.UntypedStringConst("TIME_HOUR")
+	decs["EnvName_TIME_MINUTE"] = native.UntypedStringConst("TIME_MINUTE")
+	decs["EnvName_TIME_MONTH"] = native.UntypedStringConst("TIME_MONTH")
+	decs["EnvName_TIME_SECOND"] = native.UntypedStringConst("TIME_SECOND")
+	decs["EnvName_TIME_YEAR"] = native.UntypedStringConst("TIME_YEAR")
+	decs["EnvName_TIME_ZONE"] = native.UntypedStringConst("TIME_ZONE")
+	decs["EnvName_TIME_ZONE_OFFSET"] = native.UntypedStringConst("TIME_ZONE_OFFSET")
 	decs["GetAlpineArch"] = constant.GetAlpineArch
 	decs["GetAlpineTripleName"] = constant.GetAlpineTripleName
 	decs["GetAppleArch"] = constant.GetAppleArch
@@ -174,6 +174,7 @@ func init() {
 	decs["GetDockerOS"] = constant.GetDockerOS
 	decs["GetGNUArch"] = constant.GetGNUArch
 	decs["GetGNUTripleName"] = constant.GetGNUTripleName
+	decs["GetGlobalEnvIDByName"] = constant.GetGlobalEnvIDByName
 	decs["GetGolangArch"] = constant.GetGolangArch
 	decs["GetGolangOS"] = constant.GetGolangOS
 	decs["GetLLVMArch"] = constant.GetLLVMArch
@@ -184,6 +185,29 @@ func init() {
 	decs["GetQemuArch"] = constant.GetQemuArch
 	decs["GetRustArch"] = constant.GetRustArch
 	decs["GetZigArch"] = constant.GetZigArch
+	decs["GlobalEnv"] = reflect.TypeOf((*constant.GlobalEnv)(nil)).Elem()
+	decs["GlobalEnv_Count"] = constant.GlobalEnv_Count
+	decs["GlobalEnv_DUKKHA_CACHE_DIR"] = constant.GlobalEnv_DUKKHA_CACHE_DIR
+	decs["GlobalEnv_DUKKHA_WORKDIR"] = constant.GlobalEnv_DUKKHA_WORKDIR
+	decs["GlobalEnv_GIT_BRANCH"] = constant.GlobalEnv_GIT_BRANCH
+	decs["GlobalEnv_GIT_COMMIT"] = constant.GlobalEnv_GIT_COMMIT
+	decs["GlobalEnv_GIT_DEFAULT_BRANCH"] = constant.GlobalEnv_GIT_DEFAULT_BRANCH
+	decs["GlobalEnv_GIT_TAG"] = constant.GlobalEnv_GIT_TAG
+	decs["GlobalEnv_GIT_WORKTREE_CLEAN"] = constant.GlobalEnv_GIT_WORKTREE_CLEAN
+	decs["GlobalEnv_HOST_ARCH"] = constant.GlobalEnv_HOST_ARCH
+	decs["GlobalEnv_HOST_ARCH_SIMPLE"] = constant.GlobalEnv_HOST_ARCH_SIMPLE
+	decs["GlobalEnv_HOST_KERNEL"] = constant.GlobalEnv_HOST_KERNEL
+	decs["GlobalEnv_HOST_KERNEL_VERSION"] = constant.GlobalEnv_HOST_KERNEL_VERSION
+	decs["GlobalEnv_HOST_OS"] = constant.GlobalEnv_HOST_OS
+	decs["GlobalEnv_HOST_OS_VERSION"] = constant.GlobalEnv_HOST_OS_VERSION
+	decs["GlobalEnv_TIME_DAY"] = constant.GlobalEnv_TIME_DAY
+	decs["GlobalEnv_TIME_HOUR"] = constant.GlobalEnv_TIME_HOUR
+	decs["GlobalEnv_TIME_MINUTE"] = constant.GlobalEnv_TIME_MINUTE
+	decs["GlobalEnv_TIME_MONTH"] = constant.GlobalEnv_TIME_MONTH
+	decs["GlobalEnv_TIME_SECOND"] = constant.GlobalEnv_TIME_SECOND
+	decs["GlobalEnv_TIME_YEAR"] = constant.GlobalEnv_TIME_YEAR
+	decs["GlobalEnv_TIME_ZONE"] = constant.GlobalEnv_TIME_ZONE
+	decs["GlobalEnv_TIME_ZONE_OFFSET"] = constant.GlobalEnv_TIME_ZONE_OFFSET
 	decs["HardFloatArch"] = constant.HardFloatArch
 	decs["KERNEL_Aix"] = native.UntypedStringConst("aix")
 	decs["KERNEL_Android"] = native.UntypedStringConst("android")
@@ -238,7 +262,7 @@ func init() {
 		Declarations: decs,
 	}
 	// "arhat.dev/dukkha/pkg/dukkha"
-	decs = make(native.Declarations, 67)
+	decs = make(native.Declarations, 68)
 	decs["ConfigResolvingContext"] = reflect.TypeOf((*dukkha.ConfigResolvingContext)(nil)).Elem()
 	decs["Context"] = reflect.TypeOf((*dukkha.Context)(nil)).Elem()
 	decs["CreateTaskExecOptions"] = dukkha.CreateTaskExecOptions
@@ -247,6 +271,7 @@ func init() {
 	decs["EnvValues"] = reflect.TypeOf((*dukkha.EnvValues)(nil)).Elem()
 	decs["ExecSpecGetFunc"] = reflect.TypeOf((*dukkha.ExecSpecGetFunc)(nil)).Elem()
 	decs["ExecValues"] = reflect.TypeOf((*dukkha.ExecValues)(nil)).Elem()
+	decs["GlobalEnvSet"] = reflect.TypeOf((*dukkha.GlobalEnvSet)(nil)).Elem()
 	decs["GlobalEnvValues"] = reflect.TypeOf((*dukkha.GlobalEnvValues)(nil)).Elem()
 	decs["GlobalInterfaceTypeHandler"] = &dukkha.GlobalInterfaceTypeHandler
 	decs["IfaceFactory"] = reflect.TypeOf((*dukkha.IfaceFactory)(nil)).Elem()
@@ -390,7 +415,8 @@ func init() {
 		Declarations: decs,
 	}
 	// "arhat.dev/pkg/fshelper"
-	decs = make(native.Declarations, 25)
+	decs = make(native.Declarations, 48)
+	decs["CwdGetFunc"] = reflect.TypeOf((*fshelper.CwdGetFunc)(nil)).Elem()
 	decs["FindOp"] = reflect.TypeOf((*fshelper.FindOp)(nil)).Elem()
 	decs["FindOp_CheckCreationTime"] = fshelper.FindOp_CheckCreationTime
 	decs["FindOp_CheckDepth"] = fshelper.FindOp_CheckDepth
@@ -415,6 +441,28 @@ func init() {
 	decs["FindOptions"] = reflect.TypeOf((*fshelper.FindOptions)(nil)).Elem()
 	decs["NewOSFS"] = fshelper.NewOSFS
 	decs["OSFS"] = reflect.TypeOf((*fshelper.OSFS)(nil)).Elem()
+	decs["Op"] = reflect.TypeOf((*fshelper.Op)(nil)).Elem()
+	decs["Op_Abs"] = fshelper.Op_Abs
+	decs["Op_Chmod"] = fshelper.Op_Chmod
+	decs["Op_Chown"] = fshelper.Op_Chown
+	decs["Op_Chtimes"] = fshelper.Op_Chtimes
+	decs["Op_Create"] = fshelper.Op_Create
+	decs["Op_Lstat"] = fshelper.Op_Lstat
+	decs["Op_Mkdir"] = fshelper.Op_Mkdir
+	decs["Op_MkdirAll"] = fshelper.Op_MkdirAll
+	decs["Op_Open"] = fshelper.Op_Open
+	decs["Op_OpenFile"] = fshelper.Op_OpenFile
+	decs["Op_ReadDir"] = fshelper.Op_ReadDir
+	decs["Op_ReadFile"] = fshelper.Op_ReadFile
+	decs["Op_Readlink"] = fshelper.Op_Readlink
+	decs["Op_Remove"] = fshelper.Op_Remove
+	decs["Op_RemoveAll"] = fshelper.Op_RemoveAll
+	decs["Op_Rename"] = fshelper.Op_Rename
+	decs["Op_Stat"] = fshelper.Op_Stat
+	decs["Op_Sub"] = fshelper.Op_Sub
+	decs["Op_Symlink"] = fshelper.Op_Symlink
+	decs["Op_Unknown"] = fshelper.Op_Unknown
+	decs["Op_WriteFile"] = fshelper.Op_WriteFile
 	decs["Symlinkat"] = fshelper.Symlinkat
 	NativePackages["arhat.dev/pkg/fshelper"] = native.Package{
 		Name:         "fshelper",

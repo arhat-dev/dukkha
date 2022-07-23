@@ -10,10 +10,6 @@ type (
 		OverrideWorkDir(cwd string)
 	}
 
-	CacheDirSetter interface {
-		SetCacheDir(dir string)
-	}
-
 	VALUEGetter interface {
 		VALUE() interface{}
 	}

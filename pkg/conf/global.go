@@ -11,10 +11,6 @@ import (
 type GlobalConfig struct {
 	rs.BaseField `yaml:"-"`
 
-	// CacheDir set DUKKHA_CACHE_DIR to store script files, renderer cache
-	// and intermediate task execution data
-	CacheDir string `yaml:"cache_dir"`
-
 	// DefaultGitBranch set GIT_DEFAULT_BRANCH, useful when dukkha can not
 	// detect branch name of origin/HEAD (e.g. github ci environment)
 	//
@@ -39,9 +35,6 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 	}
 
 	g.Env = append(g.Env, a.Env...)
-	if len(a.CacheDir) != 0 {
-		g.CacheDir = a.CacheDir
-	}
 
 	if len(a.DefaultGitBranch) != 0 {
 		g.DefaultGitBranch = a.DefaultGitBranch
@@ -71,11 +64,6 @@ func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) err
 	err := dukkha.ResolveEnv(rc, g, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("resolve global env: %w", err)
-	}
-
-	err = g.ResolveFields(rc, -1, "cache_dir")
-	if err != nil {
-		return fmt.Errorf("resolve cache dir: %w", err)
 	}
 
 	err = g.ResolveFields(rc, -1, "default_git_branch")

@@ -266,9 +266,8 @@ func RenderTemplate(
 		return buf.String(), nil
 	}
 
-	tplFuncs := tpl.GetExecFuncs().(*templateutils.TemplateFuncs)
-	tplFuncs.Override(templateutils.FuncID_var, reflect.ValueOf(fnVar))
-	tplFuncs.Override(templateutils.FuncID_include, reflect.ValueOf(fnInclude))
+	tfs.Override(templateutils.FuncID_var, reflect.ValueOf(fnVar))
+	tfs.Override(templateutils.FuncID_include, reflect.ValueOf(fnInclude))
 
 	var buf bytes.Buffer
 	err = tpl.Execute(&buf, rc)

@@ -28,7 +28,7 @@ func TestHandleRenderingRequestWithRemoteFetch(t *testing.T) {
 		defer t.Cleanup(func() {})
 
 		cacheDir := t.TempDir()
-		c := cache.NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		c := cache.NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), -1, -1, -1)
 		data, err := HandleRenderingRequestWithRemoteFetch(
@@ -42,7 +42,7 @@ func TestHandleRenderingRequestWithRemoteFetch(t *testing.T) {
 		defer t.Cleanup(func() {})
 
 		cacheDir := t.TempDir()
-		c := cache.NewTwoTierCache(fshelper.NewOSFS(false, func() (string, error) {
+		c := cache.NewTwoTierCache(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 			return cacheDir, nil
 		}), -1, -1, -1)
 		data, err := HandleRenderingRequestWithRemoteFetch(

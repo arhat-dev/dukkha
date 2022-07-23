@@ -8,7 +8,6 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
@@ -27,8 +26,7 @@ func TestFixturesUsingRenderingSuffix(
 			defer t.Cleanup(func() {})
 			s, e := spec.(rs.Field), exp.(rs.Field)
 
-			ctx := NewTestContext(context.TODO())
-			ctx.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+			ctx := NewTestContext(context.TODO(), t.TempDir())
 
 			for k, v := range renderers {
 				assert.NoError(t, v.Init(ctx.RendererCacheFS(k)))

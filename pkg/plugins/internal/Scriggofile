@@ -107,4 +107,4 @@ IMPORT arhat.dev/dukkha/pkg/renderer
 # IMPORT arhat.dev/dukkha/pkg/templateutils
 IMPORT arhat.dev/dukkha/pkg/cache
 IMPORT arhat.dev/dukkha/pkg/tools
-IMPORT arhat.dev/dukkha/pkg/constant
+IMPORT arhat.dev/dukkha/pkg/constant EXCLUDING GlobalEnvNames

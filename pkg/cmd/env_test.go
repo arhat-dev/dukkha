@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/dukkha/pkg/constant"
 )
 
 func TestCreateGlobalEnv(t *testing.T) {
@@ -41,19 +43,22 @@ func TestCreateGlobalEnv(t *testing.T) {
 		"HOST_ARCH":           "",
 		"HOST_ARCH_SIMPLE":    "",
 
-		"DUKKHA_WORKDIR": "",
+		"DUKKHA_WORKDIR":   "",
+		"DUKKHA_CACHE_DIR": "",
 	}
 
 	for name, expectedValue := range requiredEnv {
 		t.Run(name, func(t *testing.T) {
-			val, ok := globalEnv[name]
-			assert.True(t, ok)
-
-			if len(expectedValue) != 0 {
-				assert.Equal(t, expectedValue, val.GetLazyValue())
+			id := constant.GetGlobalEnvIDByName(name)
+			if !assert.NotEqual(t, constant.GlobalEnv(-1), id) {
+				return
 			}
 
-			t.Log(name, fmt.Sprintf("%q", val.GetLazyValue()))
+			if len(expectedValue) != 0 {
+				assert.Equal(t, expectedValue, globalEnv[id].GetLazyValue())
+			}
+
+			t.Log(name, fmt.Sprintf("%q", globalEnv[id].GetLazyValue()))
 		})
 	}
 }

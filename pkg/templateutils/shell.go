@@ -328,10 +328,7 @@ func newExecHandler(
 ) interp.ExecHandlerFunc {
 	defaultCmdExecHandler := interp.DukkhaExecHandler(0)
 
-	return func(
-		ctx context.Context,
-		args []string,
-	) error {
+	return func(ctx context.Context, args []string) error {
 		if !strings.HasPrefix(args[0], "tmpl:") {
 			err := defaultCmdExecHandler(ctx, args)
 			if err != nil {
@@ -387,12 +384,14 @@ func fileOpenHandler(
 ) (io.ReadWriteCloser, error) {
 	const devNullPath = "/dev/null"
 
-	if path == devNullPath {
+	// nolint:gocritic
+	switch path {
+	case devNullPath:
 		return iohelper.NewDevNull(), nil
 	}
 
 	hc := interp.HandlerCtx(ctx)
-	osfs := fshelper.NewOSFS(false, func() (string, error) {
+	osfs := fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
 		return hc.Dir, nil
 	})
 

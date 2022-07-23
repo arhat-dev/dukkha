@@ -66,15 +66,11 @@ type BaseTwoTierCachedRenderer struct {
 
 	CacheConfig CacheConfig `yaml:"cache"`
 
-	// CacheFS provided when calling Init
-	CacheFS *fshelper.OSFS `yaml:"-"`
-
 	// Cache is always not nil after Init
 	Cache *cache.TwoTierCache `yaml:"-"`
 }
 
 func (d *BaseTwoTierCachedRenderer) Init(cacheFS *fshelper.OSFS) error {
-	d.CacheFS = cacheFS
 	if d.CacheConfig.Enabled {
 		d.Cache = cache.NewTwoTierCache(
 			cacheFS,

@@ -705,11 +705,11 @@ func (r *Runner) flattenAssign(as *syntax.Assign) []*syntax.Assign {
 }
 
 func match(pat, name string) bool {
-	expr, err := pattern.Regexp(pat, 0)
+	expr, err := pattern.Regexp(pat, pattern.EntireString)
 	if err != nil {
 		return false
 	}
-	rx := regexp.MustCompile("^" + expr + "$")
+	rx := regexp.MustCompile(expr)
 	return rx.MatchString(name)
 }
 
@@ -915,6 +915,12 @@ func (r *Runner) open(ctx context.Context, path string, flags int, mode os.FileM
 	return f, err
 }
 
-func (r *Runner) stat(name string) (os.FileInfo, error) {
-	return os.Stat(r.absPath(name))
+func (r *Runner) stat(ctx context.Context, name string) (os.FileInfo, error) {
+	path := absPath(r.Dir, name)
+	return r.statHandler(ctx, path, true)
+}
+
+func (r *Runner) lstat(ctx context.Context, name string) (os.FileInfo, error) {
+	path := absPath(r.Dir, name)
+	return r.statHandler(ctx, path, false)
 }

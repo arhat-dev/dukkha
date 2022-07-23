@@ -7,8 +7,8 @@ import (
 	"arhat.dev/tlang"
 	"github.com/stretchr/testify/assert"
 
-	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/constant"
+	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/matrix"
 	"arhat.dev/dukkha/pkg/sliceutils"
@@ -18,46 +18,61 @@ func TestSetDefaultImageTag(t *testing.T) {
 	t.Parallel()
 
 	testMatrix := map[string][]string{
-		constant.ENV_GIT_BRANCH:         {"eXtream/branch"},
-		constant.ENV_GIT_DEFAULT_BRANCH: {"eXtream/branch", "different-branch"},
-		constant.ENV_GIT_WORKTREE_CLEAN: {"true", "false"},
-		constant.ENV_GIT_COMMIT:         {"commit"},
-		constant.ENV_GIT_TAG:            {"tag", ""},
-		constant.ENV_MATRIX_ARCH:        {"amd64"},
-		constant.ENV_MATRIX_KERNEL:      {"linux"},
+		constant.EnvName_GIT_BRANCH:         {"eXtream/branch"},
+		constant.EnvName_GIT_DEFAULT_BRANCH: {"eXtream/branch", "different-branch"},
+		constant.EnvName_GIT_WORKTREE_CLEAN: {"true", "false"},
+		constant.EnvName_GIT_COMMIT:         {"commit"},
+		constant.EnvName_GIT_TAG:            {"tag", ""},
+		constant.EnvName_MATRIX_ARCH:        {"amd64"},
+		constant.EnvName_MATRIX_KERNEL:      {"linux"},
 	}
 
 	caseWorkTreeCleanTagPresent := map[string]string{
-		constant.ENV_GIT_TAG:            "tag",
-		constant.ENV_GIT_WORKTREE_CLEAN: "true",
+		constant.EnvName_GIT_TAG:            "tag",
+		constant.EnvName_GIT_WORKTREE_CLEAN: "true",
 	}
 
 	caseWorkTreeCleanIsDefaultBranch := map[string]string{
-		constant.ENV_GIT_BRANCH:         "eXtream/branch",
-		constant.ENV_GIT_DEFAULT_BRANCH: "eXtream/branch",
-		constant.ENV_GIT_WORKTREE_CLEAN: "true",
+		constant.EnvName_GIT_BRANCH:         "eXtream/branch",
+		constant.EnvName_GIT_DEFAULT_BRANCH: "eXtream/branch",
+		constant.EnvName_GIT_WORKTREE_CLEAN: "true",
 	}
 
 	caseWorkTreeCleanNotDefaultBranch := map[string]string{
-		constant.ENV_GIT_DEFAULT_BRANCH: "different-branch",
-		constant.ENV_GIT_WORKTREE_CLEAN: "true",
+		constant.EnvName_GIT_DEFAULT_BRANCH: "different-branch",
+		constant.EnvName_GIT_WORKTREE_CLEAN: "true",
 	}
 
 	caseWorkTreeDirty := map[string]string{
-		constant.ENV_GIT_WORKTREE_CLEAN: "false",
+		constant.EnvName_GIT_WORKTREE_CLEAN: "false",
 	}
 
 	tests := matrix.CartesianProduct(testMatrix)
 	for _, mat := range tests {
 		spec := matrix.Entry(mat)
 
-		genv := make(map[string]tlang.LazyValueType[string], len(mat))
+		genv := &dukkha.GlobalEnvSet{
+			constant.GlobalEnv_DUKKHA_CACHE_DIR: tlang.ImmediateString(t.TempDir()),
+		}
 		for k, v := range mat {
-			genv[k] = tlang.ImmediateString(v)
+			id := constant.GetGlobalEnvIDByName(k)
+			if id == -1 {
+				continue
+			}
+
+			genv[id] = tlang.ImmediateString(v)
 		}
 
 		rc := dt.NewTestContextWithGlobalEnv(context.TODO(), genv)
-		rc.(di.CacheDirSetter).SetCacheDir(t.TempDir())
+		for k, v := range mat {
+			if constant.GetGlobalEnvIDByName(k) == -1 {
+				rc.AddEnv(false, &dukkha.EnvEntry{
+					Name:  k,
+					Value: v,
+				})
+			}
+		}
+
 		rc.AddListEnv(sliceutils.FormatStringMap(mat, "=", false)...)
 
 		t.Run(spec.BriefString()+"_image_no_kernel_info", func(t *testing.T) {

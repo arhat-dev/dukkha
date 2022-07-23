@@ -11,6 +11,8 @@ import (
 	"strings"
 	"text/tabwriter"
 	"unicode"
+
+	"mvdan.cc/sh/v3/fileutil"
 )
 
 // PrinterOption is a function which can be passed to NewPrinter
@@ -578,12 +580,27 @@ func (p *Printer) flushComments() {
 
 func (p *Printer) comments(comments ...Comment) {
 	if p.minify {
+		for _, c := range comments {
+			if fileutil.Shebang([]byte("#"+c.Text)) != "" && c.Hash.Col() == 1 && c.Hash.Line() == 1 {
+				p.WriteString(strings.TrimRightFunc("#"+c.Text, unicode.IsSpace))
+				p.WriteString("\n")
+				p.line++
+			}
+		}
 		return
 	}
 	p.pendingComments = append(p.pendingComments, comments...)
 }
 
 func (p *Printer) wordParts(wps []WordPart, quoted bool) {
+	// We disallow unquoted escaped newlines between word parts below.
+	// However, we want to allow a leading escaped newline for cases such as:
+	//
+	//   foo <<< \
+	//     "bar baz"
+	if !quoted && !p.singleLine && wps[0].Pos().Line() > p.line {
+		p.bslashNewl()
+	}
 	for i, wp := range wps {
 		var next WordPart
 		if i+1 < len(wps) {
@@ -1070,11 +1087,22 @@ func (p *Printer) command(cmd Command, redirs []*Redirect) (startRedirs int) {
 		p.ifClause(x, false)
 	case *Subshell:
 		p.WriteByte('(')
-		if len(x.Stmts) > 0 && startsWithLparen(x.Stmts[0]) {
+		stmts := x.Stmts
+		if len(stmts) > 0 && startsWithLparen(stmts[0]) {
 			p.wantSpace = spaceRequired
+			// Add a space between nested parentheses if we're printing them in a single line,
+			// to avoid the ambiguity between `((` and `( (`.
+			if (x.Lparen.Line() != stmts[0].Pos().Line() || len(stmts) > 1) && !p.singleLine {
+				p.wantSpace = spaceNotRequired
+
+				if p.minify {
+					p.mustNewline = true
+				}
+			}
 		} else {
 			p.wantSpace = spaceNotRequired
 		}
+
 		p.spacePad(stmtsPos(x.Stmts, x.Last))
 		p.nestedStmts(x.Stmts, x.Last, x.Rparen)
 		p.wantSpace = spaceNotRequired
@@ -1329,7 +1357,7 @@ func (p *Printer) stmtList(stmts []*Stmt, last []Comment) {
 			// statement.
 			p.comments(c)
 		}
-		if !p.minify || p.wantSpace == spaceRequired {
+		if p.mustNewline || !p.minify || p.wantSpace == spaceRequired {
 			p.newlines(pos)
 		}
 		p.line = pos.Line()
@@ -1393,10 +1421,7 @@ func (p *Printer) assigns(assigns []*Assign) {
 			// because that can result in indentation, thus
 			// splitting "foo=bar" into "foo= bar".
 			p.line = a.Value.Pos().Line()
-			// Similar to the above, we want to print the word as if it were
-			// quoted, as otherwise escaped newlines could split
 			p.word(a.Value)
-			// p.wordParts(a.Value.Parts, true)
 		} else if a.Array != nil {
 			p.wantSpace = spaceNotRequired
 			p.WriteByte('(')

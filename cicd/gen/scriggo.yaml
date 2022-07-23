@@ -3,14 +3,14 @@ workflow:run:
   jobs:
   - env:
     - name: GOBIN
-      value@tlang: &gobin fs.Join dukkha.CacheDir "bin" ; ":"; fs.Dir (fs.Lookup "go")
+      value@tlang: &gobin fs.Join dukkha.CacheDir "bin"
     shell:
       go install github.com/open2b/scriggo/cmd/scriggo@v0.55.0
 
 - name: gen-scriggo
   env:
   - name: PATH
-    value@tlang: *gobin
+    value@tlang: fs.Join dukkha.CacheDir "bin" ; ":"; fs.Dir (fs.Lookup "go")
   - name: interp_dir
     value@tlang: fs.Join dukkha.WorkDir "pkg" "plugins" "internal"
   - name: CONFIG_FILE

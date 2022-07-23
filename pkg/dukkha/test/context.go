@@ -7,17 +7,30 @@ import (
 	"arhat.dev/tlang"
 
 	di "arhat.dev/dukkha/internal"
+	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func NewTestContext(ctx context.Context) dukkha.ConfigResolvingContext {
-	return NewTestContextWithGlobalEnv(ctx, make(map[string]tlang.LazyValueType[string]))
+func NewTestContext(ctx context.Context, cacheDir string) dukkha.ConfigResolvingContext {
+	return NewTestContextWithGlobalEnv(ctx, &dukkha.GlobalEnvSet{
+		constant.GlobalEnv_DUKKHA_CACHE_DIR: tlang.ImmediateString(cacheDir),
+	})
 }
 
 func NewTestContextWithGlobalEnv(
 	ctx context.Context,
-	globalEnv map[string]tlang.LazyValueType[string],
+	globalEnv *dukkha.GlobalEnvSet,
 ) dukkha.ConfigResolvingContext {
+	if globalEnv == nil {
+		globalEnv = &dukkha.GlobalEnvSet{}
+	}
+
+	for i, v := range globalEnv {
+		if v == nil {
+			globalEnv[i] = tlang.ImmediateString("")
+		}
+	}
+
 	d := dukkha.NewConfigResolvingContext(
 		ctx,
 		dukkha.GlobalInterfaceTypeHandler,

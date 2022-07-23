@@ -92,28 +92,26 @@ func run(appCtx dukkha.Context, opts *Options, args []string, stdout io.Writer) 
 			continue
 		}
 
-		err = func() error {
-			// chdir at the entrypoint (root of the source yaml)
-			// make relative paths in that dir happy
+		// chdir at the entrypoint (root of the source yaml)
+		// make relative paths in that dir happy
 
-			chdir := resolvedOpts.ChdirFor(src)
+		chdir := resolvedOpts.ChdirFor(src)
 
-			if chdir != lastWorkDir {
-				// change DUKKHA_WORKDIR to make renderers like
-				// `file`, `shell` and `env` work properly
-				appCtx.(di.WorkDirOverrider).OverrideWorkDir(chdir)
+		if chdir != lastWorkDir {
+			// change DUKKHA_WORKDIR to make renderers like
+			// `file`, `shell` and `env` work properly
+			appCtx.(di.WorkDirOverrider).OverrideWorkDir(chdir)
 
-				lastWorkDir = chdir
-			}
+			lastWorkDir = chdir
+		}
 
-			return renderYamlFile(
-				appCtx,
-				resolvedOpts.EntrypointFor(src),
-				resolvedOpts.OutputPathFor(src),
-				resolvedOpts,
-				make(map[string]fs.FileMode),
-			)
-		}()
+		err = renderYamlFile(
+			appCtx,
+			resolvedOpts.EntrypointFor(src),
+			resolvedOpts.OutputPathFor(src),
+			resolvedOpts,
+			make(map[string]fs.FileMode),
+		)
 
 		if err != nil {
 			return err

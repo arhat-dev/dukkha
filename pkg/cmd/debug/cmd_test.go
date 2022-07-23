@@ -20,6 +20,7 @@ import (
 func TestDebugCmd(t *testing.T) {
 	t.Parallel()
 
+	tmpdir := t.TempDir()
 	cmdtesthelper.TestCmdFixtures(t, "./fixtures", map[string][]string{
 		"-H": {
 			cmdtesthelper.OmitThisFlag,
@@ -29,7 +30,9 @@ func TestDebugCmd(t *testing.T) {
 			cmdtesthelper.OmitThisFlag,
 			"TEST_PREFIX",
 		},
-	}, genNewDebugCmdFlags, prepareDebugCmd)
+	}, genNewDebugCmdFlags, func(flags []string) (checkFlags func() error, runCmd func() error, _ error) {
+		return prepareDebugCmd(flags, tmpdir)
+	})
 }
 
 var (
@@ -103,8 +106,8 @@ func genNewDebugCmdFlags(
 		}
 }
 
-func prepareDebugCmd(flags []string) (checkFlags func() error, runCmd func() error, _ error) {
-	ctx := dukkha_test.NewTestContext(context.TODO())
+func prepareDebugCmd(flags []string, cacheDir string) (checkFlags func() error, runCmd func() error, _ error) {
+	ctx := dukkha_test.NewTestContext(context.TODO(), cacheDir)
 
 	config := conf.NewConfig()
 	err := conf.Read(

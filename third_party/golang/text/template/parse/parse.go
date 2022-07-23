@@ -14,6 +14,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"arhat.dev/tlang/parse"
 )
 
 // Tree is the representation of a single parsed template.
@@ -24,7 +26,7 @@ type Tree struct {
 	Mode      Mode      // parsing mode.
 	text      string    // text parsed to create the template (or its parent)
 	// Parsing only; cleared after parse.
-	funcs      TemplateFuncs
+	funcs      parse.TemplateFuncs
 	lex        *lexer
 	token      [3]item // three-token lookahead for parser.
 	peekCount  int
@@ -59,7 +61,7 @@ func (t *Tree) Copy() *Tree {
 // templates described in the argument string. The top-level template will be
 // given the specified name. If an error is encountered, parsing stops and an
 // empty map is returned with the error.
-func Parse(name, text, leftDelim, rightDelim string, funcs TemplateFuncs) (map[string]*Tree, error) {
+func Parse(name, text, leftDelim, rightDelim string, funcs parse.TemplateFuncs) (map[string]*Tree, error) {
 	treeSet := make(map[string]*Tree)
 	t := New(name, funcs)
 	t.text = text
@@ -128,7 +130,7 @@ func (t *Tree) peekNonSpace() item {
 // Parsing.
 
 // New allocates a new parse tree with the given name.
-func New(name string, funcs TemplateFuncs) *Tree {
+func New(name string, funcs parse.TemplateFuncs) *Tree {
 	return &Tree{
 		Name:  name,
 		funcs: funcs,
@@ -217,7 +219,7 @@ func (t *Tree) recover(errp *error) {
 }
 
 // startParse initializes the parser, using the lexer.
-func (t *Tree) startParse(funcs TemplateFuncs, lex *lexer, treeSet map[string]*Tree) {
+func (t *Tree) startParse(funcs parse.TemplateFuncs, lex *lexer, treeSet map[string]*Tree) {
 	t.Root = nil
 	t.lex = lex
 	t.vars = []string{"$"}
@@ -239,7 +241,7 @@ func (t *Tree) stopParse() {
 // the template for execution. If either action delimiter string is empty, the
 // default ("{{" or "}}") is used. Embedded template definitions are added to
 // the treeSet map.
-func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs TemplateFuncs) (tree *Tree, err error) {
+func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs parse.TemplateFuncs) (tree *Tree, err error) {
 	defer t.recover(&err)
 	t.ParseName = t.Name
 	emitComment := t.Mode&ParseComments != 0

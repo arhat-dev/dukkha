@@ -12,6 +12,17 @@ import (
 
 // This file describes runtime values derived from env
 
+type GlobalEnvSet [constant.GlobalEnv_Count]tlang.LazyValueType[string]
+
+func (s *GlobalEnvSet) Get(name string) (ret tlang.LazyValueType[string], ok bool) {
+	id := constant.GetGlobalEnvIDByName(name)
+	if id == -1 {
+		return
+	}
+
+	return s[id], true
+}
+
 type GlobalEnvValues interface {
 	WorkDir() string
 	CacheDir() string
@@ -45,9 +56,34 @@ type EnvValues interface {
 	AddListEnv(env ...string)
 }
 
-func newEnvValues(globalEnv map[string]tlang.LazyValueType[string]) envValues {
+func newEnvValues(globalEnv *GlobalEnvSet) envValues {
 	return envValues{
 		globalEnv: globalEnv,
+
+		gitValues: &tlang.LazyValue[map[string]tlang.LazyValueType[string]]{
+			Create: func() map[string]tlang.LazyValueType[string] {
+				return map[string]tlang.LazyValueType[string]{
+					"branch":         globalEnv[constant.GlobalEnv_GIT_BRANCH],
+					"worktree_clean": globalEnv[constant.GlobalEnv_GIT_WORKTREE_CLEAN],
+					"tag":            globalEnv[constant.GlobalEnv_GIT_TAG],
+					"default_branch": globalEnv[constant.GlobalEnv_GIT_DEFAULT_BRANCH],
+					"commit":         globalEnv[constant.GlobalEnv_GIT_COMMIT],
+				}
+			},
+		},
+
+		hostValues: &tlang.LazyValue[map[string]tlang.LazyValueType[string]]{
+			Create: func() map[string]tlang.LazyValueType[string] {
+				return map[string]tlang.LazyValueType[string]{
+					"arch":           globalEnv[constant.GlobalEnv_HOST_ARCH],
+					"arch_simple":    globalEnv[constant.GlobalEnv_HOST_ARCH_SIMPLE],
+					"kernel":         globalEnv[constant.GlobalEnv_HOST_KERNEL],
+					"kernel_version": globalEnv[constant.GlobalEnv_HOST_KERNEL_VERSION],
+					"os":             globalEnv[constant.GlobalEnv_HOST_OS],
+					"os_version":     globalEnv[constant.GlobalEnv_HOST_OS_VERSION],
+				}
+			},
+		},
 
 		env: make(map[string]tlang.LazyValueType[string]),
 		mu:  new(sync.RWMutex),
@@ -59,7 +95,10 @@ var _ EnvValues = (*envValues)(nil)
 type envValues struct {
 	matrixFilter matrix.Filter
 
-	globalEnv map[string]tlang.LazyValueType[string]
+	globalEnv *GlobalEnvSet
+
+	gitValues  *tlang.LazyValue[map[string]tlang.LazyValueType[string]]
+	hostValues *tlang.LazyValue[map[string]tlang.LazyValueType[string]]
 
 	env map[string]tlang.LazyValueType[string]
 	mu  *sync.RWMutex
@@ -68,8 +107,12 @@ type envValues struct {
 func (c *envValues) clone() envValues {
 	newValues := envValues{
 		globalEnv: c.globalEnv,
-		env:       make(map[string]tlang.LazyValueType[string]),
-		mu:        new(sync.RWMutex),
+
+		gitValues:  c.gitValues,
+		hostValues: c.hostValues,
+
+		env: make(map[string]tlang.LazyValueType[string]),
+		mu:  new(sync.RWMutex),
 	}
 
 	c.mu.RLock()
@@ -95,15 +138,23 @@ func (c *envValues) MatrixFilter() matrix.Filter {
 }
 
 func (c *envValues) MatrixArch() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_ARCH])
+	return getValueOrEmpty(c.env[constant.EnvName_MATRIX_ARCH])
 }
 
 func (c *envValues) MatrixKernel() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_KERNEL])
+	return getValueOrEmpty(c.env[constant.EnvName_MATRIX_KERNEL])
 }
 
 func (c *envValues) MatrixLibc() string {
-	return getValueOrDefault(c.env[constant.ENV_MATRIX_LIBC])
+	return getValueOrEmpty(c.env[constant.EnvName_MATRIX_LIBC])
+}
+
+func getValueOrEmpty(v tlang.LazyValueType[string]) string {
+	if v == nil {
+		return ""
+	}
+
+	return v.GetLazyValue()
 }
 
 func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
@@ -129,78 +180,57 @@ func (c *envValues) AddListEnv(env ...string) {
 }
 
 func (c *envValues) WorkDir() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_WORKDIR])
+	return c.globalEnv[constant.GlobalEnv_DUKKHA_WORKDIR].GetLazyValue()
 }
 
 func (c *envValues) CacheDir() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR])
+	return c.globalEnv[constant.GlobalEnv_DUKKHA_CACHE_DIR].GetLazyValue()
 }
 
 func (c *envValues) GitValues() map[string]tlang.LazyValueType[string] {
-	return map[string]tlang.LazyValueType[string]{
-		"branch":         c.globalEnv[constant.ENV_GIT_BRANCH],
-		"worktree_clean": c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN],
-		"tag":            c.globalEnv[constant.ENV_GIT_TAG],
-		"default_branch": c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH],
-		"commit":         c.globalEnv[constant.ENV_GIT_COMMIT],
-	}
+	return c.gitValues.GetLazyValue()
 }
 
 func (c *envValues) GitBranch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_BRANCH])
+	return c.globalEnv[constant.GlobalEnv_GIT_BRANCH].GetLazyValue()
 }
 
 func (c *envValues) GitWorkTreeClean() bool {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_WORKTREE_CLEAN]) == "true"
+	return c.globalEnv[constant.GlobalEnv_GIT_WORKTREE_CLEAN].GetLazyValue() == "true"
 }
 
 func (c *envValues) GitTag() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_TAG])
+	return c.globalEnv[constant.GlobalEnv_GIT_TAG].GetLazyValue()
 }
 
 func (c *envValues) GitDefaultBranch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH])
+	return c.globalEnv[constant.GlobalEnv_GIT_DEFAULT_BRANCH].GetLazyValue()
 }
 
 func (c *envValues) GitCommit() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_GIT_COMMIT])
+	return c.globalEnv[constant.GlobalEnv_GIT_COMMIT].GetLazyValue()
 }
 
 func (c *envValues) HostValues() map[string]tlang.LazyValueType[string] {
-	return map[string]tlang.LazyValueType[string]{
-		"arch":           c.globalEnv[constant.ENV_HOST_ARCH],
-		"arch_simple":    c.globalEnv[constant.ENV_HOST_ARCH_SIMPLE],
-		"kernel":         c.globalEnv[constant.ENV_HOST_KERNEL],
-		"kernel_version": c.globalEnv[constant.ENV_HOST_KERNEL_VERSION],
-		"os":             c.globalEnv[constant.ENV_HOST_OS],
-		"os_version":     c.globalEnv[constant.ENV_HOST_OS_VERSION],
-	}
+	return c.hostValues.GetLazyValue()
 }
 
 func (c *envValues) HostArch() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_ARCH])
+	return c.globalEnv[constant.GlobalEnv_HOST_ARCH].GetLazyValue()
 }
 
 func (c *envValues) HostKernel() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL])
+	return c.globalEnv[constant.GlobalEnv_HOST_KERNEL].GetLazyValue()
 }
 
 func (c *envValues) HostKernelVersion() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_KERNEL_VERSION])
+	return c.globalEnv[constant.GlobalEnv_HOST_KERNEL_VERSION].GetLazyValue()
 }
 
 func (c *envValues) HostOS() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS])
+	return c.globalEnv[constant.GlobalEnv_HOST_OS].GetLazyValue()
 }
 
 func (c *envValues) HostOSVersion() string {
-	return getValueOrDefault(c.globalEnv[constant.ENV_HOST_OS_VERSION])
-}
-
-func getValueOrDefault(v tlang.LazyValueType[string]) string {
-	if v == nil {
-		return ""
-	}
-
-	return v.GetLazyValue()
+	return c.globalEnv[constant.GlobalEnv_HOST_OS_VERSION].GetLazyValue()
 }

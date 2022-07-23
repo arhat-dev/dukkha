@@ -28,7 +28,7 @@ workflow:run:
 // editorconfig-checker-enable
 
 func newCompletionContext(t *testing.T) dukkha.Context {
-	ctx := dukkha_test.NewTestContext(context.TODO())
+	ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 
 	config := conf.NewConfig()
 	err := yaml.Unmarshal([]byte(testDukkhaConfig), config)

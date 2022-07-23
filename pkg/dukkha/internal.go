@@ -18,19 +18,19 @@ func (c *contextRendering) VALUE() interface{} { return c._VALUE }
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) SetCacheDir(dir string) {
-	c.globalEnv[constant.ENV_DUKKHA_CACHE_DIR] = tlang.ImmediateString(dir)
+	c.globalEnv[constant.GlobalEnv_DUKKHA_CACHE_DIR] = tlang.ImmediateString(dir)
 }
 
 // OverrideDefaultGitBranch set env GIT_DEFAULT_BRANCH
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) OverrideDefaultGitBranch(branch string) {
-	c.globalEnv[constant.ENV_GIT_DEFAULT_BRANCH] = tlang.ImmediateString(branch)
+	c.globalEnv[constant.GlobalEnv_GIT_DEFAULT_BRANCH] = tlang.ImmediateString(branch)
 }
 
 // OverrideWorkDir set env DUKKHA_WORKDIR to cwd
 //
 // should not be exposed by any interface type in this package
 func (c *envValues) OverrideWorkDir(cwd string) {
-	c.globalEnv[constant.ENV_DUKKHA_WORKDIR] = tlang.ImmediateString(cwd)
+	c.globalEnv[constant.GlobalEnv_DUKKHA_WORKDIR] = tlang.ImmediateString(cwd)
 }

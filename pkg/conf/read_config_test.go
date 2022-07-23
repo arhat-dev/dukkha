@@ -128,7 +128,7 @@ func TestRead(t *testing.T) {
 			visitedPaths := make(map[string]struct{})
 			mergedConfig := NewConfig()
 
-			rc := dukkha_test.NewTestContext(context.Background())
+			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			err := Read(
 				rc,
 				testFS,

@@ -20,10 +20,20 @@ import (
 // Not all functions change their behavior with all of the options below.
 type Mode uint
 
+type SyntaxError struct {
+	msg string
+	err error
+}
+
+func (e SyntaxError) Error() string { return e.msg }
+
+func (e SyntaxError) Unwrap() error { return e.err }
+
 const (
-	Shortest  Mode = 1 << iota // prefer the shortest match.
-	Filenames                  // "*" and "?" don't match slashes; only "**" does
-	Braces                     // support "{a,b}" and "{1..4}"
+	Shortest     Mode = 1 << iota // prefer the shortest match.
+	Filenames                     // "*" and "?" don't match slashes; only "**" does
+	Braces                        // support "{a,b}" and "{1..4}"
+	EntireString                  // match the entire string using ^$ delimiters
 )
 
 var numRange = regexp.MustCompile(`^([+-]?\d+)\.\.([+-]?\d+)}`)
@@ -50,11 +60,17 @@ noopLoop:
 			break noopLoop
 		}
 	}
-	if !any { // short-cut without a string copy
+	if !any && mode&EntireString == 0 { // short-cut without a string copy
 		return pat, nil
 	}
 	closingBraces := []int{}
 	var buf bytes.Buffer
+	// Enable matching `\n` with the `.` metacharacter as globs match `\n`
+	buf.WriteString("(?s)")
+	dotMeta := false
+	if mode&EntireString != 0 {
+		buf.WriteString("^")
+	}
 writeLoop:
 	for i := 0; i < len(pat); i++ {
 		switch c := pat[i]; c {
@@ -63,8 +79,10 @@ writeLoop:
 				if i++; i < len(pat) && pat[i] == '*' {
 					if i++; i < len(pat) && pat[i] == '/' {
 						buf.WriteString("(.*/|)")
+						dotMeta = true
 					} else {
 						buf.WriteString(".*")
+						dotMeta = true
 						i--
 					}
 				} else {
@@ -73,6 +91,7 @@ writeLoop:
 				}
 			} else {
 				buf.WriteString(".*")
+				dotMeta = true
 			}
 			if mode&Shortest != 0 {
 				buf.WriteByte('?')
@@ -82,16 +101,17 @@ writeLoop:
 				buf.WriteString("[^/]")
 			} else {
 				buf.WriteByte('.')
+				dotMeta = true
 			}
 		case '\\':
 			if i++; i >= len(pat) {
-				return "", fmt.Errorf(`\ at end of pattern`)
+				return "", &SyntaxError{msg: `\ at end of pattern`}
 			}
 			buf.WriteString(regexp.QuoteMeta(string(pat[i])))
 		case '[':
 			name, err := charClass(pat[i:])
 			if err != nil {
-				return "", err
+				return "", &SyntaxError{msg: "charClass invalid", err: err}
 			}
 			if name != "" {
 				buf.WriteString(name)
@@ -110,19 +130,19 @@ writeLoop:
 			}
 			buf.WriteByte(c)
 			if i++; i >= len(pat) {
-				return "", fmt.Errorf("[ was not matched with a closing ]")
+				return "", &SyntaxError{msg: "[ was not matched with a closing ]"}
 			}
 			switch c = pat[i]; c {
 			case '!', '^':
 				buf.WriteByte('^')
 				if i++; i >= len(pat) {
-					return "", fmt.Errorf("[ was not matched with a closing ]")
+					return "", &SyntaxError{msg: "[ was not matched with a closing ]"}
 				}
 			}
 			if c = pat[i]; c == ']' {
 				buf.WriteByte(']')
 				if i++; i >= len(pat) {
-					return "", fmt.Errorf("[ was not matched with a closing ]")
+					return "", &SyntaxError{msg: "[ was not matched with a closing ]"}
 				}
 			}
 			rangeStart := byte(0)
@@ -140,7 +160,7 @@ writeLoop:
 					break loopBracket
 				}
 				if rangeStart != 0 && rangeStart > c {
-					return "", fmt.Errorf("invalid range: %c-%c", rangeStart, c)
+					return "", &SyntaxError{msg: fmt.Sprintf("invalid range: %c-%c", rangeStart, c)}
 				}
 				if c == '-' {
 					rangeStart = pat[i-1]
@@ -149,7 +169,7 @@ writeLoop:
 				}
 			}
 			if i >= len(pat) {
-				return "", fmt.Errorf("[ was not matched with a closing ]")
+				return "", &SyntaxError{msg: "[ was not matched with a closing ]"}
 			}
 		case '{':
 			if mode&Braces == 0 {
@@ -183,7 +203,7 @@ writeLoop:
 				start, err1 := strconv.Atoi(match[1])
 				end, err2 := strconv.Atoi(match[2])
 				if err1 != nil || err2 != nil || start > end {
-					return "", fmt.Errorf("invalid range: %q", match[0])
+					return "", &SyntaxError{msg: fmt.Sprintf("invalid range: %q", match[0])}
 				}
 				// TODO: can we do better here?
 				buf.WriteString("(?:")
@@ -218,6 +238,13 @@ writeLoop:
 				buf.WriteString(regexp.QuoteMeta(string(c)))
 			}
 		}
+	}
+	if mode&EntireString != 0 {
+		buf.WriteString("$")
+	}
+	// No `.` metacharacters were used, so don't return the flag.
+	if !dotMeta {
+		return string(buf.Bytes()[4:]), nil
 	}
 	return buf.String(), nil
 }

@@ -14,7 +14,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-// Read config recursively
+// Read config in rootfs recursively
 func Read(
 	rc dukkha.ConfigResolvingContext,
 	rootfs fs.FS,
@@ -107,7 +107,7 @@ func readAndMergeConfigFile(
 	return handleInclude(rc, rootfs, visitedPaths, mergedConfig, file, include)
 }
 
-// loadConfig unmarshal all yaml docs in r as Config, add configured renderers into rc
+// loadConfig unmarshal all yaml docs in r as Config, add resolved renderers into rc
 // then merge freshly unmarshaled Config into mergedConfig
 func loadConfig(
 	rc dukkha.ConfigResolvingContext,

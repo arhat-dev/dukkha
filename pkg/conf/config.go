@@ -24,7 +24,6 @@ import (
 	"arhat.dev/rs"
 
 	di "arhat.dev/dukkha/internal"
-	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -98,20 +97,20 @@ func (c *Config) resolveRenderers(appCtx dukkha.ConfigResolvingContext) error {
 	}
 
 	logger.D("resolving user renderers", log.Int("count", len(c.Renderers)))
-	for i, g := range c.Renderers {
+	for i, group := range c.Renderers {
 		logger := logger.WithFields(log.Int("index", i))
 
 		logger.D("resolving renderer group")
 
-		// renderers in the same group should shall be resolved all at once
+		// renderers in the same group should be resolved all at once
 		// without knowning each other
 
-		err = g.ResolveFields(appCtx, -1)
+		err = group.ResolveFields(appCtx, -1)
 		if err != nil {
 			return fmt.Errorf("resolving renderer group #%d: %w", i, err)
 		}
 
-		for name, r := range g.Renderers {
+		for name, r := range group.Renderers {
 			err = r.ResolveFields(appCtx, -1)
 			if err != nil {
 				return fmt.Errorf("resolving renderer %q: %w", name, err)
@@ -124,9 +123,9 @@ func (c *Config) resolveRenderers(appCtx dukkha.ConfigResolvingContext) error {
 				return fmt.Errorf("initializing renderer %q: %w", name, err)
 			}
 
-			appCtx.AddRenderer(name, g.Renderers[name])
+			appCtx.AddRenderer(name, group.Renderers[name])
 			if len(r.Alias()) != 0 {
-				appCtx.AddRenderer(r.Alias(), g.Renderers[name])
+				appCtx.AddRenderer(r.Alias(), group.Renderers[name])
 			}
 		}
 	}
@@ -188,21 +187,9 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 
 		logger.V("resolved global config", log.Any("result", c.Global))
 
-		cacheDir := c.Global.CacheDir
-		if len(cacheDir) == 0 {
-			cacheDir = constant.DefaultCacheDir
-		}
-
-		cacheDir, err = appCtx.FS().Abs(cacheDir)
-		if err != nil {
-			return fmt.Errorf("get absolute path of cache dir: %w", err)
-		}
-
 		if len(c.Global.DefaultGitBranch) != 0 {
 			appCtx.(di.DefaultGitBranchOverrider).OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
 		}
-
-		appCtx.(di.CacheDirSetter).SetCacheDir(cacheDir)
 	}
 
 	// step 2: resolve global Values

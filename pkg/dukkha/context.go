@@ -8,7 +8,6 @@ import (
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/pathhelper"
 	"arhat.dev/rs"
-	"arhat.dev/tlang"
 	"github.com/huandu/xstrings"
 )
 
@@ -78,7 +77,7 @@ type dukkhaContext struct {
 func NewConfigResolvingContext(
 	parent context.Context,
 	ifaceTypeHandler rs.InterfaceTypeHandler,
-	globalEnv map[string]tlang.LazyValueType[string],
+	globalEnv *GlobalEnvSet,
 ) ConfigResolvingContext {
 	ctxStd := newContextStd(parent)
 	dukkhaCtx := &dukkhaContext{
@@ -125,7 +124,7 @@ func replaceInvalidWindowsPathChars(name string) string {
 
 func (c *dukkhaContext) RendererCacheFS(name string) *fshelper.OSFS {
 	name = replaceInvalidWindowsPathChars(name)
-	return lazyEnsuredSubFS(c.cacheFS, path.Join("renderer", name))
+	return lazilyEnsuredSubFS(c.cacheFS, false, path.Join("renderer", name))
 }
 
 func (c *dukkhaContext) ToolCacheFS(t Tool) *fshelper.OSFS {
@@ -139,7 +138,7 @@ func (c *dukkhaContext) ToolCacheFS(t Tool) *fshelper.OSFS {
 		name = "_"
 	}
 
-	return lazyEnsuredSubFS(c.cacheFS, path.Join(k, name))
+	return lazilyEnsuredSubFS(c.cacheFS, false, path.Join(k, name))
 }
 
 func (c *dukkhaContext) TaskCacheFS(t Task) *fshelper.OSFS {
@@ -163,7 +162,7 @@ func (c *dukkhaContext) TaskCacheFS(t Task) *fshelper.OSFS {
 		panic("invalid empty task name")
 	}
 
-	return lazyEnsuredSubFS(c.cacheFS, path.Join(toolKind, toolName, kind, name))
+	return lazilyEnsuredSubFS(c.cacheFS, false, path.Join(toolKind, toolName, kind, name))
 }
 
 func (c *dukkhaContext) RunTask(k ToolKey, tK TaskKey) error {
