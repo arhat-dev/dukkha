@@ -1,11 +1,9 @@
 package templateutils
 
-import "arhat.dev/pkg/stringhelper"
-
-type errString string
-
-func (s errString) Error() string { return stringhelper.Convert[string, byte](s) }
+import (
+	"arhat.dev/pkg/errhelper"
+)
 
 const (
-	errAtLeastOneArgGotZero errString = "at least 1 arg expected, got 0"
+	errAtLeastOneArgGotZero errhelper.ErrString = "at least 1 arg expected, got 0"
 )

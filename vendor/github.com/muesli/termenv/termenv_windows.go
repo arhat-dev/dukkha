@@ -4,10 +4,38 @@
 package termenv
 
 import (
+	"os"
+	"strconv"
+
 	"golang.org/x/sys/windows"
 )
 
 func colorProfile() Profile {
+	if os.Getenv("ConEmuANSI") == "ON" {
+		return TrueColor
+	}
+
+	winVersion, _, buildNumber := windows.RtlGetNtVersionNumbers()
+	if buildNumber < 10586 || winVersion < 10 {
+		// No ANSI support before Windows 10 build 10586.
+		if os.Getenv("ANSICON") != "" {
+			conVersion := os.Getenv("ANSICON_VER")
+			cv, err := strconv.ParseInt(conVersion, 10, 64)
+			if err != nil || cv < 181 {
+				// No 8 bit color support before v1.81 release.
+				return ANSI
+			}
+
+			return ANSI256
+		}
+
+		return Ascii
+	}
+	if buildNumber < 14931 {
+		// No true color support before build 14931.
+		return ANSI256
+	}
+
 	return TrueColor
 }
 
@@ -21,9 +49,11 @@ func backgroundColor() Color {
 	return ANSIColor(0)
 }
 
-// EnableWindowsANSI enables virtual terminal processing on Windows platforms.
-// This allows the use of ANSI escape sequences in Windows console applications.
-// Ensure this gets called before anything gets rendered with termenv.
+// EnableWindowsANSIConsole enables virtual terminal processing on Windows
+// platforms. This allows the use of ANSI escape sequences in Windows console
+// applications. Ensure this gets called before anything gets rendered with
+// termenv.
+//
 // Returns the original console mode and an error if one occurred.
 func EnableWindowsANSIConsole() (uint32, error) {
 	handle, err := windows.GetStdHandle(windows.STD_OUTPUT_HANDLE)

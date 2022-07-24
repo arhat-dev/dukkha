@@ -1,9 +1,11 @@
 package testhelper
 
-import "errors"
+import (
+	"arhat.dev/pkg/errhelper"
+)
 
 var (
-	errTest = errors.New("test error")
+	errTest errhelper.ErrString = "test error"
 )
 
 // Error returns an internal error for testing

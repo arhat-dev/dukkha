@@ -66,10 +66,10 @@ func newContextRendering(
 		renderers:        make(map[string]Renderer),
 		values:           make(map[string]any),
 
-		fs: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
+		fs: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
 			return globalEnv[constant.GlobalEnv_DUKKHA_WORKDIR].GetLazyValue(), nil
 		}), true, "."),
-		cacheFS: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
+		cacheFS: lazilyEnsuredSubFS(fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
 			return globalEnv[constant.GlobalEnv_DUKKHA_CACHE_DIR].GetLazyValue(), nil
 		}), false, "."),
 	}
@@ -167,7 +167,7 @@ func lazilyEnsuredSubFS(ofs *fshelper.OSFS, alwaysRelative bool, subdir string) 
 	}
 
 	if alwaysRelative {
-		return fshelper.NewOSFS(false, func(op fshelper.Op) (_ string, err error) {
+		return fshelper.NewOSFS(false, func(op fshelper.Op, _ string) (_ string, err error) {
 			switch op {
 			case fshelper.Op_Abs, fshelper.Op_Sub, fshelper.Op_Unknown:
 				return ofs.Abs(subdir)
@@ -196,7 +196,7 @@ func lazilyEnsuredSubFS(ofs *fshelper.OSFS, alwaysRelative bool, subdir string) 
 		panic(err)
 	}
 
-	return fshelper.NewOSFS(false, func(op fshelper.Op) (_ string, err error) {
+	return fshelper.NewOSFS(false, func(op fshelper.Op, _ string) (_ string, err error) {
 		switch op {
 		case fshelper.Op_Abs, fshelper.Op_Sub, fshelper.Op_Unknown:
 			return absDir, nil

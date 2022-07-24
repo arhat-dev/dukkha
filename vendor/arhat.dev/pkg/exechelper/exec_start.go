@@ -1,10 +1,11 @@
 package exechelper
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"unsafe"
+
+	"arhat.dev/pkg/errhelper"
 )
 
 // StartNoLookPath is an alternative to os/exec.Cmd.Start()
@@ -19,7 +20,7 @@ func StartNoLookPath(cmd *exec.Cmd) error {
 	}
 
 	if c.Process != nil {
-		return errors.New("exec: already started")
+		return errhelper.ErrString("exec: already started")
 	}
 	if c.ctx != nil {
 		select {

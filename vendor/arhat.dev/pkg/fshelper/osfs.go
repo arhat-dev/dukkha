@@ -51,42 +51,44 @@ const (
 	Op_RemoveAll // operation to remove files recursively
 )
 
-type CwdGetFunc = func(op Op) (string, error)
+// op and name are operation and path value triggered this func,
+// return value is the absolute path of current working dir
+//
+// when operation involves more than one path value (e.g. Op_Symlink),
+// name is the old path value
+type CwdGetFunc = func(op Op, name string) (string, error)
+
+func sysCwd(Op, string) (string, error) {
+	return os.Getwd()
+}
 
 // NewOSFS creates a new filesystem abstraction for real filesystem
 // set strictIOFS to true to only allow fs path value
-// getCwd is used to determine current working dir, the string return value should be valid system
-// file path
+//
+// getCwd is
 func NewOSFS(strictIOFS bool, getCwd CwdGetFunc) *OSFS {
 	if getCwd == nil {
-		getCwd = func(op Op) (string, error) {
-			return os.Getwd()
-		}
+		getCwd = sysCwd
 	}
 
 	return &OSFS{
-		strict: strictIOFS,
-		getCwd: getCwd,
+		Strict: strictIOFS,
+		GetCwd: getCwd,
 	}
 }
 
 // OSFS is a context aware filesystem abstration for afero.FS and io/fs.FS
 type OSFS struct {
-	strict    bool
-	getCwd    CwdGetFunc
-	lookupFHS func(string) (string, error)
-}
+	// Strict when set to true, adhere to io/fs.FS path value requirements
+	// otherwise accepts all system path values
+	Strict bool
 
-// SetStrict sets strict mode to require io/fs.FS path value
-func (ofs *OSFS) SetStrict(s bool) *OSFS {
-	ofs.strict = s
-	return ofs
-}
+	// used to determine current working dir, the string return value should be valid system
+	// file path
+	GetCwd CwdGetFunc
 
-// SetWindowsFHSLookup sets custom handler for unix style path
-func (ofs *OSFS) SetWindowsFHSLookup(lookup func(path string) (string, error)) *OSFS {
-	ofs.lookupFHS = lookup
-	return ofs
+	// LookupFHS is the custom handler for unix style path on windows
+	LookupFHS func(string) (string, error)
 }
 
 // getRealPath of name by joining current working dir when name is relative path
@@ -94,7 +96,7 @@ func (ofs *OSFS) SetWindowsFHSLookup(lookup func(path string) (string, error)) *
 //
 // the returned rpath value is always system file path
 func (ofs *OSFS) getRealPath(op Op, name string) (cwd, rpath string, err error) {
-	if (!fs.ValidPath(name) || runtime.GOOS == kernelconst.Windows && strings.ContainsAny(name, `\:`)) && ofs.strict {
+	if (!fs.ValidPath(name) || runtime.GOOS == kernelconst.Windows && strings.ContainsAny(name, `\:`)) && ofs.Strict {
 		return "", "", &fs.PathError{
 			Op:   "",
 			Err:  fs.ErrInvalid,
@@ -116,12 +118,12 @@ func (ofs *OSFS) getRealPath(op Op, name string) (cwd, rpath string, err error) 
 		// - /cygdrive/c/foo is the same as /c/foo, but with extra /cygdrive prefix
 		// - /usr/foo is the path inside msys2/mingw64/cygwin root
 
-		cwd, err = ofs.getCwd(op)
+		cwd, err = ofs.GetCwd(op, name)
 		if err != nil {
 			return "", "", err
 		}
 
-		lookupFHS := ofs.lookupFHS
+		lookupFHS := ofs.LookupFHS
 		if lookupFHS == nil {
 			lookupFHS = func(path string) (string, error) {
 				ret, err := exec.Command("cygpath", "-w", path).CombinedOutput()
@@ -150,7 +152,7 @@ func (ofs *OSFS) getRealPath(op Op, name string) (cwd, rpath string, err error) 
 
 	// is relative path for both windows and unix
 
-	cwd, err = ofs.getCwd(op)
+	cwd, err = ofs.GetCwd(op, name)
 	if err != nil {
 		return "", "", err
 	}
@@ -202,7 +204,7 @@ func (ofs *OSFS) Sub(dir string) (fs.FS, error) {
 		return nil, err
 	}
 
-	return NewOSFS(ofs.strict, func(op Op) (string, error) { return path, nil }), nil
+	return NewOSFS(ofs.Strict, func(op Op, name string) (string, error) { return path, nil }), nil
 }
 
 // Create is the os.Create equivalent
@@ -344,7 +346,7 @@ func (ofs *OSFS) Lstat(name string) (fs.FileInfo, error) {
 // Symlink is the os.Symlink equivalent
 func (ofs *OSFS) Symlink(oldname, newname string) error {
 	if path.IsAbs(oldname) && path.IsAbs(newname) {
-		if ofs.strict {
+		if ofs.Strict {
 			return &fs.PathError{
 				Op:   "",
 				Path: oldname,
@@ -356,7 +358,7 @@ func (ofs *OSFS) Symlink(oldname, newname string) error {
 		return os.Symlink(oldname, newname)
 	}
 
-	if ofs.strict {
+	if ofs.Strict {
 		if !fs.ValidPath(oldname) {
 			return &fs.PathError{
 				Op:   "",
@@ -374,7 +376,7 @@ func (ofs *OSFS) Symlink(oldname, newname string) error {
 		}
 	}
 
-	cwd, err := ofs.getCwd(Op_Symlink)
+	cwd, err := ofs.GetCwd(Op_Symlink, oldname)
 	if err != nil {
 		return err
 	}

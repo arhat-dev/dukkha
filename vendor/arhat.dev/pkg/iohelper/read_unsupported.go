@@ -20,10 +20,10 @@ limitations under the License.
 package iohelper
 
 import (
-	"errors"
+	"arhat.dev/pkg/errhelper"
 )
 
-var errNOSYS = errors.New("function not implemented")
+const errNOSYS errhelper.ErrString = "function not implemented"
 
 func CheckBytesToRead(fd uintptr) (int, error) {
 	return 0, errNOSYS

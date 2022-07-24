@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"arhat.dev/pkg/errhelper"
 	"arhat.dev/pkg/stringhelper"
 )
 
@@ -67,9 +68,9 @@ func (golangNS) Not(arg reflect.Value) bool {
 // TODO: Perhaps allow comparison between signed and unsigned integers.
 
 const (
-	errBadComparisonType errString = "invalid type for comparison"
-	errBadComparison     errString = "incompatible types for comparison"
-	errNoComparison      errString = "missing argument for comparison"
+	errBadComparisonType errhelper.ErrString = "invalid type for comparison"
+	errBadComparison     errhelper.ErrString = "incompatible types for comparison"
+	errNoComparison      errhelper.ErrString = "missing argument for comparison"
 )
 
 type kind int

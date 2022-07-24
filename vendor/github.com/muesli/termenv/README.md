@@ -6,6 +6,8 @@
     <a href="https://github.com/muesli/termenv/actions"><img src="https://github.com/muesli/termenv/workflows/build/badge.svg" alt="Build Status"></a>
     <a href="https://coveralls.io/github/muesli/termenv?branch=master"><img src="https://coveralls.io/repos/github/muesli/termenv/badge.svg?branch=master" alt="Coverage Status"></a>
     <a href="https://goreportcard.com/report/muesli/termenv"><img src="https://goreportcard.com/badge/muesli/termenv" alt="Go ReportCard"></a>
+    <br />
+    <img src="https://github.com/muesli/termenv/raw/master/examples/hello-world/hello-world.png" alt="Example terminal output">
 </p>
 
 `termenv` lets you safely use advanced styling options on the terminal. It
@@ -13,8 +15,6 @@ gathers information about the terminal environment in terms of its ANSI & color
 support and offers you convenient methods to colorize and style your output,
 without you having to deal with all kinds of weird ANSI escape sequences and
 color conversions.
-
-![Example output](https://github.com/muesli/termenv/raw/master/examples/hello-world/hello-world.png)
 
 ## Features
 
@@ -47,6 +47,10 @@ This returns one of the supported color profiles:
 - `termenv.ANSI` - 16 color ANSI support
 - `termenv.ANSI256` - Extended 256 color ANSI support
 - `termenv.TrueColor` - RGB/TrueColor support
+
+Alternatively, you can use `termenv.EnvColorProfile` which evaluates the
+terminal like `ColorProfile`, but also respects the `NO_COLOR` and
+`CLICOLOR_FORCE` environment variables.
 
 You can also query the terminal for its color scheme, so you know whether your
 app is running in a light- or dark-themed environment:
@@ -291,7 +295,7 @@ termenv.DisableMouseAllMotion()
 | Linux Console    |     ✅      |         ❌          |           ✅           |        ⛔         |          ❌          |                 ❌                 |                 ❌                 |
 | Apple Terminal   |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ✅                 |                 ✅                 |
 | iTerm            |     ✅      |         ✅          |           ✅           |        ✅         |          ❌          |                 ❌                 |                 ❌                 |
-| Power Shell      |     ✅      |         ❔          |           ❔           |        ❔         |          ❔          |                 ❔                 |                 ❔                 |
+| Windows cmd      |     ✅      |         ❌          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
 | Windows Terminal |     ✅      |         ❌          |           ✅           |        ✅         |          ✅          |                 ✅                 |                 ✅                 |
 
 [^vte]: This covers all vte-based terminals, including Gnome Terminal, guake, Pantheon Terminal, Terminator, Tilix, XFCE Terminal.
@@ -328,12 +332,20 @@ You can find the source code used to create this chart in `termenv`'s examples.
 ## Related Projects
 
 - [reflow](https://github.com/muesli/reflow) - ANSI-aware text operations
-- [Glow](https://github.com/charmbracelet/glow) - a markdown renderer for
-the command-line, which uses `termenv`
+- [Lip Gloss](https://github.com/charmbracelet/lipgloss) - style definitions for nice terminal layouts 👄
+- [ansi](https://github.com/muesli/ansi) - ANSI sequence helpers
 
-## License
+## termenv in the Wild
 
-[MIT](https://github.com/muesli/termenv/raw/master/LICENSE)
+Need some inspiration or just want to see how others are using `termenv`? Check
+out these projects:
+
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - a powerful little TUI framework 🏗
+- [Glamour](https://github.com/charmbracelet/glamour) - stylesheet-based markdown rendering for your CLI apps 💇🏻‍♀️
+- [Glow](https://github.com/charmbracelet/glow) - a markdown renderer for the command-line 💅🏻
+- [duf](https://github.com/muesli/duf) - Disk Usage/Free Utility - a better 'df' alternative
+- [gitty](https://github.com/muesli/gitty) - contextual information about your git projects
+- [slides](https://github.com/maaslalani/slides) - terminal-based presentation tool
 
 ## Feedback
 
@@ -341,3 +353,7 @@ Got some feedback or suggestions? Please open an issue or drop me a note!
 
 * [Twitter](https://twitter.com/mueslix)
 * [The Fediverse](https://mastodon.social/@fribbledom)
+
+## License
+
+[MIT](https://github.com/muesli/termenv/raw/master/LICENSE)

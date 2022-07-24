@@ -26,10 +26,13 @@ func colorProfile() Profile {
 	case "24bit":
 		fallthrough
 	case "truecolor":
-		if term == "screen" || !strings.HasPrefix(term, "screen") {
-			// enable TrueColor in tmux, but not for old-school screen
-			return TrueColor
+		if strings.HasPrefix(term, "screen") {
+			// tmux supports TrueColor, screen only ANSI256
+			if os.Getenv("TERM_PROGRAM") != "tmux" {
+				return ANSI256
+			}
 		}
+		return TrueColor
 	case "yes":
 		fallthrough
 	case "true":
@@ -212,6 +215,11 @@ func termStatusReport(sequence int) (string, error) {
 	// terminals concurrently.
 	term := os.Getenv("TERM")
 	if strings.HasPrefix(term, "screen") {
+		return "", ErrStatusReport
+	}
+
+	// if in background, we can't control the terminal
+	if !isForeground(unix.Stdout) {
 		return "", ErrStatusReport
 	}
 

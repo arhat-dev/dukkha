@@ -148,7 +148,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 			visitedPaths := make(map[string]struct{})
 			err = conf.Read(
 				_appCtx,
-				fshelper.NewOSFS(false, func(op fshelper.Op) (string, error) {
+				fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
 					return cwd, nil
 				}),
 				configPaths,

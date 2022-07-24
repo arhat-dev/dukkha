@@ -14,6 +14,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	"arhat.dev/pkg/errhelper"
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/iohelper"
 	"arhat.dev/pkg/stringhelper"
@@ -132,7 +133,7 @@ func ExpandEnv(rc dukkha.RenderingContext, toExpand string, enableExec bool) (st
 	return expand.Document(&config, word)
 }
 
-const errSkipBackquotedCmdSubst errString = "skip CmdSubSt"
+const errSkipBackquotedCmdSubst errhelper.ErrString = "skip CmdSubSt"
 
 func rebuildScript(printer *syntax.Printer, cs *syntax.CmdSubst) (string, error) {
 	var buf bytes.Buffer
@@ -215,7 +216,7 @@ func ExecCmdAsTemplateFuncCall(
 		funcs = CreateTemplateFuncs(rc)
 	)
 	if nArgs < 0 {
-		err = errString("invalid 0 arg call")
+		err = errhelper.ErrString("invalid 0 arg call")
 		return
 	}
 
@@ -391,7 +392,7 @@ func fileOpenHandler(
 	}
 
 	hc := interp.HandlerCtx(ctx)
-	osfs := fshelper.NewOSFS(false, func(fshelper.Op) (string, error) {
+	osfs := fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
 		return hc.Dir, nil
 	})
 
