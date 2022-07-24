@@ -45,19 +45,16 @@ func TestResolveActions_steps(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./_fixtures/actions/resolve",
-		func() any { return rs.InitAny(&TestResolvable{}, nil) },
-		func() any { return rs.InitAny(&CheckSpec{}, nil) },
-		func(t *testing.T, spec, exp any) {
-			in := spec.(*TestResolvable)
-			cs := exp.(*CheckSpec)
-
+		func() *TestResolvable { return rs.Init(&TestResolvable{}, nil).(*TestResolvable) },
+		func() *CheckSpec { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
+		func(t *testing.T, spec *TestResolvable, exp *CheckSpec) {
 			mCtx := dt.NewTestContext(context.TODO(), t.TempDir())
 			mCtx.AddRenderer("tmpl", tmpl.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))
 
 			jobs, err := ResolveActions(
-				mCtx, in, "Actions", "actions",
+				mCtx, spec, "Actions", "actions",
 			)
 
 			assert.NoError(t, err)
@@ -81,7 +78,7 @@ func TestResolveActions_steps(t *testing.T) {
 			i := 0
 			for jobs != nil {
 				t.Run(fmt.Sprint(i), func(t *testing.T) {
-					assertActionsVisibleFields(t, cs.Steps[i].Actions, in.Actions)
+					assertActionsVisibleFields(t, exp.Steps[i].Actions, spec.Actions)
 					i++
 
 					// call AlterExecFunc in second spec is like calling
@@ -89,7 +86,7 @@ func TestResolveActions_steps(t *testing.T) {
 					var ret any
 					ret, err = jobs[1].AlterExecFunc(nil, nil, nil, nil)
 
-					if cs.Steps[i].Error {
+					if exp.Steps[i].Error {
 						assert.Error(t, err)
 						jobs = nil
 						return
@@ -103,7 +100,7 @@ func TestResolveActions_steps(t *testing.T) {
 				})
 			}
 
-			assert.Equal(t, len(cs.Steps), i+1, "missing steps")
+			assert.Equal(t, len(exp.Steps), i+1, "missing steps")
 		},
 	)
 }

@@ -47,12 +47,9 @@ func TestCmd(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures",
-		func() any { return rs.InitAny(&TestSpec{}, nil) },
-		func() any { return rs.InitAny(&CheckSpec{}, nil) },
-		func(t *testing.T, in, c any) {
-			spec := in.(*TestSpec)
-			check := c.(*CheckSpec)
-
+		func() *TestSpec { return rs.Init(&TestSpec{}, nil).(*TestSpec) },
+		func() *CheckSpec { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
+		func(t *testing.T, spec *TestSpec, check *CheckSpec) {
 			cwd, err := os.Getwd()
 			if !assert.NoError(t, err) {
 				return

@@ -52,39 +52,39 @@ type Options struct {
 // 			rs.BaseField // or *rs.BaseField
 // 		}
 //
-// if the arg `in` doesn't contain BaseField or the BaseField is not the first element
+// NOTE: if the arg `in` doesn't contain BaseField or the BaseField is not the first element
 // it does nothing and will return `in` as is.
-func Init[T Field](in T, opts *Options) T {
-	return InitAny(in, opts).(T)
+func Init(in Field, opts *Options) Field {
+	_ = InitReflectValue(reflect.ValueOf(in), opts)
+	return in
 }
 
-func InitAny(in any, opts *Options) any {
-	parentVal := reflect.ValueOf(in)
-
-	switch parentVal.Kind() {
+// InitReflectValue returns true when BaseField of `in` is initilized after the call
+func InitReflectValue(in reflect.Value, opts *Options) bool {
+	switch in.Kind() {
 	case reflect.Struct:
 	case reflect.Ptr:
 		// no pointer to pointer support
-		parentVal = parentVal.Elem()
+		in = in.Elem()
 
-		if parentVal.Kind() != reflect.Struct {
+		if in.Kind() != reflect.Struct {
 			// the target is not a struct, not using BaseField
-			return in
+			return false
 		}
 	default:
-		return in
+		return false
 	}
 
-	if !parentVal.CanAddr() {
+	if !in.CanAddr() {
 		panic("invalid non addressable value")
 	}
 
-	if parentVal.NumField() == 0 {
+	if in.NumField() == 0 {
 		// empty struct, no BaseField
-		return in
+		return false
 	}
 
-	firstField := parentVal.Field(0)
+	firstField := in.Field(0)
 
 	var baseField *BaseField
 	switch firstField.Type() {
@@ -104,15 +104,15 @@ func InitAny(in any, opts *Options) any {
 		}
 	default:
 		// BaseField is not the first field
-		return in
+		return false
 	}
 
-	err := baseField.init(parentVal, opts)
+	err := baseField.init(in, opts)
 	if err != nil {
 		panic(err)
 	}
 
-	return in
+	return true
 }
 
 // InitRecursively trys to call Init on all fields implementing Field interface
@@ -122,50 +122,50 @@ func InitRecursively(fv reflect.Value, opts *Options) {
 		return
 	}
 
-	target := fv
 findStruct:
-	switch target.Kind() {
+	switch fv.Kind() {
 	case reflect.Struct:
 		_ = tryInit(fv, opts)
 	case reflect.Ptr:
-		if !target.IsValid() || target.IsZero() || target.IsNil() {
+		if !fv.IsValid() || fv.IsZero() || fv.IsNil() {
 			return
 		}
 
-		target = target.Elem()
+		fv = fv.Elem()
 		goto findStruct
 	default:
 		return
 	}
 
-	for i := 0; i < target.NumField(); i++ {
-		InitRecursively(target.Field(i), opts)
+	for i := 0; i < fv.NumField(); i++ {
+		InitRecursively(fv.Field(i), opts)
 	}
 }
 
+// return true when Init called on fieldValue
 // nolint:unparam
-func tryInit(fieldValue reflect.Value, opts *Options) bool {
-	if fieldValue.CanInterface() {
-		fVal, canCallInit := fieldValue.Interface().(Field)
+func tryInit(fv reflect.Value, opts *Options) bool {
+	if fv.CanInterface() {
+		fVal, canCallInit := fv.Interface().(Field)
 		if canCallInit {
-			_ = InitAny(fVal, opts)
+			_ = Init(fVal, opts)
 			return true
 		}
 	}
 
-	if !fieldValue.CanAddr() {
+	if !fv.CanAddr() {
 		return false
 	}
 
-	fieldValue = fieldValue.Addr()
+	fv = fv.Addr()
 
-	if !fieldValue.CanInterface() {
+	if !fv.CanInterface() {
 		return false
 	}
 
-	fVal, canCallInit := fieldValue.Interface().(Field)
+	fVal, canCallInit := fv.Interface().(Field)
 	if canCallInit {
-		_ = InitAny(fVal, opts)
+		_ = Init(fVal, opts)
 		return true
 	}
 

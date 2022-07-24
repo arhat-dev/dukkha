@@ -377,7 +377,7 @@ func FromText(
 
 	var out rs.AnyObject
 
-	_ = rs.InitAny(&out, nil)
+	_ = rs.Init(&out, nil)
 	err = decode(&out)
 	if err != nil {
 		return nil, fmt.Errorf("fromX: unamrshal data: %w", err)
@@ -468,7 +468,7 @@ func JQ(
 			docIter = func() (any, bool) {
 				var obj rs.AnyObject
 
-				_ = rs.InitAny(&obj, nil)
+				_ = rs.Init(&obj, nil)
 
 				errDocIter = dec.Decode(&obj)
 				if errDocIter != nil {

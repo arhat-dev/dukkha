@@ -115,7 +115,7 @@ func (d *Driver) RenderYaml(
 }
 
 func ResolveInputSpec(rc dukkha.RenderingContext, tplBytes []byte, out *InputSpec) (err error) {
-	rs.InitAny(out, nil)
+	rs.Init(out, nil)
 
 	err = yaml.Unmarshal(tplBytes, out)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"arhat.dev/pkg/fshelper"
-	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -81,10 +80,14 @@ func (d *Driver) RenderYaml(
 			)
 		}
 
-		spec := rshelper.InitAll(&inputS3Sepc{}, &rs.Options{
-			InterfaceTypeHandler: rc,
-		}).(*inputS3Sepc)
-		err = yaml.Unmarshal(rawBytes, spec)
+		var (
+			spec inputS3Sepc
+			opts rs.Options
+		)
+		opts.InterfaceTypeHandler = rc
+		rs.Init(&spec, &opts)
+
+		err = yaml.Unmarshal(rawBytes, &spec)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unmarshal input spec: %w",

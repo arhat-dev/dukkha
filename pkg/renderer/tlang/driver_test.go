@@ -25,12 +25,10 @@ func TestDriver_RenderYaml(t *testing.T) {
 		map[string]dukkha.Renderer{
 			"tl": NewDefault("tl"),
 		},
-		func() rs.Field { return &rs.AnyObjectMap{} },
-		func() rs.Field { return &rs.AnyObjectMap{} },
-		func(t *testing.T, ctx dukkha.Context, ts, cs rs.Field) {
-			actual, expected := ts.(*rs.AnyObjectMap), cs.(*rs.AnyObjectMap)
-
-			assert.EqualValues(t, expected.NormalizedValue(), actual.NormalizedValue())
+		func() *rs.AnyObjectMap { return &rs.AnyObjectMap{} },
+		func() *rs.AnyObjectMap { return &rs.AnyObjectMap{} },
+		func(t *testing.T, ctx dukkha.Context, spec *rs.AnyObjectMap, exp *rs.AnyObjectMap) {
+			assert.EqualValues(t, exp.NormalizedValue(), spec.NormalizedValue())
 		},
 	)
 }

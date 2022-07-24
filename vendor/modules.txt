@@ -1,10 +1,9 @@
-# arhat.dev/pkg v0.10.0
+# arhat.dev/pkg v0.10.1
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper
 arhat.dev/pkg/clihelper
 arhat.dev/pkg/cpuhelper
-arhat.dev/pkg/envhelper
 arhat.dev/pkg/errhelper
 arhat.dev/pkg/exechelper
 arhat.dev/pkg/fshelper
@@ -16,7 +15,6 @@ arhat.dev/pkg/md5helper
 arhat.dev/pkg/numhelper
 arhat.dev/pkg/pathhelper
 arhat.dev/pkg/regexphelper
-arhat.dev/pkg/rshelper
 arhat.dev/pkg/sha256helper
 arhat.dev/pkg/sorthelper
 arhat.dev/pkg/stringhelper
@@ -30,7 +28,7 @@ arhat.dev/pkg/yamlhelper
 # arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
-# arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74
+# arhat.dev/rs v0.10.0
 ## explicit; go 1.18
 arhat.dev/rs
 # arhat.dev/tlang v0.0.0-20220721161405-faac9d553010

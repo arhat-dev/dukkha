@@ -488,7 +488,7 @@ func resolvePatchSpec(
 	rc RenderingHandler,
 	toResolve *yaml.Node,
 ) (ret *PatchSpec, err error) {
-	ret = InitAny(&PatchSpec{}, nil).(*PatchSpec)
+	ret = Init(&PatchSpec{}, nil).(*PatchSpec)
 
 	err = toResolve.Decode(ret)
 	if err != nil {

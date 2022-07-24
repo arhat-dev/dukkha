@@ -66,15 +66,12 @@ func TestCollectFiles(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/collect-files",
-		func() any { return rs.InitAny(&TestCase{}, nil) },
-		func() any {
+		func() *TestCase { return rs.Init(&TestCase{}, nil).(*TestCase) },
+		func() *map[string]*ExpectedEntry {
 			m := make(map[string]*ExpectedEntry)
 			return &m
 		},
-		func(t *testing.T, in, exp any) {
-			spec := in.(*TestCase)
-			expected := *exp.(*map[string]*ExpectedEntry)
-
+		func(t *testing.T, spec *TestCase, expected *map[string]*ExpectedEntry) {
 			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			assert.NoError(t, spec.ResolveFields(ctx, -1))
 
@@ -86,7 +83,7 @@ func TestCollectFiles(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			assert.EqualValues(t, len(expected), len(actualFiles))
+			assert.EqualValues(t, len(*expected), len(actualFiles))
 
 			var files []string
 			m := make(map[string]*entry)
@@ -97,7 +94,7 @@ func TestCollectFiles(t *testing.T) {
 
 			t.Log(strings.Join(files, ", "))
 
-			for k, exp := range expected {
+			for k, exp := range *expected {
 				t.Run(k, func(t *testing.T) {
 					actual, ok := m[k]
 					if !assert.True(t, ok, "%q not found", k) {

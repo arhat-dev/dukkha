@@ -54,17 +54,10 @@ func TestParseOneLineSpec(t *testing.T) {
 
 func TestDriver(t *testing.T) {
 	testhelper.TestFixtures(t, "./fixtures",
-		func() any {
-			return rs.InitAny(&rs.AnyObject{}, nil)
-		},
-		func() any {
-			return rs.InitAny(&rs.AnyObject{}, nil)
-		},
-		func(t *testing.T, src, exp any) {
+		func() *rs.AnyObject { return rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject) },
+		func() *rs.AnyObject { return rs.Init(&rs.AnyObject{}, nil).(*rs.AnyObject) },
+		func(t *testing.T, src, exp *rs.AnyObject) {
 			defer t.Cleanup(func() {})
-
-			in := src.(*rs.AnyObject)
-			check := exp.(*rs.AnyObject)
 
 			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 
@@ -92,11 +85,11 @@ func TestDriver(t *testing.T) {
 				}, " "),
 			})
 
-			assert.NoError(t, in.ResolveFields(ctx, -1))
-			assert.NoError(t, check.ResolveFields(ctx, -1))
+			assert.NoError(t, src.ResolveFields(ctx, -1))
+			assert.NoError(t, exp.ResolveFields(ctx, -1))
 
-			actual := in.NormalizedValue()
-			expected := check.NormalizedValue()
+			actual := src.NormalizedValue()
+			expected := exp.NormalizedValue()
 
 			assert.IsType(t, map[string]any{}, expected)
 			assert.IsType(t, expected, actual)

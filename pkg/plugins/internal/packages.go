@@ -489,8 +489,8 @@ func init() {
 	decs["BaseField"] = reflect.TypeOf((*rs.BaseField)(nil)).Elem()
 	decs["ErrInterfaceTypeNotHandled"] = &rs.ErrInterfaceTypeNotHandled
 	decs["Field"] = reflect.TypeOf((*rs.Field)(nil)).Elem()
-	decs["InitAny"] = rs.InitAny
 	decs["InitRecursively"] = rs.InitRecursively
+	decs["InitReflectValue"] = rs.InitReflectValue
 	decs["InterfaceTypeHandleFunc"] = reflect.TypeOf((*rs.InterfaceTypeHandleFunc)(nil)).Elem()
 	decs["InterfaceTypeHandler"] = reflect.TypeOf((*rs.InterfaceTypeHandler)(nil)).Elem()
 	decs["JSONPatchSpec"] = reflect.TypeOf((*rs.JSONPatchSpec)(nil)).Elem()

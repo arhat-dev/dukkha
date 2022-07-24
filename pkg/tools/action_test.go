@@ -41,22 +41,19 @@ func TestActionFixtures(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./_fixtures/action",
-		func() any { return rs.InitAny(&Action{}, nil) },
-		func() any { return rs.InitAny(&CheckSpec{}, nil) },
-		func(t *testing.T, in any, exp any) {
-			actual := in.(*Action)
-			expected := exp.(*CheckSpec)
-
+		func() *Action { return rs.Init(&Action{}, nil).(*Action) },
+		func() *CheckSpec { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
+		func(t *testing.T, spec *Action, exp *CheckSpec) {
 			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("env", env.NewDefault(""))
 
-			assert.NoError(t, actual.DoAfterFieldResolved(ctx, func(bool) error { return nil }))
+			assert.NoError(t, spec.DoAfterFieldResolved(ctx, func(bool) error { return nil }))
 
-			if !assertVisibleFields(t, &expected.Resolved, actual) {
+			if !assertVisibleFields(t, &exp.Resolved, spec) {
 				return
 			}
 
-			runReq, err := actual.GenSpecs(ctx, 0)
+			runReq, err := spec.GenSpecs(ctx, 0)
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -70,9 +67,9 @@ func TestActionFixtures(t *testing.T) {
 				err = nil
 			}
 
-			if expected.Result.Failed {
+			if exp.Result.Failed {
 				assert.EqualValues(t, dukkha.TaskExecFailed, ctx.State())
-				if actual.ContinueOnError {
+				if spec.ContinueOnError {
 					assert.NoError(t, err)
 				} else {
 					assert.Error(t, err)

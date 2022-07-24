@@ -15,7 +15,7 @@ func flattenVectorMap(m map[string]*Vector) map[string][]string {
 }
 
 func NewVector(elems ...string) *Vector {
-	return rs.InitAny(&Vector{Vec: elems}, nil).(*Vector)
+	return rs.Init(&Vector{Vec: elems}, nil).(*Vector)
 }
 
 type Vector struct {

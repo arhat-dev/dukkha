@@ -111,31 +111,25 @@ func TestTask(
 	}
 
 	testhelper.TestFixtures(t, dir,
-		func() any {
-			return rs.InitAny(&TestCase{}, &rs.Options{
+		func() *TestCase {
+			return rs.Init(&TestCase{}, &rs.Options{
 				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
 					func(typ reflect.Type, yamlKey string) (any, error) {
-						return rs.InitAny(newTask(), nil), nil
+						return rs.Init(newTask(), nil), nil
 					},
 				),
-			})
+			}).(*TestCase)
 		},
-		func() any {
-			return rs.InitAny(&CheckSpec{}, &rs.Options{
+		func() *CheckSpec {
+			return rs.Init(&CheckSpec{}, &rs.Options{
 				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
 					func(typ reflect.Type, yamlKey string) (any, error) {
-						return rs.InitAny(newExpected(), nil), nil
+						return rs.Init(newExpected(), nil), nil
 					},
 				),
-			})
+			}).(*CheckSpec)
 		},
-		func(t *testing.T, in, exp any) {
-			defer t.Cleanup(func() {
-
-			})
-			spec := in.(*TestCase)
-			e := exp.(*CheckSpec)
-
+		func(t *testing.T, spec *TestCase, exp *CheckSpec) {
 			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
@@ -154,7 +148,7 @@ func TestTask(
 				return
 			}
 
-			rs.InitAny(tool, nil)
+			rs.Init(tool, nil)
 
 			assert.NoError(t, tool.Init(ctx.ToolCacheFS(tool)))
 			ctx.AddTool(tool.Key(), tool)
@@ -168,11 +162,11 @@ func TestTask(
 				IgnoreError: false,
 			})
 
-			if !assert.NoError(t, e.ResolveFields(ctx, -1)) {
+			if !assert.NoError(t, exp.ResolveFields(ctx, -1)) {
 				return
 			}
 
-			if e.ExpectErr {
+			if exp.ExpectErr {
 				assert.Error(t, err)
 				return
 			}
@@ -181,7 +175,7 @@ func TestTask(
 				return
 			}
 
-			check(t, e.Expected, e.Actual)
+			check(t, exp.Expected, exp.Actual)
 		},
 	)
 }

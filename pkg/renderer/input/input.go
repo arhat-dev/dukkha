@@ -61,7 +61,7 @@ func (d *Driver) RenderYaml(
 		hide   = d.Config.HideInput
 	)
 	if useSpec {
-		spec := rs.InitAny(&inputSpec{}, nil).(*inputSpec)
+		spec := rs.Init(&inputSpec{}, nil).(*inputSpec)
 		err = yaml.Unmarshal(promptBytes, spec)
 		if err != nil {
 			return nil, fmt.Errorf("renderer.%s: invalid input spec %w", d.name, err)

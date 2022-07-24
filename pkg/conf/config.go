@@ -18,9 +18,9 @@ package conf
 
 import (
 	"fmt"
+	"reflect"
 
 	"arhat.dev/pkg/log"
-	"arhat.dev/pkg/rshelper"
 	"arhat.dev/rs"
 
 	di "arhat.dev/dukkha/internal"
@@ -29,9 +29,11 @@ import (
 )
 
 func NewConfig() *Config {
-	return rshelper.InitAll(&Config{}, &rs.Options{
+	cfg := new(Config)
+	rs.InitRecursively(reflect.ValueOf(cfg), &rs.Options{
 		InterfaceTypeHandler: dukkha.GlobalInterfaceTypeHandler,
-	}).(*Config)
+	})
+	return cfg
 }
 
 type Config struct {

@@ -4,7 +4,7 @@ import (
 	"arhat.dev/pkg/errhelper"
 )
 
-var (
+const (
 	errTest errhelper.ErrString = "test error"
 )
 

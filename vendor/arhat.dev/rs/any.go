@@ -88,7 +88,7 @@ func (o *AnyObject) UnmarshalJSON(p []byte) error { return yaml.Unmarshal(p, o) 
 
 func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 	if !o.BaseField.initialized() {
-		_ = InitAny(o, nil)
+		_ = Init(o, nil)
 	}
 
 	switch n.Kind {
@@ -96,7 +96,7 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 		o.kind = _sliceData
 		o.sliceData = make([]AnyObject, len(n.Content))
 		for i, vn := range n.Content {
-			_ = InitAny(&o.sliceData[i], o._opts)
+			_ = Init(&o.sliceData[i], o._opts)
 
 			err := prepareYamlNode(vn).Decode(&o.sliceData[i])
 			if err != nil {
@@ -133,7 +133,7 @@ func (o *AnyObject) UnmarshalYAML(n *yaml.Node) error {
 
 		n.Content = content
 		if !o.mapData.initialized() {
-			_ = InitAny(&o.mapData, o._opts)
+			_ = Init(&o.mapData, o._opts)
 		}
 
 		return n.Decode(&o.mapData)
@@ -169,7 +169,7 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, names ...strin
 	switch o.kind {
 	case _mapData:
 		if !o.mapData.initialized() {
-			InitAny(&o.mapData, o._opts)
+			Init(&o.mapData, o._opts)
 		}
 
 		return o.mapData.ResolveFields(rc, depth, names...)
@@ -178,7 +178,7 @@ func (o *AnyObject) ResolveFields(rc RenderingHandler, depth int, names ...strin
 		for i := 0; i < n; i++ {
 			sd := &o.sliceData[i]
 			if !sd.initialized() {
-				InitAny(&sd, o._opts)
+				Init(sd, o._opts)
 			}
 
 			err := sd.ResolveFields(rc, depth, names...)

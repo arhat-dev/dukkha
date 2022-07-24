@@ -11,7 +11,7 @@ import (
 )
 
 func ResolveInputSpec(rc rs.RenderingHandler, rawBytes []byte, out rs.Field) (rs.Field, error) {
-	out = rs.InitAny(out, nil).(rs.Field)
+	out = rs.Init(out, nil)
 	err := yaml.Unmarshal(rawBytes, out)
 	if err != nil {
 		return nil, err

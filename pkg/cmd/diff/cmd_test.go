@@ -36,20 +36,19 @@ func TestCmd(t *testing.T) {
 			"file": file.NewDefault("file"),
 			"env":  env.NewDefault("env"),
 		},
-		func() rs.Field { return &TestCase{} },
-		func() rs.Field { return &CheckSpec{} },
-		func(t *testing.T, ctx dukkha.Context, ts, cs rs.Field) {
+		func() *TestCase { return &TestCase{} },
+		func() *CheckSpec { return &CheckSpec{} },
+		func(t *testing.T, ctx dukkha.Context, spec *TestCase, exp *CheckSpec) {
 			srcDoc, baseDoc, newDoc := filepath.Join(t.TempDir(), "src.yaml"),
 				filepath.Join(t.TempDir(), "base.yaml"),
 				filepath.Join(t.TempDir(), "new.yaml")
 
-			test, check := ts.(*TestCase), cs.(*CheckSpec)
-			assert.NoError(t, os.WriteFile(srcDoc, []byte(test.Src), 0644))
-			assert.NoError(t, os.WriteFile(baseDoc, []byte(test.Base), 0644))
-			assert.NoError(t, os.WriteFile(newDoc, []byte(test.New), 0644))
+			assert.NoError(t, os.WriteFile(srcDoc, []byte(spec.Src), 0644))
+			assert.NoError(t, os.WriteFile(baseDoc, []byte(spec.Base), 0644))
+			assert.NoError(t, os.WriteFile(newDoc, []byte(spec.New), 0644))
 
 			err := diffFile(ctx, srcDoc, baseDoc, newDoc)
-			if check.ExpectErr {
+			if exp.ExpectErr {
 				assert.Error(t, err)
 				return
 			}

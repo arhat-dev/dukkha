@@ -1,9 +1,9 @@
-arhat.dev/pkg v0.10.0 h1:N6OH4Q1S/lpFGp0n96ewttWK82E19YB4RXr1uAJVV8w=
-arhat.dev/pkg v0.10.0/go.mod h1:EcYUtK2QoRnCKdRViwNWPtzymguUXZKNZhO0m4QIvHg=
+arhat.dev/pkg v0.10.1 h1:aLi+ZJ+Y+cPA1iJnln6PTD209tZixzJymqZv7NBX8SM=
+arhat.dev/pkg v0.10.1/go.mod h1:hykyY+XibXAzeaRD/ykio1JnytWsE8eanuZvyE2eEAw=
 arhat.dev/pty v0.1.0 h1:KUH0pR7+lCvX+GTcRrkEE7TOw8t1UMMiiUJyFi+Fizo=
 arhat.dev/pty v0.1.0/go.mod h1:U1xkO+BRGZT4fjImSnlQPGfCgmFPlex9dTMUvce9e/Q=
-arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74 h1:r8ZEy1c9NyHF/Ar64h/JImSy5b/W7sK7hzksfOR7y2g=
-arhat.dev/rs v0.9.1-0.20220528195231-b029b24d8e74/go.mod h1:Kebop1yUJvR/OFc8y54SodOwoOX4E0Edp41SEr7IHXE=
+arhat.dev/rs v0.10.0 h1:Q3xxTbcY9en3DnUQe0CO8dpBnjVB87nwxNgwacMoOOM=
+arhat.dev/rs v0.10.0/go.mod h1:skcmXSNh4oYAtM5er7mCMBngy1MDSNf+z8jWvFPDdJs=
 arhat.dev/tlang v0.0.0-20220721161405-faac9d553010 h1:H6nD9Y4QVRuatZ0ZRloQUCeXXp/ddlHR7EC4WKnWW8I=
 arhat.dev/tlang v0.0.0-20220721161405-faac9d553010/go.mod h1:CUbGEn0MtLm9c2preG72j0QxBIzoi9s31Kb6au+WubE=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=

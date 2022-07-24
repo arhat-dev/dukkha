@@ -221,13 +221,12 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/gen-entries",
-		func() any { return rs.InitAny(&testInputSpec{}, nil).(*testInputSpec) },
-		func() any {
+		func() *testInputSpec { return rs.Init(&testInputSpec{}, nil).(*testInputSpec) },
+		func() *[]Entry {
 			var data []Entry
 			return &data
 		},
-		func(t *testing.T, in, exp any) {
-			spec := in.(*testInputSpec)
+		func(t *testing.T, spec *testInputSpec, exp *[]Entry) {
 			err := spec.ResolveFields(rs.RenderingHandleFunc(
 				func(renderer string, rawData any) (result []byte, err error) {
 					data, err := rs.NormalizeRawData(rawData)

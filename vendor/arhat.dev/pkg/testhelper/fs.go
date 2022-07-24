@@ -11,9 +11,9 @@ func NewAlwaysErrFS(err error) fs.FS {
 		err = fs.ErrInvalid
 	}
 
-	return &alwaysErrFS{err: err}
+	return AlwaysErrFS{err: err}
 }
 
-type alwaysErrFS struct{ err error }
+type AlwaysErrFS struct{ err error }
 
-func (fs *alwaysErrFS) Open(name string) (fs.File, error) { return nil, fs.err }
+func (fs AlwaysErrFS) Open(name string) (fs.File, error) { return nil, fs.err }

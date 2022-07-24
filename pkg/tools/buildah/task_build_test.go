@@ -56,21 +56,19 @@ func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/manifest-platform-query",
-		func() any { return rs.InitAny(&TestCase{}, nil) },
-		func() any { return rs.InitAny(&CheckSpec{}, nil) },
-		func(t *testing.T, spec, exp any) {
-			test, check := spec.(*TestCase), exp.(*CheckSpec)
-
+		func() *TestCase { return rs.Init(&TestCase{}, nil).(*TestCase) },
+		func() *CheckSpec { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
+		func(t *testing.T, spec *TestCase, exp *CheckSpec) {
 			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 
-			assert.NoError(t, test.ResolveFields(ctx, -1))
-			assert.NoError(t, check.ResolveFields(ctx, -1))
+			assert.NoError(t, spec.ResolveFields(ctx, -1))
+			assert.NoError(t, exp.ResolveFields(ctx, -1))
 
-			query := createManifestPlatformQueryForDigest(test.Query.Kernel, test.Query.Arch)
+			query := createManifestPlatformQueryForDigest(spec.Query.Kernel, spec.Query.Arch)
 
-			result, err := textquery.JQ[byte](query, []byte(test.Manifest))
-			if check.ExpectErr {
+			result, err := textquery.JQ[byte](query, []byte(spec.Manifest))
+			if exp.ExpectErr {
 				assert.Error(t, err)
 				return
 			}
@@ -80,9 +78,9 @@ func TestCreateManifestPlatformQueryForDigest(t *testing.T) {
 			digests, err := parseManifestOsArchVariantQueryResult(result)
 			assert.NoError(t, err)
 
-			if !assert.EqualValues(t, check.Digests, digests) {
+			if !assert.EqualValues(t, exp.Digests, digests) {
 				t.Log("Query:", query)
-				t.Log("Manifest:", test.Manifest)
+				t.Log("Manifest:", spec.Manifest)
 			}
 		},
 	)

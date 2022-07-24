@@ -57,9 +57,9 @@ func TestCmdFixtures(t *testing.T,
 	prepareRun func(flags []string) (checkFlags func() error, runCmd func() error, _ error),
 ) {
 	testhelper.TestFixtures(t, dir,
-		func() interface{} { return rs.Init(&CmdTestCase{}, nil) },
-		func() interface{} { return rs.Init(&CmdTestCheckSpec{}, nil) },
-		func(t *testing.T, spec, exp interface{}) {
+		func() *CmdTestCase { return rs.Init(&CmdTestCase{}, nil).(*CmdTestCase) },
+		func() *CmdTestCheckSpec { return rs.Init(&CmdTestCheckSpec{}, nil).(*CmdTestCheckSpec) },
+		func(t *testing.T, spec *CmdTestCase, exp *CmdTestCheckSpec) {
 			flagMats := matrixhelper.CartesianProduct(flagMatrix)
 			for _, m := range flagMats {
 				var flagSets [][]string
@@ -74,7 +74,7 @@ func TestCmdFixtures(t *testing.T,
 					}
 				}
 
-				specNew, expNew := genNewSpec(flagSets, spec.(*CmdTestCase), exp.(*CmdTestCheckSpec))
+				specNew, expNew := genNewSpec(flagSets, spec, exp)
 
 				var data []string
 				for _, o := range flagSets {

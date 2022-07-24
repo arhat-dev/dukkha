@@ -47,7 +47,7 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	spec := rs.InitAny(&Spec{}, nil).(*Spec)
+	spec := rs.Init(&Spec{}, nil).(*Spec)
 	err = yaml.Unmarshal(rawBytes, spec)
 	if err != nil {
 		return nil, fmt.Errorf(

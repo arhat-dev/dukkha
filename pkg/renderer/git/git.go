@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"reflect"
 	"strconv"
 	"strings"
 
-	"arhat.dev/pkg/rshelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
 	"gopkg.in/yaml.v3"
@@ -40,13 +40,13 @@ type Driver struct {
 }
 
 func (d *Driver) RenderYaml(
-	rc dukkha.RenderingContext, rawData interface{}, attributes []dukkha.RendererAttribute,
+	rc dukkha.RenderingContext, rawData any, attributes []dukkha.RendererAttribute,
 ) ([]byte, error) {
 	var (
 		// reqURL format: <repo-name>.git/<path-in-repo>[@ref]
 		reqURL      string
 		sshConfig   *ssh.Spec
-		fetchConfig *FetchSpec
+		fetchConfig FetchSpec
 	)
 
 	rawData, err := rs.NormalizeRawData(rawData)
@@ -71,11 +71,12 @@ func (d *Driver) RenderYaml(
 			)
 		}
 
-		spec := rshelper.InitAll(&inputFetchSpec{}, &rs.Options{
+		var spec inputFetchSpec
+		rs.InitRecursively(reflect.ValueOf(&spec), &rs.Options{
 			InterfaceTypeHandler: rc,
-		}).(*inputFetchSpec)
+		})
 
-		err = yaml.Unmarshal(rawBytes, spec)
+		err = yaml.Unmarshal(rawBytes, &spec)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"renderer.%s: unmarshal input spec: %w",
@@ -92,12 +93,10 @@ func (d *Driver) RenderYaml(
 		}
 
 		sshConfig = spec.SSH
-		fetchConfig = &spec.Fetch
+		fetchConfig = spec.Fetch
 	}
 
 	if len(reqURL) != 0 {
-		fetchConfig = &FetchSpec{}
-
 		if idx := strings.LastIndexByte(reqURL, '@'); idx > 0 {
 			fetchConfig.Ref = reqURL[idx+1:]
 			reqURL = reqURL[:idx]

@@ -22,12 +22,12 @@ spec:
 # second doc is the expected result
 c: d
 */
-func TestFixtures(
+func TestFixtures[TestCase, Expected any](
 	t *testing.T,
 	dir string,
-	createTestSpec func() interface{},
-	createExpected func() interface{},
-	check func(t *testing.T, spec interface{}, exp interface{}),
+	createTestSpec func() TestCase,
+	createExpected func() Expected,
+	check func(t *testing.T, spec TestCase, exp Expected),
 ) {
 	err := fs.WalkDir(os.DirFS(dir), ".", func(path string, d fs.DirEntry, err error) error {
 		if d == nil || d.IsDir() {
@@ -35,12 +35,14 @@ func TestFixtures(
 		}
 
 		t.Run(d.Name(), func(t *testing.T) {
+			var rd bytes.Reader
 			specBytes, err := os.ReadFile(filepath.Join(dir, path))
 			if !assert.NoError(t, err) {
 				return
 			}
+			rd.Reset(specBytes)
 
-			dec := yaml.NewDecoder(bytes.NewReader(specBytes))
+			dec := yaml.NewDecoder(&rd)
 
 			spec := createTestSpec()
 			if !assert.NoError(t, dec.Decode(spec)) {

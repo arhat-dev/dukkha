@@ -11,20 +11,19 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func TestFixturesUsingRenderingSuffix(
+func TestFixturesUsingRenderingSuffix[TestCase, CheckSpec rs.Field](
 	t *testing.T,
 	dir string,
 	renderers map[string]dukkha.Renderer,
-	newTestSpec func() rs.Field,
-	newCheckSpec func() rs.Field,
-	check func(t *testing.T, ctx dukkha.Context, ts, cs rs.Field),
+	newTestSpec func() TestCase,
+	newCheckSpec func() CheckSpec,
+	check func(t *testing.T, ctx dukkha.Context, ts TestCase, cs CheckSpec),
 ) {
 	testhelper.TestFixtures(t, dir,
-		func() any { return rs.InitAny(newTestSpec(), nil) },
-		func() any { return rs.InitAny(newCheckSpec(), nil) },
-		func(t *testing.T, spec, exp any) {
+		func() TestCase { return rs.Init(newTestSpec(), nil).(TestCase) },
+		func() CheckSpec { return rs.Init(newCheckSpec(), nil).(CheckSpec) },
+		func(t *testing.T, s TestCase, e CheckSpec) {
 			defer t.Cleanup(func() {})
-			s, e := spec.(rs.Field), exp.(rs.Field)
 
 			ctx := NewTestContext(context.TODO(), t.TempDir())
 
