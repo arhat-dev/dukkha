@@ -49,22 +49,29 @@ func (s *biasedSorter[K, V]) Len() int {
 
 // Less implements sort.Interface
 func (s *biasedSorter[K, V]) Less(i int, j int) bool {
+	const (
+		keyKernel = "kernel"
+		keyCmd    = "cmd"
+		keyArch   = "arch"
+		keyLibc   = "libc"
+	)
+
 	switch {
-	case s.keys[i] == "kernel":
-		return s.keys[j] != "kernel"
-	case s.keys[j] == "kernel":
+	case s.keys[i] == keyKernel:
+		return s.keys[j] != keyKernel
+	case s.keys[j] == keyKernel:
 		return false
-	case s.keys[i] == "cmd":
-		return s.keys[j] != "cmd"
-	case s.keys[j] == "cmd":
+	case s.keys[i] == keyCmd:
+		return s.keys[j] != keyCmd
+	case s.keys[j] == keyCmd:
 		return false
-	case s.keys[i] == "arch":
-		return s.keys[j] != "arch"
-	case s.keys[j] == "arch":
+	case s.keys[i] == keyArch:
+		return s.keys[j] != keyArch
+	case s.keys[j] == keyArch:
 		return false
-	case s.keys[i] == "libc":
-		return s.keys[j] != "libc"
-	case s.keys[j] == "libc":
+	case s.keys[i] == keyLibc:
+		return s.keys[j] != keyLibc
+	case s.keys[j] == keyLibc:
 		return false
 	default:
 		return s.keys[i] < s.keys[j]

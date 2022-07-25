@@ -55,7 +55,10 @@ func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 	for _, ex := range s.Exclude {
 		removeMatchList = append(
 			removeMatchList,
-			matrixhelper.CartesianProduct(flattenVectorMap(ex.Data), sliceutils.SortByKernelCmdArchLibcOther)...,
+			matrixhelper.CartesianProduct(
+				flattenVectorMap(ex.Data),
+				sliceutils.SortByKernelCmdArchLibcOther,
+			)...,
 		)
 	}
 
@@ -64,7 +67,10 @@ func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 		ignoreFilter = filter.ignore
 	)
 	if len(filter.match) != 0 {
-		matchFilter = matrixhelper.CartesianProduct(flattenVectorMap(filter.match), sliceutils.SortByKernelCmdArchLibcOther)
+		matchFilter = matrixhelper.CartesianProduct(
+			flattenVectorMap(filter.match),
+			sliceutils.SortByKernelCmdArchLibcOther,
+		)
 	}
 
 	mat := matrixhelper.CartesianProduct(all, sliceutils.SortByKernelCmdArchLibcOther)
