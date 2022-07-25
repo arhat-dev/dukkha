@@ -2,37 +2,27 @@ workflow:run:
 # required by ci
 - name: build-artifacts
   jobs:
-  - task:
-      ref: golang:build(dukkha)
-      matrix_filter: {}
+  - task: { ref: golang:build(dukkha) }
 
 # required by ci
 - name: sign-artifacts
   jobs:
   # generate dukkha-{kernel}-{arch}.sig
-  - task:
-      ref: cosign:sign(dukkha)
-      matrix_filter: {}
+  - task: { ref: cosign:sign(dukkha) }
 
 # upload signed artifacts to ghcr.io
 # required by ci
 - name: upload-artifacts
   jobs:
-  - task:
-      ref: docker:login(ghcr)
-      matrix_filter: {}
-  - task:
-      ref: cosign:upload(dukkha)
-      matrix_filter: {}
+  - task: { ref: docker:login(ghcr) }
+  - task: { ref: cosign:upload(dukkha) }
 
 # required by ci
 - name: create-release
   jobs:
   # generate dukkha-{kernel}-{arch}.{tar.gz,zip}
   # using dukkha-{kernel}-{arch}.{,.exe,sha256,sha512,md5,sig} and license.txt
-  - task:
-      ref: archive:create(dukkha)
-      matrix_filter: {}
+  - task: { ref: archive:create(dukkha) }
 
   # generate checksums for archives
   - chdir: build
@@ -46,6 +36,4 @@ workflow:run:
       done
 
   # create github release
-  - task:
-      ref: github:release(fake)
-      matrix_filter: {}
+  - task: { ref: github:release(fake) }

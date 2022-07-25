@@ -46,7 +46,7 @@ And `Action` is defined as:
 
 - `name: string`: action name
 - `if: bool`: skip this action when set to false (defaults to true)
-- `task: { ref: <task-reference>, matrix_filter: <matrix-spec> }`: reference to other task with optional matrix filter to override inheriented one
+- `task: { ref: <task-reference>, matrix_filter: <matrix-spec> }`: reference to other task with optional matrix filter to override current one
   - `<task-reference>` format: `<tool-kind>{:<tool-name>}:<task-kind>(<another_task_name>)`
   - `<matrix-sepc>` is the same as `matrix`
 - `cmd: []string`: raw cmd to run

@@ -159,15 +159,15 @@ func (t *BaseTask) GetHookExecSpecs(
 
 func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) (ret []matrix.Entry, err error) {
 	err = t.DoAfterFieldsResolved(rc, -1, true, func() error {
-		if t.Matrix.HasUserValue() {
-			ret = t.Matrix.GenerateEntries(rc.MatrixFilter())
-		} else {
+		if t.Matrix.IsEmpty() {
 			ret = []matrix.Entry{
 				{
 					"kernel": rc.HostKernel(),
 					"arch":   rc.HostArch(),
 				},
 			}
+		} else {
+			ret = t.Matrix.GenerateEntries(rc.MatrixFilter())
 		}
 
 		return nil

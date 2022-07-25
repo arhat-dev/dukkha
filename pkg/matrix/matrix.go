@@ -22,16 +22,16 @@ type Spec struct {
 	Data map[string]*Vector `yaml:",inline,omitempty"`
 }
 
-func (s *Spec) HasUserValue() bool {
+func (s *Spec) IsEmpty() bool {
 	if s == nil {
-		return false
+		return true
 	}
 
-	return len(s.Include) != 0 || len(s.Exclude) != 0 || len(s.Data) != 0
+	return len(s.Include) == 0 && len(s.Exclude) == 0 && len(s.Data) == 0
 }
 
 func (s *Spec) AsFilter() (ret Filter) {
-	if !s.HasUserValue() {
+	if s.IsEmpty() {
 		return
 	}
 
@@ -48,7 +48,7 @@ func (s *Spec) AsFilter() (ret Filter) {
 // GenerateEntries generates a set of matrix entries from the spec
 
 func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
-	if !s.HasUserValue() {
+	if s.IsEmpty() {
 		return
 	}
 

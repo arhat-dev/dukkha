@@ -2616,12 +2616,14 @@
     "arhat.dev.dukkha.pkg.tools.TaskReference": {
       "properties": {
         "matrix_filter": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec",
+          "description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (`{}`) means use current matrix entry (if exists) \t- non-empty cases are like task matrix",
+          "x-intellij-html-description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (<code>{}</code>) means use current matrix entry (if exists) \t- non-empty cases are like task matrix"
         },
         "ref": {
           "type": "string",
-          "description": "<tool-kind>{:<tool-name>}:<task-kind>",
-          "x-intellij-html-description": "<tool-kind>{:<tool-name>}:<task-kind>"
+          "description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running `dukkha run workflow local run foo`, the tool-name is `local`. \t\tsay we reference `golang:build(bar)` in its job list, we will \t\tactually run `golang:local:build(bar)` in this case",
+          "x-intellij-html-description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>. \t\tsay we reference <code>golang:build(bar)</code> in its job list, we will \t\tactually run <code>golang:local:build(bar)</code> in this case"
         }
       },
       "preferredOrder": [
@@ -2631,15 +2633,17 @@
       "additionalProperties": false,
       "patternProperties": {
         "^matrix_filter@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec",
+          "description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (`{}`) means use current matrix entry (if exists) \t- non-empty cases are like task matrix",
+          "x-intellij-html-description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (<code>{}</code>) means use current matrix entry (if exists) \t- non-empty cases are like task matrix"
         },
         "^matrix_filter@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^ref@.*": {
           "type": "string",
-          "description": "<tool-kind>{:<tool-name>}:<task-kind>",
-          "x-intellij-html-description": "<tool-kind>{:<tool-name>}:<task-kind>"
+          "description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running `dukkha run workflow local run foo`, the tool-name is `local`. \t\tsay we reference `golang:build(bar)` in its job list, we will \t\tactually run `golang:local:build(bar)` in this case",
+          "x-intellij-html-description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>. \t\tsay we reference <code>golang:build(bar)</code> in its job list, we will \t\tactually run <code>golang:local:build(bar)</code> in this case"
         },
         "^ref@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

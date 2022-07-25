@@ -3,31 +3,21 @@ workflow:run:
 # required by ci job
 - name: build-images
   jobs:
-  - task:
-      ref: buildah:xbuild(dukkha)
-      matrix_filter: {}
+  - task: { ref: buildah:xbuild(dukkha) }
 
 # push built container images
 # required by ci job
 - name: push-images
   jobs:
-  - task:
-      ref: buildah:login(ghcr)
-      matrix_filter: {}
-  - task:
-      ref: buildah:push(dukkha)
-      matrix_filter: {}
+  - task: { ref: buildah:login(ghcr) }
+  - task: { ref: buildah:push(dukkha) }
 
 # sign container images
 # required by ci job
 - name: sign-images
   jobs:
   - if@tlang: &github all (eq env.GITHUB_ACTIONS "true") git.tag
-    task:
-      ref: docker:login(ghcr)
-      matrix_filter: {}
+    task: { ref: docker:login(ghcr) }
 
   - if@tlang: *github
-    task:
-      ref: cosign:sign-image(dukkha)
-      matrix_filter: {}
+    task: { ref: cosign:sign-image(dukkha) }

@@ -13,8 +13,22 @@ import (
 type TaskReference struct {
 	rs.BaseField
 
-	// <tool-kind>{:<tool-name>}:<task-kind>
-	Ref          string       `yaml:"ref"`
+	// Ref is a task reference in following format:
+	//
+	//	<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)
+	//
+	// when tool-name is not set, current tool-name is used
+	//
+	// e.g. when running `dukkha run workflow local run foo`, the tool-name is `local`.
+	// 		say we reference `golang:build(bar)` in its job list, we will
+	//		actually run `golang:local:build(bar)` in this case
+	//
+	Ref string `yaml:"ref"`
+
+	// MatrixFilter for filtering matrix to be used
+	//	- nil filter (no value or nil) means run all matrix tasks of the referenced task
+	//	- empty filter (`{}`) means use current matrix entry (if exists)
+	//	- non-empty cases are like task matrix
 	MatrixFilter *matrix.Spec `yaml:"matrix_filter"`
 }
 
@@ -66,9 +80,12 @@ func (tr *TaskReference) genTaskExecReq(
 		)
 	}
 
-	if tr.MatrixFilter != nil {
+	if tr.MatrixFilter == nil {
+		// not set or nil, reset filter
+		ctx.SetMatrixFilter(matrix.Filter{})
+	} else if !tr.MatrixFilter.IsEmpty() {
 		ctx.SetMatrixFilter(tr.MatrixFilter.AsFilter())
-	}
+	} // else { /* empty filter, keep current filter */ }
 
 	toolKey, taskKey := dukkha.ToolKey{
 		Kind: toolKind,

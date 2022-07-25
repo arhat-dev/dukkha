@@ -37,9 +37,7 @@ workflow:run:
       - *golangci_lint_config
   hooks:
     before:
-    - task:
-        ref: workflow:run(prepare-linter-config)
-        matrix_filter: {}
+    - task: { ref: workflow:run(prepare-linter-config) }
 
   jobs:
   - cmd@presets?str|tmpl#use-spec: tools/presets.tmpl
