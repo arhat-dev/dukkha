@@ -9,63 +9,50 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSpec_GenerateFilter(t *testing.T) {
-	t.Parallel()
-
-	for _, test := range []struct {
-		name string
-		in   *Spec
-	}{} {
-		t.Run(test.name, func(t *testing.T) {
-
-		})
-	}
-}
-
 func TestSpec_GenerateEntries(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
-		in   *Spec
-		// specs are sorted by name, put them in order
-		expected []Entry
+		spec *Spec
 
 		matchFilter  map[string]*Vector
 		ignoreFilter [][2]string
+
+		expected []Entry
 	}{
 		{
 			name:     "nil",
-			in:       nil,
+			spec:     nil,
 			expected: nil,
 		},
 		{
-			name: "basic",
-			in: &Spec{
-				Data: map[string]*Vector{
+			name: "Basic",
+			spec: &Spec{
+				Values: map[string]*Vector{
 					"foo":    NewVector("a", "b"),
 					"kernel": NewVector("linux", "darwin"),
 					"arch":   NewVector("amd64", "arm64"),
 				},
 			},
 			expected: []Entry{
-				// sort order: arch=amd64 foo=a,b, os=linux,darwin
+				// sort order: os=linux arch=amd64,arm64 foo=a,b
 				{"kernel": "linux", "arch": "amd64", "foo": "a"},
-				{"kernel": "darwin", "arch": "amd64", "foo": "a"},
 				{"kernel": "linux", "arch": "amd64", "foo": "b"},
-				{"kernel": "darwin", "arch": "amd64", "foo": "b"},
-
-				// sort order: arch=arm64 foo=a,b, os=linux,darwin
 				{"kernel": "linux", "arch": "arm64", "foo": "a"},
-				{"kernel": "darwin", "arch": "arm64", "foo": "a"},
 				{"kernel": "linux", "arch": "arm64", "foo": "b"},
+
+				// sort order: os=darwin arch=amd64,arm64 foo=a,b
+				{"kernel": "darwin", "arch": "amd64", "foo": "a"},
+				{"kernel": "darwin", "arch": "amd64", "foo": "b"},
+				{"kernel": "darwin", "arch": "arm64", "foo": "a"},
 				{"kernel": "darwin", "arch": "arm64", "foo": "b"},
 			},
 		},
 		{
-			name: "basic + matchFilter",
-			in: &Spec{
-				Data: map[string]*Vector{
+			name: "Basic and MatchFilter",
+			spec: &Spec{
+				Values: map[string]*Vector{
 					"foo":    NewVector("a", "b"),
 					"kernel": NewVector("linux", "darwin"),
 					"arch":   NewVector("amd64", "arm64"),
@@ -82,9 +69,9 @@ func TestSpec_GenerateEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "basic + ignoreFilter",
-			in: &Spec{
-				Data: map[string]*Vector{
+			name: "Basic and IgnoreFilter",
+			spec: &Spec{
+				Values: map[string]*Vector{
 					"foo":    NewVector("a", "b"),
 					"kernel": NewVector("linux", "darwin"),
 					"arch":   NewVector("amd64", "arm64"),
@@ -95,15 +82,15 @@ func TestSpec_GenerateEntries(t *testing.T) {
 				{"arch", "arm64"},
 			},
 			expected: []Entry{
-				// sort order: arch=amd64 foo=a,b, os=linux,darwin
+				// sort order: os=linux,darwin arch=amd64 foo=a,b
 				{"kernel": "darwin", "arch": "amd64", "foo": "a"},
 				{"kernel": "darwin", "arch": "amd64", "foo": "b"},
 			},
 		},
 		{
-			name: "include",
-			in: &Spec{
-				Include: []*specItem{
+			name: "Include",
+			spec: &Spec{
+				Include: []*SpecItem{
 					{
 						Data: map[string]*Vector{
 							"kernel": NewVector("windows"),
@@ -117,7 +104,7 @@ func TestSpec_GenerateEntries(t *testing.T) {
 						},
 					},
 				},
-				Data: map[string]*Vector{
+				Values: map[string]*Vector{
 					"kernel": NewVector("linux"),
 					"arch":   NewVector("amd64"),
 				},
@@ -130,9 +117,9 @@ func TestSpec_GenerateEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "include + MatchFilter",
-			in: &Spec{
-				Include: []*specItem{
+			name: "Include And MatchFilter",
+			spec: &Spec{
+				Include: []*SpecItem{
 					{
 						Data: map[string]*Vector{
 							"kernel": NewVector("aix"),
@@ -146,7 +133,7 @@ func TestSpec_GenerateEntries(t *testing.T) {
 						},
 					},
 				},
-				Data: map[string]*Vector{
+				Values: map[string]*Vector{
 					"kernel": NewVector("linux"),
 					"arch":   NewVector("amd64", "arm64"),
 				},
@@ -159,9 +146,9 @@ func TestSpec_GenerateEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "exclude-all-full-match",
-			in: &Spec{
-				Exclude: []*specItem{
+			name: "Exclude All By Full Match",
+			spec: &Spec{
+				Exclude: []*SpecItem{
 					{
 						Data: map[string]*Vector{
 							"kernel": NewVector("linux"),
@@ -169,7 +156,7 @@ func TestSpec_GenerateEntries(t *testing.T) {
 						},
 					},
 				},
-				Data: map[string]*Vector{
+				Values: map[string]*Vector{
 					"kernel": NewVector("linux"),
 					"arch":   NewVector("amd64", "arm64"),
 				},
@@ -177,16 +164,16 @@ func TestSpec_GenerateEntries(t *testing.T) {
 			expected: nil,
 		},
 		{
-			name: "exclude-all-single-match",
-			in: &Spec{
-				Exclude: []*specItem{
+			name: "Exclude All By Single Match",
+			spec: &Spec{
+				Exclude: []*SpecItem{
 					{
 						Data: map[string]*Vector{
 							"kernel": NewVector("linux"),
 						},
 					},
 				},
-				Data: map[string]*Vector{
+				Values: map[string]*Vector{
 					"kernel": NewVector("linux"),
 					"arch":   NewVector("amd64", "arm64"),
 				},
@@ -200,7 +187,7 @@ func TestSpec_GenerateEntries(t *testing.T) {
 			assert.EqualValues(
 				t,
 				test.expected,
-				test.in.GenerateEntries(Filter{
+				test.spec.GenerateEntries(Filter{
 					match:  test.matchFilter,
 					ignore: test.ignoreFilter,
 				}),
@@ -247,4 +234,176 @@ func TestSpec_GenerateEntries_Fixture(t *testing.T) {
 			assert.EqualValues(t, exp, &actual)
 		},
 	)
+}
+
+func TestSpec_AsFilter(t *testing.T) {
+	t.Parallel()
+
+	spec := Spec{
+		Exclude: []*SpecItem{},
+		Include: []*SpecItem{},
+		Values: map[string]*Vector{
+			"kernel": {
+				Vec: []string{"k1", "k2", "k3"},
+			},
+			"arch": {
+				Vec: []string{"a1", "a2", "a3"},
+			},
+		},
+	}
+
+	all := []Entry{
+		{"kernel": "k1", "arch": "a1"},
+		{"kernel": "k1", "arch": "a2"},
+		{"kernel": "k1", "arch": "a3"},
+		{"kernel": "k2", "arch": "a1"},
+		{"kernel": "k2", "arch": "a2"},
+		{"kernel": "k2", "arch": "a3"},
+		{"kernel": "k3", "arch": "a1"},
+		{"kernel": "k3", "arch": "a2"},
+		{"kernel": "k3", "arch": "a3"},
+	}
+
+	assert.Equal(t, all, spec.GenerateEntries(Filter{}))
+
+	for _, test := range []struct {
+		name     string
+		filter   *Spec
+		expected []Entry
+	}{
+		// Type 1: empty filter
+		{
+			name:     "Nil Filter Spec Match All",
+			filter:   nil,
+			expected: all,
+		},
+		{
+			name:     "Empty Filter Spec Match All",
+			filter:   &Spec{},
+			expected: all,
+		},
+
+		// Type 2: None Existing Key/Value
+		{
+			name: "Exclude None Existing Value Match All",
+			filter: &Spec{
+				Exclude: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"kernel": {Vec: []string{"non-exist"}},
+						},
+					},
+				},
+			},
+			expected: all,
+		},
+		{
+			name: "Exclude None Existing Key Match All",
+			filter: &Spec{
+				Exclude: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"non-exist": {Vec: []string{"k1"}},
+						},
+					},
+				},
+			},
+			expected: all,
+		},
+		{
+			name: "Include None Existing Value Match None",
+			filter: &Spec{
+				Include: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"kernel": {Vec: []string{"non-exist"}},
+						},
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "Include None Existing Key Match None",
+			filter: &Spec{
+				Include: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"non-exist": {Vec: []string{"k1"}},
+						},
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "Non Existing Value Match None",
+			filter: &Spec{
+				Values: map[string]*Vector{
+					"kernel": {Vec: []string{"non-exist"}},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "Non Existing Key Match None",
+			filter: &Spec{
+				Values: map[string]*Vector{
+					"non-exist": {Vec: []string{"k1"}},
+				},
+			},
+			expected: nil,
+		},
+
+		// Type 3: TBD
+		{
+			name: "Exclude All Value Of Single Key Match None",
+			filter: &Spec{
+				Exclude: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"kernel": {Vec: []string{"k1", "k2", "k3"}},
+						},
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "Exclude Some Value Of Single Key Match Some",
+			filter: &Spec{
+				Exclude: []*SpecItem{
+					{
+						Data: map[string]*Vector{
+							"kernel": {Vec: []string{"k1", "k2"}},
+						},
+					},
+				},
+			},
+			expected: []Entry{
+				{"kernel": "k3", "arch": "a1"},
+				{"kernel": "k3", "arch": "a2"},
+				{"kernel": "k3", "arch": "a3"},
+			},
+		},
+		{
+			name: "Values All Key Single Value Match Single",
+			filter: &Spec{
+				Values: map[string]*Vector{
+					"kernel": {Vec: []string{"k1"}},
+					"arch":   {Vec: []string{"a1"}},
+				},
+			},
+			expected: []Entry{
+				{"kernel": "k1", "arch": "a1"},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			filter := test.filter.AsFilter()
+			if !assert.EqualValues(t, test.expected, spec.GenerateEntries(filter)) {
+				t.Log(filter)
+			}
+		})
+	}
 }

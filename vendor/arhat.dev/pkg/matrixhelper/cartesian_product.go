@@ -1,14 +1,10 @@
 package matrixhelper
 
-import (
-	"sort"
-
-	"arhat.dev/pkg/sorthelper"
-)
-
-func CartesianProduct(m map[string][]string) []map[string]string {
-	names := make([]string, 0)
-	mat := make([][]string, 0)
+func CartesianProduct[K comparable, V any](
+	m map[K][]V, sort func(names []K, mat [][]V),
+) (ret []map[K]V) {
+	names := make([]K, 0, len(m))
+	mat := make([][]V, 0, len(m))
 	for k, v := range m {
 		if len(v) == 0 {
 			// ignore empty list
@@ -20,33 +16,27 @@ func CartesianProduct(m map[string][]string) []map[string]string {
 	}
 
 	// sort names and mat
-	sort.Sort(sorthelper.NewCustomSortable(
-		func(i, j int) {
-			names[i], names[j] = names[j], names[i]
-			mat[i], mat[j] = mat[j], mat[i]
-		},
-		func(i, j int) bool { return names[i] < names[j] },
-		func() int { return len(names) },
-	))
+	sort(names, mat)
 
 	listCart := cartNext(mat)
 	if len(listCart) == 0 {
 		return nil
 	}
 
-	result := make([]map[string]string, 0, len(listCart))
-	for _, list := range listCart {
-		vMap := make(map[string]string)
-		for i, v := range list {
-			vMap[names[i]] = v
+	ret = make([]map[K]V, len(listCart))
+	for i, list := range listCart {
+		vMap := make(map[K]V)
+		for j, v := range list {
+			vMap[names[j]] = v
 		}
-		result = append(result, vMap)
+
+		ret[i] = vMap
 	}
 
-	return result
+	return ret
 }
 
-func cartNext(mat [][]string) [][]string {
+func cartNext[T any](mat [][]T) (ret [][]T) {
 	if len(mat) == 0 {
 		return nil
 	}
@@ -61,17 +51,17 @@ func cartNext(mat [][]string) [][]string {
 		tupleCount *= len(list)
 	}
 
-	result := make([][]string, tupleCount)
+	ret = make([][]T, tupleCount)
 
-	buf := make([]string, tupleCount*len(mat))
+	buf := make([]T, tupleCount*len(mat))
 	indexPerList := make([]int, len(mat))
 
 	start := 0
-	for i := range result {
+	for i := range ret {
 		end := start + len(mat)
 
 		tuple := buf[start:end]
-		result[i] = tuple
+		ret[i] = tuple
 
 		start = end
 
@@ -92,5 +82,5 @@ func cartNext(mat [][]string) [][]string {
 		}
 	}
 
-	return result
+	return
 }

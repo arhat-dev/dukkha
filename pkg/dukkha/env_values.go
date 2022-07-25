@@ -118,7 +118,7 @@ func (c *envValues) clone() envValues {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if !c.matrixFilter.Empty() {
+	if !c.matrixFilter.IsEmpty() {
 		newValues.matrixFilter = c.matrixFilter.Clone()
 	}
 

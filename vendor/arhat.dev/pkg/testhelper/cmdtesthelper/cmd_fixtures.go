@@ -60,7 +60,7 @@ func TestCmdFixtures(t *testing.T,
 		func() *CmdTestCase { return rs.Init(&CmdTestCase{}, nil).(*CmdTestCase) },
 		func() *CmdTestCheckSpec { return rs.Init(&CmdTestCheckSpec{}, nil).(*CmdTestCheckSpec) },
 		func(t *testing.T, spec *CmdTestCase, exp *CmdTestCheckSpec) {
-			flagMats := matrixhelper.CartesianProduct(flagMatrix)
+			flagMats := matrixhelper.CartesianProduct(flagMatrix, func(names []string, mat [][]string) {})
 			for _, m := range flagMats {
 				var flagSets [][]string
 				for k, v := range m {

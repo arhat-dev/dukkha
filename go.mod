@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.18
 
 require (
-	arhat.dev/pkg v0.10.1
+	arhat.dev/pkg v0.10.2-0.20220725172304-1c8a97edf9ea
 	arhat.dev/rs v0.10.0
 	arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
 	github.com/Masterminds/goutils v1.1.1

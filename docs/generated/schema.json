@@ -1199,44 +1199,52 @@
       "properties": {
         "exclude": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
-          "type": "array"
+          "type": "array",
+          "description": "matched entries",
+          "x-intellij-html-description": "matched entries"
         },
         "include": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
-          "type": "array"
+          "type": "array",
+          "description": " NOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "NOTE: included entries will be excluded by Exclude entires as well"
         }
       },
       "preferredOrder": [
-        "include",
-        "exclude"
+        "exclude",
+        "include"
       ],
       "additionalProperties": false,
       "patternProperties": {
         "^exclude@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
-          "type": "array"
+          "type": "array",
+          "description": "matched entries",
+          "x-intellij-html-description": "matched entries"
         },
         "^exclude@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^include@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.specItem"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
-          "type": "array"
+          "type": "array",
+          "description": " NOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "NOTE: included entries will be excluded by Exclude entires as well"
         },
         "^include@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         }
       }
     },
-    "arhat.dev.dukkha.pkg.matrix.specItem": {
+    "arhat.dev.dukkha.pkg.matrix.SpecItem": {
       "description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude",
       "x-intellij-html-description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude"
     },

@@ -1,12 +1,14 @@
 package matrix
 
 import (
+	"arhat.dev/dukkha/pkg/sliceutils"
+	"arhat.dev/pkg/matrixhelper"
 	"arhat.dev/rs"
 )
 
-// specItem is a helper type to support rendering suffix
+// SpecItem is a helper type to support rendering suffix
 // for list of maps, used in Include/Exclude
-type specItem struct {
+type SpecItem struct {
 	rs.BaseField `yaml:"-"`
 
 	Data map[string]*Vector `yaml:",inline"`
@@ -15,38 +17,28 @@ type specItem struct {
 type Spec struct {
 	rs.BaseField `yaml:"-"`
 
-	Include []*specItem `yaml:"include,omitempty"`
-	Exclude []*specItem `yaml:"exclude,omitempty"`
+	// Exclude matched entries
+	Exclude []*SpecItem `yaml:"exclude,omitempty"`
 
-	// catch other matrix fields
-	Data map[string]*Vector `yaml:",inline,omitempty"`
+	// Include
+	//
+	// NOTE: included entries will be excluded by Exclude entires as well
+	Include []*SpecItem `yaml:"include,omitempty"`
+
+	// Values to catch all matrix values
+	Values map[string]*Vector `yaml:",inline,omitempty"`
 }
 
+// IsEmpty returns true when this is no value in s
 func (s *Spec) IsEmpty() bool {
 	if s == nil {
 		return true
 	}
 
-	return len(s.Include) == 0 && len(s.Exclude) == 0 && len(s.Data) == 0
-}
-
-func (s *Spec) AsFilter() (ret Filter) {
-	if s.IsEmpty() {
-		return
-	}
-
-	entries := s.GenerateEntries(Filter{})
-	for _, ent := range entries {
-		for k, v := range ent {
-			ret.AddMatch(k, v)
-		}
-	}
-
-	return
+	return len(s.Include) == 0 && len(s.Exclude) == 0 && len(s.Values) == 0
 }
 
 // GenerateEntries generates a set of matrix entries from the spec
-
 func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 	if s.IsEmpty() {
 		return
@@ -54,7 +46,7 @@ func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 
 	all := make(map[string][]string)
 
-	for name, vec := range s.Data {
+	for name, vec := range s.Values {
 		all[name] = vec.Vec
 	}
 
@@ -63,7 +55,7 @@ func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 	for _, ex := range s.Exclude {
 		removeMatchList = append(
 			removeMatchList,
-			CartesianProduct(flattenVectorMap(ex.Data))...,
+			matrixhelper.CartesianProduct(flattenVectorMap(ex.Data), sliceutils.SortByKernelCmdArchLibcOther)...,
 		)
 	}
 
@@ -72,10 +64,10 @@ func (s *Spec) GenerateEntries(filter Filter) (ret []Entry) {
 		ignoreFilter = filter.ignore
 	)
 	if len(filter.match) != 0 {
-		matchFilter = CartesianProduct(flattenVectorMap(filter.match))
+		matchFilter = matrixhelper.CartesianProduct(flattenVectorMap(filter.match), sliceutils.SortByKernelCmdArchLibcOther)
 	}
 
-	mat := CartesianProduct(all)
+	mat := matrixhelper.CartesianProduct(all, sliceutils.SortByKernelCmdArchLibcOther)
 loop:
 	for i := range mat {
 		spec := Entry(mat[i])
@@ -108,7 +100,7 @@ loop:
 
 	// add included
 	for _, inc := range s.Include {
-		mat := CartesianProduct(flattenVectorMap(inc.Data))
+		mat := matrixhelper.CartesianProduct(flattenVectorMap(inc.Data), sliceutils.SortByKernelCmdArchLibcOther)
 	addInclude:
 		for i := range mat {
 			includeEntry := Entry(mat[i])
@@ -136,6 +128,38 @@ loop:
 					ret = append(ret, includeEntry)
 					continue addInclude
 				}
+			}
+		}
+	}
+
+	return
+}
+
+// AsFilter converts this spec to a Filter
+//
+// s.Values and s.Include will become match rules
+//
+// s.Exclude will become ignore rules
+func (s *Spec) AsFilter() (ret Filter) {
+	if s.IsEmpty() {
+		return
+	}
+
+	entries := s.GenerateEntries(Filter{})
+	for _, ent := range entries {
+		for k, v := range ent {
+			ret.AddMatch(k, v)
+		}
+	}
+
+	for _, ex := range s.Exclude {
+		if ex == nil {
+			continue
+		}
+
+		for k, v := range ex.Data {
+			for _, vv := range v.Vec {
+				ret.AddIgnore(k, vv)
 			}
 		}
 	}

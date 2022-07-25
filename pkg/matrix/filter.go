@@ -97,6 +97,6 @@ func (f *Filter) Clone() Filter {
 	}
 }
 
-func (f *Filter) Empty() bool {
+func (f *Filter) IsEmpty() bool {
 	return f == nil || (len(f.match) == 0 && len(f.ignore) == 0)
 }

@@ -2,8 +2,11 @@ package templateutils
 
 import (
 	"context"
+	"sort"
 	"testing"
 
+	"arhat.dev/pkg/matrixhelper"
+	"arhat.dev/pkg/sorthelper"
 	"arhat.dev/tlang"
 	"github.com/stretchr/testify/assert"
 
@@ -47,7 +50,17 @@ func TestSetDefaultImageTag(t *testing.T) {
 		constant.EnvName_GIT_WORKTREE_CLEAN: "false",
 	}
 
-	tests := matrix.CartesianProduct(testMatrix)
+	tests := matrixhelper.CartesianProduct(testMatrix, func(names []string, mat [][]string) {
+		sort.Sort(sorthelper.NewCustomSortable(
+			func(i, j int) {
+				names[i], names[j] = names[j], names[i]
+				mat[i], mat[j] = mat[j], mat[i]
+			},
+			func(i, j int) bool { return names[i] < names[j] },
+			func() int { return len(names) },
+		))
+	})
+
 	for _, mat := range tests {
 		spec := matrix.Entry(mat)
 
