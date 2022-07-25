@@ -94,6 +94,10 @@ func (ns fsNS) Exists(path String) (_ bool, err error) {
 	}
 
 	_, err = ns.rc.FS().Lstat(p)
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	}
+
 	return err == nil, err
 }
 
