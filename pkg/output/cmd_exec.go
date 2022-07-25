@@ -31,10 +31,8 @@ func WriteExecStart(
 		} else {
 			sb.WriteString(s)
 		}
-
-		sb.WriteByte(' ')
 	}
-	sb.WriteString("]")
+	sb.WriteString(" ]")
 
 	if len(scriptName) != 0 {
 		sb.WriteString(" @ ")
