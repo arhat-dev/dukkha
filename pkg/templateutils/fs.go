@@ -194,7 +194,7 @@ func (ns fsNS) Lookup(args ...String) (ret string, err error) {
 		}
 
 		rc = ns.rc.(dukkha.Context).DeriveNew()
-		rc.AddEnv(true, &dukkha.EnvEntry{
+		rc.AddEnv(true, &dukkha.NameValueEntry{
 			Name:  "PATH",
 			Value: pathEnv,
 		})
@@ -224,10 +224,10 @@ func (ns fsNS) Lookup(args ...String) (ret string, err error) {
 		}
 
 		rc = ns.rc.(dukkha.Context).DeriveNew()
-		rc.AddEnv(true, &dukkha.EnvEntry{
+		rc.AddEnv(true, &dukkha.NameValueEntry{
 			Name:  "PATH",
 			Value: pathEnv,
-		}, &dukkha.EnvEntry{
+		}, &dukkha.NameValueEntry{
 			Name:  "PATHEXT",
 			Value: pathextEnv,
 		})
@@ -275,7 +275,7 @@ func (ns fsNS) LookupFile(args ...String) (ret string, err error) {
 		}
 
 		rc = ns.rc.(dukkha.Context).DeriveNew()
-		rc.AddEnv(true, &dukkha.EnvEntry{
+		rc.AddEnv(true, &dukkha.NameValueEntry{
 			Name:  "PATH",
 			Value: pathEnv,
 		})

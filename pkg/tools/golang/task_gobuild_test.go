@@ -24,7 +24,7 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 			Options: dukkha_test.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
-					EnvSuggest: dukkha.Env{
+					EnvSuggest: dukkha.NameValueList{
 						{
 							Name:  "CGO_ENABLED",
 							Value: "0",

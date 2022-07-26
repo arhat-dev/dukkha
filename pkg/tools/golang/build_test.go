@@ -26,7 +26,7 @@ func TestCreateBuildEnv(t *testing.T) {
 
 	for _, test := range goosTests {
 		t.Run(test.mKernel, func(t *testing.T) {
-			expected := dukkha.Env{
+			expected := dukkha.NameValueList{
 				{Name: "GOOS", Value: test.goos},
 				{Name: "GOARCH", Value: "s390x"},
 				{Name: "CGO_ENABLED", Value: "0"},
@@ -34,10 +34,10 @@ func TestCreateBuildEnv(t *testing.T) {
 
 			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 
-			rc.AddEnv(true, &dukkha.EnvEntry{
+			rc.AddEnv(true, &dukkha.NameValueEntry{
 				Name:  constant.EnvName_MATRIX_KERNEL,
 				Value: test.mKernel,
-			}, &dukkha.EnvEntry{
+			}, &dukkha.NameValueEntry{
 				Name:  constant.EnvName_MATRIX_ARCH,
 				Value: archconst.ARCH_S390X,
 			})
@@ -111,7 +111,7 @@ func TestCreateBuildEnv(t *testing.T) {
 
 	for _, test := range goarchTests {
 		t.Run(test.mArch, func(t *testing.T) {
-			expected := dukkha.Env{
+			expected := dukkha.NameValueList{
 				{
 					Name:  "GOOS",
 					Value: constant.KERNEL_Linux,
@@ -123,64 +123,64 @@ func TestCreateBuildEnv(t *testing.T) {
 			}
 
 			if len(test.go386) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GO386",
 					Value: test.go386,
 				})
 			}
 
 			if len(test.goamd64) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOAMD64",
 					Value: test.goamd64,
 				})
 			}
 
 			if len(test.goarm64) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOARM64",
 					Value: test.goarm64,
 				})
 			}
 
 			if len(test.goarm) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOARM",
 					Value: test.goarm,
 				})
 			}
 
 			if len(test.gomips) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOMIPS",
 					Value: test.gomips,
 				})
 			}
 
 			if len(test.gomips64) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOMIPS64",
 					Value: test.gomips64,
 				})
 			}
 
 			if len(test.goppc64) != 0 {
-				expected = append(expected, &dukkha.EnvEntry{
+				expected = append(expected, &dukkha.NameValueEntry{
 					Name:  "GOPPC64",
 					Value: test.goppc64,
 				})
 			}
 
-			expected = append(expected, &dukkha.EnvEntry{
+			expected = append(expected, &dukkha.NameValueEntry{
 				Name:  "CGO_ENABLED",
 				Value: "0",
 			})
 
 			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
-			rc.AddEnv(true, &dukkha.EnvEntry{
+			rc.AddEnv(true, &dukkha.NameValueEntry{
 				Name:  constant.EnvName_MATRIX_KERNEL,
 				Value: constant.KERNEL_Linux,
-			}, &dukkha.EnvEntry{
+			}, &dukkha.NameValueEntry{
 				Name:  constant.EnvName_MATRIX_ARCH,
 				Value: test.mArch,
 			})

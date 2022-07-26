@@ -79,7 +79,7 @@ func TestSetDefaultImageTag(t *testing.T) {
 		rc := dt.NewTestContextWithGlobalEnv(context.TODO(), genv)
 		for k, v := range mat {
 			if constant.GetGlobalEnvIDByName(k) == -1 {
-				rc.AddEnv(false, &dukkha.EnvEntry{
+				rc.AddEnv(false, &dukkha.NameValueEntry{
 					Name:  k,
 					Value: v,
 				})

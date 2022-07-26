@@ -30,7 +30,10 @@ foo@T:
   value: String Only, seriously
   # operations you want to take on the value
   ops:
-  # Execute golang template over VALUE
+  # Execute tlang script with VALUE
+  - tlang: |-
+      strings.Split "," VALUE
+  # Execute golang template with VALUE
   - template: |-
       add some {{- /* go */ -}} template
       your value above is available as {{ VALUE }}

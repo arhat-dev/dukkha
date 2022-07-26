@@ -76,9 +76,9 @@ type TaskExecSpec struct {
 	Chdir string
 
 	// EnvSuggest to provide environment variables when not set by user
-	EnvSuggest Env
+	EnvSuggest NameValueList
 	// EnvOverride to override existing environment variables
-	EnvOverride Env
+	EnvOverride NameValueList
 
 	Command []string
 

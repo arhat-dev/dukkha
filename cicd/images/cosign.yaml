@@ -6,6 +6,7 @@ cosign:sign-image:
   verify: true
   public_key@http: https://arhat.dev/.well-known/cosign.pub
   annotations:
-    org.opencontainers.image.source: https://github.com/arhat-dev/dukkha
+  - name: org.opencontainers.image.source
+    value: https://github.com/arhat-dev/dukkha
   image_names:
   - image: ghcr.io/arhat-dev/dukkha

@@ -266,8 +266,8 @@ func init() {
 	decs["ConfigResolvingContext"] = reflect.TypeOf((*dukkha.ConfigResolvingContext)(nil)).Elem()
 	decs["Context"] = reflect.TypeOf((*dukkha.Context)(nil)).Elem()
 	decs["CreateTaskExecOptions"] = dukkha.CreateTaskExecOptions
-	decs["Env"] = reflect.TypeOf((*dukkha.Env)(nil)).Elem()
-	decs["EnvEntry"] = reflect.TypeOf((*dukkha.EnvEntry)(nil)).Elem()
+	decs["Env"] = reflect.TypeOf((*dukkha.NameValueList)(nil)).Elem()
+	decs["EnvEntry"] = reflect.TypeOf((*dukkha.NameValueEntry)(nil)).Elem()
 	decs["EnvValues"] = reflect.TypeOf((*dukkha.EnvValues)(nil)).Elem()
 	decs["ExecSpecGetFunc"] = reflect.TypeOf((*dukkha.ExecSpecGetFunc)(nil)).Elem()
 	decs["ExecValues"] = reflect.TypeOf((*dukkha.ExecValues)(nil)).Elem()
@@ -290,7 +290,7 @@ func init() {
 	decs["ReplaceEntries"] = reflect.TypeOf((*dukkha.ReplaceEntries)(nil)).Elem()
 	decs["ReplaceEntry"] = reflect.TypeOf((*dukkha.ReplaceEntry)(nil)).Elem()
 	decs["Resolvable"] = reflect.TypeOf((*dukkha.Resolvable)(nil)).Elem()
-	decs["ResolveEnv"] = dukkha.ResolveEnv
+	decs["ResolveEnv"] = dukkha.ResolveAndAddEnv
 	decs["RunTaskOrRunCmd"] = reflect.TypeOf((*dukkha.RunTaskOrRunCmd)(nil)).Elem()
 	decs["RuntimeOptions"] = reflect.TypeOf((*dukkha.RuntimeOptions)(nil)).Elem()
 	decs["Shell"] = reflect.TypeOf((*dukkha.Shell)(nil)).Elem()

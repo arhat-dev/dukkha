@@ -10,7 +10,7 @@ import (
 	"arhat.dev/dukkha/pkg/dukkha"
 )
 
-func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc) (env dukkha.Env) {
+func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc) (env dukkha.NameValueList) {
 	// set GOOS
 	goos, _ := constant.GetGolangOS(v.MatrixKernel())
 	switch {
@@ -20,7 +20,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 	}
 
 	if len(goos) != 0 {
-		env = append(env, &dukkha.EnvEntry{
+		env = append(env, &dukkha.NameValueEntry{
 			Name:  "GOOS",
 			Value: goos,
 		})
@@ -34,7 +34,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 	}
 
 	if len(goarch) != 0 {
-		env = append(env, &dukkha.EnvEntry{
+		env = append(env, &dukkha.NameValueEntry{
 			Name:  "GOARCH",
 			Value: goarch,
 		})
@@ -46,7 +46,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 	if ok {
 		switch spec.Name {
 		case archconst.ARCH_AMD64:
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOAMD64",
 				Value: spec.MicroArch,
 			})
@@ -58,17 +58,17 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 				go386 = "sse2"
 			}
 
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GO386",
 				Value: go386,
 			})
 		case archconst.ARCH_ARM64:
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOARM64",
 				Value: strings.TrimPrefix(spec.MicroArch, "v"),
 			})
 		case archconst.ARCH_ARM:
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOARM",
 				Value: strings.TrimPrefix(spec.MicroArch, "v"),
 			})
@@ -80,7 +80,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 				gomips64 = "hardfloat"
 			}
 
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOMIPS64",
 				Value: gomips64,
 			})
@@ -92,12 +92,12 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 				gomips = "hardfloat"
 			}
 
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOMIPS",
 				Value: gomips,
 			})
 		case archconst.ARCH_PPC64:
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "GOPPC64",
 				Value: "power" + strings.TrimPrefix(spec.MicroArch, "v"),
 			})
@@ -106,7 +106,7 @@ func createBuildEnv(v dukkha.EnvValues, buildSpec buildOptions, cgoSpec CGOSepc)
 
 	// set GCCGO
 	if len(buildSpec.GCCGo) != 0 {
-		env = append(env, &dukkha.EnvEntry{
+		env = append(env, &dukkha.NameValueEntry{
 			Name:  "GCCGO",
 			Value: buildSpec.GCCGo,
 		})

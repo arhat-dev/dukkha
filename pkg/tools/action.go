@@ -31,7 +31,7 @@ type Action struct {
 	Name string `yaml:"name"`
 
 	// Env specific to this action
-	Env dukkha.Env `yaml:"env"`
+	Env dukkha.NameValueList `yaml:"env"`
 
 	// Run checks running condition, only run this action when set to true
 	//
@@ -87,7 +87,7 @@ func (act *Action) DoAfterFieldResolved(
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
-	err := dukkha.ResolveEnv(mCtx, act, "Env", "env")
+	err := dukkha.ResolveAndAddEnv(mCtx, act, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("resolving action specific env: %w", err)
 	}

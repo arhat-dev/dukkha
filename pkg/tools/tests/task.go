@@ -96,7 +96,7 @@ func TestTask(
 	type TestCase struct {
 		rs.BaseField
 
-		Env dukkha.Env `yaml:"env"`
+		Env dukkha.NameValueList `yaml:"env"`
 
 		// Tool dukkha.Tool `yaml:"tool"`
 		Task dukkha.Task `yaml:"task"`
@@ -140,7 +140,7 @@ func TestTask(
 			assert.NoError(t, afr.Init(ctx.RendererCacheFS("af")))
 			ctx.AddRenderer("af", afr)
 
-			if !assert.NoError(t, dukkha.ResolveEnv(ctx, spec, "Env", "env")) {
+			if !assert.NoError(t, dukkha.ResolveAndAddEnv(ctx, spec, "Env", "env")) {
 				return
 			}
 

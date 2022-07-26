@@ -66,7 +66,7 @@ func TestDriver(t *testing.T) {
 			rdr := NewDefault("af")
 			assert.NoError(t, rdr.Init(ctx.RendererCacheFS("af")))
 			ctx.AddRenderer("af", rdr)
-			ctx.AddEnv(true, &dukkha.EnvEntry{
+			ctx.AddEnv(true, &dukkha.NameValueEntry{
 				Name: "test_archives",
 				Value: strings.Join([]string{
 					// tar

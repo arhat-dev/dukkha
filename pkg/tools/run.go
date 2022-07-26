@@ -233,14 +233,14 @@ func doRun(
 
 			// replace placeholders in env
 			for _, origEnvPart := range es.EnvOverride {
-				ctx.AddEnv(true, &dukkha.EnvEntry{
+				ctx.AddEnv(true, &dukkha.NameValueEntry{
 					Name:  replacer.Replace(origEnvPart.Name),
 					Value: replacer.Replace(origEnvPart.Value),
 				})
 			}
 
 			for _, origEnvPart := range es.EnvSuggest {
-				ctx.AddEnv(false, &dukkha.EnvEntry{
+				ctx.AddEnv(false, &dukkha.NameValueEntry{
 					Name:  replacer.Replace(origEnvPart.Name),
 					Value: replacer.Replace(origEnvPart.Value),
 				})
@@ -295,8 +295,9 @@ func doRun(
 			output.WriteExecStart(ctx.Stdout(), ctx.PrefixColor(), ctx.CurrentTool(), cmd, "")
 		}
 
-		env := make(map[string]string, len(ctx.Env()))
-		for k, v := range ctx.Env() {
+		ctxEnv := ctx.Env()
+		env := make(map[string]string, len(ctxEnv))
+		for k, v := range ctxEnv {
 			env[k] = v.GetLazyValue()
 		}
 

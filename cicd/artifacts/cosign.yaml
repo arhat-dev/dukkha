@@ -10,7 +10,8 @@ cosign:upload:
   signing:
     enabled: true
     annotations:
-      org.opencontainers.image.source: https://github.com/arhat-dev/dukkha
+    - name: org.opencontainers.image.source
+      value: https://github.com/arhat-dev/dukkha
     private_key@env: &cosign_private_key ${COSIGN_PRIVATE_KEY}
     private_key_password@env: &cosign_private_key_password ${COSIGN_PRIVATE_KEY_PASSWORD}
     verify: true

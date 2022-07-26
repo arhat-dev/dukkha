@@ -31,9 +31,9 @@ func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
 type BaseTask struct {
 	rs.BaseField `yaml:"-"`
 
-	Env    dukkha.Env  `yaml:"env"`
-	Matrix matrix.Spec `yaml:"matrix"`
-	Hooks  TaskHooks   `yaml:"hooks,omitempty"`
+	Env    dukkha.NameValueList `yaml:"env"`
+	Matrix matrix.Spec          `yaml:"matrix"`
+	Hooks  TaskHooks            `yaml:"hooks,omitempty"`
 
 	ContinueOnErrorFlag bool `yaml:"continue_on_error"`
 
@@ -67,7 +67,7 @@ func (t *BaseTask) DoAfterFieldsResolved(
 	defer t.mu.Unlock()
 
 	if resolveEnv {
-		err := dukkha.ResolveEnv(ctx, t, "Env", "env")
+		err := dukkha.ResolveAndAddEnv(ctx, t, "Env", "env")
 		if err != nil {
 			return err
 		}
@@ -130,7 +130,7 @@ func (t *BaseTask) GetHookExecSpecs(
 
 	// hooks may have reference to env defined in task scope
 
-	err := dukkha.ResolveEnv(taskCtx, t, "Env", "env")
+	err := dukkha.ResolveAndAddEnv(taskCtx, t, "Env", "env")
 	if err != nil {
 		return nil, fmt.Errorf(
 			"preparing env for hook %q: %w",

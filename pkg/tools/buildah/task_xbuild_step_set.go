@@ -23,9 +23,9 @@ type stepSet struct {
 	// Shell command to interpreter scripts in run step
 	Shell []string `yaml:"shell"`
 
-	Env         []*dukkha.EnvEntry `yaml:"env"`
-	Annotations []*dukkha.EnvEntry `yaml:"annotations"`
-	Labels      []*dukkha.EnvEntry `yaml:"labels"`
+	Env         []*dukkha.NameValueEntry `yaml:"env"`
+	Annotations []*dukkha.NameValueEntry `yaml:"annotations"`
+	Labels      []*dukkha.NameValueEntry `yaml:"labels"`
 
 	Ports      []string `yaml:"ports"`
 	Entrypoint []string `yaml:"entrypoint"`
@@ -105,7 +105,7 @@ func (s *stepSet) genSpec(
 	return steps, nil
 }
 
-func kvArgs(flag string, entries []*dukkha.EnvEntry) []string {
+func kvArgs(flag string, entries []*dukkha.NameValueEntry) []string {
 	var ret []string
 	for _, a := range entries {
 		parts := []string{a.Name}

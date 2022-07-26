@@ -205,7 +205,7 @@ func getBuiltTestExecutablePath(pkgDir string) string {
 func generateCompileSpecs(
 	cacheFS *fshelper.OSFS, // cachefs to store compiled data
 	cwdFS *fshelper.OSFS, // cwdfs with current workdir in target path
-	buildEnv dukkha.Env,
+	buildEnv dukkha.NameValueList,
 	args []string,
 	pkgDir string,
 

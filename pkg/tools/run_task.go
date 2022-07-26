@@ -348,13 +348,13 @@ func CreateTaskMatrixContext(
 
 	for k, v := range ms {
 		name := "MATRIX_" + strings.ToUpper(k)
-		mCtx.AddEnv(true, &dukkha.EnvEntry{
+		mCtx.AddEnv(true, &dukkha.NameValueEntry{
 			Name:  name,
 			Value: v,
 		})
 
 		if name == constant.EnvName_MATRIX_ARCH {
-			mCtx.AddEnv(true, &dukkha.EnvEntry{
+			mCtx.AddEnv(true, &dukkha.NameValueEntry{
 				Name:  constant.EnvName_MATRIX_ARCH_SIMPLE,
 				Value: constant.SimpleArch(v),
 			})

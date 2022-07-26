@@ -71,7 +71,7 @@ func TestCmd(t *testing.T) {
 			ctx.AddRenderer("env", env.NewDefault("env"))
 			ctx.AddRenderer("shell", shell.NewDefault("shell"))
 			outputDir := filepath.Join(tmpdir, "output")
-			ctx.AddEnv(true, &dukkha.EnvEntry{
+			ctx.AddEnv(true, &dukkha.NameValueEntry{
 				Name:  "out_dir",
 				Value: outputDir,
 			})

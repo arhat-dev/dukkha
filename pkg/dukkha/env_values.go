@@ -52,7 +52,7 @@ type EnvValues interface {
 	MatrixKernel() string
 	MatrixLibc() string
 
-	AddEnv(override bool, env ...*EnvEntry)
+	AddEnv(override bool, env ...*NameValueEntry)
 	AddListEnv(env ...string)
 }
 
@@ -157,7 +157,7 @@ func getValueOrEmpty(v tlang.LazyValueType[string]) string {
 	return v.GetLazyValue()
 }
 
-func (c *envValues) AddEnv(override bool, entries ...*EnvEntry) {
+func (c *envValues) AddEnv(override bool, entries ...*NameValueEntry) {
 	for _, e := range entries {
 		if _, ok := c.env[e.Name]; ok && !override {
 			continue

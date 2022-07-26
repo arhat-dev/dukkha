@@ -36,7 +36,7 @@ func (t *ShellTool) Key() dukkha.ToolKey {
 // GetExecSpec is a helper func for shells
 func (t *ShellTool) GetExecSpec(
 	toExec []string, isFilePath bool,
-) (env dukkha.Env, cmd []string, err error) {
+) (env dukkha.NameValueList, cmd []string, err error) {
 	if len(toExec) == 0 {
 		return nil, nil, fmt.Errorf("invalid empty exec spec")
 	}
@@ -62,8 +62,8 @@ func (t *ShellTool) GetExecSpec(
 type BaseTool struct {
 	rs.BaseField `yaml:"-"`
 
-	Env dukkha.Env `yaml:"env"`
-	Cmd []string   `yaml:"cmd"`
+	Env dukkha.NameValueList `yaml:"env"`
+	Cmd []string             `yaml:"cmd"`
 
 	CacheFS *fshelper.OSFS `yaml:"-"`
 
@@ -92,7 +92,7 @@ func (t *BaseTool) GetTask(k dukkha.TaskKey) (dukkha.Task, bool) {
 }
 
 func (t *BaseTool) AllTasks() map[dukkha.TaskKey]dukkha.Task { return t.tasks }
-func (t *BaseTool) GetEnv() dukkha.Env                       { return t.Env }
+func (t *BaseTool) GetEnv() dukkha.NameValueList             { return t.Env }
 
 // InitBaseTool must be called in your own version of Init()
 // with correct defaultExecutable name
@@ -150,7 +150,7 @@ func (t *BaseTool) DoAfterFieldsResolved(
 	defer t.mu.Unlock()
 
 	if resolveEnv {
-		err := dukkha.ResolveEnv(ctx, t, "Env", "env")
+		err := dukkha.ResolveAndAddEnv(ctx, t, "Env", "env")
 		if err != nil {
 			return err
 		}

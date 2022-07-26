@@ -19,7 +19,7 @@ type GlobalConfig struct {
 	DefaultGitBranch string `yaml:"default_git_branch"`
 
 	// Env add global environment variables for all working parts in dukkha
-	Env dukkha.Env `yaml:"env"`
+	Env dukkha.NameValueList `yaml:"env"`
 
 	// Values is the global store of runtime values
 	//
@@ -61,7 +61,7 @@ func (g *GlobalConfig) Merge(a *GlobalConfig) error {
 // ResolveAllButValues resolves global env first, and make them available to
 // all other fields, then resolves all other fields except values (will be handled later)
 func (g *GlobalConfig) ResolveAllButValues(rc dukkha.ConfigResolvingContext) error {
-	err := dukkha.ResolveEnv(rc, g, "Env", "env")
+	err := dukkha.ResolveAndAddEnv(rc, g, "Env", "env")
 	if err != nil {
 		return fmt.Errorf("resolve global env: %w", err)
 	}

@@ -10,7 +10,6 @@ import (
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/templateutils"
 	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/buildah"
@@ -90,7 +89,7 @@ type imageSigningOptions struct {
 	Repo string `yaml:"repo"`
 
 	// Annotations are additional key-value data pairs added when signing
-	Annotations map[string]string `yaml:"annotations"`
+	Annotations []*dukkha.NameValueEntry `yaml:"annotations"`
 }
 
 func (s *imageSigningOptions) genSignAndVerifySpec(
@@ -99,7 +98,11 @@ func (s *imageSigningOptions) genSignAndVerifySpec(
 ) []dukkha.TaskExecSpec {
 	var steps []dukkha.TaskExecSpec
 
-	annotations := sliceutils.FormatStringMap(s.Annotations, "=", false)
+	annotations := make([]string, len(s.Annotations))
+	for i, a := range s.Annotations {
+		annotations[i] = a.Name + "=" + a.Value
+	}
+
 	// sign
 	{
 		var passwordStdin io.Reader
@@ -114,15 +117,15 @@ func (s *imageSigningOptions) genSignAndVerifySpec(
 			"--slot", "signature",
 		}
 
-		for _, a := range annotations {
-			signCmd = append(signCmd, "--annotations", a)
+		for _, anno := range annotations {
+			signCmd = append(signCmd, "--annotations", anno)
 		}
 
 		signCmd = append(signCmd, imageName)
 
-		var env dukkha.Env
+		var env dukkha.NameValueList
 		if len(s.Repo) != 0 {
-			env = append(env, &dukkha.EnvEntry{
+			env = append(env, &dukkha.NameValueEntry{
 				Name:  "COSIGN_REPOSITORY",
 				Value: s.Repo,
 			})

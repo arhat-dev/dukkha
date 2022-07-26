@@ -7,8 +7,8 @@ import (
 	"arhat.dev/rs"
 )
 
-// EnvEntry is a single name/value pair
-type EnvEntry struct {
+// NameValueEntry is a single name/value pair
+type NameValueEntry struct {
 	rs.BaseField `yaml:"-" json:"-"`
 
 	// Name of the entry (in other words, key)
@@ -18,14 +18,14 @@ type EnvEntry struct {
 	Value string `yaml:"value"`
 }
 
-// Env is a list of name/value pairs (ordered)
-type Env []*EnvEntry
+// NameValueList is a list of name/value pairs
+type NameValueList []*NameValueEntry
 
 // Clone makes a copy of all env values without doing BaseField initialization
-func (orig Env) Clone() Env {
-	ret := make(Env, 0, len(orig))
+func (orig NameValueList) Clone() NameValueList {
+	ret := make(NameValueList, 0, len(orig))
 	for _, entry := range orig {
-		ret = append(ret, &EnvEntry{
+		ret = append(ret, &NameValueEntry{
 			Name:  entry.Name,
 			Value: entry.Value,
 		})
@@ -34,13 +34,12 @@ func (orig Env) Clone() Env {
 	return ret
 }
 
-// ResolveEnv resolve struct field with `Env` type in struct parent and
-// add these env entries to ctx during resolving, so later entries can rely
-// on former entries' value
+// ResolveAndAddEnv resolves a NameValueList typed field in parent and add these entries
+// into ctx as environment variables, later entries can rely on former entries' value
 //
 // NOTE: parent should be initialized with rs.Init before calling this function
-func ResolveEnv(ctx RenderingContext, parent rs.Field, envFieldName, envTagName string) error {
-	err := parent.ResolveFields(ctx, 1, envTagName)
+func ResolveAndAddEnv(ctx RenderingContext, parent rs.Field, listFieldName, listTagName string) error {
+	err := parent.ResolveFields(ctx, 1, listTagName)
 	if err != nil {
 		return fmt.Errorf("gain overview of env: %w", err)
 	}
@@ -55,7 +54,7 @@ func ResolveEnv(ctx RenderingContext, parent rs.Field, envFieldName, envTagName 
 		return fmt.Errorf("unexpected non struct target: %T", parent)
 	}
 
-	env := fv.FieldByName(envFieldName).Interface().(Env)
+	env := fv.FieldByName(listFieldName).Interface().(NameValueList)
 	for i := range env {
 		err = env[i].ResolveFields(ctx, -1)
 		if err != nil {

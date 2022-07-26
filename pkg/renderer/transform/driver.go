@@ -1,11 +1,13 @@
 package transform
 
 import (
-	"bytes"
 	"fmt"
+	"strings"
 
+	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
+	"arhat.dev/tlang"
 	"gopkg.in/yaml.v3"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -17,7 +19,9 @@ import (
 	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
-const DefaultName = "T"
+const (
+	DefaultName = "T"
+)
 
 func init() { dukkha.RegisterRenderer(DefaultName, NewDefault) }
 
@@ -66,7 +70,7 @@ func (d *Driver) RenderYaml(
 		)
 	}
 
-	data := []byte(spec.Value)
+	data := spec.Value
 	for i, op := range spec.Ops {
 		data, err = op.Do(rc, data)
 		if err != nil {
@@ -77,7 +81,7 @@ func (d *Driver) RenderYaml(
 		}
 	}
 
-	return data, nil
+	return stringhelper.ToBytes[byte, byte](data), nil
 }
 
 // Spec for yaml data transformation
@@ -94,20 +98,21 @@ type Spec struct {
 type Operation struct {
 	rs.BaseField `yaml:"-"`
 
+	TLang    *string   `yaml:"tlang,omitempty"`
 	Template *string   `yaml:"template,omitempty"`
 	Shell    *string   `yaml:"shell,omitempty"`
 	Checksum *Checksum `yaml:"checksum,omitempty"`
 }
 
-func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte, error) {
+func (op *Operation) Do(_rc dukkha.RenderingContext, value string) (_ string, err error) {
 	rc2 := _rc.(interface {
 		dukkha.RenderingContext
 		di.VALUEGetter
 		di.VALUESetter
 	})
 
-	rc2.SetVALUE(string(valueBytes))
-	rc2.AddEnv(true, &dukkha.EnvEntry{
+	rc2.SetVALUE(value)
+	rc2.AddEnv(true, &dukkha.NameValueEntry{
 		Name:  "VALUE",
 		Value: rc2.VALUE().(string),
 	})
@@ -118,43 +123,63 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 		di.VALUEGetter
 	})
 
-	err := op.ResolveFields(rc, -1)
+	err = op.ResolveFields(rc, -1)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	switch {
-	case op.Template != nil:
+	case op.TLang != nil:
 		var (
-			tplStr = *op.Template
-			tpl    *template.Template
-			buf    bytes.Buffer
+			script = *op.TLang
+			parsed *tlang.Template
+			buf    strings.Builder
 		)
 
-		tpl, err = templateutils.CreateTemplate(rc).Parse(tplStr)
+		parsed, err = templateutils.CreateTLangTemplate(rc).Parse(script)
 		if err != nil {
-			return nil, fmt.Errorf("parsing template %q: %w", tplStr, err)
+			err = fmt.Errorf("parse tlang %q: %w", script, err)
+			return
 		}
 
-		err = tpl.Execute(&buf, rc)
+		err = parsed.Execute(&buf, rc)
 		if err != nil {
-			return nil, fmt.Errorf("executing template %q: %w", tplStr, err)
+			err = fmt.Errorf("executing tlang %q: %w", script, err)
+			return
 		}
 
-		return buf.Next(buf.Len()), nil
+		return buf.String(), nil
+	case op.Template != nil:
+		var (
+			tmpl   = *op.Template
+			parsed *template.Template
+			buf    strings.Builder
+		)
+
+		parsed, err = templateutils.CreateTextTemplate(rc).Parse(tmpl)
+		if err != nil {
+			err = fmt.Errorf("parsing template %q: %w", tmpl, err)
+			return
+		}
+
+		err = parsed.Execute(&buf, rc)
+		if err != nil {
+			err = fmt.Errorf("executing template %q: %w", tmpl, err)
+			return
+		}
+
+		return buf.String(), nil
 	case op.Shell != nil:
 		var (
-			buf    bytes.Buffer
+			buf    strings.Builder
 			runner *interp.Runner
 		)
 		runner, err = templateutils.CreateShellRunner(
 			rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"creating embedded shell: %w",
-				err,
-			)
+			err = fmt.Errorf("create embedded shell: %w", err)
+			return
 		}
 
 		parser := syntax.NewParser(
@@ -163,13 +188,14 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, valueBytes []byte) ([]byte,
 
 		err = templateutils.RunScript(rc, runner, parser, *op.Shell)
 		if err != nil {
-			return nil, err
+			err = fmt.Errorf("run script: %w", err)
+			return
 		}
 
-		return buf.Next(buf.Len()), nil
+		return buf.String(), nil
 	case op.Checksum != nil:
-		return valueBytes, op.Checksum.Verify(rc.FS())
+		return value, op.Checksum.Verify(rc.FS())
 	default:
-		return valueBytes, nil
+		return value, nil
 	}
 }

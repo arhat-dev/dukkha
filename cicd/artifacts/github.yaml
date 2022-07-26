@@ -7,8 +7,7 @@ github:release:
   title@env: ${GIT_TAG}
   notes@file?str|tmpl?str: cicd/artifacts/release-notes.md
   files:
-  - path: build/*.tar.gz
-  - path: build/*.zip
+  - path: build/*{.tar.gz,.zip}
   # checksums
   - path: build/*.txt
 

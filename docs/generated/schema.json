@@ -1070,7 +1070,7 @@
           "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used."
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList",
           "description": "add global environment variables for all working parts in dukkha",
           "x-intellij-html-description": "add global environment variables for all working parts in dukkha"
         },
@@ -1096,7 +1096,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList",
           "description": "add global environment variables for all working parts in dukkha",
           "x-intellij-html-description": "add global environment variables for all working parts in dukkha"
         },
@@ -1150,15 +1150,7 @@
         }
       }
     },
-    "arhat.dev.dukkha.pkg.dukkha.Env": {
-      "items": {
-        "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
-      },
-      "type": "array",
-      "description": "a list of name/value pairs (ordered)",
-      "x-intellij-html-description": "a list of name/value pairs (ordered)"
-    },
-    "arhat.dev.dukkha.pkg.dukkha.EnvEntry": {
+    "arhat.dev.dukkha.pkg.dukkha.NameValueEntry": {
       "properties": {
         "name": {
           "type": "string",
@@ -1188,6 +1180,14 @@
           "$ref": "#/definitions/PatchSpec"
         }
       }
+    },
+    "arhat.dev.dukkha.pkg.dukkha.NameValueList": {
+      "items": {
+        "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
+      },
+      "type": "array",
+      "description": "a list of name/value pairs",
+      "x-intellij-html-description": "a list of name/value pairs"
     },
     "arhat.dev.dukkha.pkg.dukkha.RendererAttribute": {
       "type": "string"
@@ -2325,7 +2325,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList",
           "description": "specific to this action",
           "x-intellij-html-description": "specific to this action"
         },
@@ -2406,7 +2406,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env",
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList",
           "description": "specific to this action",
           "x-intellij-html-description": "specific to this action"
         },
@@ -2470,7 +2470,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -2493,7 +2493,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2670,7 +2670,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "files": {
           "items": {
@@ -2730,7 +2730,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2786,7 +2786,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -2809,7 +2809,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2973,7 +2973,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "extra_args": {
           "items": {
@@ -3039,7 +3039,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3089,7 +3089,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -3134,7 +3134,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3184,7 +3184,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -3220,7 +3220,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3255,7 +3255,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -3300,7 +3300,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3348,7 +3348,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -3371,7 +3371,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4090,7 +4090,7 @@
       "properties": {
         "annotations": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
@@ -4108,13 +4108,13 @@
         },
         "env": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
         "labels": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
@@ -4169,7 +4169,7 @@
       "patternProperties": {
         "^annotations@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
@@ -4196,7 +4196,7 @@
         },
         "^env@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
@@ -4205,7 +4205,7 @@
         },
         "^labels@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.EnvEntry"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
           "type": "array"
         },
@@ -4309,7 +4309,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "files": {
           "items": {
@@ -4374,7 +4374,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4440,20 +4440,19 @@
     "arhat.dev.dukkha.pkg.tools.cosign.TaskSignImage": {
       "properties": {
         "annotations": {
-          "additionalProperties": {
-            "type": "string"
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
-          "type": "object",
+          "type": "array",
           "description": "additional key-value data pairs added when signing",
-          "x-intellij-html-description": "additional key-value data pairs added when signing",
-          "default": "{}"
+          "x-intellij-html-description": "additional key-value data pairs added when signing"
         },
         "continue_on_error": {
           "type": "boolean",
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -4516,13 +4515,12 @@
       "additionalProperties": false,
       "patternProperties": {
         "^annotations@.*": {
-          "additionalProperties": {
-            "type": "string"
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
-          "type": "object",
+          "type": "array",
           "description": "additional key-value data pairs added when signing",
-          "x-intellij-html-description": "additional key-value data pairs added when signing",
-          "default": "{}"
+          "x-intellij-html-description": "additional key-value data pairs added when signing"
         },
         "^annotations@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4535,7 +4533,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4613,7 +4611,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "files": {
           "items": {
@@ -4673,7 +4671,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4740,7 +4738,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -4763,7 +4761,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4810,13 +4808,12 @@
     "arhat.dev.dukkha.pkg.tools.cosign.signingSpec": {
       "properties": {
         "annotations": {
-          "additionalProperties": {
-            "type": "string"
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
-          "type": "object",
+          "type": "array",
           "description": "additional key-value data pairs added when signing",
-          "x-intellij-html-description": "additional key-value data pairs added when signing",
-          "default": "{}"
+          "x-intellij-html-description": "additional key-value data pairs added when signing"
         },
         "enabled": {
           "type": "boolean",
@@ -4863,13 +4860,12 @@
       "additionalProperties": false,
       "patternProperties": {
         "^annotations@.*": {
-          "additionalProperties": {
-            "type": "string"
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueEntry"
           },
-          "type": "object",
+          "type": "array",
           "description": "additional key-value data pairs added when signing",
-          "x-intellij-html-description": "additional key-value data pairs added when signing",
-          "default": "{}"
+          "x-intellij-html-description": "additional key-value data pairs added when signing"
         },
         "^annotations@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4944,7 +4940,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -4967,7 +4963,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4981,7 +4977,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "extra_args": {
           "items": {
@@ -5037,7 +5033,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5104,7 +5100,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -5127,7 +5123,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5182,7 +5178,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "files": {
           "items": {
@@ -5243,7 +5239,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5305,7 +5301,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -5328,7 +5324,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5532,7 +5528,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "extra_args": {
           "items": {
@@ -5671,7 +5667,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5837,7 +5833,7 @@
           "x-intellij-html-description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "extra_args": {
           "items": {
@@ -6079,7 +6075,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6271,7 +6267,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -6294,7 +6290,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6876,7 +6872,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -6917,7 +6913,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6964,7 +6960,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -7008,7 +7004,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7048,7 +7044,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -7071,7 +7067,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7085,7 +7081,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -7118,7 +7114,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7150,7 +7146,7 @@
           "default": "false"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "hooks": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
@@ -7179,7 +7175,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7207,7 +7203,7 @@
           "type": "array"
         },
         "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "name": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
@@ -7230,7 +7226,7 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.Env"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
         },
         "^env@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

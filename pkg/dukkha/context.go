@@ -11,7 +11,7 @@ import (
 	"github.com/huandu/xstrings"
 )
 
-type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env Env, cmd []string, err error)
+type ExecSpecGetFunc func(toExec []string, isFilePath bool) (env NameValueList, cmd []string, err error)
 
 // ConfigResolvingContext interface definition for config resolving
 type ConfigResolvingContext interface {

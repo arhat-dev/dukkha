@@ -1,0 +1,6 @@
+data@T:
+  value: "10.10000"
+  ops:
+  - tlang: fromYaml VALUE
+---
+data: "10.1"

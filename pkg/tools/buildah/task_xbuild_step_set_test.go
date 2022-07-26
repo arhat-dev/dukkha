@@ -13,7 +13,7 @@ func Test_kvArgs(t *testing.T) {
 
 	type args struct {
 		flag    string
-		entries []*dukkha.EnvEntry
+		entries []*dukkha.NameValueEntry
 	}
 	tests := []struct {
 		name string
@@ -24,7 +24,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Empty",
 			args: args{
 				flag:    "--empty",
-				entries: []*dukkha.EnvEntry{},
+				entries: []*dukkha.NameValueEntry{},
 			},
 			want: nil,
 		},
@@ -32,7 +32,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Remove",
 			args: args{
 				flag: "--remove",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "key-",
 						Value: "",
@@ -45,7 +45,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Remove (value ignored)",
 			args: args{
 				flag: "--remove",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "key-",
 						Value: "value",
@@ -58,7 +58,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Key Only",
 			args: args{
 				flag: "--key-only",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "key",
 						Value: "",
@@ -71,7 +71,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Value Only",
 			args: args{
 				flag: "--value-only",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "",
 						Value: "value",
@@ -84,7 +84,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Key Value Pair",
 			args: args{
 				flag: "--key-value",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "key",
 						Value: "value",
@@ -97,7 +97,7 @@ func Test_kvArgs(t *testing.T) {
 			name: "Multiple Key Value Pairs",
 			args: args{
 				flag: "--key-value",
-				entries: []*dukkha.EnvEntry{
+				entries: []*dukkha.NameValueEntry{
 					{
 						Name:  "key",
 						Value: "value",

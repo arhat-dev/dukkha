@@ -27,7 +27,7 @@ func TestDriver_Render(t *testing.T) {
 	vTrue := true
 
 	rc := dt.NewTestContext(context.TODO(), t.TempDir())
-	rc.AddEnv(true, &dukkha.EnvEntry{
+	rc.AddEnv(true, &dukkha.NameValueEntry{
 		Name:  "FOO",
 		Value: "bar",
 	})

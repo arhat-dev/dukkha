@@ -22,7 +22,7 @@ func (ns evalNS) Template(tplData String) (_ string, err error) {
 		return
 	}
 
-	tpl, err := CreateTemplate(ns.rc).Parse(tplStr)
+	tpl, err := CreateTextTemplate(ns.rc).Parse(tplStr)
 	if err != nil {
 		err = fmt.Errorf("parse template %q: %w", tplStr, err)
 		return

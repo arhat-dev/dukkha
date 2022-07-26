@@ -43,9 +43,9 @@ type CGOSepc struct {
 func (c CGOSepc) getEnv(
 	doingCrossCompiling bool,
 	mKernel, mArch, hostOS, targetLibc string,
-) dukkha.Env {
+) dukkha.NameValueList {
 	if !c.Enabled {
-		return dukkha.Env{
+		return dukkha.NameValueList{
 			{
 				Name:  "CGO_ENABLED",
 				Value: "0",
@@ -53,8 +53,8 @@ func (c CGOSepc) getEnv(
 		}
 	}
 
-	var ret dukkha.Env
-	ret = append(ret, &dukkha.EnvEntry{
+	var ret dukkha.NameValueList
+	ret = append(ret, &dukkha.NameValueEntry{
 		Name:  "CGO_ENABLED",
 		Value: "1",
 	})
@@ -66,7 +66,7 @@ func (c CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, &dukkha.EnvEntry{
+			ret = append(ret, &dukkha.NameValueEntry{
 				Name:  name,
 				Value: strings.Join(actual, " "),
 			})
@@ -80,7 +80,7 @@ func (c CGOSepc) getEnv(
 		}
 
 		if len(actual) != 0 {
-			ret = append(ret, &dukkha.EnvEntry{
+			ret = append(ret, &dukkha.NameValueEntry{
 				Name:  name,
 				Value: actual,
 			})
