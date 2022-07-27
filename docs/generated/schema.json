@@ -3988,13 +3988,13 @@
             "type": "string"
           },
           "type": "array",
-          "description": "for the executable",
-          "x-intellij-html-description": "for the executable"
+          "description": "args to the ExecutableFile",
+          "x-intellij-html-description": "args to the ExecutableFile"
         },
         "executable_file": {
           "type": "string",
-          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as `script`",
-          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as <code>script</code>"
+          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as `script`",
+          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as <code>script</code>"
         },
         "extra_args": {
           "items": {
@@ -4042,16 +4042,16 @@
             "type": "string"
           },
           "type": "array",
-          "description": "for the executable",
-          "x-intellij-html-description": "for the executable"
+          "description": "args to the ExecutableFile",
+          "x-intellij-html-description": "args to the ExecutableFile"
         },
         "^executable_args@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^executable_file@.*": {
           "type": "string",
-          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as `script`",
-          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is large to load as <code>script</code>"
+          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as `script`",
+          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as <code>script</code>"
         },
         "^executable_file@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

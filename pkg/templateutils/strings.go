@@ -555,7 +555,8 @@ func AddPrefix(s, prefix, sep string) string {
 	return sb.String()
 }
 
-func addPrefixW(w io.StringWriter, s, prefix, sep string) {
+// addPrefixW adds prefix for each section separated by sep
+func addPrefixW[T io.StringWriter](w T, s, prefix, sep string) {
 	forEachTextSection(s, sep, func(section string) {
 		_, _ = w.WriteString(prefix)
 		_, _ = w.WriteString(section)

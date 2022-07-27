@@ -101,6 +101,20 @@ func (ns fsNS) Exists(path String) (_ bool, err error) {
 	return err == nil, err
 }
 
+func (ns fsNS) IsFile(path String) bool {
+	f, err := toString(path)
+	if err != nil {
+		return false
+	}
+
+	info, err := ns.rc.FS().Lstat(f)
+	if err != nil {
+		return false
+	}
+
+	return info.Mode().IsRegular()
+}
+
 func (ns fsNS) IsDir(path String) bool        { return ns.fileTypeIs(fs.ModeDir, path) }
 func (ns fsNS) IsSymlink(path String) bool    { return ns.fileTypeIs(fs.ModeSymlink, path) }
 func (ns fsNS) IsDevice(path String) bool     { return ns.fileTypeIs(fs.ModeDevice, path) }

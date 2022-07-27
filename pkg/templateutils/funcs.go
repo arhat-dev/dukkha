@@ -726,6 +726,8 @@ func FuncNameToFuncID(name string) FuncID {
 		return FuncID_fs_IsDir
 	case FuncName_fs_IsFIFO:
 		return FuncID_fs_IsFIFO
+	case FuncName_fs_IsFile:
+		return FuncID_fs_IsFile
 	case FuncName_fs_IsOther:
 		return FuncID_fs_IsOther
 	case FuncName_fs_IsSocket:
@@ -1545,6 +1547,8 @@ func (id FuncID) String() string {
 		return FuncName_fs_IsDir
 	case FuncID_fs_IsFIFO:
 		return FuncName_fs_IsFIFO
+	case FuncID_fs_IsFile:
+		return FuncName_fs_IsFile
 	case FuncID_fs_IsOther:
 		return FuncName_fs_IsOther
 	case FuncID_fs_IsSocket:
@@ -2008,6 +2012,7 @@ const (
 	FuncID_fs_IsDevice          // func(String) bool
 	FuncID_fs_IsDir             // func(String) bool
 	FuncID_fs_IsFIFO            // func(String) bool
+	FuncID_fs_IsFile            // func(String) bool
 	FuncID_fs_IsOther           // func(String) bool
 	FuncID_fs_IsSocket          // func(String) bool
 	FuncID_fs_IsSymlink         // func(String) bool
@@ -2429,6 +2434,7 @@ const (
 	FuncName_fs_IsDevice          = "fs.IsDevice"
 	FuncName_fs_IsDir             = "fs.IsDir"
 	FuncName_fs_IsFIFO            = "fs.IsFIFO"
+	FuncName_fs_IsFile            = "fs.IsFile"
 	FuncName_fs_IsOther           = "fs.IsOther"
 	FuncName_fs_IsSocket          = "fs.IsSocket"
 	FuncName_fs_IsSymlink         = "fs.IsSymlink"
@@ -2858,6 +2864,7 @@ func createContextualFuncs(rc dukkha.RenderingContext) *ContextualFuncs {
 		FuncID_fs_IsDevice - FuncID_LAST_Static_FUNC - 1:          reflect.ValueOf(ns_fs.IsDevice),
 		FuncID_fs_IsDir - FuncID_LAST_Static_FUNC - 1:             reflect.ValueOf(ns_fs.IsDir),
 		FuncID_fs_IsFIFO - FuncID_LAST_Static_FUNC - 1:            reflect.ValueOf(ns_fs.IsFIFO),
+		FuncID_fs_IsFile - FuncID_LAST_Static_FUNC - 1:            reflect.ValueOf(ns_fs.IsFile),
 		FuncID_fs_IsOther - FuncID_LAST_Static_FUNC - 1:           reflect.ValueOf(ns_fs.IsOther),
 		FuncID_fs_IsSocket - FuncID_LAST_Static_FUNC - 1:          reflect.ValueOf(ns_fs.IsSocket),
 		FuncID_fs_IsSymlink - FuncID_LAST_Static_FUNC - 1:         reflect.ValueOf(ns_fs.IsSymlink),

@@ -33,10 +33,10 @@ type stepRun struct {
 	//
 	// Will copy the executable to container and remove it after executaion
 	//
-	// helpful when your executable is large to load as `script`
+	// helpful when your executable is too large to be loaded as `script`
 	ExecutableFile string `yaml:"executable_file"`
 
-	// ExecutableArgs for the executable
+	// ExecutableArgs args to the ExecutableFile
 	ExecutableArgs []string `yaml:"executable_args"`
 
 	// Cmd as bare exec

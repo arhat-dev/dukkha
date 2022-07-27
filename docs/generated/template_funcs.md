@@ -337,6 +337,7 @@
 - `fs.IsDevice(String) bool`
 - `fs.IsDir(String) bool`
 - `fs.IsFIFO(String) bool`
+- `fs.IsFile(String) bool`
 - `fs.IsOther(String) bool`
 - `fs.IsSocket(String) bool`
 - `fs.IsSymlink(String) bool`
