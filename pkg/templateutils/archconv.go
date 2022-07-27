@@ -140,6 +140,11 @@ func (archconvNS) LLVMArch(arch String) string {
 	return v
 }
 
+func (archconvNS) ZigArch(arch String) string {
+	v, _ := constant.GetZigArch(must(toString(arch)))
+	return v
+}
+
 func (archconvNS) LLVMTripleName(arch String, other ...String) string {
 	targetKernel, targetLibc := "", ""
 	if len(other) > 0 {
@@ -150,5 +155,18 @@ func (archconvNS) LLVMTripleName(arch String, other ...String) string {
 	}
 
 	v, _ := constant.GetLLVMTripleName(must(toString(arch)), targetKernel, targetLibc)
+	return v
+}
+
+func (archconvNS) ZigTripleName(arch String, other ...String) string {
+	var targetKernel, targetLibc string
+	if len(other) > 0 {
+		targetKernel = must(toString(other[0]))
+	}
+	if len(other) > 1 {
+		targetLibc = must(toString(other[1]))
+	}
+
+	v, _ := constant.GetZigTripleName(must(toString(arch)), targetKernel, targetLibc)
 	return v
 }

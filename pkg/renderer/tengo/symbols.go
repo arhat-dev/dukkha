@@ -42,6 +42,8 @@ var static_symbols = [tu.FuncID_LAST_Static_FUNC + 1]tengo.Symbol{
 	tu.FuncID_archconv_SF:                 {Name: "archconv.SF", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_archconv_SF)},
 	tu.FuncID_archconv_SimpleArch:         {Name: "archconv.SimpleArch", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_archconv_SimpleArch)},
 	tu.FuncID_archconv_SoftFloatArch:      {Name: "archconv.SoftFloatArch", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_archconv_SoftFloatArch)},
+	tu.FuncID_archconv_ZigArch:            {Name: "archconv.ZigArch", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_archconv_ZigArch)},
+	tu.FuncID_archconv_ZigTripleName:      {Name: "archconv.ZigTripleName", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_archconv_ZigTripleName)},
 	tu.FuncID_base64:                      {Name: "base64", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_base64)},
 	tu.FuncID_call:                        {Name: "call", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_call)},
 	tu.FuncID_close:                       {Name: "close", Scope: tengo.ScopeGlobal, Index: int(tu.FuncID_close)},

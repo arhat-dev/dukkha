@@ -42,6 +42,7 @@ type platformArchMapping [platformID_COUNT]string
 // Ref:
 // for GNU values: https://salsa.debian.org/dpkg-team/dpkg/-/blob/main/data/cputable
 var archMapping = [archID_COUNT]platformArchMapping{
+	_unknown_arch: {},
 	archID_X86: {
 		platformID_Alpine: "x86",
 		platformID_Debian: "i386",
@@ -57,6 +58,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "i386",
 
 		platformID_LLVM: "x86",
+		platformID_Zig:  "i386",
 	},
 	archID_X86_SF: {
 		platformID_Alpine: "x86",
@@ -73,6 +75,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "i386",
 
 		platformID_LLVM: "x86",
+		platformID_Zig:  "i386",
 	},
 	archID_AMD64: {
 		platformID_Alpine: "x86_64",
@@ -89,6 +92,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "amd64",
 
 		platformID_LLVM: "x86_64",
+		platformID_Zig:  "x86_64",
 	},
 	archID_AMD64_V1: {
 		platformID_Alpine: "x86_64",
@@ -105,6 +109,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "amd64",
 
 		platformID_LLVM: "x86_64",
+		platformID_Zig:  "x86_64",
 	},
 	archID_AMD64_V2: {
 		platformID_Alpine: "x86_64",
@@ -121,6 +126,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "amd64",
 
 		platformID_LLVM: "x86_64",
+		platformID_Zig:  "x86_64",
 	},
 	archID_AMD64_V3: {
 		platformID_Alpine: "x86_64",
@@ -137,6 +143,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "amd64",
 
 		platformID_LLVM: "x86_64",
+		platformID_Zig:  "x86_64",
 	},
 	archID_AMD64_V4: {
 		platformID_Alpine: "x86_64",
@@ -153,6 +160,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "amd64",
 
 		platformID_LLVM: "x86_64",
+		platformID_Zig:  "x86_64",
 	},
 	archID_ARM: {
 		platformID_Alpine: "armv7",
@@ -169,6 +177,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm32v7",
 
 		platformID_LLVM: "armv7",
+		platformID_Zig:  "armv7a",
 	},
 	archID_ARM_V5: {
 		platformID_Alpine: "armv5l",
@@ -185,6 +194,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm32v5",
 
 		platformID_LLVM: "armv5",
+		platformID_Zig:  "armv5",
 	},
 	archID_ARM_V6: {
 		platformID_Alpine: "armhf",
@@ -201,6 +211,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm32v6",
 
 		platformID_LLVM: "armv6",
+		platformID_Zig:  "armv6",
 	},
 	archID_ARM_V7: {
 		platformID_Alpine: "armv7",
@@ -217,6 +228,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm32v7",
 
 		platformID_LLVM: "armv7",
+		platformID_Zig:  "armv7a",
 	},
 	archID_ARM64: {
 		platformID_Alpine: "aarch64",
@@ -233,6 +245,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm64v8",
 
 		platformID_LLVM: "aarch64",
+		platformID_Zig:  "aarch64",
 	},
 	archID_ARM64_V8: {
 		platformID_Alpine: "aarch64",
@@ -249,6 +262,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm64v8",
 
 		platformID_LLVM: "aarch64",
+		platformID_Zig:  "aarch64",
 	},
 	// TODO: revise once standardized
 	archID_ARM64_V9: {
@@ -266,6 +280,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "arm64v8",
 
 		platformID_LLVM: "aarch64",
+		platformID_Zig:  "aarch64",
 	},
 	archID_PPC: {
 		platformID_Alpine: "",
@@ -282,6 +297,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpc",
 	},
 	archID_PPC_SF: {
 		platformID_Alpine: "",
@@ -298,6 +314,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpc",
 	},
 	archID_PPC_LE: {
 		platformID_Alpine: "",
@@ -314,6 +331,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpcle",
 	},
 	archID_PPC_LE_SF: {
 		platformID_Alpine: "",
@@ -330,6 +348,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpcle",
 	},
 	archID_PPC64: {
 		platformID_Alpine: "ppc64",
@@ -346,6 +365,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpc64",
 	},
 	archID_PPC64_V8: {
 		platformID_Alpine: "ppc64",
@@ -362,6 +382,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpc64",
 	},
 	archID_PPC64_V9: {
 		platformID_Alpine: "ppc64",
@@ -378,6 +399,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "powerpc64",
 	},
 	archID_PPC64_LE: {
 		platformID_Alpine: "ppc64le",
@@ -394,6 +416,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "ppc64le",
 
 		platformID_LLVM: "ppc64le",
+		platformID_Zig:  "powerpc64le",
 	},
 	archID_PPC64_LE_V8: {
 		platformID_Alpine: "ppc64le",
@@ -410,6 +433,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "ppc64le",
 
 		platformID_LLVM: "ppc64le",
+		platformID_Zig:  "powerpc64le",
 	},
 	archID_PPC64_LE_V9: {
 		platformID_Alpine: "ppc64le",
@@ -426,6 +450,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "ppc64le",
 
 		platformID_LLVM: "ppc64le",
+		platformID_Zig:  "powerpc64le",
 	},
 	archID_MIPS: {
 		platformID_Alpine: "mips",
@@ -442,6 +467,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mips",
 	},
 	archID_MIPS_SF: {
 		platformID_Alpine: "mips",
@@ -458,6 +484,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mips",
 	},
 	archID_MIPS_LE: {
 		platformID_Alpine: "mipsel",
@@ -474,6 +501,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mipsel",
 	},
 	archID_MIPS_LE_SF: {
 		platformID_Alpine: "mipsel",
@@ -490,6 +518,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mipsel",
 	},
 	archID_MIPS64: {
 		platformID_Alpine: "mips64",
@@ -506,6 +535,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mips64",
 	},
 	archID_MIPS64_SF: {
 		platformID_Alpine: "mips64",
@@ -522,6 +552,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "mips64",
 	},
 	archID_MIPS64_LE: {
 		platformID_Alpine: "mips64el",
@@ -538,6 +569,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "mips64le",
 
 		platformID_LLVM: "mips64el",
+		platformID_Zig:  "mips64el",
 	},
 	archID_MIPS64_LE_SF: {
 		platformID_Alpine: "mips64el",
@@ -554,6 +586,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "mips64le",
 
 		platformID_LLVM: "mips64el",
+		platformID_Zig:  "mips64el",
 	},
 	archID_RISCV64: {
 		platformID_Alpine: "riscv64",
@@ -569,6 +602,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "riscv64",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "riscv64",
 	},
 	archID_S390X: {
 		platformID_Alpine: "s390x",
@@ -585,6 +619,7 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "s390x",
 
 		platformID_LLVM: "systemz",
+		platformID_Zig:  "s390x",
 	},
 	archID_IA64: {
 		platformID_Alpine: "",
@@ -601,5 +636,6 @@ var archMapping = [archID_COUNT]platformArchMapping{
 		platformID_DockerHub: "",
 
 		platformID_LLVM: "",
+		platformID_Zig:  "",
 	},
 }

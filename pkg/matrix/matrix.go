@@ -1,9 +1,10 @@
 package matrix
 
 import (
-	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/pkg/matrixhelper"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
 // SpecItem is a helper type to support rendering suffix

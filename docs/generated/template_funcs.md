@@ -32,6 +32,8 @@
 - `archconv.SF(String) string`
 - `archconv.SimpleArch(String) string`
 - `archconv.SoftFloatArch(String) string`
+- `archconv.ZigArch(String) string`
+- `archconv.ZigTripleName(String, ...String) string`
 - `base64(...any) (string, error)`
 - `call(any, ...any) (any, error)`
 - `close(any) (None, error)`

@@ -1,9 +1,10 @@
 package templateutils
 
 import (
+	"arhat.dev/tlang"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/third_party/golang/text/template"
-	"arhat.dev/tlang"
 )
 
 func CreateTextTemplate(rc dukkha.RenderingContext) *template.Template {

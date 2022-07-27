@@ -80,6 +80,10 @@ func FuncNameToFuncID(name string) FuncID {
 		return FuncID_archconv_SimpleArch
 	case FuncName_archconv_SoftFloatArch:
 		return FuncID_archconv_SoftFloatArch
+	case FuncName_archconv_ZigArch:
+		return FuncID_archconv_ZigArch
+	case FuncName_archconv_ZigTripleName:
+		return FuncID_archconv_ZigTripleName
 	case FuncName_base64:
 		return FuncID_base64
 	case FuncName_call:
@@ -901,6 +905,10 @@ func (id FuncID) String() string {
 		return FuncName_archconv_SimpleArch
 	case FuncID_archconv_SoftFloatArch:
 		return FuncName_archconv_SoftFloatArch
+	case FuncID_archconv_ZigArch:
+		return FuncName_archconv_ZigArch
+	case FuncID_archconv_ZigTripleName:
+		return FuncName_archconv_ZigTripleName
 	case FuncID_base64:
 		return FuncName_base64
 	case FuncID_call:
@@ -1687,6 +1695,8 @@ const (
 	FuncID_archconv_SF                 // func(String) string
 	FuncID_archconv_SimpleArch         // func(String) string
 	FuncID_archconv_SoftFloatArch      // func(String) string
+	FuncID_archconv_ZigArch            // func(String) string
+	FuncID_archconv_ZigTripleName      // func(String, ...String) string
 	FuncID_base64                      // func(...any) (string, error)
 	FuncID_call                        // func(any, ...any) (any, error)
 	FuncID_close                       // func(any) (None, error)
@@ -2109,6 +2119,8 @@ const (
 	FuncName_archconv_SF                 = "archconv.SF"
 	FuncName_archconv_SimpleArch         = "archconv.SimpleArch"
 	FuncName_archconv_SoftFloatArch      = "archconv.SoftFloatArch"
+	FuncName_archconv_ZigArch            = "archconv.ZigArch"
+	FuncName_archconv_ZigTripleName      = "archconv.ZigTripleName"
 	FuncName_base64                      = "base64"
 	FuncName_call                        = "call"
 	FuncName_close                       = "close"
@@ -2522,6 +2534,8 @@ var staticFuncs = [FuncID_LAST_Static_FUNC + 1]any{
 	FuncID_archconv_SF:                 ns_archconv.SF,
 	FuncID_archconv_SimpleArch:         ns_archconv.SimpleArch,
 	FuncID_archconv_SoftFloatArch:      ns_archconv.SoftFloatArch,
+	FuncID_archconv_ZigArch:            ns_archconv.ZigArch,
+	FuncID_archconv_ZigTripleName:      ns_archconv.ZigTripleName,
 	FuncID_base64:                      ns_enc.Base64,
 	FuncID_call:                        ns_golang.Call,
 	FuncID_close:                       ns_type.Close,

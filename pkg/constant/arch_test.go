@@ -156,6 +156,24 @@ func TestArchMapping(t *testing.T) {
 				return GetLLVMTripleName(mArch, "", LIBC_MSVC)
 			},
 		},
+		{
+			name: "GetZigTripleName GNU",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetZigTripleName(mArch, "", LIBC_GNU)
+			},
+		},
+		{
+			name: "GetZigTripleName MUSL",
+			mappingFunc: func(mArch string) (string, bool) {
+				return GetZigTripleName(mArch, "", LIBC_MUSL)
+			},
+		},
+		// {
+		// 	name: "GetZigTripleName MSVC",
+		// 	mappingFunc: func(mArch string) (string, bool) {
+		// 		return GetZigTripleName(mArch, "", LIBC_MSVC)
+		// 	},
+		// },
 
 		{
 			name:        "GolangArch",
