@@ -112,11 +112,15 @@ func prepareDebugCmd(flags []string, cacheDir string) (checkFlags func() error, 
 	config := conf.NewConfig()
 	err := conf.Read(
 		ctx,
-		os.DirFS("./testdata"),
+		&conf.ReadSpec{
+			Flags:        conf.ReadFlag_Full,
+			ConfFS:       os.DirFS("./testdata"),
+			VisitedPaths: &map[string]struct{}{},
+			MergedConfig: config,
+		},
+		conf.NewSyncGroup(),
 		[]string{"."},
 		false,
-		&map[string]struct{}{},
-		config,
 	)
 	if err != nil {
 		panic(err)

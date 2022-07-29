@@ -96,17 +96,27 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 		// NOTE: this function is used in pkg/templateutils/dukkhaNS.Self
 		//       make sure we only have config loading happening here
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var readFlags conf.ReadFlag
 			switch {
 			case strings.HasPrefix(cmd.Use, "version"),
 				strings.HasPrefix(cmd.Use, "completion"):
-				// they don't need to know config options at all
+				// no config
 				return nil
+			case strings.HasPrefix(cmd.Use, "render"),
+				strings.HasPrefix(cmd.Use, "diff"):
+				// need: renderer, global
+				readFlags = conf.ReadFlag_Renderer | conf.ReadFlag_Global
+			case strings.HasPrefix(cmd.Use, "as"):
+				// need: renderer, global, tool
+				readFlags = conf.ReadFlag_Renderer | conf.ReadFlag_Global | conf.ReadFlag_Tool
+			default:
+				readFlags = conf.ReadFlag_Full
 			}
 
 			// setup global logger for debugging
 			err := log.SetDefaultLogger(log.ConfigSet{*logConfig})
 			if err != nil {
-				return fmt.Errorf("initializing logger: %w", err)
+				return fmt.Errorf("init logger: %w", err)
 			}
 
 			logger := log.Log.WithName("pre-run")
@@ -116,28 +126,29 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 				return fmt.Errorf("check working dir: %w", err)
 			}
 
-			_appCtx := dukkha.NewConfigResolvingContext(
-				appBaseCtx, dukkha.GlobalInterfaceTypeHandler,
+			bootstrapCtx := dukkha.NewConfigResolvingContext(
+				appBaseCtx,
+				dukkha.GlobalInterfaceTypeHandler,
 				createGlobalEnv(appBaseCtx, cwd),
 			)
-			_appCtx.AddListEnv(os.Environ()...)
+			bootstrapCtx.AddListEnv(os.Environ()...)
 
 			// add essential renderers for bootstraping
 			{
 				logger.V("creating essential renderers")
 
-				_appCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
-				_appCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
-				_appCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
-				_appCtx.AddRenderer(tlang.DefaultName, tlang.NewDefault(tlang.DefaultName))
-				_appCtx.AddRenderer(tmpl.DefaultName, tmpl.NewDefault(tmpl.DefaultName))
-				_appCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
-				_appCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))
+				bootstrapCtx.AddRenderer(echo.DefaultName, echo.NewDefault(echo.DefaultName))
+				bootstrapCtx.AddRenderer(env.DefaultName, env.NewDefault(env.DefaultName))
+				bootstrapCtx.AddRenderer(shell.DefaultName, shell.NewDefault(shell.DefaultName))
+				bootstrapCtx.AddRenderer(tlang.DefaultName, tlang.NewDefault(tlang.DefaultName))
+				bootstrapCtx.AddRenderer(tmpl.DefaultName, tmpl.NewDefault(tmpl.DefaultName))
+				bootstrapCtx.AddRenderer(file.DefaultName, file.NewDefault(file.DefaultName))
+				bootstrapCtx.AddRenderer(transform.DefaultName, transform.NewDefault(transform.DefaultName))
 
-				essentialRenderers := _appCtx.AllRenderers()
+				essentialRenderers := bootstrapCtx.AllRenderers()
 				for name, r := range essentialRenderers {
 					// using default config, no need to resolve fields
-					err = r.Init(_appCtx.RendererCacheFS(name))
+					err = r.Init(bootstrapCtx.RendererCacheFS(name))
 					if err != nil {
 						return fmt.Errorf("initialize essential renderer %q: %w", name, err)
 					}
@@ -147,31 +158,35 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 			// read all configration files
 			visitedPaths := make(map[string]struct{})
 			err = conf.Read(
-				_appCtx,
-				fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
-					return cwd, nil
-				}),
+				bootstrapCtx,
+				&conf.ReadSpec{
+					Flags: readFlags,
+					ConfFS: fshelper.NewOSFS(false, func(fshelper.Op, string) (string, error) {
+						return cwd, nil
+					}),
+					VisitedPaths: &visitedPaths,
+					MergedConfig: config,
+				},
+				conf.NewSyncGroup(),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
-				&visitedPaths,
-				config,
 			)
 			if err != nil {
-				return fmt.Errorf("loading config: %w", err)
+				return fmt.Errorf("load config: %w", err)
 			}
 
-			logger.V("initializing dukkha", log.Any("raw_config", config))
+			logger.V("init dukkha start", log.Any("raw_config", config))
 
 			// here we always have tasks resolved to make template function
 			// `dukkha.Self` work under all circumstances (e.g. `dukkha.Self run` used in `dukkha render`)
-			err = config.Resolve(_appCtx, true /* need tasks */)
+			err = config.Resolve(bootstrapCtx, true /* need tasks */)
 			if err != nil {
 				return err
 			}
 
-			appCtx = _appCtx
+			appCtx = bootstrapCtx
 
-			logger.D("dukkha initialized", log.Any("init_config", config))
+			logger.D("init dukkha done", log.Any("init_config", config))
 
 			return nil
 		},
@@ -223,6 +238,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 		debugCmd,
 		// dukkha run
 		run.NewRunCmd(&appCtx),
+		// dukkha diff
 		diff.NewDiffCmd(&appCtx),
 	)
 

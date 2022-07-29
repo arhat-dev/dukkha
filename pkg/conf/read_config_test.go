@@ -131,11 +131,15 @@ func TestRead(t *testing.T) {
 			rc := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			err := Read(
 				rc,
-				testFS,
+				&ReadSpec{
+					Flags:        ReadFlag_Full,
+					ConfFS:       testFS,
+					VisitedPaths: &visitedPaths,
+					MergedConfig: mergedConfig,
+				},
+				NewSyncGroup(),
 				test.configPaths,
 				test.ignoreFileNotExist,
-				&visitedPaths,
-				mergedConfig,
 			)
 			if test.expectErr {
 				assert.Error(t, err)
