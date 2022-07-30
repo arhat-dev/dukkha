@@ -61,7 +61,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 		appBaseCtx context.Context = prevCtx
 	)
 
-	if appBaseCtx == nil {
+	if appBaseCtx == nil { // started from outside, e.g. cli
 		var cancel context.CancelFunc
 
 		stdout = os.Stdout
@@ -74,7 +74,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 				cancel()
 			}
 		}()
-	} else {
+	} else { // started from inside dukkha, e.g. template func dukkha.Self
 		stdout = appCtx.Stdout()
 	}
 
@@ -180,7 +180,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 
 			// here we always have tasks resolved to make template function
 			// `dukkha.Self` work under all circumstances (e.g. `dukkha.Self run` used in `dukkha render`)
-			err = config.Resolve(bootstrapCtx, true /* need tasks */)
+			err = config.Resolve(bootstrapCtx, readFlags /* need tasks */)
 			if err != nil {
 				return err
 			}

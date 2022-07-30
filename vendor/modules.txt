@@ -29,7 +29,7 @@ arhat.dev/pkg/yamlhelper
 # arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
-# arhat.dev/rs v0.10.1-0.20220730071702-8db7a5c12c24
+# arhat.dev/rs v0.10.1-0.20220730163548-6a0724585a2c
 ## explicit; go 1.18
 arhat.dev/rs
 # arhat.dev/tlang v0.0.0-20220721161405-faac9d553010

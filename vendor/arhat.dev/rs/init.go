@@ -115,8 +115,17 @@ func InitReflectValue(in reflect.Value, opts *Options) bool {
 	return true
 }
 
-// InitRecursively trys to call Init on all fields implementing Field interface
+// InitRecursively is InitRecursivelyLimitDepth with depth = -1
 func InitRecursively(fv reflect.Value, opts *Options) {
+	InitRecursivelyLimitDepth(fv, -1, opts)
+}
+
+// InitRecursivelyLimitDepth
+func InitRecursivelyLimitDepth(fv reflect.Value, depth int, opts *Options) {
+	if depth == 0 {
+		return
+	}
+
 	switch fv.Type() {
 	case typePtr_BaseField, typeStruct_BaseField:
 		return
@@ -138,7 +147,7 @@ findStruct:
 	}
 
 	for i := 0; i < fv.NumField(); i++ {
-		InitRecursively(fv.Field(i), opts)
+		InitRecursivelyLimitDepth(fv.Field(i), depth-1, opts)
 	}
 }
 

@@ -352,7 +352,16 @@ func unmarshalStruct(
 	outVal *fieldRef,
 	yamlKey string,
 ) (err error) {
-	tryInit(outVal.fieldValue, outVal.base._opts)
+	// structs with embedded struct whose implementation of Field is BaseField, but the BaseField is embedded inside that struct
+	//
+	// for example:
+	// 		type Foo struct{ rs.BaseField }
+	//      type Bar struct{ Foo }
+	//
+	// Bar does implement Field but won't be initilized by Init, so use depth 2 to cover these cases
+	//
+	// cases more than depth 2 are uncommon
+	InitRecursivelyLimitDepth(outVal.fieldValue, 2, outVal.base._opts)
 
 	var (
 		out = outVal.fieldValue.Addr().Interface()
@@ -417,7 +426,7 @@ func unmarshalInterface(
 		}
 
 		val = reflect.ValueOf(fVal)
-		InitRecursively(val, opts)
+		InitRecursivelyLimitDepth(val, 2, opts)
 		if err := checkAssignable(yamlKey, val, out.fieldValue); err != nil {
 			return true, err
 		}

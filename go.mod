@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	arhat.dev/pkg v0.10.2-0.20220730124454-80bcc6fbd51f
-	arhat.dev/rs v0.10.1-0.20220730071702-8db7a5c12c24
+	arhat.dev/rs v0.10.1-0.20220730163548-6a0724585a2c
 	arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02

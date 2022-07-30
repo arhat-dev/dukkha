@@ -127,7 +127,7 @@ func prepareDebugCmd(flags []string, cacheDir string) (checkFlags func() error, 
 		panic(err)
 	}
 
-	err = config.Resolve(ctx, true)
+	err = config.Resolve(ctx, conf.ReadFlag_Full)
 	if err != nil {
 		panic(err)
 	}

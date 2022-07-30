@@ -29,8 +29,8 @@ func TestConfig(t *testing.T) {
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			// ctx.AddRenderer("file", file.NewDefault("file"))
 
-			assert.NoError(t, actual.Resolve(ctx, true))
-			assert.NoError(t, expected.Resolve(ctx, true))
+			assert.NoError(t, actual.Resolve(ctx, conf.ReadFlag_Full))
+			assert.NoError(t, expected.Resolve(ctx, conf.ReadFlag_Full))
 
 			for k, list := range expected.Tools.Tools {
 				if !assert.Len(t, actual.Tools.Tools[k], len(list)) {

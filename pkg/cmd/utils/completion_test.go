@@ -36,7 +36,7 @@ func newCompletionContext(t *testing.T) dukkha.Context {
 		panic(err)
 	}
 
-	err = config.Resolve(ctx, true)
+	err = config.Resolve(ctx, conf.ReadFlag_Full)
 	if !assert.NoError(t, err) {
 		panic(err)
 	}

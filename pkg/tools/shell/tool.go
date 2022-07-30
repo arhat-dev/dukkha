@@ -15,19 +15,25 @@ import (
 	"arhat.dev/dukkha/pkg/tools"
 )
 
+const (
+	ToolKind = "shell"
+)
+
 var _ dukkha.Tool = (*Tool)(nil)
 
-type Shell string
+type Shell struct {
+	name string
+}
 
-func (s *Shell) DefaultExecutable() string { return *(*string)(s) }
-func (s *Shell) Kind() dukkha.ToolKind     { return "shell" }
+func (s *Shell) DefaultExecutable() string { return s.name }
+func (s *Shell) Kind() dukkha.ToolKind     { return ToolKind }
 
 type Tool struct {
 	tools.BaseTool[Shell, *Shell]
 }
 
 func (t *Tool) InitWithName(name string, cacheFS *fshelper.OSFS) error {
-	t.Impl = Shell(name)
+	t.Impl.name = name
 	return t.BaseTool.Init(cacheFS)
 }
 

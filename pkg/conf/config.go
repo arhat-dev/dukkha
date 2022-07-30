@@ -19,9 +19,12 @@ package conf
 import (
 	"fmt"
 	"reflect"
+	"sync"
 
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/synchain"
 	"arhat.dev/rs"
+	"go.uber.org/multierr"
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -171,13 +174,15 @@ func (c *Config) resolveShells(appCtx dukkha.ConfigResolvingContext) error {
 
 // Resolve resolves all top level dukkha config
 // to gain an overview of all tools and tasks
-func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) error {
+//
+// nolint:gocyclo
+func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, flags ReadFlag) (err error) {
 	logger := log.Log.WithName("config")
 
-	// step 1: resolve global config (except Values)
-	{
+	if flags&ReadFlag_Global != 0 {
+		// step 1: resolve global config (except Values)
 		logger.D("resolving global config")
-		err := c.ResolveFields(appCtx, 1, "global")
+		err = c.ResolveFields(appCtx, 1, "global")
 		if err != nil {
 			return fmt.Errorf("get global config overview: %w", err)
 		}
@@ -192,13 +197,11 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		if len(c.Global.DefaultGitBranch) != 0 {
 			appCtx.(di.DefaultGitBranchOverrider).OverrideDefaultGitBranch(c.Global.DefaultGitBranch)
 		}
-	}
 
-	// step 2: resolve global Values
-	{
+		// step 2: resolve global Values
 		logger.D("resolving global values")
 
-		err := c.Global.ResolveFields(appCtx, -1, "values")
+		err = c.Global.ResolveFields(appCtx, -1, "values")
 		if err != nil {
 			return fmt.Errorf("resolving global values: %w", err)
 		}
@@ -217,121 +220,177 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 		}
 	}
 
-	// save some time if the command is not interacting with tasks
-	if !needTasks {
-		return nil
-	}
+	var sg synchain.Synchain
+	sg.Init()
 
-	// step 3: resolve tools and tasks
-	logger.D("resolving tools overview")
-	err := c.ResolveFields(appCtx, 2, "tools")
-	if err != nil {
-		return fmt.Errorf("gain overview of tools: %w", err)
-	}
-	logger.V("resolved tools overview", log.Any("result", c.Tools))
-
-	logger.D("resolving tasks overview")
-	err = c.ResolveFields(appCtx, 1, "Tasks")
-	if err != nil {
-		return fmt.Errorf("gain overview of tasks: %w", err)
-	}
-	logger.V("resolved tasks overview", log.Any("result", c.Tasks))
-
-	logger.V("groupping tasks by tool")
-	for _, tasks := range c.Tasks {
-		for _, tsk := range tasks {
-			err = tsk.ResolveFields(appCtx, -1, "name")
+	// resolve tasks first, as tools need tasks
+	if flags&ReadFlag_Task != 0 {
+		sg.Go(func(t synchain.Ticket) error {
+			logger.D("resolving tasks overview")
+			err := c.ResolveFields(appCtx, 1, "Tasks" /* inline field, field name as tag name */)
 			if err != nil {
-				return fmt.Errorf("reoslving task name: %w", err)
+				return fmt.Errorf("gain overview of tasks: %w", err)
+			}
+			logger.V("resolved tasks overview", log.Any("result", c.Tasks))
+
+			var wg sync.WaitGroup
+			logger.V("groupping tasks by tool")
+
+			errCh := make(chan error, len(c.Tasks))
+			wg.Add(len(c.Tasks))
+			for _, tasks := range c.Tasks {
+				go func(tasks []dukkha.Task) {
+					defer wg.Done()
+
+					for _, tsk := range tasks {
+						err2 := tsk.ResolveFields(appCtx, -1, "name")
+						if err2 != nil {
+							select {
+							case <-appCtx.Done():
+							case errCh <- fmt.Errorf("reoslving task name: %w", err2):
+							}
+
+							return
+						}
+
+						// FIXME: task name is empty at this time
+						err2 = tsk.Init(appCtx.TaskCacheFS(tsk))
+						if err2 != nil {
+							select {
+							case <-appCtx.Done():
+							case errCh <- fmt.Errorf("task init %q: %w", tsk.Name(), err2):
+							}
+
+							return
+						}
+					}
+				}(tasks)
 			}
 
-			// FIXME: task name is empty at this time
-			err = tsk.Init(appCtx.TaskCacheFS(tsk))
-			if err != nil {
-				return fmt.Errorf("task init: %w", err)
-			}
-		}
+			wg.Wait()
 
-		if len(tasks) == 0 {
-			continue
-		}
+			for {
+				select {
+				case err2 := <-errCh:
+					err = multierr.Append(err, err2)
+					continue
+				default:
+				}
 
-		appCtx.AddToolSpecificTasks(
-			tasks[0].ToolKind(),
-			tasks[0].ToolName(),
-			tasks,
-		)
-	}
-
-	logger.V("resolving tools", log.Int("count", len(c.Tools.Tools)))
-	for tk, toolSet := range c.Tools.Tools {
-		toolKind := dukkha.ToolKind(tk)
-
-		visited := make(map[dukkha.ToolName]struct{})
-
-		for i, t := range toolSet {
-			err = t.ResolveFields(appCtx, -1, "name")
-			if err != nil {
-				return fmt.Errorf("resolve tool name: %w", err)
+				break
 			}
 
-			// do not allow empty name
-			name := t.Name()
-			if len(name) == 0 {
-				return fmt.Errorf("invalid %q tool without name, index %d", toolKind, i)
-			}
-
-			// ensure tool names are unique
-			if _, ok := visited[name]; ok {
-				return fmt.Errorf("duplicate tool name %q of kind %q", t.Name(), toolKind)
-			}
-
-			visited[name] = struct{}{}
-
-			key := dukkha.ToolKey{
-				Kind: toolKind,
-				Name: name,
-			}
-
-			logger := logger.WithFields(
-				log.String("key", key.String()),
-				log.Int("index", i),
-			)
-
-			logger.V("init tool")
-			err = t.Init(appCtx.ToolCacheFS(t))
-			if err != nil {
-				return fmt.Errorf("init tool %q: %w", key, err)
-			}
-
-			// append tasks without tool name
-			// they are meant for all tools in the same kind they belong to
-			noToolNameTasks, _ := appCtx.GetToolSpecificTasks(
-				dukkha.ToolKey{Kind: toolKind, Name: ""},
-			)
-			appCtx.AddToolSpecificTasks(
-				toolKind, name, noToolNameTasks,
-			)
-
-			tasks, _ := appCtx.GetToolSpecificTasks(key)
-
-			if logger.Enabled(log.LevelVerbose) {
-				logger.D("resolving tool tasks", log.Any("tasks", tasks))
-			} else {
-				logger.D("resolving tool tasks")
-			}
-
-			err = t.AddTasks(tasks)
-			if err != nil {
-				return fmt.Errorf(
-					"admitting tasks to tool %q: %w",
-					key, err,
+			for _, tasks := range c.Tasks {
+				appCtx.AddToolSpecificTasks(
+					tasks[0].ToolKind(),
+					tasks[0].ToolName(),
+					tasks,
 				)
 			}
 
-			appCtx.AddTool(key, c.Tools.Tools[string(toolKind)][i])
-		}
+			// TODO: do we need this?
+			// sg.Lock(t)
+
+			return nil
+		})
 	}
 
+	// step 3: resolve tools and tasks
+	if flags&ReadFlag_Tool != 0 {
+		sg.Go(func(t synchain.Ticket) error {
+			logger.D("resolving tools overview")
+			err := c.ResolveFields(appCtx, 2, "tools")
+			if err != nil {
+				return fmt.Errorf("gain overview of tools: %w", err)
+			}
+			logger.V("resolved tools overview", log.Any("result", c.Tools))
+
+			logger.V("resolving tools", log.Int("count", len(c.Tools.Tools)))
+			for tk, toolSet := range c.Tools.Tools {
+				visited := make(map[dukkha.ToolName]struct{})
+
+				for i, t := range toolSet {
+					err2 := t.ResolveFields(appCtx, -1, "name")
+					if err2 != nil {
+						return fmt.Errorf("resolve tool name: %w", err2)
+					}
+
+					key := dukkha.ToolKey{
+						Kind: dukkha.ToolKind(tk),
+						Name: t.Name(),
+					}
+
+					// do not allow empty name
+					if len(key.Name) == 0 {
+						return fmt.Errorf("invalid %q tool without name, index %d", key.Kind, i)
+					}
+
+					// ensure tool names are unique
+					if _, ok := visited[key.Name]; ok {
+						return fmt.Errorf("duplicate tool name %q of kind %q", t.Name(), key.Kind)
+					}
+
+					visited[key.Name] = struct{}{}
+
+					logger := logger.WithFields(
+						log.String("key", key.String()),
+						log.Int("index", i),
+					)
+
+					logger.V("init tool")
+					err2 = t.Init(appCtx.ToolCacheFS(t))
+					if err2 != nil {
+						return fmt.Errorf("init tool %q: %w", key, err2)
+					}
+
+					appCtx.AddTool(key, c.Tools.Tools[string(key.Kind)][i])
+				}
+			}
+
+			// wait for tasks in other goroutine
+			if !sg.Lock(t) {
+				return nil
+			}
+
+			for tk, toolSet := range c.Tools.Tools {
+				for _, t := range toolSet {
+
+					key := dukkha.ToolKey{
+						Kind: dukkha.ToolKind(tk),
+						Name: t.Name(),
+					}
+
+					// append tasks without tool name
+					// they are meant for all tools in the same kind they belong to
+					noToolNameTasks, _ := appCtx.GetToolSpecificTasks(
+						dukkha.ToolKey{Kind: key.Kind, Name: ""},
+					)
+					appCtx.AddToolSpecificTasks(
+						key.Kind, key.Name, noToolNameTasks,
+					)
+
+					tasks, _ := appCtx.GetToolSpecificTasks(key)
+
+					if logger.Enabled(log.LevelVerbose) {
+						logger.V("resolving tool tasks", log.Any("tasks", tasks))
+					} else {
+						logger.D("resolving tool tasks")
+					}
+
+					err = t.AddTasks(tasks)
+					if err != nil {
+						return fmt.Errorf(
+							"admitting tasks to tool %q: %w",
+							key, err,
+						)
+					}
+				}
+			}
+
+			return nil
+		})
+	}
+
+	sg.Wait()
 	return nil
 }
