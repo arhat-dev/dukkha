@@ -17,6 +17,7 @@ type TaskBuild struct {
 	tools.BaseTask[GolangBuild, *GolangBuild]
 }
 
+// nolint:revive
 type GolangBuild struct {
 	// Chdir into a different dir when running go command while keep `dukkha.WorkDir` unchanged
 	// this can be helpful when you are managing multiple go modules in one workspace
@@ -43,9 +44,9 @@ type GolangBuild struct {
 	parent tools.BaseTaskType
 }
 
-func (w *GolangBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *GolangBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
-func (w *GolangBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *GolangBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *GolangBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (c *GolangBuild) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *GolangBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

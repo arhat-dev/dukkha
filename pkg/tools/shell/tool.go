@@ -7,11 +7,12 @@ import (
 	"io/fs"
 	"strings"
 
+	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/sha256helper"
+
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
 	"arhat.dev/dukkha/pkg/tools"
-	"arhat.dev/pkg/fshelper"
-	"arhat.dev/pkg/sha256helper"
 )
 
 var _ dukkha.Tool = (*Tool)(nil)

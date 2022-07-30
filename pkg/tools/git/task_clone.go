@@ -32,9 +32,9 @@ type GitClone struct {
 	parent tools.BaseTaskType
 }
 
-func (w *GitClone) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *GitClone) Kind() dukkha.TaskKind           { return TaskKindClone }
-func (w *GitClone) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *GitClone) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *GitClone) Kind() dukkha.TaskKind           { return TaskKindClone }
+func (c *GitClone) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *GitClone) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

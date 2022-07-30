@@ -18,6 +18,7 @@ type TaskPackage struct {
 	tools.BaseTask[HelmPackage, *HelmPackage]
 }
 
+// nolint:revive
 type HelmPackage struct {
 	Chart       string `yaml:"chart"`
 	PackagesDir string `yaml:"packages_dir"`
@@ -27,9 +28,9 @@ type HelmPackage struct {
 	parent tools.BaseTaskType
 }
 
-func (w *HelmPackage) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *HelmPackage) Kind() dukkha.TaskKind           { return TaskKindPackage }
-func (w *HelmPackage) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *HelmPackage) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *HelmPackage) Kind() dukkha.TaskKind           { return TaskKindPackage }
+func (c *HelmPackage) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 type PackageSigningSpec struct {
 	Enabled          bool   `yaml:"enabled"`

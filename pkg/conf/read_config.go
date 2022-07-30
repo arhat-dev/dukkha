@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"arhat.dev/pkg/synchain"
 	"github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
 
@@ -45,7 +46,7 @@ type ReadSpec struct {
 func Read(
 	rc dukkha.ConfigResolvingContext,
 	spec *ReadSpec,
-	sg *SyncGroup,
+	sg *synchain.Synchain,
 	configPaths []string,
 	ignoreFileNotExist bool,
 ) error {
@@ -69,7 +70,7 @@ func Read(
 				continue
 			}
 
-			go readAndMergeConfigFile(rc, spec, sg, startPath, sg.NewJob())
+			go readAndMergeConfigFile(rc, spec, sg, startPath, sg.NewTicket())
 
 			continue
 		case info.IsDir():
@@ -99,7 +100,7 @@ func Read(
 					return nil
 				}
 
-				go readAndMergeConfigFile(rc, spec, sg, file, sg.NewJob())
+				go readAndMergeConfigFile(rc, spec, sg, file, sg.NewTicket())
 
 				return nil
 			})
@@ -135,9 +136,9 @@ func markVisited(spec *ReadSpec, file string) bool {
 func readAndMergeConfigFile(
 	rc dukkha.ConfigResolvingContext,
 	spec *ReadSpec,
-	sg *SyncGroup,
+	sg *synchain.Synchain,
 	file string,
-	j Job,
+	j synchain.Ticket,
 ) {
 	r, err := spec.ConfFS.Open(file)
 	if err != nil {
@@ -152,7 +153,6 @@ func readAndMergeConfigFile(
 	}
 
 	loadConfig(rc, spec, sg, r, file, j)
-	return
 }
 
 // loadConfig unmarshals all yaml docs in r as Config(s), add resolved renderers into rc
@@ -160,10 +160,10 @@ func readAndMergeConfigFile(
 func loadConfig(
 	rc dukkha.ConfigResolvingContext,
 	spec *ReadSpec,
-	sg *SyncGroup,
+	sg *synchain.Synchain,
 	r io.ReadCloser,
 	filename string,
-	j Job,
+	j synchain.Ticket,
 ) {
 	var (
 		configs []*Config
@@ -253,7 +253,7 @@ func handleInclude(
 	currentFile string,
 	include []*IncludeEntry,
 ) {
-	var sg SyncGroup
+	var sg synchain.Synchain
 	sg.Init()
 
 	for i, inc := range include {
@@ -286,10 +286,8 @@ func handleInclude(
 				&sg,
 				io.NopCloser(&rd),
 				fmt.Sprintf("text#%d of %s", i, currentFile),
-				sg.NewJob(),
+				sg.NewTicket(),
 			)
 		}
 	}
-
-	return
 }

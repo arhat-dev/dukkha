@@ -14,6 +14,7 @@ func init() {
 	dukkha.RegisterTask(ToolKind, TaskKindIndex, tools.NewTask[TaskIndex, *TaskIndex])
 }
 
+// nolint:revive
 type HelmIndex struct {
 	RepoURL     string `yaml:"repo_url"`
 	PackagesDir string `yaml:"packages_dir"`
@@ -26,9 +27,9 @@ type TaskIndex struct {
 	tools.BaseTask[HelmIndex, *HelmIndex]
 }
 
-func (w *HelmIndex) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *HelmIndex) Kind() dukkha.TaskKind           { return TaskKindIndex }
-func (w *HelmIndex) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *HelmIndex) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *HelmIndex) Kind() dukkha.TaskKind           { return TaskKindIndex }
+func (c *HelmIndex) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *HelmIndex) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

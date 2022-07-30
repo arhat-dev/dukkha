@@ -3,7 +3,7 @@ module arhat.dev/dukkha
 go 1.18
 
 require (
-	arhat.dev/pkg v0.10.2-0.20220725172304-1c8a97edf9ea
+	arhat.dev/pkg v0.10.2-0.20220730124454-80bcc6fbd51f
 	arhat.dev/rs v0.10.1-0.20220730071702-8db7a5c12c24
 	arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
 	github.com/Masterminds/goutils v1.1.1
@@ -44,7 +44,7 @@ replace (
 	// branch master
 	github.com/d5/tengo/v2 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
 	// branch master
-	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20220730065822-7d06fd137c9f
+	github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20220730131244-3259af3d11b8
 	// branch `dukkha`
 	mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220723194407-b237320fa712
 )

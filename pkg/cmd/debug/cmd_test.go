@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"arhat.dev/pkg/synchain"
 	"arhat.dev/pkg/testhelper/cmdtesthelper"
 
 	"arhat.dev/dukkha/pkg/conf"
@@ -118,7 +119,7 @@ func prepareDebugCmd(flags []string, cacheDir string) (checkFlags func() error, 
 			VisitedPaths: &map[string]struct{}{},
 			MergedConfig: config,
 		},
-		conf.NewSyncGroup(),
+		synchain.NewSynchain(),
 		[]string{"."},
 		false,
 	)

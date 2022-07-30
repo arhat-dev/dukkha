@@ -1,8 +1,9 @@
 package tools
 
 import (
-	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/rs"
+
+	"arhat.dev/dukkha/pkg/dukkha"
 )
 
 var _ dukkha.Tool = (*BaseTool[testToolImpl, *testToolImpl])(nil)

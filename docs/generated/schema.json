@@ -13,14 +13,12 @@
         },
         "resolve": {
           "type": "boolean",
-          "description": "rendering suffix in value before being applied",
-          "x-intellij-html-description": "rendering suffix in value before being applied",
           "default": true
         },
         "select": {
           "type": "string",
-          "description": "part of the value for patching  this action happens before patching",
-          "x-intellij-html-description": "part of the value for patching  this action happens before patching"
+          "description": "part of the value for patching\n\nthis action happens before patching",
+          "x-intellij-html-description": "part of the value for patching\n\nthis action happens before patching"
         },
         "value": {}
       },
@@ -49,8 +47,6 @@
         },
         "^resolve@.*": {
           "type": "boolean",
-          "description": "rendering suffix in value before being applied",
-          "x-intellij-html-description": "rendering suffix in value before being applied",
           "default": true
         },
         "^resolve@[^\\|]*!": {
@@ -58,8 +54,8 @@
         },
         "^select@.*": {
           "type": "string",
-          "description": "part of the value for patching  this action happens before patching",
-          "x-intellij-html-description": "part of the value for patching  this action happens before patching"
+          "description": "part of the value for patching\n\nthis action happens before patching",
+          "x-intellij-html-description": "part of the value for patching\n\nthis action happens before patching"
         },
         "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -74,8 +70,6 @@
       "properties": {
         "resolve": {
           "type": "boolean",
-          "description": "rendering suffix in value if any before being merged",
-          "x-intellij-html-description": "rendering suffix in value if any before being merged",
           "default": true
         },
         "select": {
@@ -97,8 +91,6 @@
       "patternProperties": {
         "^resolve@.*": {
           "type": "boolean",
-          "description": "rendering suffix in value if any before being merged",
-          "x-intellij-html-description": "rendering suffix in value if any before being merged",
           "default": true
         },
         "^resolve@[^\\|]*!": {
@@ -131,8 +123,8 @@
         },
         "map_list_item_unique": {
           "type": "boolean",
-          "description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
-          "x-intellij-html-description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
+          "description": "to ensure items are unique in all merged lists respectively\nlists with no merge data input are untouched",
+          "x-intellij-html-description": "to ensure items are unique in all merged lists respectively\nlists with no merge data input are untouched",
           "default": "false"
         },
         "merge": {
@@ -140,37 +132,35 @@
             "$ref": "#/definitions/MergeSource"
           },
           "type": "array",
-          "description": "additional data into Value  this action happens first",
-          "x-intellij-html-description": "additional data into Value  this action happens first"
+          "description": "additional data into Value\n\nthis action happens first",
+          "x-intellij-html-description": "additional data into Value\n\nthis action happens first"
         },
         "patch": {
           "items": {
             "$ref": "#/definitions/JSONPatchSpec"
           },
           "type": "array",
-          "description": "Value using standard rfc6902 json-patch  this action happens after merge",
-          "x-intellij-html-description": "Value using standard rfc6902 json-patch  this action happens after merge"
+          "description": "Value using standard rfc6902 json-patch\n\nthis action happens after merge",
+          "x-intellij-html-description": "Value using standard rfc6902 json-patch\n\nthis action happens after merge"
         },
         "resolve": {
           "type": "boolean",
-          "description": "rendering suffix in value if any before being patched",
-          "x-intellij-html-description": "rendering suffix in value if any before being patched",
           "default": true
         },
         "select": {
           "type": "string",
-          "description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables",
-          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables"
+          "description": "part of the data as final result\n\nthis action happens after merge and patch\nTODO: support jq variables",
+          "x-intellij-html-description": "part of the data as final result\n\nthis action happens after merge and patch\nTODO: support jq variables"
         },
         "unique": {
           "type": "boolean",
-          "description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
-          "x-intellij-html-description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
+          "description": "to make sure elements in the sequence is unique\n\nonly effective when Value is yaml sequence",
+          "x-intellij-html-description": "to make sure elements in the sequence is unique\n\nonly effective when Value is yaml sequence",
           "default": "false"
         },
         "value": {
-          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be `[bar, foo]`",
-          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be <code>[bar, foo]</code>"
+          "description": "for the renderer\n\n\tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml\n\n\t\tfoo@http!:\n\t\t  value: https://example.com/bar.yaml\n\t\t  merge: { value: [foo] }\n\nthen the resolved value of foo will be `[bar, foo]`",
+          "x-intellij-html-description": "for the renderer\n\n<pre><code>say we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml\n\n\tfoo@http!:\n\t  value: https://example.com/bar.yaml\n\t  merge: { value: [foo] }\n</code></pre>\n\nthen the resolved value of foo will be <code>[bar, foo]</code>"
         }
       },
       "preferredOrder": [
@@ -198,8 +188,8 @@
         },
         "^map_list_item_unique@.*": {
           "type": "boolean",
-          "description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
-          "x-intellij-html-description": "to ensure items are unique in all merged lists respectively lists with no merge data input are untouched",
+          "description": "to ensure items are unique in all merged lists respectively\nlists with no merge data input are untouched",
+          "x-intellij-html-description": "to ensure items are unique in all merged lists respectively\nlists with no merge data input are untouched",
           "default": "false"
         },
         "^map_list_item_unique@[^\\|]*!": {
@@ -210,8 +200,8 @@
             "$ref": "#/definitions/MergeSource"
           },
           "type": "array",
-          "description": "additional data into Value  this action happens first",
-          "x-intellij-html-description": "additional data into Value  this action happens first"
+          "description": "additional data into Value\n\nthis action happens first",
+          "x-intellij-html-description": "additional data into Value\n\nthis action happens first"
         },
         "^merge@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -221,16 +211,14 @@
             "$ref": "#/definitions/JSONPatchSpec"
           },
           "type": "array",
-          "description": "Value using standard rfc6902 json-patch  this action happens after merge",
-          "x-intellij-html-description": "Value using standard rfc6902 json-patch  this action happens after merge"
+          "description": "Value using standard rfc6902 json-patch\n\nthis action happens after merge",
+          "x-intellij-html-description": "Value using standard rfc6902 json-patch\n\nthis action happens after merge"
         },
         "^patch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^resolve@.*": {
           "type": "boolean",
-          "description": "rendering suffix in value if any before being patched",
-          "x-intellij-html-description": "rendering suffix in value if any before being patched",
           "default": true
         },
         "^resolve@[^\\|]*!": {
@@ -238,24 +226,24 @@
         },
         "^select@.*": {
           "type": "string",
-          "description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables",
-          "x-intellij-html-description": "part of the data as final result  this action happens after merge and patch TODO: support jq variables"
+          "description": "part of the data as final result\n\nthis action happens after merge and patch\nTODO: support jq variables",
+          "x-intellij-html-description": "part of the data as final result\n\nthis action happens after merge and patch\nTODO: support jq variables"
         },
         "^select@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^unique@.*": {
           "type": "boolean",
-          "description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
-          "x-intellij-html-description": "to make sure elements in the sequence is unique  only effective when Value is yaml sequence",
+          "description": "to make sure elements in the sequence is unique\n\nonly effective when Value is yaml sequence",
+          "x-intellij-html-description": "to make sure elements in the sequence is unique\n\nonly effective when Value is yaml sequence",
           "default": "false"
         },
         "^unique@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^value@.*": {
-          "description": "for the renderer  \tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be `[bar, foo]`",
-          "x-intellij-html-description": "for the renderer  \tsay we have a yaml list (<code>[bar]</code>) stored at https://example.com/bar.yaml  \t\tfoo@http!: \t\t  value: https://example.com/bar.yaml \t\t  merge: { value: [foo] }  then the resolved value of foo will be <code>[bar, foo]</code>"
+          "description": "for the renderer\n\n\tsay we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml\n\n\t\tfoo@http!:\n\t\t  value: https://example.com/bar.yaml\n\t\t  merge: { value: [foo] }\n\nthen the resolved value of foo will be `[bar, foo]`",
+          "x-intellij-html-description": "for the renderer\n\n<pre><code>say we have a yaml list (`[bar]`) stored at https://example.com/bar.yaml\n\n\tfoo@http!:\n\t  value: https://example.com/bar.yaml\n\t  merge: { value: [foo] }\n</code></pre>\n\nthen the resolved value of foo will be <code>[bar, foo]</code>"
         },
         "^value@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1066,8 +1054,8 @@
       "properties": {
         "default_git_branch": {
           "type": "string",
-          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",
-          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used."
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not\ndetect branch name of origin/HEAD (e.g. github ci environment)\n\nIf your have multiple definitions of this option in different config\nfile, only the first occurrence of the option is used.",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not\ndetect branch name of origin/HEAD (e.g. github ci environment)\n\nIf your have multiple definitions of this option in different config\nfile, only the first occurrence of the option is used."
         },
         "env": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList",
@@ -1076,8 +1064,8 @@
         },
         "values": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${values.YOUR_VAL_KEY}`",
-          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
+          "description": "global store of runtime values\n\naccessible from renderer template `{{ values.YOUR_VAL_KEY }}`\nand renderer env/shell `${values.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values\n\naccessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code>\nand renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
         }
       },
       "preferredOrder": [
@@ -1089,8 +1077,8 @@
       "patternProperties": {
         "^default_git_branch@.*": {
           "type": "string",
-          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used.",
-          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not detect branch name of origin/HEAD (e.g. github ci environment)  If your have multiple definitions of this option in different config file, only the first occurrence of the option is used."
+          "description": "set GIT_DEFAULT_BRANCH, useful when dukkha can not\ndetect branch name of origin/HEAD (e.g. github ci environment)\n\nIf your have multiple definitions of this option in different config\nfile, only the first occurrence of the option is used.",
+          "x-intellij-html-description": "set GIT<em>DEFAULT</em>BRANCH, useful when dukkha can not\ndetect branch name of origin/HEAD (e.g. github ci environment)\n\nIf your have multiple definitions of this option in different config\nfile, only the first occurrence of the option is used."
         },
         "^default_git_branch@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1105,8 +1093,8 @@
         },
         "^values@.*": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "global store of runtime values  accessible from renderer template `{{ values.YOUR_VAL_KEY }}` and renderer env/shell `${values.YOUR_VAL_KEY}`",
-          "x-intellij-html-description": "global store of runtime values  accessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code> and renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
+          "description": "global store of runtime values\n\naccessible from renderer template `{{ values.YOUR_VAL_KEY }}`\nand renderer env/shell `${values.YOUR_VAL_KEY}`",
+          "x-intellij-html-description": "global store of runtime values\n\naccessible from renderer template <code>{{ values.YOUR_VAL_KEY }}</code>\nand renderer env/shell <code>${values.YOUR_VAL_KEY}</code>"
         },
         "^values@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1117,13 +1105,13 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "local path to include, can be either directory or file  Path and Text are mutually exclusive",
-          "x-intellij-html-description": "local path to include, can be either directory or file  Path and Text are mutually exclusive"
+          "description": "local path to include, can be either directory or file\n\nPath and Text are mutually exclusive",
+          "x-intellij-html-description": "local path to include, can be either directory or file\n\nPath and Text are mutually exclusive"
         },
         "text": {
           "type": "string",
-          "description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive",
-          "x-intellij-html-description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive"
+          "description": "config text to include, usually used with rendering suffix\nto include remote config\n\nPath and Text are mutually exclusive",
+          "x-intellij-html-description": "config text to include, usually used with rendering suffix\nto include remote config\n\nPath and Text are mutually exclusive"
         }
       },
       "preferredOrder": [
@@ -1134,16 +1122,16 @@
       "patternProperties": {
         "^path@.*": {
           "type": "string",
-          "description": "local path to include, can be either directory or file  Path and Text are mutually exclusive",
-          "x-intellij-html-description": "local path to include, can be either directory or file  Path and Text are mutually exclusive"
+          "description": "local path to include, can be either directory or file\n\nPath and Text are mutually exclusive",
+          "x-intellij-html-description": "local path to include, can be either directory or file\n\nPath and Text are mutually exclusive"
         },
         "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^text@.*": {
           "type": "string",
-          "description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive",
-          "x-intellij-html-description": "config text to include, usually used with rendering suffix to include remote config  Path and Text are mutually exclusive"
+          "description": "config text to include, usually used with rendering suffix\nto include remote config\n\nPath and Text are mutually exclusive",
+          "x-intellij-html-description": "config text to include, usually used with rendering suffix\nto include remote config\n\nPath and Text are mutually exclusive"
         },
         "^text@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1213,8 +1201,8 @@
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": " NOTE: included entries will be excluded by Exclude entires as well",
-          "x-intellij-html-description": "NOTE: included entries will be excluded by Exclude entires as well"
+          "description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well"
         }
       },
       "preferredOrder": [
@@ -1239,8 +1227,8 @@
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": " NOTE: included entries will be excluded by Exclude entires as well",
-          "x-intellij-html-description": "NOTE: included entries will be excluded by Exclude entires as well"
+          "description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well"
         },
         "^include@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1248,33 +1236,25 @@
       }
     },
     "arhat.dev.dukkha.pkg.matrix.SpecItem": {
-      "description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude",
-      "x-intellij-html-description": "a helper type to support rendering suffix for list of maps, used in Include/Exclude"
+      "description": "a helper type to support rendering suffix\nfor list of maps, used in Include/Exclude",
+      "x-intellij-html-description": "a helper type to support rendering suffix\nfor list of maps, used in Include/Exclude"
     },
     "arhat.dev.dukkha.pkg.renderer.CacheConfig": {
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "activates data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "max_item_size": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
-          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
           "default": 0
         },
         "size": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cached content  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
-          "x-intellij-html-description": "limits maximum in memory size of cached content  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
           "default": 0
         },
         "timeout": {
           "$ref": "#/definitions/time.Duration",
-          "description": "data caching duration  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
-          "x-intellij-html-description": "data caching duration  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
           "default": 0
         }
       },
@@ -1290,8 +1270,6 @@
       "patternProperties": {
         "^enabled@.*": {
           "type": "boolean",
-          "description": "activates data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
-          "x-intellij-html-description": "activates data caching  * for renderers reading data directly from local disk (e.g. file):     will cache content in memory with size limit applied * for renderers doing remote fetch (e.g. http, git, af):     will cache data on local disk first (cache size limiting is not effective at this time) \t   then cache data in memory with size limit applied",
           "default": false
         },
         "^enabled@[^\\|]*!": {
@@ -1299,8 +1277,6 @@
         },
         "^max_item_size@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
-          "x-intellij-html-description": "maximum size limit an item can be cached in memory  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
           "default": 0
         },
         "^max_item_size@[^\\|]*!": {
@@ -1308,8 +1284,6 @@
         },
         "^size@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.utils.Size",
-          "description": "limits maximum in memory size of cached content  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
-          "x-intellij-html-description": "limits maximum in memory size of cached content  Format: <number><unit> \twhere unit can be one of: [ , B, KB, MB, GB, TB, PB]",
           "default": 0
         },
         "^size@[^\\|]*!": {
@@ -1317,8 +1291,6 @@
         },
         "^timeout@.*": {
           "$ref": "#/definitions/time.Duration",
-          "description": "data caching duration  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
-          "x-intellij-html-description": "data caching duration  if caching is enabled and this option is set to 0:  in memory cache will never expire during runtime \tfile cache for remote content will expire immediately (probably that's not what you want)",
           "default": 0
         },
         "^timeout@[^\\|]*!": {
@@ -1417,8 +1389,6 @@
         },
         "enable_exec": {
           "type": "boolean",
-          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
-          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
           "default": false
         }
       },
@@ -1446,8 +1416,6 @@
         },
         "^enable_exec@.*": {
           "type": "boolean",
-          "description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. `$(do something)`) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
-          "x-intellij-html-description": "controls arbitrary command execution support when expanding env.  if set to false, expanding env with shell evaluation (e.g. <code>$(do something)</code>) will be skipped and formatted  NOTE: shell evaluation of backqouted string is always skipped and formatted",
           "default": false
         },
         "^enable_exec@[^\\|]*!": {
@@ -1873,14 +1841,12 @@
         },
         "hide_input": {
           "type": "boolean",
-          "description": "do not echo input",
-          "x-intellij-html-description": "do not echo input",
           "default": false
         },
         "prompt": {
           "type": "string",
-          "description": "for user input  Defaults to \"\" (empty)",
-          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
+          "description": "for user input\n\nDefaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input\n\nDefaults to &quot;&quot; (empty)"
         }
       },
       "preferredOrder": [
@@ -1907,8 +1873,6 @@
         },
         "^hide_input@.*": {
           "type": "boolean",
-          "description": "do not echo input",
-          "x-intellij-html-description": "do not echo input",
           "default": false
         },
         "^hide_input@[^\\|]*!": {
@@ -1916,8 +1880,8 @@
         },
         "^prompt@.*": {
           "type": "string",
-          "description": "for user input  Defaults to \"\" (empty)",
-          "x-intellij-html-description": "for user input  Defaults to &quot;&quot; (empty)"
+          "description": "for user input\n\nDefaults to \"\" (empty)",
+          "x-intellij-html-description": "for user input\n\nDefaults to &quot;&quot; (empty)"
         },
         "^prompt@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2083,8 +2047,8 @@
         },
         "variables": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "a map of any data  available as `var.some_value`",
-          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+          "description": "a map of any data\n\navailable as `var.some_value`",
+          "x-intellij-html-description": "a map of any data\n\navailable as <code>var.some_value</code>"
         }
       },
       "preferredOrder": [
@@ -2122,8 +2086,8 @@
         },
         "^variables@.*": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "a map of any data  available as `var.some_value`",
-          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+          "description": "a map of any data\n\navailable as `var.some_value`",
+          "x-intellij-html-description": "a map of any data\n\navailable as <code>var.some_value</code>"
         },
         "^variables@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2188,8 +2152,8 @@
         },
         "variables": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "a map of any data  available as `var.some_value`",
-          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+          "description": "a map of any data\n\navailable as `var.some_value`",
+          "x-intellij-html-description": "a map of any data\n\navailable as <code>var.some_value</code>"
         }
       },
       "preferredOrder": [
@@ -2227,8 +2191,8 @@
         },
         "^variables@.*": {
           "$ref": "#/definitions/arhat.dev.rs.AnyObjectMap",
-          "description": "a map of any data  available as `var.some_value`",
-          "x-intellij-html-description": "a map of any data  available as <code>var.some_value</code>"
+          "description": "a map of any data\n\navailable as `var.some_value`",
+          "x-intellij-html-description": "a map of any data\n\navailable as <code>var.some_value</code>"
         },
         "^variables@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2310,21 +2274,21 @@
       "properties": {
         "chdir": {
           "type": "string",
-          "description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action",
-          "x-intellij-html-description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action"
+          "description": "change working directory before executing command\nthis option only applies to Cmd, EmbeddedShell, ExternalShell action",
+          "x-intellij-html-description": "change working directory before executing command\nthis option only applies to Cmd, EmbeddedShell, ExternalShell action"
         },
         "cmd": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "execution, not in any shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "execution, not in any shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "continue_on_error": {
           "type": "boolean",
-          "description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
-          "x-intellij-html-description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
+          "description": "ContuineOnError ignores error occurred in this action and continue\nfollowing actions in list (if any)",
+          "x-intellij-html-description": "ContuineOnError ignores error occurred in this action and continue\nfollowing actions in list (if any)",
           "default": "false"
         },
         "env": {
@@ -2333,35 +2297,31 @@
           "x-intellij-html-description": "specific to this action"
         },
         "idle": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tlang` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tlang</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like `tlang`\nto do some task execution state related operation (e.g. set global\nvalue with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like <code>tlang</code>\nto do some task execution state related operation (e.g. set global\nvalue with <code>dukkha.SetValue</code>)"
         },
         "if": {
           "type": "boolean",
-          "description": "checks running condition, only run this action when set to true",
-          "x-intellij-html-description": "checks running condition, only run this action when set to true",
           "default": true
         },
         "name": {
           "type": "string",
-          "description": "of this action  if set, can be used as value for `Next`",
-          "x-intellij-html-description": "of this action  if set, can be used as value for <code>Next</code>",
           "default": "#i"
         },
         "next": {
           "type": "string",
-          "description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list",
-          "x-intellij-html-description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list"
+          "description": "action name\nNOTE: this field is resolved after execution finished (right before leaving this action)\n\nDefaults to the next action in the same list",
+          "x-intellij-html-description": "action name\nNOTE: this field is resolved after execution finished (right before leaving this action)\n\nDefaults to the next action in the same list"
         },
         "shell": {
           "type": "string",
-          "description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "using embedded shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "using embedded shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "task": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskReference",
-          "description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "reference of this action\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "reference of this action\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         }
       },
       "preferredOrder": [
@@ -2377,13 +2337,13 @@
         "next"
       ],
       "additionalProperties": false,
-      "description": "a collection of all kinds of work can be done in a single step but only one kind of work is allowed in a single step",
-      "x-intellij-html-description": "a collection of all kinds of work can be done in a single step but only one kind of work is allowed in a single step",
+      "description": "a collection of all kinds of work can be done in a single step\nbut only one kind of work is allowed in a single step",
+      "x-intellij-html-description": "a collection of all kinds of work can be done in a single step\nbut only one kind of work is allowed in a single step",
       "patternProperties": {
         "^chdir@.*": {
           "type": "string",
-          "description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action",
-          "x-intellij-html-description": "change working directory before executing command this option only applies to Cmd, EmbeddedShell, ExternalShell action"
+          "description": "change working directory before executing command\nthis option only applies to Cmd, EmbeddedShell, ExternalShell action",
+          "x-intellij-html-description": "change working directory before executing command\nthis option only applies to Cmd, EmbeddedShell, ExternalShell action"
         },
         "^chdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2393,16 +2353,16 @@
             "type": "string"
           },
           "type": "array",
-          "description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "execution, not in any shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "execution, not in any shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "execution, not in any shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "^cmd@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^continue_on_error@.*": {
           "type": "boolean",
-          "description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
-          "x-intellij-html-description": "ContuineOnError ignores error occurred in this action and continue following actions in list (if any)",
+          "description": "ContuineOnError ignores error occurred in this action and continue\nfollowing actions in list (if any)",
+          "x-intellij-html-description": "ContuineOnError ignores error occurred in this action and continue\nfollowing actions in list (if any)",
           "default": "false"
         },
         "^continue_on_error@[^\\|]*!": {
@@ -2417,16 +2377,14 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^idle@.*": {
-          "description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like `tlang` to do some task execution state related operation (e.g. set global value with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose recommended usage of Idle action is to apply renderers like <code>tlang</code> to do some task execution state related operation (e.g. set global value with <code>dukkha.SetValue</code>)"
+          "description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like `tlang`\nto do some task execution state related operation (e.g. set global\nvalue with `dukkha.SetValue`)",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like <code>tlang</code>\nto do some task execution state related operation (e.g. set global\nvalue with <code>dukkha.SetValue</code>)"
         },
         "^idle@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^if@.*": {
           "type": "boolean",
-          "description": "checks running condition, only run this action when set to true",
-          "x-intellij-html-description": "checks running condition, only run this action when set to true",
           "default": true
         },
         "^if@[^\\|]*!": {
@@ -2434,24 +2392,24 @@
         },
         "^next@.*": {
           "type": "string",
-          "description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list",
-          "x-intellij-html-description": "action name NOTE: this field is resolved after execution finished (right before leaving this action)  Defaults to the next action in the same list"
+          "description": "action name\nNOTE: this field is resolved after execution finished (right before leaving this action)\n\nDefaults to the next action in the same list",
+          "x-intellij-html-description": "action name\nNOTE: this field is resolved after execution finished (right before leaving this action)\n\nDefaults to the next action in the same list"
         },
         "^next@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^shell@.*": {
           "type": "string",
-          "description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "using embedded shell  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "using embedded shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "using embedded shell\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "^shell@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^task@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskReference",
-          "description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
-          "x-intellij-html-description": "reference of this action  Task, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
+          "description": "reference of this action\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive",
+          "x-intellij-html-description": "reference of this action\n\nTask, Cmd, EmbeddedShell, ExternalShell are mutually exclusive"
         },
         "^task@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2468,43 +2426,43 @@
       "properties": {
         "after": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "any condition of the task execution including success, failure, canceled (hook `before` failure)  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "any condition of the task execution including success, failure, canceled (hook <code>before</code> failure)  This hook MUST NOT have any reference to matrix information"
+          "description": "any condition of the task execution\nincluding success, failure, canceled (hook `before` failure)\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "any condition of the task execution\nincluding success, failure, canceled (hook <code>before</code> failure)\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "after:failure": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information"
+          "description": "runs after a failed task execution\nany failed matrix execution will cause this hook to run\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a failed task execution\nany failed matrix execution will cause this hook to run\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "after:matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information"
+          "description": "runs after at any condition of the matrix execution\nincluding success, failure\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after at any condition of the matrix execution\nincluding success, failure\n\nThis hook May have reference to matrix information"
         },
         "after:matrix:failure": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a failed matrix execution  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after a failed matrix execution  This hook May have reference to matrix information"
+          "description": "runs after a failed matrix execution\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a failed matrix execution\n\nThis hook May have reference to matrix information"
         },
         "after:matrix:success": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a successful matrix execution  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after a successful matrix execution  This hook May have reference to matrix information"
+          "description": "runs after a successful matrix execution\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a successful matrix execution\n\nThis hook May have reference to matrix information"
         },
         "after:success": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information"
+          "description": "runs after a successful task execution\nrequires all matrix executions are successful\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a successful task execution\nrequires all matrix executions are successful\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "before": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run `After` hooks  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
+          "description": "runs before the task execution start\nif this hook failed, the whole task execution is canceled\nand will run `After` hooks\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs before the task execution start\nif this hook failed, the whole task execution is canceled\nand will run <code>After</code> hooks\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "before:matrix": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "Before a specific matrix execution start  This hook May have reference to matrix information",
-          "x-intellij-html-description": "Before a specific matrix execution start  This hook May have reference to matrix information"
+          "description": "Before a specific matrix execution start\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "Before a specific matrix execution start\n\nThis hook May have reference to matrix information"
         }
       },
       "preferredOrder": [
@@ -2521,64 +2479,64 @@
       "patternProperties": {
         "^after:failure@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs after a failed task execution any failed matrix execution will cause this hook to run  This hook MUST NOT have any reference to matrix information"
+          "description": "runs after a failed task execution\nany failed matrix execution will cause this hook to run\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a failed task execution\nany failed matrix execution will cause this hook to run\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "^after:failure@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix:failure@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a failed matrix execution  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after a failed matrix execution  This hook May have reference to matrix information"
+          "description": "runs after a failed matrix execution\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a failed matrix execution\n\nThis hook May have reference to matrix information"
         },
         "^after:matrix:failure@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix:success@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a successful matrix execution  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after a successful matrix execution  This hook May have reference to matrix information"
+          "description": "runs after a successful matrix execution\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after a successful matrix execution\n\nThis hook May have reference to matrix information"
         },
         "^after:matrix:success@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:matrix@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information",
-          "x-intellij-html-description": "runs after at any condition of the matrix execution including success, failure  This hook May have reference to matrix information"
+          "description": "runs after at any condition of the matrix execution\nincluding success, failure\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "runs after at any condition of the matrix execution\nincluding success, failure\n\nThis hook May have reference to matrix information"
         },
         "^after:matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^after:success@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs after a successful task execution requires all matrix executions are successful  This hook MUST NOT have any reference to matrix information"
+          "description": "runs after a successful task execution\nrequires all matrix executions are successful\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs after a successful task execution\nrequires all matrix executions are successful\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "^after:success@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^after@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "any condition of the task execution including success, failure, canceled (hook `before` failure)  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "any condition of the task execution including success, failure, canceled (hook <code>before</code> failure)  This hook MUST NOT have any reference to matrix information"
+          "description": "any condition of the task execution\nincluding success, failure, canceled (hook `before` failure)\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "any condition of the task execution\nincluding success, failure, canceled (hook <code>before</code> failure)\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "^after@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^before:matrix@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "Before a specific matrix execution start  This hook May have reference to matrix information",
-          "x-intellij-html-description": "Before a specific matrix execution start  This hook May have reference to matrix information"
+          "description": "Before a specific matrix execution start\n\nThis hook May have reference to matrix information",
+          "x-intellij-html-description": "Before a specific matrix execution start\n\nThis hook May have reference to matrix information"
         },
         "^before:matrix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^before@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.Actions",
-          "description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run `After` hooks  This hook MUST NOT have any reference to matrix information",
-          "x-intellij-html-description": "runs before the task execution start if this hook failed, the whole task execution is canceled and will run <code>After</code> hooks  This hook MUST NOT have any reference to matrix information"
+          "description": "runs before the task execution start\nif this hook failed, the whole task execution is canceled\nand will run `After` hooks\n\nThis hook MUST NOT have any reference to matrix information",
+          "x-intellij-html-description": "runs before the task execution start\nif this hook failed, the whole task execution is canceled\nand will run <code>After</code> hooks\n\nThis hook MUST NOT have any reference to matrix information"
         },
         "^before@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2589,13 +2547,13 @@
       "properties": {
         "matrix_filter": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec",
-          "description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (`{}`) means use current matrix entry (if exists) \t- non-empty cases are like task matrix",
-          "x-intellij-html-description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (<code>{}</code>) means use current matrix entry (if exists) \t- non-empty cases are like task matrix"
+          "description": "for filtering matrix to be used\n\t- nil filter (no value or nil) means run all matrix tasks of the referenced task\n\t- empty filter (`{}`) means use current matrix entry (if exists)\n\t- non-empty cases are like task matrix",
+          "x-intellij-html-description": "for filtering matrix to be used\n\t- nil filter (no value or nil) means run all matrix tasks of the referenced task\n\t- empty filter (<code>{}</code>) means use current matrix entry (if exists)\n\t- non-empty cases are like task matrix"
         },
         "ref": {
           "type": "string",
-          "description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running `dukkha run workflow local run foo`, the tool-name is `local`. \t\tsay we reference `golang:build(bar)` in its job list, we will \t\tactually run `golang:local:build(bar)` in this case",
-          "x-intellij-html-description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>. \t\tsay we reference <code>golang:build(bar)</code> in its job list, we will \t\tactually run <code>golang:local:build(bar)</code> in this case"
+          "description": "a task reference in following format:\n\n\t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)\n\nwhen tool-name is not set, current tool-name is used\n\ne.g. when running `dukkha run workflow local run foo`, the tool-name is `local`.\n\t\tsay we reference `golang:build(bar)` in its job list, we will\n\t\tactually run `golang:local:build(bar)` in this case",
+          "x-intellij-html-description": "a task reference in following format:\n\n<pre><code>&lt;tool-kind&gt;{:&lt;tool-name&gt;}:&lt;task-kind&gt;(&lt;task-name&gt;)\n</code></pre>\n\nwhen tool-name is not set, current tool-name is used\n\ne.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>.\n\t\tsay we reference <code>golang:build(bar)</code> in its job list, we will\n\t\tactually run <code>golang:local:build(bar)</code> in this case"
         }
       },
       "preferredOrder": [
@@ -2606,16 +2564,16 @@
       "patternProperties": {
         "^matrix_filter@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec",
-          "description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (`{}`) means use current matrix entry (if exists) \t- non-empty cases are like task matrix",
-          "x-intellij-html-description": "for filtering matrix to be used \t- nil filter (no value or nil) means run all matrix tasks of the referenced task \t- empty filter (<code>{}</code>) means use current matrix entry (if exists) \t- non-empty cases are like task matrix"
+          "description": "for filtering matrix to be used\n\t- nil filter (no value or nil) means run all matrix tasks of the referenced task\n\t- empty filter (`{}`) means use current matrix entry (if exists)\n\t- non-empty cases are like task matrix",
+          "x-intellij-html-description": "for filtering matrix to be used\n\t- nil filter (no value or nil) means run all matrix tasks of the referenced task\n\t- empty filter (<code>{}</code>) means use current matrix entry (if exists)\n\t- non-empty cases are like task matrix"
         },
         "^matrix_filter@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^ref@.*": {
           "type": "string",
-          "description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running `dukkha run workflow local run foo`, the tool-name is `local`. \t\tsay we reference `golang:build(bar)` in its job list, we will \t\tactually run `golang:local:build(bar)` in this case",
-          "x-intellij-html-description": "a task reference in following format:  \t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)  when tool-name is not set, current tool-name is used  e.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>. \t\tsay we reference <code>golang:build(bar)</code> in its job list, we will \t\tactually run <code>golang:local:build(bar)</code> in this case"
+          "description": "a task reference in following format:\n\n\t<tool-kind>{:<tool-name>}:<task-kind>(<task-name>)\n\nwhen tool-name is not set, current tool-name is used\n\ne.g. when running `dukkha run workflow local run foo`, the tool-name is `local`.\n\t\tsay we reference `golang:build(bar)` in its job list, we will\n\t\tactually run `golang:local:build(bar)` in this case",
+          "x-intellij-html-description": "a task reference in following format:\n\n<pre><code>&lt;tool-kind&gt;{:&lt;tool-name&gt;}:&lt;task-kind&gt;(&lt;task-name&gt;)\n</code></pre>\n\nwhen tool-name is not set, current tool-name is used\n\ne.g. when running <code>dukkha run workflow local run foo</code>, the tool-name is <code>local</code>.\n\t\tsay we reference <code>golang:build(bar)</code> in its job list, we will\n\t\tactually run <code>golang:local:build(bar)</code> in this case"
         },
         "^ref@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2646,8 +2604,6 @@
         },
         "format": {
           "type": "string",
-          "description": "of the archive, one of [tar, zip]",
-          "x-intellij-html-description": "of the archive, one of [tar, zip]",
           "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
         },
         "hooks": {
@@ -2711,8 +2667,6 @@
         },
         "^format@.*": {
           "type": "string",
-          "description": "of the archive, one of [tar, zip]",
-          "x-intellij-html-description": "of the archive, one of [tar, zip]",
           "default": "\"zip\"` when matrix.kernel is set to windows, otherwise `\"tar\""
         },
         "^format@[^\\|]*!": {
@@ -2782,21 +2736,15 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Enable compression",
-          "x-intellij-html-description": "Enable compression",
           "default": false
         },
         "level": {
           "type": "string",
-          "description": "of compression, value is method dependent, usually 1 - 9",
-          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
           "default": 5
         },
         "method": {
           "type": "string",
-          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
-          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
-          "default": "gzip"
+          "default": "defalte"
         }
       },
       "preferredOrder": [
@@ -2808,8 +2756,6 @@
       "patternProperties": {
         "^enabled@.*": {
           "type": "boolean",
-          "description": "Enable compression",
-          "x-intellij-html-description": "Enable compression",
           "default": false
         },
         "^enabled@[^\\|]*!": {
@@ -2817,8 +2763,6 @@
         },
         "^level@.*": {
           "type": "string",
-          "description": "of compression, value is method dependent, usually 1 - 9",
-          "x-intellij-html-description": "of compression, value is method dependent, usually 1 - 9",
           "default": 5
         },
         "^level@[^\\|]*!": {
@@ -2826,9 +2770,7 @@
         },
         "^method@.*": {
           "type": "string",
-          "description": "of compression  for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd] for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to `\"defalte\"` when format is zip",
-          "x-intellij-html-description": "of compression  for <code>tar</code>, one of [gzip, bzip2, zstd, lzma, xz, zstd] for <code>zip</code>, one of [deflate, bzip2, zstd, lzma, xz, zstd]  Defaults to <code>&quot;defalte&quot;</code> when format is zip",
-          "default": "gzip"
+          "default": "defalte"
         },
         "^method@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -2850,8 +2792,8 @@
         },
         "to": {
           "type": "string",
-          "description": "in archive path, files by `From` will be put at  if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by `From`, when `To` ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file",
-          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at  if multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file"
+          "description": "in archive path, files by `From` will be put at\n\nif multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED\n\nif only one file was selected by `From`, when `To` ends with a slash, it's a dir\nmatched file will be put into it, otherwise, its type is determined by matched file",
+          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at\n\nif multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED\n\nif only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir\nmatched file will be put into it, otherwise, its type is determined by matched file"
         }
       },
       "preferredOrder": [
@@ -2880,8 +2822,8 @@
         },
         "^to@.*": {
           "type": "string",
-          "description": "in archive path, files by `From` will be put at  if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by `From`, when `To` ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file",
-          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at  if multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED  if only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir matched file will be put into it, otherwise, its type is determined by matched file"
+          "description": "in archive path, files by `From` will be put at\n\nif multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED\n\nif only one file was selected by `From`, when `To` ends with a slash, it's a dir\nmatched file will be put into it, otherwise, its type is determined by matched file",
+          "x-intellij-html-description": "in archive path, files by <code>From</code> will be put at\n\nif multiple files was selected by <code>From</code>, <code>To</code> MUST be a dir, thus a trailing slash is REQUIRED\n\nif only one file was selected by <code>From</code>, when <code>To</code> ends with a slash, it's a dir\nmatched file will be put into it, otherwise, its type is determined by matched file"
         },
         "^to@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3574,8 +3516,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable",
-          "x-intellij-html-description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable"
+          "description": "of bind mount\n\tro, rw, z, Z, O\n\tshared, slave, private, unbindable\n rshared, rslave, rprivate, runbindable",
+          "x-intellij-html-description": "of bind mount\n\tro, rw, z, Z, O\n\tshared, slave, private, unbindable\n rshared, rslave, rprivate, runbindable"
         },
         "to": {
           "type": "string"
@@ -3599,8 +3541,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable",
-          "x-intellij-html-description": "of bind mount \tro, rw, z, Z, O \tshared, slave, private, unbindable  rshared, rslave, rprivate, runbindable"
+          "description": "of bind mount\n\tro, rw, z, Z, O\n\tshared, slave, private, unbindable\n rshared, rslave, rprivate, runbindable",
+          "x-intellij-html-description": "of bind mount\n\tro, rw, z, Z, O\n\tshared, slave, private, unbindable\n rshared, rslave, rprivate, runbindable"
         },
         "^options@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3617,8 +3559,8 @@
       "properties": {
         "commit": {
           "type": "boolean",
-          "description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)",
-          "x-intellij-html-description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)"
+          "description": "this step as a new layer after this step finished\n\nthis is set to true by default when:\n- at last step\n- switching to different container at next step (next step is a FROM statement)",
+          "x-intellij-html-description": "this step as a new layer after this step finished\n\nthis is set to true by default when:\n- at last step\n- switching to different container at next step (next step is a FROM statement)"
         },
         "commit_as": {
           "type": "string",
@@ -3691,8 +3633,8 @@
       "patternProperties": {
         "^commit@.*": {
           "type": "boolean",
-          "description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)",
-          "x-intellij-html-description": "this step as a new layer after this step finished  this is set to true by default when: - at last step - switching to different container at next step (next step is a FROM statement)"
+          "description": "this step as a new layer after this step finished\n\nthis is set to true by default when:\n- at last step\n- switching to different container at next step (next step is a FROM statement)",
+          "x-intellij-html-description": "this step as a new layer after this step finished\n\nthis is set to true by default when:\n- at last step\n- switching to different container at next step (next step is a FROM statement)"
         },
         "^commit@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3946,8 +3888,8 @@
         },
         "executable_file": {
           "type": "string",
-          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as `script`",
-          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as <code>script</code>"
+          "description": "path in local fs, run it in container\n\nWill copy the executable to container and remove it after executaion\n\nhelpful when your executable is too large to be loaded as `script`",
+          "x-intellij-html-description": "path in local fs, run it in container\n\nWill copy the executable to container and remove it after executaion\n\nhelpful when your executable is too large to be loaded as <code>script</code>"
         },
         "extra_args": {
           "items": {
@@ -3957,8 +3899,8 @@
         },
         "script": {
           "type": "string",
-          "description": " helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company",
-          "x-intellij-html-description": "helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company"
+          "description": "Script\n\nhelpful when you need to run remote script, use:\n\n\trun:\n\t  script@http: http://some-script.company",
+          "x-intellij-html-description": "Script\n\nhelpful when you need to run remote script, use:\n\n<pre><code>run:\n  script@http: http://some-script.company\n</code></pre>"
         },
         "script_args": {
           "items": {
@@ -4003,8 +3945,8 @@
         },
         "^executable_file@.*": {
           "type": "string",
-          "description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as `script`",
-          "x-intellij-html-description": "path in local fs, run it in container  Will copy the executable to container and remove it after executaion  helpful when your executable is too large to be loaded as <code>script</code>"
+          "description": "path in local fs, run it in container\n\nWill copy the executable to container and remove it after executaion\n\nhelpful when your executable is too large to be loaded as `script`",
+          "x-intellij-html-description": "path in local fs, run it in container\n\nWill copy the executable to container and remove it after executaion\n\nhelpful when your executable is too large to be loaded as <code>script</code>"
         },
         "^executable_file@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4020,8 +3962,8 @@
         },
         "^script@.*": {
           "type": "string",
-          "description": " helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company",
-          "x-intellij-html-description": "helpful when you need to run remote script, use:  \trun: \t  script@http: http://some-script.company"
+          "description": "Script\n\nhelpful when you need to run remote script, use:\n\n\trun:\n\t  script@http: http://some-script.company",
+          "x-intellij-html-description": "Script\n\nhelpful when you need to run remote script, use:\n\n<pre><code>run:\n  script@http: http://some-script.company\n</code></pre>"
         },
         "^script@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -4293,13 +4235,11 @@
         },
         "public_key": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "verify": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         }
       },
@@ -4372,16 +4312,14 @@
         },
         "^public_key@.*": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "^public_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^verify@.*": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         },
         "^verify@[^\\|]*!": {
@@ -4435,18 +4373,16 @@
         },
         "public_key": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "repo": {
           "type": "string",
-          "description": "signature storage repo, defaults to the same repo as image name",
-          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+          "description": "signature storage repo, defaults to the same repo as\nimage name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as\nimage name"
         },
         "verify": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         }
       },
@@ -4530,24 +4466,22 @@
         },
         "^public_key@.*": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "^public_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^repo@.*": {
           "type": "string",
-          "description": "signature storage repo, defaults to the same repo as image name",
-          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+          "description": "signature storage repo, defaults to the same repo as\nimage name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as\nimage name"
         },
         "^repo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^verify@.*": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         },
         "^verify@[^\\|]*!": {
@@ -4585,8 +4519,6 @@
         },
         "kind": {
           "type": "string",
-          "description": "Kind is either blob or wasm",
-          "x-intellij-html-description": "Kind is either blob or wasm",
           "default": "blob"
         },
         "matrix": {
@@ -4656,8 +4588,6 @@
         },
         "^kind@.*": {
           "type": "string",
-          "description": "Kind is either blob or wasm",
-          "x-intellij-html-description": "Kind is either blob or wasm",
           "default": "blob"
         },
         "^kind@[^\\|]*!": {
@@ -4782,18 +4712,16 @@
         },
         "public_key": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "repo": {
           "type": "string",
-          "description": "signature storage repo, defaults to the same repo as image name",
-          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+          "description": "signature storage repo, defaults to the same repo as\nimage name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as\nimage name"
         },
         "verify": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         }
       },
@@ -4846,24 +4774,22 @@
         },
         "^public_key@.*": {
           "type": "string",
-          "description": "content of public key to verify signed content  if not set, derive from private key",
-          "x-intellij-html-description": "content of public key to verify signed content  if not set, derive from private key"
+          "description": "content of public key to verify signed content\n\nif not set, derive from private key",
+          "x-intellij-html-description": "content of public key to verify signed content\n\nif not set, derive from private key"
         },
         "^public_key@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^repo@.*": {
           "type": "string",
-          "description": "signature storage repo, defaults to the same repo as image name",
-          "x-intellij-html-description": "signature storage repo, defaults to the same repo as image name"
+          "description": "signature storage repo, defaults to the same repo as\nimage name",
+          "x-intellij-html-description": "signature storage repo, defaults to the same repo as\nimage name"
         },
         "^repo@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^verify@.*": {
           "type": "boolean",
-          "description": "signature of signed content",
-          "x-intellij-html-description": "signature of signed content",
           "default": true
         },
         "^verify@[^\\|]*!": {
@@ -5361,8 +5287,8 @@
       "properties": {
         "label": {
           "type": "string",
-          "description": "the display label as noted in gh docs https://cli.github.com/manual/gh_release_create",
-          "x-intellij-html-description": "the display label as noted in gh docs https://cli.github.com/manual/gh<em>release</em>create"
+          "description": "the display label as noted in gh docs\nhttps://cli.github.com/manual/gh_release_create",
+          "x-intellij-html-description": "the display label as noted in gh docs\nhttps://cli.github.com/manual/gh<em>release</em>create"
         },
         "path": {
           "type": "string",
@@ -5378,8 +5304,8 @@
       "patternProperties": {
         "^label@.*": {
           "type": "string",
-          "description": "the display label as noted in gh docs https://cli.github.com/manual/gh_release_create",
-          "x-intellij-html-description": "the display label as noted in gh docs https://cli.github.com/manual/gh<em>release</em>create"
+          "description": "the display label as noted in gh docs\nhttps://cli.github.com/manual/gh_release_create",
+          "x-intellij-html-description": "the display label as noted in gh docs\nhttps://cli.github.com/manual/gh<em>release</em>create"
         },
         "^label@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5740,8 +5666,8 @@
         },
         "chdir": {
           "type": "string",
-          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged this can be helpful when you are managing multiple go modules in one workspace",
-          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged this can be helpful when you are managing multiple go modules in one workspace"
+          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged\nthis can be helpful when you are managing multiple go modules in one workspace",
+          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged\nthis can be helpful when you are managing multiple go modules in one workspace"
         },
         "compiler": {
           "type": "string",
@@ -5806,13 +5732,13 @@
             "type": "string"
           },
           "type": "array",
-          "description": "of the go build command, when multiple entries specified, will build multiple times with same arguments",
-          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same arguments"
+          "description": "of the go build command, when multiple entries specified, will build multiple times with same\narguments",
+          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same\narguments"
         },
         "path": {
           "type": "string",
-          "description": "import path of the source code to be built it will be the last argument of this go command execution  see `go help packages` for more information about import path",
-          "x-intellij-html-description": "import path of the source code to be built it will be the last argument of this go command execution  see <code>go help packages</code> for more information about import path"
+          "description": "import path of the source code to be built\nit will be the last argument of this go command execution\n\nsee `go help packages` for more information about import path",
+          "x-intellij-html-description": "import path of the source code to be built\nit will be the last argument of this go command execution\n\nsee <code>go help packages</code> for more information about import path"
         },
         "race": {
           "type": "boolean",
@@ -5869,8 +5795,8 @@
         },
         "^chdir@.*": {
           "type": "string",
-          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged this can be helpful when you are managing multiple go modules in one workspace",
-          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged this can be helpful when you are managing multiple go modules in one workspace"
+          "description": "into a different dir when running go command while keep `dukkha.WorkDir` unchanged\nthis can be helpful when you are managing multiple go modules in one workspace",
+          "x-intellij-html-description": "into a different dir when running go command while keep <code>dukkha.WorkDir</code> unchanged\nthis can be helpful when you are managing multiple go modules in one workspace"
         },
         "^chdir@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -5965,16 +5891,16 @@
             "type": "string"
           },
           "type": "array",
-          "description": "of the go build command, when multiple entries specified, will build multiple times with same arguments",
-          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same arguments"
+          "description": "of the go build command, when multiple entries specified, will build multiple times with same\narguments",
+          "x-intellij-html-description": "of the go build command, when multiple entries specified, will build multiple times with same\narguments"
         },
         "^outputs@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^path@.*": {
           "type": "string",
-          "description": "import path of the source code to be built it will be the last argument of this go command execution  see `go help packages` for more information about import path",
-          "x-intellij-html-description": "import path of the source code to be built it will be the last argument of this go command execution  see <code>go help packages</code> for more information about import path"
+          "description": "import path of the source code to be built\nit will be the last argument of this go command execution\n\nsee `go help packages` for more information about import path",
+          "x-intellij-html-description": "import path of the source code to be built\nit will be the last argument of this go command execution\n\nsee <code>go help packages</code> for more information about import path"
         },
         "^path@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6053,8 +5979,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
-          "x-intellij-html-description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
+          "description": "to run compiled test file with this cmd prefix\ne.g. built xxx.test, usually will run in local host as ./xxx.test\n     but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
+          "x-intellij-html-description": "to run compiled test file with this cmd prefix\ne.g. built xxx.test, usually will run in local host as ./xxx.test\n     but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
         },
         "env": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
@@ -6291,8 +6217,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
-          "x-intellij-html-description": "to run compiled test file with this cmd prefix e.g. built xxx.test, usually will run in local host as ./xxx.test      but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
+          "description": "to run compiled test file with this cmd prefix\ne.g. built xxx.test, usually will run in local host as ./xxx.test\n     but with `custom_cmd_prefx=[ssh, testsrv]`, will run as `ssh testsrv xxx.test`",
+          "x-intellij-html-description": "to run compiled test file with this cmd prefix\ne.g. built xxx.test, usually will run in local host as ./xxx.test\n     but with <code>custom_cmd_prefx=[ssh, testsrv]</code>, will run as <code>ssh testsrv xxx.test</code>"
         },
         "^custom_cmd_prefix@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6562,8 +6488,8 @@
         },
         "match": {
           "type": "string",
-          "description": "Run only regexp matched benchmarks  go test -bench  defaults to `.` (all)",
-          "x-intellij-html-description": "Run only regexp matched benchmarks  go test -bench  defaults to <code>.</code> (all)"
+          "description": "Run only regexp matched benchmarks\n\ngo test -bench\n\ndefaults to `.` (all)",
+          "x-intellij-html-description": "Run only regexp matched benchmarks\n\ngo test -bench\n\ndefaults to <code>.</code> (all)"
         },
         "memory": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.golang.benchmarkMemorySpec",
@@ -6607,8 +6533,8 @@
         },
         "^match@.*": {
           "type": "string",
-          "description": "Run only regexp matched benchmarks  go test -bench  defaults to `.` (all)",
-          "x-intellij-html-description": "Run only regexp matched benchmarks  go test -bench  defaults to <code>.</code> (all)"
+          "description": "Run only regexp matched benchmarks\n\ngo test -bench\n\ndefaults to `.` (all)",
+          "x-intellij-html-description": "Run only regexp matched benchmarks\n\ngo test -bench\n\ndefaults to <code>.</code> (all)"
         },
         "^match@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6633,13 +6559,13 @@
         },
         "output": {
           "type": "string",
-          "description": "filename of block profile  go test -blockprofile  defaults to `block.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of block profile  go test -blockprofile  defaults to <code>block.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of block profile\n\ngo test -blockprofile\n\ndefaults to `block.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of block profile\n\ngo test -blockprofile\n\ndefaults to <code>block.out</code> if not set and <code>enabled</code> is true"
         },
         "rate": {
           "type": "integer",
-          "description": "of block profile  go test -blockprofilerate  no default",
-          "x-intellij-html-description": "of block profile  go test -blockprofilerate  no default"
+          "description": "of block profile\n\ngo test -blockprofilerate\n\nno default",
+          "x-intellij-html-description": "of block profile\n\ngo test -blockprofilerate\n\nno default"
         }
       },
       "preferredOrder": [
@@ -6660,16 +6586,16 @@
         },
         "^output@.*": {
           "type": "string",
-          "description": "filename of block profile  go test -blockprofile  defaults to `block.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of block profile  go test -blockprofile  defaults to <code>block.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of block profile\n\ngo test -blockprofile\n\ndefaults to `block.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of block profile\n\ngo test -blockprofile\n\ndefaults to <code>block.out</code> if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^rate@.*": {
           "type": "integer",
-          "description": "of block profile  go test -blockprofilerate  no default",
-          "x-intellij-html-description": "of block profile  go test -blockprofilerate  no default"
+          "description": "of block profile\n\ngo test -blockprofilerate\n\nno default",
+          "x-intellij-html-description": "of block profile\n\ngo test -blockprofilerate\n\nno default"
         },
         "^rate@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6686,8 +6612,8 @@
         },
         "output": {
           "type": "string",
-          "description": "filename of cpu profile  go test -cpuprofile  defaults to `cpu.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of cpu profile  go test -cpuprofile  defaults to <code>cpu.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of cpu profile\n\ngo test -cpuprofile\n\ndefaults to `cpu.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of cpu profile\n\ngo test -cpuprofile\n\ndefaults to <code>cpu.out</code> if not set and <code>enabled</code> is true"
         }
       },
       "preferredOrder": [
@@ -6707,8 +6633,8 @@
         },
         "^output@.*": {
           "type": "string",
-          "description": "filename of cpu profile  go test -cpuprofile  defaults to `cpu.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of cpu profile  go test -cpuprofile  defaults to <code>cpu.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of cpu profile\n\ngo test -cpuprofile\n\ndefaults to `cpu.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of cpu profile\n\ngo test -cpuprofile\n\ndefaults to <code>cpu.out</code> if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6723,21 +6649,21 @@
         },
         "mode": {
           "type": "string",
-          "description": "of coverage  go test -covermode  defaults to `atomic` if not set and `enabled` is true",
-          "x-intellij-html-description": "of coverage  go test -covermode  defaults to <code>atomic</code> if not set and <code>enabled</code> is true"
+          "description": "of coverage\n\ngo test -covermode\n\ndefaults to `atomic` if not set and `enabled` is true",
+          "x-intellij-html-description": "of coverage\n\ngo test -covermode\n\ndefaults to <code>atomic</code> if not set and <code>enabled</code> is true"
         },
         "output": {
           "type": "string",
-          "description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and `enabled` is true",
-          "x-intellij-html-description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and <code>enabled</code> is true"
+          "description": "file of the coverage\n\ngo test -coverprofile\n\ndefaults to cover.out if not set and `enabled` is true",
+          "x-intellij-html-description": "file of the coverage\n\ngo test -coverprofile\n\ndefaults to cover.out if not set and <code>enabled</code> is true"
         },
         "packages": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "to coverage  go test -coverpkg  no default (use golang default behavior)",
-          "x-intellij-html-description": "to coverage  go test -coverpkg  no default (use golang default behavior)"
+          "description": "to coverage\n\ngo test -coverpkg\n\nno default (use golang default behavior)",
+          "x-intellij-html-description": "to coverage\n\ngo test -coverpkg\n\nno default (use golang default behavior)"
         }
       },
       "preferredOrder": [
@@ -6757,16 +6683,16 @@
         },
         "^mode@.*": {
           "type": "string",
-          "description": "of coverage  go test -covermode  defaults to `atomic` if not set and `enabled` is true",
-          "x-intellij-html-description": "of coverage  go test -covermode  defaults to <code>atomic</code> if not set and <code>enabled</code> is true"
+          "description": "of coverage\n\ngo test -covermode\n\ndefaults to `atomic` if not set and `enabled` is true",
+          "x-intellij-html-description": "of coverage\n\ngo test -covermode\n\ndefaults to <code>atomic</code> if not set and <code>enabled</code> is true"
         },
         "^mode@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^output@.*": {
           "type": "string",
-          "description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and `enabled` is true",
-          "x-intellij-html-description": "file of the coverage  go test -coverprofile  defaults to cover.out if not set and <code>enabled</code> is true"
+          "description": "file of the coverage\n\ngo test -coverprofile\n\ndefaults to cover.out if not set and `enabled` is true",
+          "x-intellij-html-description": "file of the coverage\n\ngo test -coverprofile\n\ndefaults to cover.out if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6776,8 +6702,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "to coverage  go test -coverpkg  no default (use golang default behavior)",
-          "x-intellij-html-description": "to coverage  go test -coverpkg  no default (use golang default behavior)"
+          "description": "to coverage\n\ngo test -coverpkg\n\nno default (use golang default behavior)",
+          "x-intellij-html-description": "to coverage\n\ngo test -coverpkg\n\nno default (use golang default behavior)"
         },
         "^packages@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6794,13 +6720,13 @@
         },
         "output": {
           "type": "string",
-          "description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and <code>enabled</code> is true"
+          "description": "filename of memory profile\n\ngo test -memprofile\n\ndefaults to mem.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of memory profile\n\ngo test -memprofile\n\ndefaults to mem.out if not set and <code>enabled</code> is true"
         },
         "rate": {
           "type": "integer",
-          "description": "of memory profile  go test -memprofilerate",
-          "x-intellij-html-description": "of memory profile  go test -memprofilerate"
+          "description": "of memory profile\n\ngo test -memprofilerate",
+          "x-intellij-html-description": "of memory profile\n\ngo test -memprofilerate"
         }
       },
       "preferredOrder": [
@@ -6821,16 +6747,16 @@
         },
         "^output@.*": {
           "type": "string",
-          "description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of memory profile  go test -memprofile  defaults to mem.out if not set and <code>enabled</code> is true"
+          "description": "filename of memory profile\n\ngo test -memprofile\n\ndefaults to mem.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of memory profile\n\ngo test -memprofile\n\ndefaults to mem.out if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^rate@.*": {
           "type": "integer",
-          "description": "of memory profile  go test -memprofilerate",
-          "x-intellij-html-description": "of memory profile  go test -memprofilerate"
+          "description": "of memory profile\n\ngo test -memprofilerate",
+          "x-intellij-html-description": "of memory profile\n\ngo test -memprofilerate"
         },
         "^rate@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -6847,13 +6773,13 @@
         },
         "fraction": {
           "type": "integer",
-          "description": "number  go test -mutexprofilefraction",
-          "x-intellij-html-description": "number  go test -mutexprofilefraction"
+          "description": "number\n\ngo test -mutexprofilefraction",
+          "x-intellij-html-description": "number\n\ngo test -mutexprofilefraction"
         },
         "output": {
           "type": "string",
-          "description": "filename of mutex profile  go test -mutexprofile  defaults to `mutex.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of mutex profile  go test -mutexprofile  defaults to <code>mutex.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of mutex profile\n\ngo test -mutexprofile\n\ndefaults to `mutex.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of mutex profile\n\ngo test -mutexprofile\n\ndefaults to <code>mutex.out</code> if not set and <code>enabled</code> is true"
         }
       },
       "preferredOrder": [
@@ -6874,16 +6800,16 @@
         },
         "^fraction@.*": {
           "type": "integer",
-          "description": "number  go test -mutexprofilefraction",
-          "x-intellij-html-description": "number  go test -mutexprofilefraction"
+          "description": "number\n\ngo test -mutexprofilefraction",
+          "x-intellij-html-description": "number\n\ngo test -mutexprofilefraction"
         },
         "^fraction@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
         },
         "^output@.*": {
           "type": "string",
-          "description": "filename of mutex profile  go test -mutexprofile  defaults to `mutex.out` if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of mutex profile  go test -mutexprofile  defaults to <code>mutex.out</code> if not set and <code>enabled</code> is true"
+          "description": "filename of mutex profile\n\ngo test -mutexprofile\n\ndefaults to `mutex.out` if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of mutex profile\n\ngo test -mutexprofile\n\ndefaults to <code>mutex.out</code> if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7007,8 +6933,8 @@
         },
         "output": {
           "type": "string",
-          "description": "filename of trace profile  go test -trace  defaults to trace.out if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of trace profile  go test -trace  defaults to trace.out if not set and <code>enabled</code> is true"
+          "description": "filename of trace profile\n\ngo test -trace\n\ndefaults to trace.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of trace profile\n\ngo test -trace\n\ndefaults to trace.out if not set and <code>enabled</code> is true"
         }
       },
       "preferredOrder": [
@@ -7028,8 +6954,8 @@
         },
         "^output@.*": {
           "type": "string",
-          "description": "filename of trace profile  go test -trace  defaults to trace.out if not set and `enabled` is true",
-          "x-intellij-html-description": "filename of trace profile  go test -trace  defaults to trace.out if not set and <code>enabled</code> is true"
+          "description": "filename of trace profile\n\ngo test -trace\n\ndefaults to trace.out if not set and `enabled` is true",
+          "x-intellij-html-description": "filename of trace profile\n\ngo test -trace\n\ndefaults to trace.out if not set and <code>enabled</code> is true"
         },
         "^output@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7488,9 +7414,7 @@
       }
     },
     "arhat.dev.dukkha.pkg.utils.Size": {
-      "type": "string",
-      "description": "human-readable data size in KB, MB, GB, TB, TB",
-      "x-intellij-html-description": "human-readable data size in KB, MB, GB, TB, TB"
+      "type": "string"
     },
     "arhat.dev.pkg.tlshelper.TLSConfig": {
       "properties": {
@@ -7548,8 +7472,8 @@
         "pre_shared_key"
       ],
       "additionalProperties": false,
-      "description": "for common tls settings, support both client and server tls nolint:maligned",
-      "x-intellij-html-description": "for common tls settings, support both client and server tls nolint:maligned",
+      "description": "for common tls settings, support both client and server tls",
+      "x-intellij-html-description": "for common tls settings, support both client and server tls",
       "patternProperties": {
         "^allow_insecure_hashes@.*": {
           "type": "boolean",
@@ -7635,8 +7559,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs",
-          "x-intellij-html-description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs"
+          "description": "map server hint(s) to pre shared key(s)\ncolon separated base64 encoded key value pairs",
+          "x-intellij-html-description": "map server hint(s) to pre shared key(s)\ncolon separated base64 encoded key value pairs"
         }
       },
       "preferredOrder": [
@@ -7658,8 +7582,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs",
-          "x-intellij-html-description": "map server hint(s) to pre shared key(s) colon separated base64 encoded key value pairs"
+          "description": "map server hint(s) to pre shared key(s)\ncolon separated base64 encoded key value pairs",
+          "x-intellij-html-description": "map server hint(s) to pre shared key(s)\ncolon separated base64 encoded key value pairs"
         },
         "^server_hint_mapping@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -7672,8 +7596,8 @@
     },
     "time.Duration": {
       "type": "integer",
-      "description": "A Duration represents the elapsed time between two instants as an int64 nanosecond count. The representation limits the largest representable duration to approximately 290 years.",
-      "x-intellij-html-description": "A Duration represents the elapsed time between two instants as an int64 nanosecond count. The representation limits the largest representable duration to approximately 290 years."
+      "description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years.",
+      "x-intellij-html-description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years."
     }
   }
 }

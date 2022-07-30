@@ -39,6 +39,7 @@ type blobSigningFileSpec struct {
 	Output string `yaml:"output"`
 }
 
+// nolint:revive
 type CosignSign struct {
 	Options blobSigningOptions `yaml:",inline"`
 
@@ -48,9 +49,9 @@ type CosignSign struct {
 	parent tools.BaseTaskType
 }
 
-func (w *CosignSign) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *CosignSign) Kind() dukkha.TaskKind           { return TaskKindSign }
-func (w *CosignSign) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *CosignSign) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *CosignSign) Kind() dukkha.TaskKind           { return TaskKindSign }
+func (c *CosignSign) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *CosignSign) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

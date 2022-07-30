@@ -23,6 +23,7 @@ type TaskRelease struct {
 	tools.BaseTask[GithubRelease, *GithubRelease]
 }
 
+// nolint:revive
 type GithubRelease struct {
 	Tag        string `yaml:"tag"`
 	Draft      bool   `yaml:"draft"`
@@ -45,9 +46,9 @@ type ReleaseFileSpec struct {
 	Label string `yaml:"label"`
 }
 
-func (w *GithubRelease) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *GithubRelease) Kind() dukkha.TaskKind           { return TaskKindRelease }
-func (w *GithubRelease) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *GithubRelease) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *GithubRelease) Kind() dukkha.TaskKind           { return TaskKindRelease }
+func (c *GithubRelease) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *GithubRelease) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

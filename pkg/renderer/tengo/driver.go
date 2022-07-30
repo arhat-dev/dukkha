@@ -158,6 +158,7 @@ func (s *symtabStore) Add(sym *tengo.Symbol) {
 
 }
 
+// nolint:unparam
 func runScript(
 	rc dukkha.RenderingContext,
 	modules *moduleGetterImpl,

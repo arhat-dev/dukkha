@@ -13,8 +13,7 @@ func getTagNamesToResolve(typ reflect.Type) []string {
 			continue
 		}
 
-		switch f.Name {
-		case "BaseField":
+		if f.Name == "BaseField" {
 			continue
 		}
 

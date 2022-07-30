@@ -11,6 +11,7 @@ func init() {
 	dukkha.RegisterTask(ToolKind, TaskKindRun, tools.NewTask[TaskRun, *TaskRun])
 }
 
+// nolint:revive
 type WorkflowRun struct {
 	Jobs tools.Actions `yaml:"jobs"`
 

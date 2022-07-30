@@ -54,14 +54,25 @@ func (dg *Generator) handleComment(thisPkg, rawName, comment string, def *Defini
 	}
 
 	// Remove kubernetes-style annotations from comments
-	description := strings.TrimSpace(
-		strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(comment, "+required", ""),
-				"+optional", "",
-			), "\n", " ",
-		),
+	description := strings.ReplaceAll(
+		strings.ReplaceAll(comment, "+required", ""),
+		"+optional", "",
 	)
+
+	// Remove golangci-lint line config
+	if i := strings.Index(description, "nolint:"); i != -1 {
+		lineEnd := strings.IndexByte(description[i:], '\n')
+		if lineEnd == -1 {
+			description = description[:i]
+		} else {
+			var sb strings.Builder
+			sb.WriteString(description[:i])
+			sb.WriteString(description[i+lineEnd:])
+			description = sb.String()
+		}
+	}
+
+	description = strings.TrimSpace(description)
 
 	// Extract default value
 	if m := regexpDefaults.FindStringSubmatch(description); m != nil {

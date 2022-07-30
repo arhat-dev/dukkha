@@ -24,6 +24,7 @@ type TaskUpload struct {
 	tools.BaseTask[CosignUpload, *CosignUpload]
 }
 
+// nolint:revive
 type CosignUpload struct {
 	// Kind is either blob or wasm
 	//
@@ -42,9 +43,9 @@ type CosignUpload struct {
 	parent tools.BaseTaskType
 }
 
-func (w *CosignUpload) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *CosignUpload) Kind() dukkha.TaskKind           { return TaskKindUpload }
-func (w *CosignUpload) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *CosignUpload) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *CosignUpload) Kind() dukkha.TaskKind           { return TaskKindUpload }
+func (c *CosignUpload) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *CosignUpload) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

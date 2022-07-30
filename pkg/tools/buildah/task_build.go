@@ -49,6 +49,7 @@ type TaskBuild struct {
 	tools.BaseTask[BuildahBuild, *BuildahBuild]
 }
 
+// nolint:revive
 type BuildahBuild struct {
 	Context    string           `yaml:"context"`
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
@@ -62,9 +63,9 @@ type BuildahBuild struct {
 	parent tools.BaseTaskType
 }
 
-func (w *BuildahBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *BuildahBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
-func (w *BuildahBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *BuildahBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *BuildahBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (c *BuildahBuild) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 type ImageNameSpec struct {
 	rs.BaseField `yaml:"-"`

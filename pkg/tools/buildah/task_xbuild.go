@@ -38,6 +38,7 @@ type TaskXBuild struct {
 	tools.BaseTask[BuildahXBuild, *BuildahXBuild]
 }
 
+// nolint:revive
 type BuildahXBuild struct {
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
 	Steps      []*step          `yaml:"steps"`

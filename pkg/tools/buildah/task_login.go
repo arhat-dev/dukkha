@@ -19,6 +19,7 @@ type TaskLogin struct {
 	tools.BaseTask[BuildahLogin, *BuildahLogin]
 }
 
+// nolint:revive
 type BuildahLogin struct {
 	Registry string `yaml:"registry"`
 	Username string `yaml:"username"`
@@ -29,9 +30,9 @@ type BuildahLogin struct {
 	parent tools.BaseTaskType
 }
 
-func (w *BuildahLogin) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *BuildahLogin) Kind() dukkha.TaskKind           { return TaskKindLogin }
-func (w *BuildahLogin) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *BuildahLogin) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *BuildahLogin) Kind() dukkha.TaskKind           { return TaskKindLogin }
+func (c *BuildahLogin) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *BuildahLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,

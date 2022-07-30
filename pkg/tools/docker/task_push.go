@@ -21,15 +21,16 @@ type TaskPush struct {
 	tools.BaseTask[DockerPush, *DockerPush]
 }
 
+// nolint:revive
 type DockerPush struct {
 	ImageNames []buildah.ImageNameSpec `yaml:"image_names"`
 
 	parent tools.BaseTaskType
 }
 
-func (w *DockerPush) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *DockerPush) Kind() dukkha.TaskKind           { return TaskKindPush }
-func (w *DockerPush) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *DockerPush) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *DockerPush) Kind() dukkha.TaskKind           { return TaskKindPush }
+func (c *DockerPush) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *DockerPush) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

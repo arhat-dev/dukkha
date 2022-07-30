@@ -26,6 +26,7 @@ import (
 
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/synchain"
 	"arhat.dev/pkg/versionhelper"
 	"github.com/spf13/cobra"
 
@@ -167,7 +168,7 @@ func NewRootCmd(prevCtx dukkha.Context) *cobra.Command {
 					VisitedPaths: &visitedPaths,
 					MergedConfig: config,
 				},
-				conf.NewSyncGroup(),
+				synchain.NewSynchain(),
 				configPaths,
 				!cmd.PersistentFlags().Changed("config"),
 			)

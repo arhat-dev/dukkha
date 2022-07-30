@@ -33,6 +33,7 @@ type TaskTest struct {
 	tools.BaseTask[GolangTest, *GolangTest]
 }
 
+// nolint:revive
 type GolangTest struct {
 	CGO CGOSepc `yaml:"cgo"`
 
@@ -59,9 +60,9 @@ type GolangTest struct {
 	parent tools.BaseTaskType
 }
 
-func (w *GolangTest) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *GolangTest) Kind() dukkha.TaskKind           { return TaskKindTest }
-func (w *GolangTest) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *GolangTest) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *GolangTest) Kind() dukkha.TaskKind           { return TaskKindTest }
+func (c *GolangTest) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *GolangTest) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

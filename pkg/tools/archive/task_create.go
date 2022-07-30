@@ -22,6 +22,7 @@ type TaskCreate struct {
 	tools.BaseTask[ArchiveCreate, *ArchiveCreate]
 }
 
+// nolint:revive
 type ArchiveCreate struct {
 	// Format of the archive, one of [tar, zip]
 	//
@@ -40,9 +41,9 @@ type ArchiveCreate struct {
 	parent tools.BaseTaskType
 }
 
-func (w *ArchiveCreate) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *ArchiveCreate) Kind() dukkha.TaskKind           { return TaskKindCreate }
-func (w *ArchiveCreate) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *ArchiveCreate) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *ArchiveCreate) Kind() dukkha.TaskKind           { return TaskKindCreate }
+func (c *ArchiveCreate) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *ArchiveCreate) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

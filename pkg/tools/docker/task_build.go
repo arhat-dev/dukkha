@@ -17,6 +17,7 @@ type TaskBuild struct {
 	tools.BaseTask[DockerBuild, *DockerBuild]
 }
 
+// nolint:revive
 type DockerBuild struct {
 	Context    string                   `yaml:"context"`
 	ImageNames []*buildah.ImageNameSpec `yaml:"image_names"`
@@ -30,9 +31,9 @@ type DockerBuild struct {
 	parent tools.BaseTaskType
 }
 
-func (w *DockerBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *DockerBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
-func (w *DockerBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *DockerBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *DockerBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (c *DockerBuild) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)

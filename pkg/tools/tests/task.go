@@ -141,7 +141,7 @@ func TestTask[Tool dukkha.Tool, Task dukkha.Task, CheckSpec rs.Field](
 			assert.NoError(t, tool.Init(ctx.ToolCacheFS(tool)))
 			ctx.AddTool(tool.Key(), tool)
 
-			testCase.Task.Init(ctx.ToolCacheFS(tool))
+			assert.NoError(t, testCase.Task.Init(ctx.ToolCacheFS(tool)))
 
 			assert.NoError(t, tool.AddTasks([]dukkha.Task{testCase.Task}))
 

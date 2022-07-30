@@ -18,6 +18,7 @@ type TaskLogin struct {
 	tools.BaseTask[DockerLogin, *DockerLogin]
 }
 
+// nolint:revive
 type DockerLogin struct {
 	Registry string `yaml:"registry"`
 	Username string `yaml:"username"`
@@ -28,9 +29,9 @@ type DockerLogin struct {
 	parent tools.BaseTaskType
 }
 
-func (w *DockerLogin) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *DockerLogin) Kind() dukkha.TaskKind           { return TaskKindLogin }
-func (w *DockerLogin) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *DockerLogin) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *DockerLogin) Kind() dukkha.TaskKind           { return TaskKindLogin }
+func (c *DockerLogin) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *DockerLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

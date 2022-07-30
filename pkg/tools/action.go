@@ -134,6 +134,7 @@ func (act *Action) GenSpecs(
 	}
 }
 
+// nolint:unparam
 func (act *Action) genCmdActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
 ) ([]dukkha.TaskExecSpec, error) {
@@ -149,6 +150,7 @@ func (act *Action) genCmdActionSpecs(
 	}, nil
 }
 
+// nolint:unparam
 func (act *Action) genEmbeddedShellActionSpecs(
 	ctx dukkha.TaskExecContext, hookID string,
 ) ([]dukkha.TaskExecSpec, error) {

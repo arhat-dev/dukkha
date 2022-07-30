@@ -20,6 +20,7 @@ type TaskTest struct {
 	tools.BaseTask[WorkflowTest, *WorkflowTest]
 }
 
+// nolint:revive
 type WorkflowTest struct{}
 
 func (w *WorkflowTest) ToolKind() dukkha.ToolKind       { return ToolKind }

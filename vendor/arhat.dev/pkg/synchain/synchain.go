@@ -1,57 +1,69 @@
-package conf
+package synchain
 
 import (
+	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
 type sigch = chan struct{}
 
-type Job struct {
+// Ticket is the handle used to ensure sequence
+type Ticket struct {
 	prevDone, nextRun sigch
 }
 
-// NewSyncGroup creates a new SyncGroup
-func NewSyncGroup() (ret *SyncGroup) {
-	ret = &SyncGroup{}
+// NewSynchain creates a new Synchain
+func NewSynchain() (ret *Synchain) {
+	ret = &Synchain{}
 	ret.Init()
 	return
 }
 
-// SyncGroup is a helper to implement sequential execution of parallel jobs
+// Synchain is a helper to implement internal sequential execution of parallel jobs
 //
 // NOTE: Init MUST be called before calling other methods
-type SyncGroup struct {
+type Synchain struct {
 	last     sigch
 	canceled sigch
 	wg       sync.WaitGroup
-	lastErr  error
+
+	spin    uint32
+	lastErr error
 }
 
 // Init this sync group
-func (sg *SyncGroup) Init() {
+func (sg *Synchain) Init() {
 	sig := make(sigch)
 	close(sig)
 	sg.last = sig
 	sg.canceled = make(chan struct{})
 }
 
-// NewJob creates a new job handle in this sync group
-func (sg *SyncGroup) NewJob() (ret Job) {
-	ret.prevDone = sg.last
-
+// NewTicket creates a new sequence handle in this sync group
+func (sg *Synchain) NewTicket() (ret Ticket) {
 	next := make(sigch)
-	ret.nextRun = next
+
+	for !atomic.CompareAndSwapUint32(&sg.spin, 0, 1) {
+		runtime.Gosched()
+	}
+
+	ret.prevDone = sg.last
 	sg.last = next
+
+	atomic.StoreUint32(&sg.spin, 0)
+
+	ret.nextRun = next
 	sg.wg.Add(1)
 	return
 }
 
 // Go spawns a new goroutine in the sync group, user func MUST call Lock with
-// the job arg passed
+// the ticket passed
 //
 // on error return of user func, it calls Cancel and Done, otherwise, calls Unlock and Done
-func (sg *SyncGroup) Go(fn func(j Job) error) {
-	go func(j Job) {
+func (sg *Synchain) Go(fn func(t Ticket) error) {
+	go func(j Ticket) {
 		err := fn(j)
 		if err != nil {
 			sg.Cancel(err)
@@ -61,18 +73,18 @@ func (sg *SyncGroup) Go(fn func(j Job) error) {
 
 		sg.Unlock(j)
 		sg.Done()
-	}(sg.NewJob())
+	}(sg.NewTicket())
 }
 
 // Done is sync.WaitGroup.Done
-func (sg *SyncGroup) Done() {
+func (sg *Synchain) Done() {
 	sg.wg.Done()
 }
 
 // Lock waits until this job can be continued
-func (sg *SyncGroup) Lock(j Job) bool {
+func (sg *Synchain) Lock(t Ticket) bool {
 	select {
-	case <-j.prevDone:
+	case <-t.prevDone:
 		return true
 	case <-sg.canceled:
 		return false
@@ -80,16 +92,16 @@ func (sg *SyncGroup) Lock(j Job) bool {
 }
 
 // Unlock wakes next waiting goroutine
-func (sg *SyncGroup) Unlock(j Job) {
+func (sg *Synchain) Unlock(t Ticket) {
 	select {
 	case <-sg.canceled:
 	default:
-		close(j.nextRun)
+		close(t.nextRun)
 	}
 }
 
 // Cancel the sync group with error, wakeup all waiting goroutines
-func (sg *SyncGroup) Cancel(err error) {
+func (sg *Synchain) Cancel(err error) {
 	select {
 	case <-sg.canceled:
 	default:
@@ -98,7 +110,7 @@ func (sg *SyncGroup) Cancel(err error) {
 	}
 }
 
-func (sg *SyncGroup) Wait() {
+func (sg *Synchain) Wait() {
 	select {
 	case <-sg.canceled:
 	default:
@@ -107,4 +119,4 @@ func (sg *SyncGroup) Wait() {
 }
 
 // Err returns the last error stored when Cancel called
-func (sg *SyncGroup) Err() error { return sg.lastErr }
+func (sg *Synchain) Err() error { return sg.lastErr }

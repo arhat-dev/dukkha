@@ -25,6 +25,7 @@ type TaskSignImage struct {
 	tools.BaseTask[CosignSignImage, *CosignSignImage]
 }
 
+// nolint:revive
 type CosignSignImage struct {
 	Options imageSigningOptions `yaml:",inline"`
 
@@ -34,9 +35,9 @@ type CosignSignImage struct {
 	parent tools.BaseTaskType
 }
 
-func (w *CosignSignImage) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *CosignSignImage) Kind() dukkha.TaskKind           { return TaskKindSignImage }
-func (w *CosignSignImage) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *CosignSignImage) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *CosignSignImage) Kind() dukkha.TaskKind           { return TaskKindSignImage }
+func (c *CosignSignImage) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *CosignSignImage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,

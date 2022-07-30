@@ -21,6 +21,7 @@ type TaskPush struct {
 	tools.BaseTask[BuildahPush, *BuildahPush]
 }
 
+// nolint:revive
 type BuildahPush struct {
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 
@@ -29,9 +30,9 @@ type BuildahPush struct {
 	parent tools.BaseTaskType
 }
 
-func (w *BuildahPush) ToolKind() dukkha.ToolKind       { return ToolKind }
-func (w *BuildahPush) Kind() dukkha.TaskKind           { return TaskKindPush }
-func (w *BuildahPush) LinkParent(p tools.BaseTaskType) { w.parent = p }
+func (c *BuildahPush) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (c *BuildahPush) Kind() dukkha.TaskKind           { return TaskKindPush }
+func (c *BuildahPush) LinkParent(p tools.BaseTaskType) { c.parent = p }
 
 func (c *BuildahPush) GetExecSpecs(
 	rc dukkha.TaskExecContext,

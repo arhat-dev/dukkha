@@ -6,6 +6,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"arhat.dev/pkg/synchain"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -137,7 +138,7 @@ func TestRead(t *testing.T) {
 					VisitedPaths: &visitedPaths,
 					MergedConfig: mergedConfig,
 				},
-				NewSyncGroup(),
+				synchain.NewSynchain(),
 				test.configPaths,
 				test.ignoreFileNotExist,
 			)
