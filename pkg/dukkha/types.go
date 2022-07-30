@@ -47,7 +47,7 @@ var (
 
 // RegisterRenderer associates a renderer factory with name
 func RegisterRenderer(name string, create RendererCreateFunc) {
-	if strings.Contains(name, ":") || strings.Contains(name, "#") {
+	if strings.ContainsAny(name, ":#") {
 		panic(fmt.Sprintf("invalid renderer name %q containing `:` or `#`", name))
 	}
 
@@ -67,7 +67,7 @@ func RegisterRenderer(name string, create RendererCreateFunc) {
 
 // RegisterTool associates a tool factory with tool kind
 func RegisterTool(k ToolKind, create ToolCreateFunc) {
-	if strings.Contains(string(k), ":") {
+	if strings.ContainsAny(string(k), ":") {
 		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
 	}
 
@@ -75,17 +75,17 @@ func RegisterTool(k ToolKind, create ToolCreateFunc) {
 		string(k),
 		toolType,
 		regexp.MustCompile(fmt.Sprintf(`^%s$`, string(k))),
-		func(subMatches []string) interface{} { return create() },
+		func(subMatches []string) any { return create() },
 	)
 }
 
 // RegisterTask associates a task factory with task kind
 func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
-	if strings.Contains(string(k), ":") {
+	if strings.ContainsAny(string(k), ":") {
 		panic(fmt.Sprintf("invalid tool kind %q containing `:`", k))
 	}
 
-	if strings.Contains(string(tk), ":") {
+	if strings.ContainsAny(string(tk), ":") {
 		panic(fmt.Sprintf("invalid task kind %q containing `:`", tk))
 	}
 
@@ -95,7 +95,7 @@ func RegisterTask(k ToolKind, tk TaskKind, create TaskCreateFunc) {
 		regexp.MustCompile(
 			fmt.Sprintf(`^%s(:.+){0,1}:%s$`, string(k), string(tk)),
 		),
-		func(subMatches []string) interface{} {
+		func(subMatches []string) any {
 			if len(subMatches) > 1 && len(subMatches[1]) > 1 {
 				return create(subMatches[1][1:])
 			}
@@ -110,7 +110,7 @@ type (
 		Typ reflect.Type
 	}
 
-	IfaceFactoryFunc func(subMatches []string) interface{}
+	IfaceFactoryFunc = func(subMatches []string) any
 
 	IfaceFactoryImpl struct {
 		// Name is the raw information about what instance we are creating
@@ -137,7 +137,7 @@ func (h *TypeManager) Types() map[IfaceTypeKey]*IfaceFactory {
 }
 
 // Create implements rs.InterfaceTypeHandler
-func (h *TypeManager) Create(typ reflect.Type, yamlKey string) (interface{}, error) {
+func (h *TypeManager) Create(typ reflect.Type, yamlKey string) (any, error) {
 	key := IfaceTypeKey{
 		Typ: typ,
 	}

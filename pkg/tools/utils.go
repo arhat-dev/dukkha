@@ -1,34 +1,9 @@
 package tools
 
 import (
-	"encoding/hex"
-	"errors"
-	"fmt"
-	"io/fs"
 	"reflect"
 	"strings"
-
-	"arhat.dev/pkg/fshelper"
-	"arhat.dev/pkg/sha256helper"
 )
-
-func GetScriptCache(cacheFS *fshelper.OSFS, script string) (string, error) {
-	scriptName := hex.EncodeToString(sha256helper.Sum([]byte(script)))
-
-	_, err := cacheFS.Stat(scriptName)
-	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return "", fmt.Errorf("check existence of script cache: %w", err)
-		}
-
-		err = cacheFS.WriteFile(scriptName, []byte(script), 0600)
-		if err != nil {
-			return "", fmt.Errorf("writing script cache: %w", err)
-		}
-	}
-
-	return cacheFS.Abs(scriptName)
-}
 
 func getTagNamesToResolve(typ reflect.Type) []string {
 	var ret []string
@@ -41,10 +16,6 @@ func getTagNamesToResolve(typ reflect.Type) []string {
 		switch f.Name {
 		case "BaseField":
 			continue
-		case "BaseTask", "BaseTool":
-			if f.Anonymous {
-				continue
-			}
 		}
 
 		yTags := strings.Split(f.Tag.Get("yaml"), ",")

@@ -413,13 +413,11 @@ func unmarshalInterface(
 				return false, nil
 			}
 
-			return true, fmt.Errorf(
-				"create interface field: %w",
-				err,
-			)
+			return true, fmt.Errorf("create interface field: %w", err)
 		}
 
 		val = reflect.ValueOf(fVal)
+		InitRecursively(val, opts)
 		if err := checkAssignable(yamlKey, val, out.fieldValue); err != nil {
 			return true, err
 		}

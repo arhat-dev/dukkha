@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"unsafe"
 
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/rs"
@@ -12,121 +13,138 @@ import (
 	"arhat.dev/dukkha/pkg/matrix"
 )
 
-var _ dukkha.Task = (*_baseTaskWithGetExecSpecs)(nil)
+type TaskImpl interface {
+	ToolKind() dukkha.ToolKind
+	Kind() dukkha.TaskKind
+	LinkParent(p BaseTaskType)
 
-type _baseTaskWithGetExecSpecs struct{ BaseTask }
-
-func (b *_baseTaskWithGetExecSpecs) Kind() dukkha.TaskKind { return "_" }
-func (b *_baseTaskWithGetExecSpecs) Name() dukkha.TaskName { return "_" }
-func (b *_baseTaskWithGetExecSpecs) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: b.Kind(), Name: b.Name()}
+	GetExecSpecs(
+		rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
+	) ([]dukkha.TaskExecSpec, error)
 }
 
-func (b *_baseTaskWithGetExecSpecs) GetExecSpecs(
-	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
-) ([]dukkha.TaskExecSpec, error) {
-	return nil, nil
+type BaseTaskType interface {
+	dukkha.Task
+	SetToolName(string)
+	CacheFS() *fshelper.OSFS
 }
 
-type BaseTask struct {
+func NewTask[V any, T BaseTaskType](toolName string) dukkha.Task {
+	val := new(V)
+	ret := *(*T)(unsafe.Pointer(&val))
+	ret.SetToolName(toolName)
+	return ret
+}
+
+// V is the struct type of TaskImpl
+// T is the pointer type of V
+type BaseTask[V any, T TaskImpl] struct {
 	rs.BaseField `yaml:"-"`
 
-	Env    dukkha.NameValueList `yaml:"env"`
-	Matrix matrix.Spec          `yaml:"matrix"`
-	Hooks  TaskHooks            `yaml:"hooks,omitempty"`
+	TaskName            dukkha.TaskName      `yaml:"name"`
+	Env                 dukkha.NameValueList `yaml:"env"`
+	Matrix              matrix.Spec          `yaml:"matrix"`
+	Hooks               TaskHooks            `yaml:"hooks,omitempty"`
+	ContinueOnErrorFlag bool                 `yaml:"continue_on_error"`
 
-	ContinueOnErrorFlag bool `yaml:"continue_on_error"`
+	Impl V `yaml:",inline"`
 
 	// fields managed by BaseTask
 
-	CacheFS *fshelper.OSFS `yaml:"-"`
-
-	toolName dukkha.ToolName `yaml:"-"`
-	toolKind dukkha.ToolKind `yaml:"-"`
-
+	cacheFS       *fshelper.OSFS
+	toolName      dukkha.ToolName
 	tagsToResolve []string
-
-	impl dukkha.Task
-
-	mu sync.Mutex
+	lock          sync.Mutex
 }
 
-func (t *BaseTask) Init(cacheFS *fshelper.OSFS) error {
-	t.CacheFS = cacheFS
+func (t *BaseTask[V, T]) SetToolName(name string) {
+	t.toolName = dukkha.ToolName(name)
+}
+
+func (t *BaseTask[V, T]) getTaskImpl() T {
+	ptr := &t.Impl
+	return *(*T)(unsafe.Pointer(&ptr))
+}
+
+// Kind implements dukkha.Task
+func (t *BaseTask[V, T]) Kind() dukkha.TaskKind {
+	return t.getTaskImpl().Kind()
+}
+
+// Name implements dukkha.Task
+func (t *BaseTask[V, T]) Name() dukkha.TaskName {
+	return t.TaskName
+}
+
+// Key implements dukkha.Task
+func (t *BaseTask[V, T]) Key() dukkha.TaskKey {
+	return dukkha.TaskKey{Kind: t.getTaskImpl().Kind(), Name: t.TaskName}
+}
+
+// GetExecSpecs implements dukkha.Task
+func (t *BaseTask[V, T]) GetExecSpecs(
+	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
+) ([]dukkha.TaskExecSpec, error) {
+	return t.getTaskImpl().GetExecSpecs(rc, options)
+}
+
+func (t *BaseTask[V, T]) Init(cacheFS *fshelper.OSFS) error {
+	t.cacheFS = cacheFS
+	t.getTaskImpl().LinkParent(t)
+
+	typ := reflect.TypeOf(t.Impl)
+	t.tagsToResolve = getTagNamesToResolve(typ)
 	return nil
 }
 
-func (t *BaseTask) DoAfterFieldsResolved(
+func (t *BaseTask[V, T]) CacheFS() *fshelper.OSFS {
+	return t.cacheFS
+}
+
+func (t *BaseTask[V, T]) DoAfterFieldsResolved(
 	ctx dukkha.RenderingContext,
 	depth int,
 	resolveEnv bool,
 	do func() error,
 	tagNames ...string,
-) error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+) (err error) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 
 	if resolveEnv {
-		err := dukkha.ResolveAndAddEnv(ctx, t, "Env", "env")
+		err = dukkha.ResolveAndAddEnv(ctx, t, "Env", "env")
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	if len(tagNames) == 0 {
 		// resolve all fields of the real task type
-		err := t.impl.ResolveFields(ctx, depth, t.tagsToResolve...)
+		err = t.ResolveFields(ctx, depth, t.tagsToResolve...)
 		if err != nil {
 			return fmt.Errorf("resolving tool fields: %w", err)
 		}
 	} else {
-		forBase, forImpl := separateBaseAndImpl("BaseTask.", tagNames)
-		if len(forBase) != 0 {
-			err := t.ResolveFields(ctx, depth, forBase...)
-			if err != nil {
-				return fmt.Errorf("resolving requested BaseTask fields: %w", err)
-			}
-		}
-
-		if len(forImpl) != 0 {
-			err := t.impl.ResolveFields(ctx, depth, forImpl...)
-			if err != nil {
-				return fmt.Errorf("resolving requested fields: %w", err)
-			}
+		err = t.ResolveFields(ctx, depth, tagNames...)
+		if err != nil {
+			return fmt.Errorf("resolving requested fields: %w", err)
 		}
 	}
 
 	return do()
 }
 
-func (t *BaseTask) InitBaseTask(
-	k dukkha.ToolKind,
-	n dukkha.ToolName,
-	impl dukkha.Task,
-) {
-	t.toolKind = k
-	t.toolName = n
+func (t *BaseTask[V, T]) ToolKind() dukkha.ToolKind { return t.getTaskImpl().ToolKind() }
+func (t *BaseTask[V, T]) ToolName() dukkha.ToolName { return t.toolName }
 
-	t.impl = impl
+func (t *BaseTask[V, T]) ContinueOnError() bool { return t.ContinueOnErrorFlag }
 
-	typ := reflect.TypeOf(impl).Elem()
-	t.tagsToResolve = getTagNamesToResolve(typ)
-}
-
-func (t *BaseTask) ToolKind() dukkha.ToolKind { return t.toolKind }
-func (t *BaseTask) ToolName() dukkha.ToolName { return t.toolName }
-
-func (t *BaseTask) ContinueOnError() bool {
-	return t.ContinueOnErrorFlag
-}
-
-func (t *BaseTask) GetHookExecSpecs(
+func (t *BaseTask[V, T]) GetHookExecSpecs(
 	taskCtx dukkha.TaskExecContext,
 	stage dukkha.TaskExecStage,
 ) ([]dukkha.TaskExecSpec, error) {
-
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	t.lock.Lock()
+	defer t.lock.Unlock()
 
 	// hooks may have reference to env defined in task scope
 
@@ -157,7 +175,7 @@ func (t *BaseTask) GetHookExecSpecs(
 	return specs, nil
 }
 
-func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) (ret []matrix.Entry, err error) {
+func (t *BaseTask[V, T]) GetMatrixSpecs(rc dukkha.RenderingContext) (ret []matrix.Entry, err error) {
 	err = t.DoAfterFieldsResolved(rc, -1, true, func() error {
 		if t.Matrix.IsEmpty() {
 			ret = []matrix.Entry{
@@ -172,10 +190,7 @@ func (t *BaseTask) GetMatrixSpecs(rc dukkha.RenderingContext) (ret []matrix.Entr
 
 		return nil
 	},
-		// t.DoAfterFieldsResolved is intended to serve
-		// real task type, so we have to add the prefix
-		// `BaseTask.`
-		"BaseTask.matrix",
+		"matrix",
 	)
 
 	return

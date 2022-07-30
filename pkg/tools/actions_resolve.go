@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"strconv"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -13,19 +12,14 @@ type Actions []*Action
 
 func ResolveActions(
 	rc dukkha.TaskExecContext,
-	x dukkha.Resolvable,
-	actionsFieldName string,
+	parent dukkha.Resolvable,
+	actions *Actions,
 	actionsTagName string,
 ) ([]dukkha.TaskExecSpec, error) {
 	jobIndex := make(map[string]int)
 	mCtx := rc.DeriveNew()
-	err := x.DoAfterFieldsResolved(mCtx, 1, true, func() error {
-		xv := reflect.ValueOf(x)
-		for xv.Kind() == reflect.Ptr {
-			xv = xv.Elem()
-		}
-
-		jobs := xv.FieldByName(actionsFieldName).Interface().(Actions)
+	err := parent.DoAfterFieldsResolved(mCtx, 1, true, func() error {
+		jobs := *actions
 
 		for i := range jobs {
 			name := jobs[i].Name
@@ -48,7 +42,7 @@ func ResolveActions(
 	}
 
 	return next(mCtx,
-		x, actionsFieldName, actionsTagName,
+		parent, actions, actionsTagName,
 		jobIndex, 0,
 	)
 }
@@ -56,7 +50,7 @@ func ResolveActions(
 func next(
 	mCtx dukkha.TaskExecContext,
 	x dukkha.Resolvable,
-	actionsFieldName string,
+	actions *Actions,
 	actionsTagName string,
 
 	// data
@@ -73,12 +67,7 @@ func next(
 	var err error
 	// depth = 1 to get job list only, DO NOT render inner actions for now
 	err = x.DoAfterFieldsResolved(mCtx, 1, true, func() error {
-		xv := reflect.ValueOf(x)
-		for xv.Kind() == reflect.Ptr {
-			xv = xv.Elem()
-		}
-
-		jobs := xv.FieldByName(actionsFieldName).Interface().(Actions)
+		jobs := *actions
 
 		if index >= len(jobs) {
 			return nil
@@ -105,7 +94,7 @@ func next(
 	if skip {
 		// not running this action, continue to next
 		// DO NOT depend on thisAction value, as it can be nil when using idle
-		return next(mCtx, x, actionsFieldName, actionsTagName, jobIndex, index+1)
+		return next(mCtx, x, actions, actionsTagName, jobIndex, index+1)
 	}
 
 	return []dukkha.TaskExecSpec{
@@ -152,7 +141,7 @@ func next(
 
 				return next(
 					mCtx,
-					x, actionsFieldName, actionsTagName,
+					x, actions, actionsTagName,
 					jobIndex, ni,
 				)
 			},

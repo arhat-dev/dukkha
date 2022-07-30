@@ -3,8 +3,6 @@ package helm
 import (
 	"fmt"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
@@ -13,41 +11,31 @@ import (
 const TaskKindIndex = "index"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindIndex,
-		func(toolName string) dukkha.Task {
-			t := &TaskIndex{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindIndex, tools.NewTask[TaskIndex, *TaskIndex])
 }
 
-type TaskIndex struct {
-	rs.BaseField `yaml:"-"`
-
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type HelmIndex struct {
 	RepoURL     string `yaml:"repo_url"`
 	PackagesDir string `yaml:"packages_dir"`
 	Merge       string `yaml:"merge"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskIndex) Kind() dukkha.TaskKind { return TaskKindIndex }
-func (c *TaskIndex) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-
-func (c *TaskIndex) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+type TaskIndex struct {
+	tools.BaseTask[HelmIndex, *HelmIndex]
 }
 
-func (c *TaskIndex) GetExecSpecs(
+func (w *HelmIndex) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *HelmIndex) Kind() dukkha.TaskKind           { return TaskKindIndex }
+func (w *HelmIndex) LinkParent(p tools.BaseTaskType) { w.parent = p }
+
+func (c *HelmIndex) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	indexCmd := []string{constant.DUKKHA_TOOL_CMD, "repo", "index"}
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		if len(c.RepoURL) != 0 {
 			indexCmd = append(indexCmd, "--url", c.RepoURL)
 		}

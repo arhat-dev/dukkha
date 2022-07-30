@@ -81,7 +81,7 @@ func (dg *Generator) handleComment(thisPkg, rawName, comment string, def *Defini
 		if err != nil {
 			return Meta{}, fmt.Errorf("couldn't parse type override %v: %w", m[2], err)
 		}
-		overrideDef, _ := dg.newPropertyRef(thisPkg, "", expr, "", false)
+		overrideDef, _ := dg.newPropertyRef(thisPkg, "", expr, nil, "", false)
 		*def = *overrideDef
 	} else if m := typeOneOfPattern.FindStringSubmatch(description); m != nil {
 		description = strings.TrimSpace(m[1])
@@ -96,7 +96,7 @@ func (dg *Generator) handleComment(thisPkg, rawName, comment string, def *Defini
 			if err != nil {
 				return Meta{}, fmt.Errorf("couldn't parse `oneOf` type %v: %w", schemaRef, err)
 			}
-			def, _ := dg.newPropertyRef(thisPkg, "", expr, "", false)
+			def, _ := dg.newPropertyRef(thisPkg, "", expr, nil, "", false)
 			defs = append(defs, def)
 		}
 		def.OneOf = defs

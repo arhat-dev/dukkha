@@ -38,26 +38,18 @@ func (ns buildahNS) ImageIDFile(imageName string) (string, error) {
 }
 
 func init() {
-	dukkha.RegisterTask(ToolKind, TaskKindBuild, newTaskBuild)
+	dukkha.RegisterTask(ToolKind, TaskKindBuild, tools.NewTask[TaskBuild, *TaskBuild])
 
 	templateutils.RegisterTemplateFuncs(map[string]templateutils.TemplateFuncFactory{
 		"buildah": func(rc dukkha.RenderingContext) any { return buildahNS{rc: rc} },
 	})
 }
 
-func newTaskBuild(toolName string) dukkha.Task {
-	t := &TaskBuild{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-	return t
+type TaskBuild struct {
+	tools.BaseTask[BuildahBuild, *BuildahBuild]
 }
 
-type TaskBuild struct {
-	rs.BaseField `yaml:"-"`
-
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type BuildahBuild struct {
 	Context    string           `yaml:"context"`
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
 	File       string           `yaml:"file"`
@@ -66,7 +58,13 @@ type TaskBuild struct {
 	BuildArgs []string `yaml:"build_args"`
 
 	ExtraArgs []string `yaml:"extra_args"`
+
+	parent tools.BaseTaskType
 }
+
+func (w *BuildahBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *BuildahBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (w *BuildahBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
 type ImageNameSpec struct {
 	rs.BaseField `yaml:"-"`
@@ -75,17 +73,11 @@ type ImageNameSpec struct {
 	Manifest string `yaml:"manifest"`
 }
 
-func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
-func (c *TaskBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskBuild) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
-
-func (c *TaskBuild) GetExecSpecs(
+func (c *BuildahBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		ret, err := c.createExecSpecs(rc, options)
 		steps = ret
 		return err
@@ -94,7 +86,7 @@ func (c *TaskBuild) GetExecSpecs(
 	return steps, err
 }
 
-func (c *TaskBuild) createExecSpecs(
+func (c *BuildahBuild) createExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	// create an image id file
@@ -120,7 +112,7 @@ func (c *TaskBuild) createExecSpecs(
 	targets := c.ImageNames
 	if len(targets) == 0 {
 		targets = []*ImageNameSpec{{
-			Image:    c.TaskName,
+			Image:    string(c.parent.Name()),
 			Manifest: "",
 		}}
 	}

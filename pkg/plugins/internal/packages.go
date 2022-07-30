@@ -124,7 +124,7 @@ func init() {
 		Declarations: decs,
 	}
 	// "arhat.dev/dukkha/pkg/constant"
-	decs = make(native.Declarations, 132)
+	decs = make(native.Declarations, 133)
 	decs["ArchiveFormat_Tar"] = native.UntypedStringConst("tar")
 	decs["ArchiveFormat_Zip"] = native.UntypedStringConst("zip")
 	decs["CompressionMethod_Bzip2"] = native.UntypedStringConst("bzip2")
@@ -185,6 +185,7 @@ func init() {
 	decs["GetQemuArch"] = constant.GetQemuArch
 	decs["GetRustArch"] = constant.GetRustArch
 	decs["GetZigArch"] = constant.GetZigArch
+	decs["GetZigTripleName"] = constant.GetZigTripleName
 	decs["GlobalEnv"] = reflect.TypeOf((*constant.GlobalEnv)(nil)).Elem()
 	decs["GlobalEnv_Count"] = constant.GlobalEnv_Count
 	decs["GlobalEnv_DUKKHA_CACHE_DIR"] = constant.GlobalEnv_DUKKHA_CACHE_DIR
@@ -266,8 +267,6 @@ func init() {
 	decs["ConfigResolvingContext"] = reflect.TypeOf((*dukkha.ConfigResolvingContext)(nil)).Elem()
 	decs["Context"] = reflect.TypeOf((*dukkha.Context)(nil)).Elem()
 	decs["CreateTaskExecOptions"] = dukkha.CreateTaskExecOptions
-	decs["Env"] = reflect.TypeOf((*dukkha.NameValueList)(nil)).Elem()
-	decs["EnvEntry"] = reflect.TypeOf((*dukkha.NameValueEntry)(nil)).Elem()
 	decs["EnvValues"] = reflect.TypeOf((*dukkha.EnvValues)(nil)).Elem()
 	decs["ExecSpecGetFunc"] = reflect.TypeOf((*dukkha.ExecSpecGetFunc)(nil)).Elem()
 	decs["ExecValues"] = reflect.TypeOf((*dukkha.ExecValues)(nil)).Elem()
@@ -278,6 +277,8 @@ func init() {
 	decs["IfaceFactoryFunc"] = reflect.TypeOf((*dukkha.IfaceFactoryFunc)(nil)).Elem()
 	decs["IfaceFactoryImpl"] = reflect.TypeOf((*dukkha.IfaceFactoryImpl)(nil)).Elem()
 	decs["IfaceTypeKey"] = reflect.TypeOf((*dukkha.IfaceTypeKey)(nil)).Elem()
+	decs["NameValueEntry"] = reflect.TypeOf((*dukkha.NameValueEntry)(nil)).Elem()
+	decs["NameValueList"] = reflect.TypeOf((*dukkha.NameValueList)(nil)).Elem()
 	decs["NewConfigResolvingContext"] = dukkha.NewConfigResolvingContext
 	decs["RegisterRenderer"] = dukkha.RegisterRenderer
 	decs["RegisterTask"] = dukkha.RegisterTask
@@ -290,7 +291,7 @@ func init() {
 	decs["ReplaceEntries"] = reflect.TypeOf((*dukkha.ReplaceEntries)(nil)).Elem()
 	decs["ReplaceEntry"] = reflect.TypeOf((*dukkha.ReplaceEntry)(nil)).Elem()
 	decs["Resolvable"] = reflect.TypeOf((*dukkha.Resolvable)(nil)).Elem()
-	decs["ResolveEnv"] = dukkha.ResolveAndAddEnv
+	decs["ResolveAndAddEnv"] = dukkha.ResolveAndAddEnv
 	decs["RunTaskOrRunCmd"] = reflect.TypeOf((*dukkha.RunTaskOrRunCmd)(nil)).Elem()
 	decs["RuntimeOptions"] = reflect.TypeOf((*dukkha.RuntimeOptions)(nil)).Elem()
 	decs["Shell"] = reflect.TypeOf((*dukkha.Shell)(nil)).Elem()
@@ -352,19 +353,18 @@ func init() {
 		Declarations: decs,
 	}
 	// "arhat.dev/dukkha/pkg/tools"
-	decs = make(native.Declarations, 12)
+	decs = make(native.Declarations, 11)
 	decs["Action"] = reflect.TypeOf((*tools.Action)(nil)).Elem()
 	decs["Actions"] = reflect.TypeOf((*tools.Actions)(nil)).Elem()
-	decs["BaseTask"] = reflect.TypeOf((*tools.BaseTask)(nil)).Elem()
-	decs["BaseTool"] = reflect.TypeOf((*tools.BaseTool)(nil)).Elem()
+	decs["BaseTaskType"] = reflect.TypeOf((*tools.BaseTaskType)(nil)).Elem()
 	decs["CreateTaskMatrixContext"] = tools.CreateTaskMatrixContext
-	decs["GetScriptCache"] = tools.GetScriptCache
 	decs["ResolveActions"] = tools.ResolveActions
 	decs["RunTask"] = tools.RunTask
-	decs["ShellTool"] = reflect.TypeOf((*tools.ShellTool)(nil)).Elem()
 	decs["TaskExecRequest"] = reflect.TypeOf((*tools.TaskExecRequest)(nil)).Elem()
 	decs["TaskHooks"] = reflect.TypeOf((*tools.TaskHooks)(nil)).Elem()
+	decs["TaskImpl"] = reflect.TypeOf((*tools.TaskImpl)(nil)).Elem()
 	decs["TaskReference"] = reflect.TypeOf((*tools.TaskReference)(nil)).Elem()
+	decs["ToolImpl"] = reflect.TypeOf((*tools.ToolImpl)(nil)).Elem()
 	NativePackages["arhat.dev/dukkha/pkg/tools"] = native.Package{
 		Name:         "tools",
 		Declarations: decs,

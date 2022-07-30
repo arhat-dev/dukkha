@@ -3,8 +3,6 @@ package helm
 import (
 	"strings"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
@@ -13,28 +11,25 @@ import (
 const TaskKindPackage = "package"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindPackage,
-		func(toolName string) dukkha.Task {
-			t := &TaskPackage{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindPackage, tools.NewTask[TaskPackage, *TaskPackage])
 }
 
 type TaskPackage struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[HelmPackage, *HelmPackage]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type HelmPackage struct {
 	Chart       string `yaml:"chart"`
 	PackagesDir string `yaml:"packages_dir"`
 
 	Signing PackageSigningSpec `yaml:"signing"`
+
+	parent tools.BaseTaskType
 }
+
+func (w *HelmPackage) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *HelmPackage) Kind() dukkha.TaskKind           { return TaskKindPackage }
+func (w *HelmPackage) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
 type PackageSigningSpec struct {
 	Enabled          bool   `yaml:"enabled"`
@@ -43,20 +38,14 @@ type PackageSigningSpec struct {
 	GPGKeyPassphrase string `yaml:"gpg_key_passphrase"`
 }
 
-func (c *TaskPackage) Kind() dukkha.TaskKind { return TaskKindPackage }
-func (c *TaskPackage) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskPackage) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
-
-func (c *TaskPackage) GetExecSpecs(
+func (c *HelmPackage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	pkgStep := &dukkha.TaskExecSpec{
 		Command: []string{constant.DUKKHA_TOOL_CMD, "package"},
 	}
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		matches, err := rc.FS().Glob(c.Chart)
 		if err != nil {
 			pkgStep.Command = append(pkgStep.Command, c.Chart)

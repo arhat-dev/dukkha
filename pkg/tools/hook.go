@@ -60,24 +60,24 @@ type TaskHooks struct {
 	After Actions `yaml:"after,omitempty"`
 }
 
-func (*TaskHooks) getTagNameByStage(stage dukkha.TaskExecStage) [2]string {
+func (h *TaskHooks) getActionsAndTagNameByStage(stage dukkha.TaskExecStage) (*Actions, string) {
 	switch stage {
 	case dukkha.StageBefore:
-		return [2]string{"Before", "before"}
+		return &h.Before, "before"
 	case dukkha.StageBeforeMatrix:
-		return [2]string{"BeforeMatrix", "before:matrix"}
+		return &h.BeforeMatrix, "before:matrix"
 	case dukkha.StageAfterMatrixSuccess:
-		return [2]string{"AfterMatrixSuccess", "after:matrix:success"}
+		return &h.AfterMatrixSuccess, "after:matrix:success"
 	case dukkha.StageAfterMatrixFailure:
-		return [2]string{"AfterMatrixFailure", "after:matrix:failure"}
+		return &h.AfterMatrixFailure, "after:matrix:failure"
 	case dukkha.StageAfterMatrix:
-		return [2]string{"AfterMatrix", "after:matrix"}
+		return &h.AfterMatrix, "after:matrix"
 	case dukkha.StageAfterSuccess:
-		return [2]string{"AfterSuccess", "after:success"}
+		return &h.AfterSuccess, "after:success"
 	case dukkha.StageAfterFailure:
-		return [2]string{"AfterFailure", "after:failure"}
+		return &h.AfterFailure, "after:failure"
 	case dukkha.StageAfter:
-		return [2]string{"After", "after"}
+		return &h.After, "after"
 	default:
 		panic("invalid hook stage")
 	}
@@ -90,10 +90,12 @@ func (h *TaskHooks) GenSpecs(
 	// TODO: this func is only called by BaseTask with lock for now
 	// 		 if we call it from other places, we need to use lock in
 	// 		 DoAfterFieldsResolved
-	fieldAndTagNames := h.getTagNameByStage(stage)
+	actions, tagName := h.getActionsAndTagNameByStage(stage)
 	return ResolveActions(
-		taskCtx.DeriveNew(), h,
-		fieldAndTagNames[0], fieldAndTagNames[1],
+		taskCtx.DeriveNew(),
+		h,
+		actions,
+		tagName,
 	)
 }
 

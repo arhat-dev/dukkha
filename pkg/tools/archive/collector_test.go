@@ -2,6 +2,7 @@ package archive
 
 import (
 	"context"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -56,8 +57,8 @@ func TestCollectFiles(t *testing.T) {
 	type TestCase struct {
 		rs.BaseField
 
-		Task      *TaskCreate `yaml:"task"`
-		ExpectErr bool        `yaml:"expect_err"`
+		Task      TaskCreate `yaml:"task"`
+		ExpectErr bool       `yaml:"expect_err"`
 	}
 
 	type ExpectedEntry struct {
@@ -66,7 +67,11 @@ func TestCollectFiles(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/collect-files",
-		func() *TestCase { return rs.Init(&TestCase{}, nil).(*TestCase) },
+		func() *TestCase {
+			ret := &TestCase{}
+			rs.InitRecursively(reflect.ValueOf(ret), nil)
+			return ret
+		},
 		func() *map[string]*ExpectedEntry {
 			m := make(map[string]*ExpectedEntry)
 			return &m
@@ -75,7 +80,7 @@ func TestCollectFiles(t *testing.T) {
 			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			assert.NoError(t, spec.ResolveFields(ctx, -1))
 
-			actualFiles, err := collectFiles(ctx.FS(), spec.Task.Files)
+			actualFiles, err := collectFiles(ctx.FS(), spec.Task.Impl.Files)
 			if spec.ExpectErr {
 				assert.Error(t, err)
 				return

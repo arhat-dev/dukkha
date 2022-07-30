@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"arhat.dev/pkg/textquery"
-	"arhat.dev/rs"
 
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -32,43 +31,32 @@ func replace_XBUILD_STEP_CONTAINER_ID(stepID string) string {
 }
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindXBuild,
-		func(toolName string) dukkha.Task {
-			t := &TaskXBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindXBuild, tools.NewTask[TaskXBuild, *TaskXBuild])
 }
 
 type TaskXBuild struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[BuildahXBuild, *BuildahXBuild]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
-	// Context string  `yaml:"context"`
-	Steps []*step `yaml:"steps"`
-
+type BuildahXBuild struct {
 	ImageNames []*ImageNameSpec `yaml:"image_names"`
+	Steps      []*step          `yaml:"steps"`
+
+	parent tools.BaseTaskType
 }
 
-func (w *TaskXBuild) Kind() dukkha.TaskKind { return TaskKindXBuild }
-func (w *TaskXBuild) Name() dukkha.TaskName { return dukkha.TaskName(w.TaskName) }
-func (w *TaskXBuild) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: w.Kind(), Name: w.Name()}
-}
+func (w *BuildahXBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *BuildahXBuild) Kind() dukkha.TaskKind           { return TaskKindXBuild }
+func (w *BuildahXBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
 // nolint:gocyclo
-func (w *TaskXBuild) GetExecSpecs(
+func (w *BuildahXBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
 
-	err := w.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := w.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		tmpImageIDFile, err := os.CreateTemp(rc.CacheDir(), "buildah-xbuild-image-id-*")
 		if err != nil {
 			return fmt.Errorf("xbuild: create temp file for image id: %w", err)
@@ -164,7 +152,7 @@ func (w *TaskXBuild) GetExecSpecs(
 
 			// add this step to global step index
 
-			stepRet, err := step.genSpec(rc, w.CacheFS)
+			stepRet, err := step.genSpec(rc, w.parent.CacheFS())
 			if err != nil {
 				return fmt.Errorf("xbuild: generate #%d step spec: %w", i, err)
 			}

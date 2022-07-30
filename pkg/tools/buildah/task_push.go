@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/templateutils"
@@ -16,48 +14,41 @@ import (
 const TaskKindPush = "push"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindPush,
-		func(toolName string) dukkha.Task {
-			t := &TaskPush{
-				manifestCache: make(map[manifestCacheKey]manifestCacheValue),
-			}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindPush, tools.NewTask[TaskPush, *TaskPush])
 }
 
 type TaskPush struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[BuildahPush, *BuildahPush]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type BuildahPush struct {
 	ImageNames []ImageNameSpec `yaml:"image_names"`
 
 	manifestCache map[manifestCacheKey]manifestCacheValue
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskPush) Kind() dukkha.TaskKind { return TaskKindPush }
-func (c *TaskPush) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskPush) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *BuildahPush) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *BuildahPush) Kind() dukkha.TaskKind           { return TaskKindPush }
+func (w *BuildahPush) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskPush) GetExecSpecs(
+func (c *BuildahPush) GetExecSpecs(
 	rc dukkha.TaskExecContext,
 	opts dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var result []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
+		if c.manifestCache == nil {
+			c.manifestCache = make(map[manifestCacheKey]manifestCacheValue)
+		}
+
 		targets := c.ImageNames
 		if len(targets) == 0 {
 			targets = []ImageNameSpec{
 				{
-					Image:    c.TaskName,
+					Image:    string(c.parent.Name()),
 					Manifest: "",
 				},
 			}
@@ -119,7 +110,7 @@ type manifestCacheValue struct {
 	opts dukkha.TaskMatrixExecOptions
 }
 
-func (c *TaskPush) cacheManifestPushSpec(
+func (c *BuildahPush) cacheManifestPushSpec(
 	index int,
 	opts dukkha.TaskMatrixExecOptions,
 	manifestName string,
@@ -137,7 +128,7 @@ func (c *TaskPush) cacheManifestPushSpec(
 	}
 }
 
-func (c *TaskPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExecSpec {
+func (c *BuildahPush) createManifestPushSpecsFromCache(execID int) []dukkha.TaskExecSpec {
 	var (
 		values []manifestCacheValue
 	)

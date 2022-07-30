@@ -3,42 +3,49 @@ package docker
 import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/buildah"
 )
 
 const TaskKindBuild = "build"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindBuild,
-		func(toolName string) dukkha.Task {
-			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindBuild, tools.NewTask[TaskBuild, *TaskBuild])
 }
 
-type TaskBuild buildah.TaskBuild
-
-func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
-func (c *TaskBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskBuild) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+type TaskBuild struct {
+	tools.BaseTask[DockerBuild, *DockerBuild]
 }
+
+type DockerBuild struct {
+	Context    string                   `yaml:"context"`
+	ImageNames []*buildah.ImageNameSpec `yaml:"image_names"`
+	File       string                   `yaml:"file"`
+
+	// --build-arg
+	BuildArgs []string `yaml:"build_args"`
+
+	ExtraArgs []string `yaml:"extra_args"`
+
+	parent tools.BaseTaskType
+}
+
+func (w *DockerBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *DockerBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (w *DockerBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
 // GetExecSpecs
 // TODO: Handle manifests locally [#27](https://github.com/arhat-dev/dukkha/issues/27)
-func (c *TaskBuild) GetExecSpecs(
+func (c *DockerBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		targets := c.ImageNames
 		if len(targets) == 0 {
 			targets = []*buildah.ImageNameSpec{{
-				Image:    c.TaskName,
+				Image:    string(c.parent.Name()),
 				Manifest: "",
 			}}
 		}

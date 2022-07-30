@@ -18,40 +18,32 @@ import (
 const TaskKindSignImage = "sign-image"
 
 func init() {
-	dukkha.RegisterTask(ToolKind, TaskKindSignImage, newTaskSignImage)
-}
-
-func newTaskSignImage(toolName string) dukkha.Task {
-	t := &TaskSignImage{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-	return t
+	dukkha.RegisterTask(ToolKind, TaskKindSignImage, tools.NewTask[TaskSignImage, *TaskSignImage])
 }
 
 type TaskSignImage struct {
-	rs.BaseField
+	tools.BaseTask[CosignSignImage, *CosignSignImage]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type CosignSignImage struct {
 	Options imageSigningOptions `yaml:",inline"`
 
 	// ImageNames
 	ImageNames []buildah.ImageNameSpec `yaml:"image_names"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskSignImage) Kind() dukkha.TaskKind { return TaskKindSignImage }
-func (c *TaskSignImage) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskSignImage) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *CosignSignImage) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *CosignSignImage) Kind() dukkha.TaskKind           { return TaskKindSignImage }
+func (w *CosignSignImage) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskSignImage) GetExecSpecs(
+func (c *CosignSignImage) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		keyFile, err := c.Options.Options.ensurePrivateKey(c.CacheFS)
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
+		keyFile, err := c.Options.Options.ensurePrivateKey(c.parent.CacheFS())
 		if err != nil {
 			return fmt.Errorf("ensuring private key: %w", err)
 		}

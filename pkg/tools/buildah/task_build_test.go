@@ -9,9 +9,9 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
 	"arhat.dev/dukkha/pkg/renderer/file"
+	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
@@ -27,9 +27,9 @@ func TestTaskBuild(t *testing.T) {
 	t.Skip()
 
 	tests.TestTask(t, "./fixtures/build", &Tool{},
-		func() dukkha.Task { return newTaskBuild("") },
-		func() rs.Field { return &Check{} },
-		func(t *testing.T, expected, actual rs.Field) {
+		func() *TaskBuild { return tools.NewTask[TaskBuild, *TaskBuild]("").(*TaskBuild) },
+		func() *Check { return &Check{} },
+		func(t *testing.T, expected, actual *Check) {
 			// TODO: check images
 		},
 	)

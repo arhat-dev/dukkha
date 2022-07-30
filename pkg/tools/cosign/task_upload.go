@@ -17,23 +17,14 @@ import (
 const TaskKindUpload = "upload"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindUpload,
-		func(toolName string) dukkha.Task {
-			t := &TaskUpload{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindUpload, tools.NewTask[TaskUpload, *TaskUpload])
 }
 
 type TaskUpload struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[CosignUpload, *CosignUpload]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type CosignUpload struct {
 	// Kind is either blob or wasm
 	//
 	// Defaults to `"blob"`
@@ -47,42 +38,23 @@ type TaskUpload struct {
 
 	// ImageNames
 	ImageNames []buildah.ImageNameSpec `yaml:"image_names"`
+
+	parent tools.BaseTaskType
 }
 
-type FileSpec struct {
-	rs.BaseField `yaml:"-"`
+func (w *CosignUpload) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *CosignUpload) Kind() dukkha.TaskKind           { return TaskKindUpload }
+func (w *CosignUpload) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-	// Path to local blob/wasm file
-	Path string `yaml:"path"`
-
-	// ContentType of the local file
-	ContentType string `yaml:"content_type"`
-}
-
-type signingSpec struct {
-	rs.BaseField `yaml:"-"`
-
-	// Enable signing
-	Enabled bool `yaml:"enabled"`
-
-	Options imageSigningOptions `yaml:",inline"`
-}
-
-func (c *TaskUpload) Kind() dukkha.TaskKind { return TaskKindUpload }
-func (c *TaskUpload) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskUpload) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
-
-func (c *TaskUpload) GetExecSpecs(
+func (c *CosignUpload) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		var keyFile string
 		if c.Signing.Enabled {
 			var err error
-			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(c.CacheFS)
+			keyFile, err = c.Signing.Options.Options.ensurePrivateKey(c.parent.CacheFS())
 			if err != nil {
 				return fmt.Errorf("ensuring private key: %w", err)
 			}
@@ -168,4 +140,23 @@ func (c *TaskUpload) GetExecSpecs(
 	})
 
 	return steps, err
+}
+
+type FileSpec struct {
+	rs.BaseField `yaml:"-"`
+
+	// Path to local blob/wasm file
+	Path string `yaml:"path"`
+
+	// ContentType of the local file
+	ContentType string `yaml:"content_type"`
+}
+
+type signingSpec struct {
+	rs.BaseField `yaml:"-"`
+
+	// Enable signing
+	Enabled bool `yaml:"enabled"`
+
+	Options imageSigningOptions `yaml:",inline"`
 }

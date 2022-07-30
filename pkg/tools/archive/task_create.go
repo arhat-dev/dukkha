@@ -15,22 +15,14 @@ import (
 const TaskKindCreate = "create"
 
 func init() {
-	dukkha.RegisterTask(ToolKind, TaskKindCreate, newCreateTask)
-}
-
-func newCreateTask(toolName string) dukkha.Task {
-	t := &TaskCreate{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-	return t
+	dukkha.RegisterTask(ToolKind, TaskKindCreate, tools.NewTask[TaskCreate, *TaskCreate])
 }
 
 type TaskCreate struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[ArchiveCreate, *ArchiveCreate]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type ArchiveCreate struct {
 	// Format of the archive, one of [tar, zip]
 	//
 	// Defaults to `"zip"` when matrix.kernel is set to windows, otherwise `"tar"`
@@ -44,61 +36,20 @@ type TaskCreate struct {
 
 	// Files to be archived
 	Files []*fileFromToSpec `yaml:"files"`
+
+	parent tools.BaseTaskType
 }
 
-type compressionSpec struct {
-	rs.BaseField `yaml:"-"`
+func (w *ArchiveCreate) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *ArchiveCreate) Kind() dukkha.TaskKind           { return TaskKindCreate }
+func (w *ArchiveCreate) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-	// Enable compression
-	//
-	// Defaults to `false`
-	Enabled bool `yaml:"enabled"`
-
-	// Method of compression
-	//
-	// for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd]
-	// for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]
-	//
-	// Defaults to `"defalte"` when format is zip
-	// Defaults to `"gzip"` when format is tar
-	Method string `yaml:"method"`
-
-	// Level of compression, value is method dependent, usually 1 - 9
-	//
-	// Defaults to `5`
-	Level string `yaml:"level"`
-}
-
-type fileFromToSpec struct {
-	rs.BaseField `yaml:"-"`
-
-	// From local file path, include files to be archived with glob pattern support
-	From string `yaml:"from"`
-
-	// To in archive path, files by `From` will be put at
-	//
-	// if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED
-	//
-	// if only one file was selected by `From`, when `To` ends with a slash, it's a dir
-	// matched file will be put into it, otherwise, its type is determined by matched file
-	To string `yaml:"to"`
-
-	// FollowSymlink eval symlink to store actual file instead of creating symlink in archive
-	FollowSymlink bool `yaml:"follow_symlink"`
-}
-
-func (c *TaskCreate) Kind() dukkha.TaskKind { return TaskKindCreate }
-func (c *TaskCreate) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskCreate) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
-
-func (c *TaskCreate) GetExecSpecs(
+func (c *ArchiveCreate) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		output := c.Output
 		files, err := collectFiles(rc.FS(), c.Files)
 		if err != nil {
@@ -167,4 +118,45 @@ func (c *TaskCreate) GetExecSpecs(
 	})
 
 	return steps, err
+}
+
+type compressionSpec struct {
+	rs.BaseField `yaml:"-"`
+
+	// Enable compression
+	//
+	// Defaults to `false`
+	Enabled bool `yaml:"enabled"`
+
+	// Method of compression
+	//
+	// for `tar`, one of [gzip, bzip2, zstd, lzma, xz, zstd]
+	// for `zip`, one of [deflate, bzip2, zstd, lzma, xz, zstd]
+	//
+	// Defaults to `"defalte"` when format is zip
+	// Defaults to `"gzip"` when format is tar
+	Method string `yaml:"method"`
+
+	// Level of compression, value is method dependent, usually 1 - 9
+	//
+	// Defaults to `5`
+	Level string `yaml:"level"`
+}
+
+type fileFromToSpec struct {
+	rs.BaseField `yaml:"-"`
+
+	// From local file path, include files to be archived with glob pattern support
+	From string `yaml:"from"`
+
+	// To in archive path, files by `From` will be put at
+	//
+	// if multiple files was selected by `From`, `To` MUST be a dir, thus a trailing slash is REQUIRED
+	//
+	// if only one file was selected by `From`, when `To` ends with a slash, it's a dir
+	// matched file will be put into it, otherwise, its type is determined by matched file
+	To string `yaml:"to"`
+
+	// FollowSymlink eval symlink to store actual file instead of creating symlink in archive
+	FollowSymlink bool `yaml:"follow_symlink"`
 }

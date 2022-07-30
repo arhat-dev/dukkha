@@ -5,8 +5,6 @@ import (
 	"path"
 	"strings"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
@@ -15,23 +13,14 @@ import (
 const TaskKindClone = "clone"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindClone,
-		func(toolName string) dukkha.Task {
-			t := &TaskClone{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindClone, tools.NewTask[TaskClone, *TaskClone])
 }
 
 type TaskClone struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[GitClone, *GitClone]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type GitClone struct {
 	URL          string `yaml:"url"`
 	Path         string `yaml:"path"`
 	RemoteBranch string `yaml:"remote_branch"`
@@ -39,20 +28,20 @@ type TaskClone struct {
 	RemoteName   string `yaml:"remote_name"`
 
 	ExtraArgs []string `yaml:"extra_args"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskClone) Kind() dukkha.TaskKind { return TaskKindClone }
-func (c *TaskClone) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskClone) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *GitClone) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *GitClone) Kind() dukkha.TaskKind           { return TaskKindClone }
+func (w *GitClone) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskClone) GetExecSpecs(
+func (c *GitClone) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		if len(c.URL) == 0 {
 			return fmt.Errorf("remote url not set")
 		}

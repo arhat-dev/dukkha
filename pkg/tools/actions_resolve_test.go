@@ -54,7 +54,7 @@ func TestResolveActions_steps(t *testing.T) {
 			mCtx.AddRenderer("echo", echo.NewDefault(""))
 
 			jobs, err := ResolveActions(
-				mCtx, spec, "Actions", "actions",
+				mCtx, spec, &spec.Actions, "actions",
 			)
 
 			assert.NoError(t, err)

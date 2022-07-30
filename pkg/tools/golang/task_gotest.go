@@ -26,23 +26,14 @@ import (
 const TaskKindTest = "test"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindTest,
-		func(toolName string) dukkha.Task {
-			t := &TaskTest{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindTest, tools.NewTask[TaskTest, *TaskTest])
 }
 
 type TaskTest struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[GolangTest, *GolangTest]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type GolangTest struct {
 	CGO CGOSepc `yaml:"cgo"`
 
 	Path  string `yaml:"path"`
@@ -64,19 +55,19 @@ type TaskTest struct {
 
 	// CustomArgs appended when running the test
 	CustomArgs []string `yaml:"custom_args"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskTest) Kind() dukkha.TaskKind { return TaskKindTest }
-func (c *TaskTest) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskTest) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *GolangTest) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *GolangTest) Kind() dukkha.TaskKind           { return TaskKindTest }
+func (w *GolangTest) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskTest) GetExecSpecs(
+func (c *GolangTest) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		// get a list of packages to be tested
 		const (
 			targetReplaceABSPackageDirs    = "<GO_ABS_PACKAGE_DIRS>"
@@ -145,7 +136,7 @@ func (c *TaskTest) GetExecSpecs(
 						}
 
 						builtTestExecutable, subCompileSteps := generateCompileSpecs(
-							c.CacheFS,
+							c.parent.CacheFS(),
 							cwdFS,
 							buildEnv, compileArgs, absPkgDir,
 							toolCmd,

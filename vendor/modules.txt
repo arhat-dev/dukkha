@@ -28,7 +28,7 @@ arhat.dev/pkg/yamlhelper
 # arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
-# arhat.dev/rs v0.10.0
+# arhat.dev/rs v0.10.1-0.20220730071702-8db7a5c12c24
 ## explicit; go 1.18
 arhat.dev/rs
 # arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
@@ -218,8 +218,8 @@ github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
-# github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
-## explicit; go 1.16
+# github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca => github.com/arhat-dev/schemer v0.0.0-20220730065822-7d06fd137c9f
+## explicit; go 1.18
 github.com/weaveworks/schemer/definition
 github.com/weaveworks/schemer/importer
 github.com/weaveworks/schemer/schema
@@ -312,5 +312,5 @@ mvdan.cc/sh/v3/interp
 mvdan.cc/sh/v3/pattern
 mvdan.cc/sh/v3/syntax
 # github.com/d5/tengo/v2 => github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d
-# github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20211102163138-8bc12e169191
+# github.com/weaveworks/schemer => github.com/arhat-dev/schemer v0.0.0-20220730065822-7d06fd137c9f
 # mvdan.cc/sh/v3 => github.com/arhat-dev/sh/v3 v3.5.0-0.dev.0.20220723194407-b237320fa712

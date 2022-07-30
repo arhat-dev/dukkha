@@ -4,8 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
@@ -14,43 +12,34 @@ import (
 const TaskKindLogin = "login"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindLogin,
-		func(toolName string) dukkha.Task {
-			t := &TaskLogin{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindLogin, tools.NewTask[TaskLogin, *TaskLogin])
 }
 
 type TaskLogin struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[BuildahLogin, *BuildahLogin]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type BuildahLogin struct {
 	Registry string `yaml:"registry"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 
 	TLSSkipVerify *bool `yaml:"tls_skip_verify"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskLogin) Kind() dukkha.TaskKind { return TaskKindLogin }
-func (c *TaskLogin) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskLogin) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *BuildahLogin) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *BuildahLogin) Kind() dukkha.TaskKind           { return TaskKindLogin }
+func (w *BuildahLogin) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskLogin) GetExecSpecs(
+func (c *BuildahLogin) GetExecSpecs(
 	rc dukkha.TaskExecContext,
 	options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var steps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		loginCmd := []string{constant.DUKKHA_TOOL_CMD, "login",
 			"--username", c.Username,
 			"--password-stdin",

@@ -1,9 +1,6 @@
 package helm
 
 import (
-	"arhat.dev/pkg/fshelper"
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -11,25 +8,12 @@ import (
 const ToolKind = "helm"
 
 func init() {
-	dukkha.RegisterTool(ToolKind, func() dukkha.Tool {
-		return &Tool{}
-	})
+	dukkha.RegisterTool(ToolKind, func() dukkha.Tool { return &Tool{} })
 }
 
-type Tool struct {
-	rs.BaseField `yaml:"-"`
+type Helm struct{}
 
-	ToolName dukkha.ToolName `yaml:"name"`
+func (t *Helm) DefaultExecutable() string { return "helm" }
+func (t *Helm) Kind() dukkha.ToolKind     { return ToolKind }
 
-	tools.BaseTool `yaml:",inline"`
-}
-
-func (t *Tool) Init(cacheFS *fshelper.OSFS) error {
-	return t.InitBaseTool("helm", cacheFS, t)
-}
-
-func (t *Tool) Name() dukkha.ToolName { return t.ToolName }
-func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
-func (t *Tool) Key() dukkha.ToolKey {
-	return dukkha.ToolKey{Kind: t.Kind(), Name: t.Name()}
-}
+type Tool struct{ tools.BaseTool[Helm, *Helm] }

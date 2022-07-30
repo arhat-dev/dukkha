@@ -1,8 +1,6 @@
 package golang
 
 import (
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/sliceutils"
@@ -12,23 +10,14 @@ import (
 const TaskKindBuild = "build"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindBuild,
-		func(toolName string) dukkha.Task {
-			t := &TaskBuild{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindBuild, tools.NewTask[TaskBuild, *TaskBuild])
 }
 
 type TaskBuild struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[GolangBuild, *GolangBuild]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type GolangBuild struct {
 	// Chdir into a different dir when running go command while keep `dukkha.WorkDir` unchanged
 	// this can be helpful when you are managing multiple go modules in one workspace
 	Chdir string `yaml:"chdir"`
@@ -50,23 +39,23 @@ type TaskBuild struct {
 
 	// ExtraArgs for go build (inserted before `Path`)
 	ExtraArgs []string `yaml:"extra_args"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskBuild) Kind() dukkha.TaskKind { return TaskKindBuild }
-func (c *TaskBuild) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskBuild) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *GolangBuild) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *GolangBuild) Kind() dukkha.TaskKind           { return TaskKindBuild }
+func (w *GolangBuild) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskBuild) GetExecSpecs(
+func (c *GolangBuild) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var buildSteps []dukkha.TaskExecSpec
 
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		outputs := sliceutils.NewStrings(c.Outputs)
 		if len(outputs) == 0 {
-			outputs = []string{c.TaskName}
+			outputs = []string{string(c.parent.Name())}
 		}
 
 		buildEnv := createBuildEnv(rc, c.BuildOptions, c.CGo)

@@ -60,7 +60,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 		err2 := req.Tool.DoAfterFieldsResolved(ctx, -1, false, func() error {
 			ret = req.Tool.GetCmd()
 			return nil
-		}, "BaseTool.cmd")
+		}, "cmd")
 		if err2 != nil {
 			return nil, err2
 		}
@@ -71,7 +71,7 @@ func RunTask(req *TaskExecRequest) (err error) {
 	// resolve tool to set tool specific context env
 	err = req.Tool.DoAfterFieldsResolved(req.Context, -1, true, func() error {
 		return nil
-	}, "BaseTool.env")
+	}, "env")
 	if err != nil {
 		return fmt.Errorf("resolving tool specific env: %w", err)
 	}
@@ -186,7 +186,7 @@ matrixRun:
 				err4 := req.Tool.DoAfterFieldsResolved(ctx, -1, false, func() error {
 					ret = req.Tool.GetCmd()
 					return nil
-				}, "BaseTool.cmd")
+				}, "cmd")
 				if err4 != nil {
 					return nil, err4
 				}

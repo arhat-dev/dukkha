@@ -17,10 +17,11 @@ func TestTaskBuild_GetExecSpecs(t *testing.T) {
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
 			Name: "Default Build Task",
-			Task: &TaskBuild{
-				TaskName: "foo",
-				BaseTask: tools.BaseTask{},
-			},
+			Task: func() dukkha.Task {
+				tsk := tools.NewTask[TaskBuild, *TaskBuild]("").(*TaskBuild)
+				tsk.TaskName = "foo"
+				return tsk
+			}(),
 			Options: dukkha_test.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{

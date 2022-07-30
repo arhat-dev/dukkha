@@ -16,23 +16,14 @@ import (
 const TaskKindRelease = "release"
 
 func init() {
-	dukkha.RegisterTask(
-		ToolKind, TaskKindRelease,
-		func(toolName string) dukkha.Task {
-			t := &TaskRelease{}
-			t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-			return t
-		},
-	)
+	dukkha.RegisterTask(ToolKind, TaskKindRelease, tools.NewTask[TaskRelease, *TaskRelease])
 }
 
 type TaskRelease struct {
-	rs.BaseField `yaml:"-"`
+	tools.BaseTask[GithubRelease, *GithubRelease]
+}
 
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
+type GithubRelease struct {
 	Tag        string `yaml:"tag"`
 	Draft      bool   `yaml:"draft"`
 	PreRelease bool   `yaml:"pre_release"`
@@ -40,6 +31,8 @@ type TaskRelease struct {
 	Notes      string `yaml:"notes"`
 
 	Files []ReleaseFileSpec `yaml:"files"`
+
+	parent tools.BaseTaskType
 }
 
 type ReleaseFileSpec struct {
@@ -52,18 +45,16 @@ type ReleaseFileSpec struct {
 	Label string `yaml:"label"`
 }
 
-func (c *TaskRelease) Kind() dukkha.TaskKind { return TaskKindRelease }
-func (c *TaskRelease) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskRelease) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
-}
+func (w *GithubRelease) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *GithubRelease) Kind() dukkha.TaskKind           { return TaskKindRelease }
+func (w *GithubRelease) LinkParent(p tools.BaseTaskType) { w.parent = p }
 
-func (c *TaskRelease) GetExecSpecs(
+func (c *GithubRelease) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 
 	var steps []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
 		createCmd := []string{constant.DUKKHA_TOOL_CMD, "release", "create", c.Tag}
 
 		if c.Draft {

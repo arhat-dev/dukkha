@@ -5,7 +5,7 @@ import (
 
 	"arhat.dev/rs"
 
-	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
@@ -21,10 +21,9 @@ func TestTaskSign(t *testing.T) {
 	t.SkipNow()
 
 	tests.TestTask(t, "./fixtures/sign", &Tool{},
-		func() dukkha.Task { return newTaskSign("test") },
-		func() rs.Field { return &Expected{} },
-		func(t *testing.T, e, a rs.Field) {
-			exp, actual := e.(*Expected), a.(*Expected)
+		func() *TaskSign { return tools.NewTask[TaskSign, *TaskSign]("test").(*TaskSign) },
+		func() *Expected { return &Expected{} },
+		func(t *testing.T, exp, actual *Expected) {
 			_, _ = exp, actual
 			// assert.EqualValues(t, exp.Signature, actual.Signature)
 		},

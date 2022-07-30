@@ -21,27 +21,12 @@ import (
 const TaskKindSign = "sign"
 
 func init() {
-	dukkha.RegisterTask(ToolKind, TaskKindSign, newTaskSign)
-}
-
-func newTaskSign(toolName string) dukkha.Task {
-	t := &TaskSign{}
-	t.InitBaseTask(ToolKind, dukkha.ToolName(toolName), t)
-	return t
+	dukkha.RegisterTask(ToolKind, TaskKindSign, tools.NewTask[TaskSign, *TaskSign])
 }
 
 // TaskSign signs blob
 type TaskSign struct {
-	rs.BaseField `yaml:"-"`
-
-	TaskName string `yaml:"name"`
-
-	tools.BaseTask `yaml:",inline"`
-
-	Options blobSigningOptions `yaml:",inline"`
-
-	// Files to sign
-	Files []*blobSigningFileSpec `yaml:"files"`
+	tools.BaseTask[CosignSign, *CosignSign]
 }
 
 type blobSigningFileSpec struct {
@@ -54,18 +39,25 @@ type blobSigningFileSpec struct {
 	Output string `yaml:"output"`
 }
 
-func (c *TaskSign) Kind() dukkha.TaskKind { return TaskKindSign }
-func (c *TaskSign) Name() dukkha.TaskName { return dukkha.TaskName(c.TaskName) }
-func (c *TaskSign) Key() dukkha.TaskKey {
-	return dukkha.TaskKey{Kind: c.Kind(), Name: c.Name()}
+type CosignSign struct {
+	Options blobSigningOptions `yaml:",inline"`
+
+	// Files to sign
+	Files []*blobSigningFileSpec `yaml:"files"`
+
+	parent tools.BaseTaskType
 }
 
-func (c *TaskSign) GetExecSpecs(
+func (w *CosignSign) ToolKind() dukkha.ToolKind       { return ToolKind }
+func (w *CosignSign) Kind() dukkha.TaskKind           { return TaskKindSign }
+func (w *CosignSign) LinkParent(p tools.BaseTaskType) { w.parent = p }
+
+func (c *CosignSign) GetExecSpecs(
 	rc dukkha.TaskExecContext, options dukkha.TaskMatrixExecOptions,
 ) ([]dukkha.TaskExecSpec, error) {
 	var ret []dukkha.TaskExecSpec
-	err := c.DoAfterFieldsResolved(rc, -1, true, func() error {
-		keyFile, err := c.Options.ensurePrivateKey(c.CacheFS)
+	err := c.parent.DoAfterFieldsResolved(rc, -1, true, func() error {
+		keyFile, err := c.Options.ensurePrivateKey(c.parent.CacheFS())
 		if err != nil {
 			return fmt.Errorf("ensuring private key: %w", err)
 		}

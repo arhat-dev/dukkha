@@ -6,7 +6,7 @@ import (
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
 
-	"arhat.dev/dukkha/pkg/dukkha"
+	"arhat.dev/dukkha/pkg/tools"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
 
@@ -21,10 +21,9 @@ func TestTaskCreate(t *testing.T) {
 
 	tests.TestTask(t, "./fixtures/create",
 		&Tool{},
-		func() dukkha.Task { return newCreateTask("") },
-		func() rs.Field { return &Check{} },
-		func(t *testing.T, e, a rs.Field) {
-			expected, actual := e.(*Check), a.(*Check)
+		func() *TaskCreate { return tools.NewTask[TaskCreate, *TaskCreate]("").(*TaskCreate) },
+		func() *Check { return &Check{} },
+		func(t *testing.T, expected, actual *Check) {
 			assert.EqualValues(t, expected.Files, actual.Files)
 		},
 	)

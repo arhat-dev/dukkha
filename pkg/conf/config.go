@@ -25,7 +25,7 @@ import (
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
-	"arhat.dev/dukkha/pkg/tools"
+	tools_shell "arhat.dev/dukkha/pkg/tools/shell"
 )
 
 func NewConfig() *Config {
@@ -49,7 +49,7 @@ type Config struct {
 	Include []*IncludeEntry `yaml:"include"`
 
 	// Shells for command execution
-	Shells []*tools.ShellTool `yaml:"shells"`
+	Shells []*tools_shell.Tool `yaml:"shells"`
 
 	// Renderers config options
 	Renderers []*RendererGroup `yaml:"renderers"`
@@ -157,7 +157,7 @@ func (c *Config) resolveShells(appCtx dukkha.ConfigResolvingContext) error {
 			return fmt.Errorf("resolving shell %q #%d config: %w", v.Name(), i, err)
 		}
 
-		err = v.InitBaseTool(string(v.Name()), appCtx.ToolCacheFS(v), v)
+		err = v.InitWithName(string(v.Name()), appCtx.ToolCacheFS(v))
 		if err != nil {
 			return fmt.Errorf("initializing shell %q", v.Name())
 		}
@@ -298,13 +298,10 @@ func (c *Config) Resolve(appCtx dukkha.ConfigResolvingContext, needTasks bool) e
 				log.Int("index", i),
 			)
 
-			logger.V("initializing tool")
+			logger.V("init tool")
 			err = t.Init(appCtx.ToolCacheFS(t))
 			if err != nil {
-				return fmt.Errorf(
-					"initializing tool %q: %w",
-					key, err,
-				)
+				return fmt.Errorf("init tool %q: %w", key, err)
 			}
 
 			// append tasks without tool name

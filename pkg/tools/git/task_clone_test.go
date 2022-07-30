@@ -8,6 +8,7 @@ import (
 	"arhat.dev/dukkha/pkg/constant"
 	"arhat.dev/dukkha/pkg/dukkha"
 	dt "arhat.dev/dukkha/pkg/dukkha/test"
+	"arhat.dev/dukkha/pkg/tools"
 	tool_git "arhat.dev/dukkha/pkg/tools/git"
 	"arhat.dev/dukkha/pkg/tools/tests"
 )
@@ -15,21 +16,24 @@ import (
 func TestTaskClone_GetExecSpecs(t *testing.T) {
 	t.Parallel()
 
+	newTask := func(name string) *tool_git.TaskClone {
+		return tools.NewTask[tool_git.TaskClone, *tool_git.TaskClone](name).(*tool_git.TaskClone)
+	}
+
 	testCases := []tests.ExecSpecGenerationTestCase{
 		{
-			Name: "Invalid Empty",
-			Task: &tool_git.TaskClone{
-				TaskName: "foo",
-			},
+			Name:      "Invalid Empty",
+			Task:      newTask("foo"),
 			ExpectErr: true,
 			Options:   dt.CreateTaskMatrixExecOptions(),
 		},
 		{
 			Name: "Valid Clone Using Default Branch",
-			Task: &tool_git.TaskClone{
-				TaskName: "foo",
-				URL:      "example/foo.git",
-			},
+			Task: func() dukkha.Task {
+				tsk := newTask("foo")
+				tsk.Impl.URL = "example/foo.git"
+				return tsk
+			}(),
 			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{
@@ -48,11 +52,12 @@ func TestTaskClone_GetExecSpecs(t *testing.T) {
 		},
 		{
 			Name: "Valid Clone Changing Remote Name",
-			Task: &tool_git.TaskClone{
-				TaskName:   "foo",
-				URL:        "example/foo",
-				RemoteName: "bar",
-			},
+			Task: func() dukkha.Task {
+				tsk := newTask("foo")
+				tsk.Impl.URL = "example/foo"
+				tsk.Impl.RemoteName = "bar"
+				return tsk
+			}(),
 			Options: dt.CreateTaskMatrixExecOptions(),
 			Expected: []dukkha.TaskExecSpec{
 				{

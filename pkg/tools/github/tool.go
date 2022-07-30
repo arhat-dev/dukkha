@@ -1,9 +1,6 @@
 package github
 
 import (
-	"arhat.dev/pkg/fshelper"
-	"arhat.dev/rs"
-
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/tools"
 )
@@ -14,20 +11,11 @@ func init() {
 	dukkha.RegisterTool(ToolKind, func() dukkha.Tool { return &Tool{} })
 }
 
+type Github struct{}
+
+func (t *Github) DefaultExecutable() string { return "gh" }
+func (t *Github) Kind() dukkha.ToolKind     { return ToolKind }
+
 type Tool struct {
-	rs.BaseField `yaml:"-"`
-
-	ToolName dukkha.ToolName `yaml:"name"`
-
-	tools.BaseTool `yaml:",inline"`
-}
-
-func (t *Tool) Init(cacheFS *fshelper.OSFS) error {
-	return t.BaseTool.InitBaseTool("gh", cacheFS, t)
-}
-
-func (t *Tool) Name() dukkha.ToolName { return t.ToolName }
-func (t *Tool) Kind() dukkha.ToolKind { return ToolKind }
-func (t *Tool) Key() dukkha.ToolKey {
-	return dukkha.ToolKey{Kind: t.Kind(), Name: t.Name()}
+	tools.BaseTool[Github, *Github]
 }

@@ -17,7 +17,7 @@ func TestTaskPush_ManifestHandling(t *testing.T) {
 		manifestName = "foo:latest"
 	)
 
-	task := &TaskPush{
+	task := &BuildahPush{
 		manifestCache: make(map[manifestCacheKey]manifestCacheValue),
 	}
 

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/testhelper"
 	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
@@ -35,19 +36,12 @@ func RunTaskExecSpecGenerationTests(
 	taskCtx dukkha.TaskExecContext,
 	tests []ExecSpecGenerationTestCase,
 ) {
-	for _, test := range tests {
+	for i := range tests {
+		test := &tests[i]
 		t.Run(test.Name, func(t *testing.T) {
-			runTaskTest(taskCtx, &test, t)
+			runTaskTest(taskCtx, test, t)
 		})
 	}
-}
-
-type baseTaskInitializer interface {
-	InitBaseTask(
-		k dukkha.ToolKind,
-		n dukkha.ToolName,
-		impl dukkha.Task,
-	)
 }
 
 func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCase, t *testing.T) {
@@ -63,13 +57,10 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 
 	rs.InitRecursively(reflect.ValueOf(test.Task), nil)
 
-	// nolint:gocritic
-	switch t := test.Task.(type) {
-	case baseTaskInitializer:
-		t.InitBaseTask("test-tool", "test-tool-name", test.Task)
-	}
-
-	assert.NoError(t, test.Task.Init(taskCtx.(dukkha.ConfigResolvingContext).TaskCacheFS(test.Task)))
+	tmp := t.TempDir()
+	assert.NoError(t, test.Task.Init(fshelper.NewOSFS(false, func(op fshelper.Op, name string) (string, error) {
+		return tmp, nil
+	})))
 
 	if test.ExpectErr {
 		_, err := test.Task.GetExecSpecs(taskCtx, test.Options)
@@ -85,51 +76,48 @@ func runTaskTest(taskCtx dukkha.TaskExecContext, test *ExecSpecGenerationTestCas
 	assert.Equal(t, test.Expected, specs)
 }
 
-func TestTask(
+type TaskTestCase[Tsk dukkha.Task] struct {
+	rs.BaseField
+
+	Env dukkha.NameValueList `yaml:"env"`
+
+	// Tool dukkha.Tool `yaml:"tool"`
+	Task Tsk `yaml:"task"`
+}
+
+type TaskCheckSpec[Exp rs.Field] struct {
+	rs.BaseField
+
+	ExpectErr bool `yaml:"expect_err"`
+	Actual    Exp  `yaml:"actual"`
+	Expected  Exp  `yaml:"expected"`
+}
+
+func TestTask[Tool dukkha.Tool, Task dukkha.Task, CheckSpec rs.Field](
 	t *testing.T,
 	dir string,
-	tool dukkha.Tool,
-	newTask func() dukkha.Task,
-	newExpected func() rs.Field,
-	check func(t *testing.T, expected, actual rs.Field),
+	tool Tool,
+	newTask func() Task,
+	newCheckSpec func() CheckSpec,
+	check func(t *testing.T, exp, actual CheckSpec),
 ) {
-	type TestCase struct {
-		rs.BaseField
-
-		Env dukkha.NameValueList `yaml:"env"`
-
-		// Tool dukkha.Tool `yaml:"tool"`
-		Task dukkha.Task `yaml:"task"`
-	}
-
-	type CheckSpec struct {
-		rs.BaseField
-
-		ExpectErr bool     `yaml:"expect_err"`
-		Actual    rs.Field `yaml:"actual"`
-		Expected  rs.Field `yaml:"expected"`
-	}
-
 	testhelper.TestFixtures(t, dir,
-		func() *TestCase {
-			return rs.Init(&TestCase{}, &rs.Options{
-				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
-					func(typ reflect.Type, yamlKey string) (any, error) {
-						return rs.Init(newTask(), nil), nil
-					},
-				),
-			}).(*TestCase)
+		func() *TaskTestCase[Task] {
+			ret := &TaskTestCase[Task]{}
+			ret.Task = newTask()
+
+			rs.InitRecursively(reflect.ValueOf(ret), nil)
+			return ret
 		},
-		func() *CheckSpec {
-			return rs.Init(&CheckSpec{}, &rs.Options{
-				InterfaceTypeHandler: rs.InterfaceTypeHandleFunc(
-					func(typ reflect.Type, yamlKey string) (any, error) {
-						return rs.Init(newExpected(), nil), nil
-					},
-				),
-			}).(*CheckSpec)
+		func() *TaskCheckSpec[CheckSpec] {
+			ret := &TaskCheckSpec[CheckSpec]{}
+			ret.Expected = newCheckSpec()
+			ret.Actual = newCheckSpec()
+
+			rs.InitRecursively(reflect.ValueOf(ret), nil)
+			return ret
 		},
-		func(t *testing.T, spec *TestCase, exp *CheckSpec) {
+		func(t *testing.T, testCase *TaskTestCase[Task], exp *TaskCheckSpec[CheckSpec]) {
 			ctx := dt.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
 			ctx.AddRenderer("env", env.NewDefault("env"))
@@ -140,25 +128,27 @@ func TestTask(
 			assert.NoError(t, afr.Init(ctx.RendererCacheFS("af")))
 			ctx.AddRenderer("af", afr)
 
-			if !assert.NoError(t, dukkha.ResolveAndAddEnv(ctx, spec, "Env", "env")) {
+			if !assert.NoError(t, dukkha.ResolveAndAddEnv(ctx, testCase, "Env", "env")) {
 				return
 			}
 
-			if !assert.NoError(t, spec.ResolveFields(ctx, -1)) {
+			if !assert.NoError(t, testCase.ResolveFields(ctx, -1)) {
 				return
 			}
 
-			rs.Init(tool, nil)
+			rs.InitRecursively(reflect.ValueOf(tool), nil)
 
 			assert.NoError(t, tool.Init(ctx.ToolCacheFS(tool)))
 			ctx.AddTool(tool.Key(), tool)
 
-			assert.NoError(t, tool.AddTasks([]dukkha.Task{spec.Task}))
+			testCase.Task.Init(ctx.ToolCacheFS(tool))
+
+			assert.NoError(t, tool.AddTasks([]dukkha.Task{testCase.Task}))
 
 			err := tools.RunTask(&tools.TaskExecRequest{
 				Context:     ctx,
 				Tool:        tool,
-				Task:        spec.Task,
+				Task:        testCase.Task,
 				IgnoreError: false,
 			})
 

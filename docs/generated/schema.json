@@ -473,7 +473,7 @@
         },
         "shells": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.ShellTool"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.shell.Tool"
           },
           "type": "array"
         },
@@ -950,7 +950,7 @@
         },
         "^shells@.*": {
           "items": {
-            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.ShellTool"
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.shell.Tool"
           },
           "type": "array"
         },
@@ -1190,6 +1190,9 @@
       "x-intellij-html-description": "a list of name/value pairs"
     },
     "arhat.dev.dukkha.pkg.dukkha.RendererAttribute": {
+      "type": "string"
+    },
+    "arhat.dev.dukkha.pkg.dukkha.TaskName": {
       "type": "string"
     },
     "arhat.dev.dukkha.pkg.dukkha.ToolName": {
@@ -2461,45 +2464,6 @@
       },
       "type": "array"
     },
-    "arhat.dev.dukkha.pkg.tools.ShellTool": {
-      "properties": {
-        "cmd": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "env": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
-        },
-        "name": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
-        }
-      },
-      "preferredOrder": [
-        "name",
-        "env",
-        "cmd"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^cmd@.*": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "^cmd@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        },
-        "^env@.*": {
-          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
-        },
-        "^env@[^\\|]*!": {
-          "$ref": "#/definitions/PatchSpec"
-        }
-      }
-    },
     "arhat.dev.dukkha.pkg.tools.TaskHooks": {
       "properties": {
         "after": {
@@ -2693,7 +2657,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "output": {
           "type": "string",
@@ -2712,7 +2676,6 @@
         "output",
         "files"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^compression@.*": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.archive.compressionSpec",
@@ -2797,7 +2760,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -2997,7 +2959,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         }
       },
       "preferredOrder": [
@@ -3012,7 +2974,6 @@
         "build_args",
         "extra_args"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^build_args@.*": {
           "items": {
@@ -3098,7 +3059,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "password": {
           "type": "string"
@@ -3124,7 +3085,6 @@
         "password",
         "tls_skip_verify"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -3199,7 +3159,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         }
       },
       "preferredOrder": [
@@ -3210,7 +3170,6 @@
         "continue_on_error",
         "image_names"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -3270,15 +3229,13 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "steps": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.step"
           },
-          "type": "array",
-          "description": "Context string  `yaml:\"context\"`",
-          "x-intellij-html-description": "Context string  <code>yaml:&quot;context&quot;</code>"
+          "type": "array"
         }
       },
       "preferredOrder": [
@@ -3287,10 +3244,9 @@
         "matrix",
         "hooks",
         "continue_on_error",
-        "steps",
-        "image_names"
+        "image_names",
+        "steps"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -3330,9 +3286,7 @@
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.step"
           },
-          "type": "array",
-          "description": "Context string  `yaml:\"context\"`",
-          "x-intellij-html-description": "Context string  <code>yaml:&quot;context&quot;</code>"
+          "type": "array"
         },
         "^steps@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -3359,7 +3313,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4326,7 +4279,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "private_key": {
           "type": "string",
@@ -4362,7 +4315,6 @@
         "public_key",
         "files"
       ],
-      "additionalProperties": false,
       "description": "signs blob",
       "x-intellij-html-description": "signs blob",
       "patternProperties": {
@@ -4469,7 +4421,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "private_key": {
           "type": "string",
@@ -4512,7 +4464,6 @@
         "annotations",
         "image_names"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^annotations@.*": {
           "items": {
@@ -4642,7 +4593,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "signing": {
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.cosign.signingSpec",
@@ -4661,7 +4612,6 @@
         "signing",
         "image_names"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -4749,7 +4699,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4923,13 +4872,294 @@
       }
     },
     "arhat.dev.dukkha.pkg.tools.docker.TaskBuild": {
-      "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskBuild"
+      "properties": {
+        "build_args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "--build-arg",
+          "x-intellij-html-description": "--build-arg"
+        },
+        "context": {
+          "type": "string"
+        },
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "extra_args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "file": {
+          "type": "string"
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "image_names": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "context",
+        "image_names",
+        "file",
+        "build_args",
+        "extra_args"
+      ],
+      "patternProperties": {
+        "^build_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "--build-arg",
+          "x-intellij-html-description": "--build-arg"
+        },
+        "^build_args@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^context@.*": {
+          "type": "string"
+        },
+        "^context@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^extra_args@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^extra_args@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^file@.*": {
+          "type": "string"
+        },
+        "^file@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
     },
     "arhat.dev.dukkha.pkg.tools.docker.TaskLogin": {
-      "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskLogin"
+      "properties": {
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
+        },
+        "password": {
+          "type": "string"
+        },
+        "registry": {
+          "type": "string"
+        },
+        "tls_skip_verify": {
+          "type": "boolean"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "registry",
+        "username",
+        "password",
+        "tls_skip_verify"
+      ],
+      "patternProperties": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^password@.*": {
+          "type": "string"
+        },
+        "^password@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^registry@.*": {
+          "type": "string"
+        },
+        "^registry@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^tls_skip_verify@.*": {
+          "type": "boolean"
+        },
+        "^tls_skip_verify@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^username@.*": {
+          "type": "string"
+        },
+        "^username@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
     },
     "arhat.dev.dukkha.pkg.tools.docker.TaskPush": {
-      "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.TaskPush"
+      "properties": {
+        "continue_on_error": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "hooks": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "image_names": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "matrix": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "matrix",
+        "hooks",
+        "continue_on_error",
+        "image_names"
+      ],
+      "patternProperties": {
+        "^continue_on_error@.*": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "^continue_on_error@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^hooks@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.TaskHooks"
+        },
+        "^hooks@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^image_names@.*": {
+          "items": {
+            "$ref": "#/definitions/arhat.dev.dukkha.pkg.tools.buildah.ImageNameSpec"
+          },
+          "type": "array"
+        },
+        "^image_names@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^matrix@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
+        },
+        "^matrix@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
     },
     "arhat.dev.dukkha.pkg.tools.docker.Tool": {
       "properties": {
@@ -4951,7 +5181,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -4995,7 +5224,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "path": {
           "type": "string"
@@ -5023,7 +5252,6 @@
         "remote_name",
         "extra_args"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -5111,7 +5339,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -5193,7 +5420,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "notes": {
           "type": "string"
@@ -5222,7 +5449,6 @@
         "notes",
         "files"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -5312,7 +5538,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -5574,7 +5799,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "outputs": {
           "items": {
@@ -5622,7 +5847,6 @@
         "cgo",
         "extra_args"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^asm_flags@.*": {
           "items": {
@@ -5898,7 +6122,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "panic_on_exit_0": {
           "type": "boolean",
@@ -5987,7 +6211,6 @@
         "custom_cmd_prefix",
         "custom_args"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^asm_flags@.*": {
           "items": {
@@ -6278,7 +6501,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -6884,7 +7106,7 @@
           "type": "string"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "packages_dir": {
           "type": "string"
@@ -6903,7 +7125,6 @@
         "packages_dir",
         "merge"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -6969,7 +7190,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         },
         "packages_dir": {
           "type": "string"
@@ -6988,7 +7209,6 @@
         "packages_dir",
         "signing"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^chart@.*": {
           "type": "string"
@@ -7055,7 +7275,44 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
+      "patternProperties": {
+        "^cmd@.*": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^cmd@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        },
+        "^env@.*": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "^env@[^\\|]*!": {
+          "$ref": "#/definitions/PatchSpec"
+        }
+      }
+    },
+    "arhat.dev.dukkha.pkg.tools.shell.Tool": {
+      "properties": {
+        "cmd": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.NameValueList"
+        },
+        "name": {
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.ToolName"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "env",
+        "cmd"
+      ],
       "patternProperties": {
         "^cmd@.*": {
           "items": {
@@ -7093,7 +7350,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         }
       },
       "preferredOrder": [
@@ -7104,7 +7361,6 @@
         "continue_on_error",
         "jobs"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -7155,7 +7411,7 @@
           "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.Spec"
         },
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/arhat.dev.dukkha.pkg.dukkha.TaskName"
         }
       },
       "preferredOrder": [
@@ -7165,7 +7421,6 @@
         "hooks",
         "continue_on_error"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^continue_on_error@.*": {
           "type": "boolean",
@@ -7214,7 +7469,6 @@
         "env",
         "cmd"
       ],
-      "additionalProperties": false,
       "patternProperties": {
         "^cmd@.*": {
           "items": {
