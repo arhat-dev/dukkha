@@ -352,9 +352,11 @@ func unmarshalStruct(
 	outVal *fieldRef,
 	yamlKey string,
 ) (err error) {
-	// structs with embedded struct whose implementation of Field is BaseField, but the BaseField is embedded inside that struct
+	// structs with embedded struct whose implementation of Field is BaseField, but
+	// the BaseField is embedded inside the inner struct
 	//
 	// for example:
+	//
 	// 		type Foo struct{ rs.BaseField }
 	//      type Bar struct{ Foo }
 	//
