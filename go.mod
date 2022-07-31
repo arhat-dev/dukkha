@@ -8,6 +8,7 @@ require (
 	arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
 	github.com/Masterminds/goutils v1.1.1
 	github.com/aoldershaw/ansi v0.0.0-20210128170437-8c5426635e02
+	github.com/benhoyt/goawk v1.20.0
 	github.com/bmatcuk/doublestar/v4 v4.2.0
 	github.com/d5/tengo/v2 v2.12.1
 	github.com/die-net/lrucache v0.0.0-20220628165024-20a71bc65bf1

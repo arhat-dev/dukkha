@@ -10,6 +10,7 @@ __@T|af:
       sum@!:
         value@http: *index_url
         select: .entries.renovate[0].digest
-  - template@?str:
-      archive: "{{ VALUE }}"
-      path: renovate/values.yaml
+  - tmpl:
+      template@?str:
+        archive: "{{ VALUE }}"
+        path: renovate/values.yaml

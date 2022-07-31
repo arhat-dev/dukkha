@@ -39,6 +39,7 @@ type RenderingContext interface {
 	// AddValues will merge provided values into existing values
 	AddValues(values map[string]any) error
 
+	// Env returns a map of all environment variables
 	Env() map[string]tlang.LazyValueType[string]
 
 	Values() map[string]any

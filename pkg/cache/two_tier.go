@@ -249,6 +249,7 @@ func storeLocalCache(
 	returnContent bool,
 ) (int64, []byte, error) {
 	if ofs.Chmod(dest, 0600) == nil {
+		// nolint:errcheck
 		defer ofs.Chmod(dest, 0400)
 	}
 

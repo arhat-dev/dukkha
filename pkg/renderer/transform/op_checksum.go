@@ -34,7 +34,7 @@ type Checksum struct {
 	// File and Data are mutually exclusive
 	File *string `yaml:"file"`
 
-	// Data is the raw string to be verified
+	// Data is the raw data (as string) to be verified
 	//
 	// Path and Data are mutually exclusive
 	Data *string `yaml:"data"`
@@ -50,7 +50,7 @@ type Checksum struct {
 }
 
 // VerifyFile check local file if matching the checksum
-func (cs Checksum) Verify(ofs *fshelper.OSFS) error {
+func (cs *Checksum) Verify(ofs *fshelper.OSFS) error {
 	var newHash func() hash.Hash
 	switch cs.Kind {
 	case checksum_MD5:

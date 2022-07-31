@@ -20,9 +20,9 @@ func TestHandleRenderingRequestWithRemoteFetch(t *testing.T) {
 
 	obj := cache.IdentifiableString("test")
 	const cachedData = "test-data"
-	fetchRemoteAlwaysOk := cache.RemoteCacheRefreshFunc(func(obj cache.IdentifiableObject) (io.ReadCloser, error) {
+	fetchRemoteAlwaysOk := func(obj cache.IdentifiableObject) (io.ReadCloser, error) {
 		return iohelper.CustomReadCloser(strings.NewReader("test-data"), nil), nil
-	})
+	}
 
 	t.Run("allow-expired", func(t *testing.T) {
 		defer t.Cleanup(func() {})

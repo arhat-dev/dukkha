@@ -6,7 +6,7 @@ result@tl#use-spec?str:
       define "test-text-template"
         `test-text-template`
       end
-  template: |-
+  script: |-
     template "foo"
     template "bar"
     template "test-text-template"

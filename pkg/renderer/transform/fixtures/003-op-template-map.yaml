@@ -1,10 +1,11 @@
 data@T?str:
   value: foo
   ops:
-  - template@?str:
-      foo: |-
-        {{ VALUE }}
-      bar: bar
+  - tmpl:
+      template@?str:
+        foo: |-
+          {{ VALUE }}
+        bar: bar
 ---
 data: |-
   bar: bar

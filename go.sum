@@ -19,6 +19,8 @@ github.com/arhat-dev/tengo/v2 v2.12.1-0.20220719235156-be261837907d/go.mod h1:qO
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
+github.com/benhoyt/goawk v1.20.0 h1:oz81agTfP/8Z7afMvmOwX4Ms9qTtGhZxPEzHCycIFds=
+github.com/benhoyt/goawk v1.20.0/go.mod h1:Dp3jBsApuiItYR9atsCm//q/70OnqjihLh5WkU6eW7U=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.2.0 h1:Qu+u9wR3Vd89LnlLMHvnZ5coJMWKQamqdz9/p5GNthA=
 github.com/bmatcuk/doublestar/v4 v4.2.0/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=

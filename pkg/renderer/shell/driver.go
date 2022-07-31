@@ -55,17 +55,14 @@ func (d *Driver) RenderYaml(
 			scriptBytes, err = yamlhelper.ToYamlBytes(v)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"renderer.%s: unexpected list item type %T: %w",
-					d.name, v, err,
+					"renderer.%s: unexpected list item type %T: %w", d.name, v, err,
 				)
 			}
 
 			scripts = append(scripts, stringhelper.Convert[string, byte](scriptBytes))
 		}
 	default:
-		return nil, fmt.Errorf(
-			"renderer.%s: unsupported input type %T", d.name, rawData,
-		)
+		return nil, fmt.Errorf("renderer.%s: unsupported input type %T", d.name, rawData)
 	}
 
 	var buf bytes.Buffer
@@ -73,9 +70,7 @@ func (d *Driver) RenderYaml(
 		rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"renderer.%s: creating embedded shell: %w", d.name, err,
-		)
+		return nil, fmt.Errorf("renderer.%s: creating embedded shell: %w", d.name, err)
 	}
 
 	parser := syntax.NewParser(
@@ -86,10 +81,7 @@ func (d *Driver) RenderYaml(
 		err = templateutils.RunScript(rc, runner, parser, script)
 
 		if err != nil {
-			return nil, fmt.Errorf(
-				"renderer.%s: %w",
-				d.name, err,
-			)
+			return nil, fmt.Errorf("renderer.%s: %w", d.name, err)
 		}
 	}
 

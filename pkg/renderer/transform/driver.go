@@ -2,21 +2,15 @@ package transform
 
 import (
 	"fmt"
-	"strings"
 
 	"arhat.dev/pkg/stringhelper"
 	"arhat.dev/pkg/yamlhelper"
 	"arhat.dev/rs"
-	"arhat.dev/tlang"
 	"gopkg.in/yaml.v3"
-	"mvdan.cc/sh/v3/interp"
-	"mvdan.cc/sh/v3/syntax"
 
 	di "arhat.dev/dukkha/internal"
 	"arhat.dev/dukkha/pkg/dukkha"
 	"arhat.dev/dukkha/pkg/renderer"
-	"arhat.dev/dukkha/pkg/templateutils"
-	"arhat.dev/dukkha/third_party/golang/text/template"
 )
 
 const (
@@ -98,10 +92,25 @@ type Spec struct {
 type Operation struct {
 	rs.BaseField `yaml:"-"`
 
-	TLang    *string   `yaml:"tlang,omitempty"`
-	Template *string   `yaml:"template,omitempty"`
-	Shell    *string   `yaml:"shell,omitempty"`
+	// AWK runs an awk script to process VALUE as input
+	AWK *awkSpec `yaml:"awk,omitempty"`
+
+	// TLang runs a tlang script to process VALUE
+	TLang *tlangSpec `yaml:"tlang,omitempty"`
+
+	// Tmpl executes a golang template to process VALUE
+	Tmpl *tmplSpec `yaml:"tmpl,omitempty"`
+
+	// Shell runs a bash script in the embedded bash shell to process VALUE
+	Shell *shellSpec `yaml:"shell,omitempty"`
+
+	// Checksum verifies checksum of the VALUE and leaves VALUE unchanged
 	Checksum *Checksum `yaml:"checksum,omitempty"`
+}
+
+type extendedUserFacingRenderContext interface {
+	dukkha.RenderingContext
+	di.VALUEGetter
 }
 
 func (op *Operation) Do(_rc dukkha.RenderingContext, value string) (_ string, err error) {
@@ -118,10 +127,7 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, value string) (_ string, er
 	})
 
 	// do not expose SetVALUE to template operation
-	rc := rc2.(interface {
-		dukkha.RenderingContext
-		di.VALUEGetter
-	})
+	rc := rc2.(extendedUserFacingRenderContext)
 
 	err = op.ResolveFields(rc, -1)
 	if err != nil {
@@ -129,70 +135,14 @@ func (op *Operation) Do(_rc dukkha.RenderingContext, value string) (_ string, er
 	}
 
 	switch {
+	case op.AWK != nil:
+		return op.AWK.Run(rc, value)
 	case op.TLang != nil:
-		var (
-			script = *op.TLang
-			parsed *tlang.Template
-			buf    strings.Builder
-		)
-
-		parsed, err = templateutils.CreateTLangTemplate(rc).Parse(script)
-		if err != nil {
-			err = fmt.Errorf("parse tlang %q: %w", script, err)
-			return
-		}
-
-		err = parsed.Execute(&buf, rc)
-		if err != nil {
-			err = fmt.Errorf("executing tlang %q: %w", script, err)
-			return
-		}
-
-		return buf.String(), nil
-	case op.Template != nil:
-		var (
-			tmpl   = *op.Template
-			parsed *template.Template
-			buf    strings.Builder
-		)
-
-		parsed, err = templateutils.CreateTextTemplate(rc).Parse(tmpl)
-		if err != nil {
-			err = fmt.Errorf("parsing template %q: %w", tmpl, err)
-			return
-		}
-
-		err = parsed.Execute(&buf, rc)
-		if err != nil {
-			err = fmt.Errorf("executing template %q: %w", tmpl, err)
-			return
-		}
-
-		return buf.String(), nil
+		return op.TLang.Run(rc)
+	case op.Tmpl != nil:
+		return op.Tmpl.Run(rc)
 	case op.Shell != nil:
-		var (
-			buf    strings.Builder
-			runner *interp.Runner
-		)
-		runner, err = templateutils.CreateShellRunner(
-			rc.WorkDir(), rc, nil, &buf, rc.Stderr(),
-		)
-		if err != nil {
-			err = fmt.Errorf("create embedded shell: %w", err)
-			return
-		}
-
-		parser := syntax.NewParser(
-			syntax.Variant(syntax.LangBash),
-		)
-
-		err = templateutils.RunScript(rc, runner, parser, *op.Shell)
-		if err != nil {
-			err = fmt.Errorf("run script: %w", err)
-			return
-		}
-
-		return buf.String(), nil
+		return op.Shell.Run(rc)
 	case op.Checksum != nil:
 		return value, op.Checksum.Verify(rc.FS())
 	default:

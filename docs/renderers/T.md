@@ -4,10 +4,12 @@
 foo@T:
   value: foo
   ops:
-  - template: |-
-      {{ VALUE }}-do-something
-  - shell: |-
-      echo ${VALUE}
+  - tmpl:
+      template: |-
+        {{ VALUE }}-do-something
+  - shell:
+      script: |-
+        echo ${VALUE}
 ```
 
 Use operations to transform string value.
@@ -30,16 +32,28 @@ foo@T:
   value: String Only, seriously
   # operations you want to take on the value
   ops:
+  # Execute awk script with value as input
+  - awk:
+      script: |-
+        $0 = tolower($0)
+      # supports "", csv, tsv
+      input_format: csv
+      # supports "", csv, tsv
+      output_format: tsv
+
   # Execute tlang script with VALUE
-  - tlang: |-
-      strings.Split "," VALUE
+  - tlang:
+      script: |-
+        strings.Split "," VALUE
   # Execute golang template with VALUE
-  - template: |-
-      add some {{- /* go */ -}} template
-      your value above is available as {{ VALUE }}
+  - tmpl:
+      template: |-
+        add some {{- /* go */ -}} template
+        your value above is available as {{ VALUE }}
   # Execute shell script with env ${VALUE}
-  - shell: |-
-      echo "${VALUE}"
+  - shell:
+      script: |-
+        echo "${VALUE}"
 
   # Checksum verify data integrity, input value is returned as result
   - checksum:
@@ -76,7 +90,8 @@ foo@T:
     # step (3): format the resolved `value` for render `af`
     # we are using type hint `str` to convert map as string since
     # template operation only accepts string value
-    - template@?str:
-        archive: {{ VALUE }}
-        path: in-archive-target-file
+    - tmpl:
+        template: |-
+          archive: {{ VALUE }}
+          path: in-archive-target-file
   ```

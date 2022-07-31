@@ -28,17 +28,19 @@ func TestTwoTierCache(t *testing.T) {
 	)
 
 	calledOk := 0
-	fetchRemoteAlwaysOk := RemoteCacheRefreshFunc(func(_ IdentifiableObject) (io.ReadCloser, error) {
+	// nolint:unparam
+	fetchRemoteAlwaysOk := func(IdentifiableObject) (io.ReadCloser, error) {
 		calledOk++
 		return ioutil.NopCloser(strings.NewReader(cachedData)), nil
-	})
+	}
 
 	calledFail := 0
 	fetchRemoteError := fmt.Errorf("test error")
-	fetchRemoteAlwaysFail := RemoteCacheRefreshFunc(func(_ IdentifiableObject) (io.ReadCloser, error) {
+	// nolint:unparam
+	fetchRemoteAlwaysFail := func(IdentifiableObject) (io.ReadCloser, error) {
 		calledFail++
 		return nil, fetchRemoteError
-	})
+	}
 
 	obj := IdentifiableString("foo")
 

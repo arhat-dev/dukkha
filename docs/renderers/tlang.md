@@ -43,7 +43,7 @@ __NOTE:__ When using `path` for template inclusion (`include` option) reads file
 ```yaml
 foo@tlang#use-spec:
   # template to render
-  template: |-
+  script: |-
     template "foo"
 
     # access variables here and in included templates

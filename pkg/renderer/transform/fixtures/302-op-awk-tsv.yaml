@@ -1,0 +1,21 @@
+data@T:
+  value: "Foo\tfoo\tFOO\tfoO\tfOO"
+  ops:
+  - awk:
+      # code from https://github.com/benhoyt/countwords/blob/master/optimized.awk
+      script: |-
+        {
+          $0 = tolower($0)
+          for (i = 1; i <= NF; i++)
+            counts[$i]++
+        }
+
+        END {
+          for (k in counts)
+            print k, counts[k]
+        }
+      csv_input:
+        sep: "\t"
+---
+data: |
+  foo 5

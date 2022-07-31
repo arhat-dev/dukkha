@@ -59,7 +59,7 @@ tools:
   - name: local
   - name: in-ctr
     cmd@tlang#use-spec:
-      template: include "golang.cmd.ctr" .
+      script: include "golang.cmd.ctr" .
       include:
       - text@presets?str: templates/image/flavored-tag.tl
       - text@presets?str: golang/cmd/ctr.tl
@@ -72,7 +72,7 @@ tools:
   - name: local
   - name: in-ctr
     cmd@tlang#use-spec:
-      template: include "cosign.cmd.ctr" .
+      script: include "cosign.cmd.ctr" .
       include:
       - text@presets?str: cosign/cmd/ctr.tl
 
@@ -90,7 +90,7 @@ tools:
   - name: local
   - name: in-ctr
     cmd@tlang#use-spec:
-      template: include "buildah.cmd.ctr" .
+      script: include "buildah.cmd.ctr" .
 
       include:
       - text@presets?str: buildah/cmd/ctr.tl

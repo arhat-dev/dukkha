@@ -10,7 +10,7 @@ result@tl#use-spec?str:
       `testdata/foo.tl`
   - text: |-
       `testdata/no-define.tl`
-  template: include "#4" .
+  script: include "#4" .
 ---
 result: |-
   testdata/no-define.tl

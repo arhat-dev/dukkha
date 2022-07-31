@@ -12,17 +12,19 @@ func TestCache_Get(t *testing.T) {
 
 	const cachedData = "test-data"
 	calledOK := 0
-	fetchDataAlwaysOk := LocalCacheRefreshFunc(func(io IdentifiableObject) ([]byte, error) {
+	// nolint:unparam
+	fetchDataAlwaysOk := func(IdentifiableObject) ([]byte, error) {
 		calledOK++
 		return []byte(cachedData), nil
-	})
+	}
 
 	fetchDataErr := fmt.Errorf("test error")
 	calledFail := 0
-	fetchDataAlwaysFail := LocalCacheRefreshFunc(func(io IdentifiableObject) ([]byte, error) {
+	// nolint:unparam
+	fetchDataAlwaysFail := func(IdentifiableObject) ([]byte, error) {
 		calledFail++
 		return nil, fetchDataErr
-	})
+	}
 
 	obj := IdentifiableString("foo")
 	t.Run("Never Cached", func(t *testing.T) {

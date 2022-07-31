@@ -96,7 +96,7 @@ func (d *Driver) RenderYaml(
 			return nil, fmt.Errorf("renderer.%s: %s", d.name, err)
 		}
 
-		tplStr = spec.Template
+		tplStr = spec.Script
 		include = spec.Config.Include
 		variables = spec.Config.Variables.NormalizedValue()
 	} else {
@@ -213,7 +213,7 @@ func RenderTlang(
 
 	tpl, err := tpl.Parse(tplStr)
 	if err != nil {
-		return nil, fmt.Errorf("parsing template: %w", err)
+		return nil, fmt.Errorf("parse script: %w", err)
 	}
 
 	// Override placeholder funcs immediately before executing template

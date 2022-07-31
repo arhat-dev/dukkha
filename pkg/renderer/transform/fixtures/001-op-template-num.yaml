@@ -1,6 +1,7 @@
 data@T:
   value: "10.10000"
   ops:
-  - template: "{{- fromYaml VALUE -}}"
+  - tmpl:
+      template: "{{- fromYaml VALUE -}}"
 ---
 data: "10.1"

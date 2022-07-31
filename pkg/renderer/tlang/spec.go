@@ -27,8 +27,8 @@ type ConfigSpec struct {
 type InputSpec struct {
 	rs.BaseField
 
-	// Template text
-	Template string `yaml:"template"`
+	// Script text of tlang
+	Script string `yaml:"script"`
 
 	Config ConfigSpec `yaml:",inline"`
 }

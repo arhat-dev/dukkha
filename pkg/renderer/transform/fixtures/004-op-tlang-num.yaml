@@ -1,6 +1,7 @@
 data@T:
   value: "10.10000"
   ops:
-  - tlang: fromYaml VALUE
+  - tlang:
+      script: fromYaml VALUE
 ---
 data: "10.1"
