@@ -16,6 +16,9 @@ data@T:
         }
       csv_input:
         sep: "\t"
+  # additional step to make testing on windows work ("\r\n" newline)
+  - tlang:
+      script: VALUE | trimSpace
 ---
-data: |
+data: |-
   foo 5

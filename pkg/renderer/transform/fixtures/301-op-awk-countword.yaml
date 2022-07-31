@@ -16,6 +16,9 @@ data@T:
             print k, counts[k]
         }
       csv_output: {}
+  # additional step to make testing on windows work ("\r\n" newline)
+  - tlang:
+      script: VALUE | trimSpace
 ---
-data: |
+data: |-
   foo,5
