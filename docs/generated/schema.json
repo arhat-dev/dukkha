@@ -1193,16 +1193,16 @@
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": "matched entries",
-          "x-intellij-html-description": "matched entries"
+          "description": "matched entries in Values",
+          "x-intellij-html-description": "matched entries in Values"
         },
         "include": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well",
-          "x-intellij-html-description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well"
+          "description": "extra match items\n\nNOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "extra match items\n\nNOTE: included entries will be excluded by Exclude entires as well"
         }
       },
       "preferredOrder": [
@@ -1210,14 +1210,16 @@
         "include"
       ],
       "additionalProperties": false,
+      "description": "matrix specification with rendering suffix support",
+      "x-intellij-html-description": "matrix specification with rendering suffix support",
       "patternProperties": {
         "^exclude@.*": {
           "items": {
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": "matched entries",
-          "x-intellij-html-description": "matched entries"
+          "description": "matched entries in Values",
+          "x-intellij-html-description": "matched entries in Values"
         },
         "^exclude@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1227,8 +1229,8 @@
             "$ref": "#/definitions/arhat.dev.dukkha.pkg.matrix.SpecItem"
           },
           "type": "array",
-          "description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well",
-          "x-intellij-html-description": "Include\n\nNOTE: included entries will be excluded by Exclude entires as well"
+          "description": "extra match items\n\nNOTE: included entries will be excluded by Exclude entires as well",
+          "x-intellij-html-description": "extra match items\n\nNOTE: included entries will be excluded by Exclude entires as well"
         },
         "^include@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"
@@ -1236,8 +1238,8 @@
       }
     },
     "arhat.dev.dukkha.pkg.matrix.SpecItem": {
-      "description": "a helper type to support rendering suffix\nfor list of maps, used in Include/Exclude",
-      "x-intellij-html-description": "a helper type to support rendering suffix\nfor list of maps, used in Include/Exclude"
+      "description": "a wrapper of map[string][]string to support rendering suffix\nin a list of maps, used in Include/Exclude",
+      "x-intellij-html-description": "a wrapper of map[string][]string to support rendering suffix\nin a list of maps, used in Include/Exclude"
     },
     "arhat.dev.dukkha.pkg.renderer.CacheConfig": {
       "properties": {
