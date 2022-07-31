@@ -22,17 +22,14 @@ func TestDiff(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/diff",
-		func() interface{} { return new(TestCase) },
-		func() interface{} {
+		func() *TestCase { return new(TestCase) },
+		func() *[]*Expected {
 			var keys []*Expected
 			return &keys
 		},
-		func(t *testing.T, spec, exp interface{}) {
-			s := spec.(*TestCase)
-			expectedEntries := *exp.(*[]*Expected)
-
+		func(t *testing.T, in *TestCase, exp *[]*Expected) {
 			var actualEntries []*Expected
-			for _, ent := range Diff(s.Original, s.Current) {
+			for _, ent := range Diff(in.Original, in.Current) {
 				actualEntries = append(actualEntries, &Expected{
 					Key:       ent.Key,
 					Kind:      ent.Kind,
@@ -40,8 +37,8 @@ func TestDiff(t *testing.T) {
 				})
 			}
 
-			if !assert.EqualValues(t, expectedEntries, actualEntries) {
-				for i, expected := range expectedEntries {
+			if !assert.EqualValues(t, *exp, actualEntries) {
+				for i, expected := range *exp {
 					assert.EqualValues(t, expected, actualEntries[i])
 				}
 			}

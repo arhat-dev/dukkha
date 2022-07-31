@@ -93,13 +93,13 @@ func TestSetDefaultImageTag(t *testing.T) {
 				rc, GetFullImageName_UseDefault_IfIfNoTagSet(rc, "foo", false), false,
 			)
 			switch {
-			case spec.Match(caseWorkTreeCleanTagPresent):
+			case spec.Contains(caseWorkTreeCleanTagPresent):
 				assert.Equal(t, "foo:tag-amd64", actual)
-			case spec.Match(caseWorkTreeCleanIsDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanIsDefaultBranch):
 				assert.Equal(t, "foo:latest-amd64", actual)
-			case spec.Match(caseWorkTreeCleanNotDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanNotDefaultBranch):
 				assert.Equal(t, "foo:e-xtream-branch-commit-amd64", actual)
-			case spec.Match(caseWorkTreeDirty):
+			case spec.Contains(caseWorkTreeDirty):
 				assert.Equal(t, "foo:dev-e-xtream-branch-amd64", actual)
 			default:
 				assert.Fail(t, "unmatched condition")
@@ -111,13 +111,13 @@ func TestSetDefaultImageTag(t *testing.T) {
 				rc, GetFullImageName_UseDefault_IfIfNoTagSet(rc, "foo", true), true,
 			)
 			switch {
-			case spec.Match(caseWorkTreeCleanTagPresent):
+			case spec.Contains(caseWorkTreeCleanTagPresent):
 				assert.Equal(t, "foo:tag-linux-amd64", actual)
-			case spec.Match(caseWorkTreeCleanIsDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanIsDefaultBranch):
 				assert.Equal(t, "foo:latest-linux-amd64", actual)
-			case spec.Match(caseWorkTreeCleanNotDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanNotDefaultBranch):
 				assert.Equal(t, "foo:e-xtream-branch-commit-linux-amd64", actual)
-			case spec.Match(caseWorkTreeDirty):
+			case spec.Contains(caseWorkTreeDirty):
 				assert.Equal(t, "foo:dev-e-xtream-branch-linux-amd64", actual)
 			default:
 				assert.Fail(t, "unmatched condition")
@@ -129,13 +129,13 @@ func TestSetDefaultImageTag(t *testing.T) {
 				rc, GetFullManifestName_UseDefault_IfNoTagSet(rc, "foo"),
 			)
 			switch {
-			case spec.Match(caseWorkTreeCleanTagPresent):
+			case spec.Contains(caseWorkTreeCleanTagPresent):
 				assert.Equal(t, "foo:tag", actual)
-			case spec.Match(caseWorkTreeCleanIsDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanIsDefaultBranch):
 				assert.Equal(t, "foo:latest", actual)
-			case spec.Match(caseWorkTreeCleanNotDefaultBranch):
+			case spec.Contains(caseWorkTreeCleanNotDefaultBranch):
 				assert.Equal(t, "foo:e-xtream-branch", actual)
-			case spec.Match(caseWorkTreeDirty):
+			case spec.Contains(caseWorkTreeDirty):
 				assert.Equal(t, "foo:dev-e-xtream-branch", actual)
 			default:
 				assert.Fail(t, "unmatched condition")

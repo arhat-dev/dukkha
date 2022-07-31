@@ -27,26 +27,22 @@ func TestNode_Unmarshal(t *testing.T) {
 	}
 
 	testhelper.TestFixtures(t, "./fixtures/trie",
-		func() interface{} { return new(Node) },
-		func() interface{} {
+		func() *Node { return new(Node) },
+		func() *[]CheckSpec {
 			var specs []CheckSpec
 			return &specs
 		},
-		func(t *testing.T, in, cs interface{}) {
-			n := in.(*Node)
-			checkSpecs := *cs.(*[]CheckSpec)
-
-			for _, spec := range checkSpecs {
+		func(t *testing.T, in *Node, cs *[]CheckSpec) {
+			for _, spec := range *cs {
 				func() {
-					node, tailKey := n.Get(spec.Key)
+					node, tailKey := in.Get(spec.Key)
 
 					defer func() {
 						// kept for debugging purpose
 						_, _ = node, tailKey
 						if p := recover(); p != nil {
-							assert.Failf(t, "",
-								"panic for spec %v (size=%d): %v",
-								spec.Key, len(spec.Key), p,
+							assert.Failf(
+								t, "", "panic for spec %v (size=%d): %v", spec.Key, len(spec.Key), p,
 							)
 						}
 					}()

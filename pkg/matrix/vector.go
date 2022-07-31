@@ -18,6 +18,7 @@ func NewVector(elems ...string) *Vector {
 	return rs.Init(&Vector{Vec: elems}, nil).(*Vector)
 }
 
+// Vector is a wrapper of a string slice for rendering suffix support
 type Vector struct {
 	rs.BaseField
 
@@ -54,6 +55,7 @@ func (v *Vector) Empty() bool {
 	return len(v.Vec) == 0
 }
 
+// UnmarshalYAML pretends
 func (v *Vector) UnmarshalYAML(value *yaml.Node) error {
 	// fake a map for vector
 	return v.BaseField.UnmarshalYAML(&yaml.Node{

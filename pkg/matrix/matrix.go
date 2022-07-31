@@ -7,26 +7,27 @@ import (
 	"arhat.dev/dukkha/pkg/sliceutils"
 )
 
-// SpecItem is a helper type to support rendering suffix
-// for list of maps, used in Include/Exclude
+// SpecItem is a wrapper of map[string][]string to support rendering suffix
+// in a list of maps, used in Include/Exclude
 type SpecItem struct {
 	rs.BaseField `yaml:"-"`
 
 	Data map[string]*Vector `yaml:",inline"`
 }
 
+// Spec is the matrix specification with rendering suffix support
 type Spec struct {
 	rs.BaseField `yaml:"-"`
 
-	// Exclude matched entries
+	// Exclude matched entries in Values
 	Exclude []*SpecItem `yaml:"exclude,omitempty"`
 
-	// Include
+	// Include extra match items
 	//
 	// NOTE: included entries will be excluded by Exclude entires as well
 	Include []*SpecItem `yaml:"include,omitempty"`
 
-	// Values to catch all matrix values
+	// Values of all top-level key value vectors
 	Values map[string]*Vector `yaml:",inline,omitempty"`
 }
 
@@ -80,7 +81,7 @@ loop:
 		spec := Entry(mat[i])
 
 		for _, toRemove := range removeMatchList {
-			if spec.Match(toRemove) {
+			if spec.Contains(toRemove) {
 				continue loop
 			}
 		}
@@ -98,7 +99,7 @@ loop:
 		}
 
 		for _, f := range matchFilter {
-			if spec.Match(f) {
+			if spec.Contains(f) {
 				ret = append(ret, spec)
 				continue loop
 			}
@@ -131,7 +132,7 @@ loop:
 			}
 
 			for _, f := range matchFilter {
-				if includeEntry.Match(f) {
+				if includeEntry.Contains(f) {
 					ret = append(ret, includeEntry)
 					continue addInclude
 				}
@@ -142,11 +143,11 @@ loop:
 	return
 }
 
-// AsFilter converts this spec to a Filter
+// AsFilter creates a Filter based on this spec
 //
-// s.Values and s.Include will become match rules
+// 	* s.Values and s.Include become match rules
+//	* s.Exclude becomes ignore rules
 //
-// s.Exclude will become ignore rules
 func (s *Spec) AsFilter() (ret Filter) {
 	if s.IsEmpty() {
 		return

@@ -1,25 +1,27 @@
 package matrix
 
+// A Filter represents a set of match/ignore rules of a matrix
 type Filter struct {
 	match  map[string]*Vector
 	ignore [][2]string
 }
 
-func (f *Filter) Equals(a *Filter) bool {
+// Equals returns true when everything in x is the same with what in f
+func (f *Filter) Equals(x *Filter) bool {
 	if f == nil {
-		return a == nil
+		return x == nil
 	}
 
-	if a == nil {
+	if x == nil {
 		return false
 	}
 
-	if len(f.match) != len(a.match) || len(f.ignore) != len(a.ignore) {
+	if len(f.match) != len(x.match) || len(f.ignore) != len(x.ignore) {
 		return false
 	}
 
 	for k, v := range f.match {
-		va, ok := a.match[k]
+		va, ok := x.match[k]
 		if !ok {
 			return false
 		}
@@ -30,7 +32,7 @@ func (f *Filter) Equals(a *Filter) bool {
 	}
 
 	for i, v := range f.ignore {
-		va := a.ignore[i]
+		va := x.ignore[i]
 
 		if v[0] != va[0] || v[1] != va[1] {
 			return false
@@ -40,6 +42,7 @@ func (f *Filter) Equals(a *Filter) bool {
 	return true
 }
 
+// AddMatch adds a key value match pair
 func (f *Filter) AddMatch(key, value string) {
 	if f.match == nil {
 		f.match = make(map[string]*Vector)
@@ -53,11 +56,13 @@ func (f *Filter) AddMatch(key, value string) {
 	}
 }
 
+// AddIgnore adds a ignore rule matching key=value
 func (f *Filter) AddIgnore(key, value string) {
 	f.ignore = append(f.ignore, [2]string{key, value})
 }
 
-// AsEntry converts f.match to a matrix Entry (used for task matrix)
+// AsEntry converts f.match to a matrix [Entry] (used for task matrix)
+//
 // should only be used when you are sure the matrix filter is set
 // for your task matrix execution
 func (f *Filter) AsEntry() Entry {
@@ -77,26 +82,23 @@ func (f *Filter) AsEntry() Entry {
 	return ret
 }
 
-func (f *Filter) Clone() Filter {
-	var (
-		matchFilter  = make(map[string]*Vector, len(f.match))
-		ignoreFilter = make([][2]string, len(f.ignore))
-	)
+// Clone deep copies f to a new filter
+func (f *Filter) Clone() (ret Filter) {
+	ret.match = make(map[string]*Vector, len(f.match))
+	ret.ignore = make([][2]string, len(f.ignore))
 
 	for k, v := range f.match {
-		matchFilter[k] = NewVector(v.Vec...)
+		ret.match[k] = NewVector(v.Vec...)
 	}
 
 	for i, kv := range f.ignore {
-		ignoreFilter[i] = [2]string{kv[0], kv[1]}
+		ret.ignore[i] = [2]string{kv[0], kv[1]}
 	}
 
-	return Filter{
-		match:  matchFilter,
-		ignore: ignoreFilter,
-	}
+	return
 }
 
+// IsEmpty returns true when there is nothing in f
 func (f *Filter) IsEmpty() bool {
 	return f == nil || (len(f.match) == 0 && len(f.ignore) == 0)
 }
