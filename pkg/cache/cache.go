@@ -6,19 +6,25 @@ import (
 	lru "github.com/die-net/lrucache"
 )
 
-// NewCache is a in memory cache
+type LocalCacheRefreshFunc = func(obj IdentifiableObject) ([]byte, error)
+
+// NewCache is an in memory cache
 //
-// maxItemBytes < 0, no limit
-// 				> 0, only data within this limit can be cached
-// 				== 0, disable in memory caching
+// when maxItemBytes
+// 	* < 0, no limit
+// 	* > 0, only data within this limit can be cached
+// 	* == 0, disable in memory caching
 //
-// maxBytes < 0, no limit
-// 			> 0, limit total cached in memory data with this size
-// 			== 0, disable in memory caching
+// when maxBytes
+// 	* < 0, no limit
+//	* > 0, limit total cached in memory data with this size
+//	* == 0, disable in memory caching
 //
-// maxAgeSeconds < 0, always fetch data
-// 				 > 0, data become invalid after this duration
-// 				 == 0, defaults to 5
+// when maxAgeSeconds
+//	* < 0, always fetch data
+//	* > 0, data become invalid after this duration
+//	* == 0, defaults to 5
+//
 func NewCache(maxItemBytes, maxBytes, maxAgeSeconds int64) *Cache {
 	if maxBytes < 0 {
 		maxBytes = math.MaxInt64
@@ -38,6 +44,7 @@ func NewCache(maxItemBytes, maxBytes, maxAgeSeconds int64) *Cache {
 	}
 }
 
+// Cache is an in memory lru cache
 type Cache struct {
 	maxItemSize int64
 	cache       *lru.LruCache

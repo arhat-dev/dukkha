@@ -27,7 +27,6 @@ func TestConfig(t *testing.T) {
 
 			ctx := dukkha_test.NewTestContext(context.TODO(), t.TempDir())
 			ctx.AddRenderer("file", file.NewDefault("file"))
-			// ctx.AddRenderer("file", file.NewDefault("file"))
 
 			assert.NoError(t, actual.Resolve(ctx, conf.ReadFlag_Full))
 			assert.NoError(t, expected.Resolve(ctx, conf.ReadFlag_Full))

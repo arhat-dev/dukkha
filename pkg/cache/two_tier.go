@@ -2,6 +2,7 @@ package cache
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -15,23 +16,29 @@ import (
 
 	"arhat.dev/pkg/fshelper"
 	"arhat.dev/pkg/log"
-	"arhat.dev/pkg/md5helper"
+	"arhat.dev/pkg/stringhelper"
 	lru "github.com/die-net/lrucache"
 )
 
-// NewTwoTierCache
+type RemoteCacheRefreshFunc = func(obj IdentifiableObject) (io.ReadCloser, error)
+
+// NewTwoTierCache creates a new two-tier caching bached by local file and runtime memory
 //
-// itemMaxBytes < 0, no limit to item size
-// 				> 0, only items with size below can be cached
-// 				== 0, in memory caching disabled
+// when itemMaxBytes
+//	* < 0, no limit to item size
+//	* > 0, only items with size below can be cached
+//	* == 0, in memory caching disabled
 //
-// maxBytes < 0, no limit to total cache size
-// 			> 0, limit cache size to maxBytes
-// 			== 0, in memory caching disabled
+// when maxBytes
+//	* < 0, no limit to total cache size
+//	* > 0, limit cache size to maxBytes
+//	* == 0, in memory caching disabled
 //
-// maxAgeSeconds <= 0, once cached in memory, always valid during runtime,
-// 					   but will always fetch from remote if in memory cache lost
-// 				 > 0, limit both in memory and local file cache to this long.
+// when maxAgeSeconds
+//	* <= 0, once cached in memory, always valid during runtime,
+// 			but will always fetch from remote if in memory cache lost
+//	* > 0, limit both in memory and local file cache to this long.
+//
 func NewTwoTierCache(
 	cacheFS *fshelper.OSFS,
 	itemMaxBytes, maxBytes, maxAgeSeconds int64,
@@ -52,6 +59,8 @@ func NewTwoTierCache(
 	}
 }
 
+// TwoTierCache implements a caching mechanism backed by memory and file with
+// refreshing on need and auto removal on expiration
 type TwoTierCache struct {
 	itemMaxBytes int64
 
@@ -59,36 +68,37 @@ type TwoTierCache struct {
 	memcache *lru.LruCache
 }
 
-// Get cached content
+// Get returns latest cached content, but when there is no valid cache and refresh failed
+// last expired content is returned with expired set to true
 //
-// now is the unix timestamp of the time being
+// refresh is called when there is no valid cache
+//
+// now is the unix timestamp
 func (c *TwoTierCache) Get(
 	obj IdentifiableObject,
 	now int64,
 	allowExpired bool,
 	refresh RemoteCacheRefreshFunc,
-) ([]byte, bool, error) {
-	_, content, expired, err := c.get(obj, now, true, refresh)
-	return content, expired, err
+) (content []byte, expired bool, err error) {
+	_, content, expired, err = c.get(obj, now, true, refresh)
+	return
 }
 
-// GetPath find local file path to cached data
-//
-// now is the unix timestamp of the time being
+// GetPath is like [Get], but returns a local file path of the lastest cached data
 func (c *TwoTierCache) GetPath(
 	obj IdentifiableObject,
 	now int64,
 	allowExpired bool,
 	refresh RemoteCacheRefreshFunc,
-) (string, bool, error) {
-	f, _, expired, err := c.get(obj, now, false, refresh)
-	return f, expired, err
+) (file string, expired bool, err error) {
+	file, _, expired, err = c.get(obj, now, false, refresh)
+	return
 }
 
 func (c *TwoTierCache) get(
 	obj IdentifiableObject,
 	now int64,
-	retConent bool,
+	retConent bool, // when set to false, return file path
 	refresh RemoteCacheRefreshFunc,
 ) (file string, content []byte, isExpired bool, err error) {
 	if retConent {
@@ -205,14 +215,31 @@ func (c *TwoTierCache) get(
 }
 
 func formatCacheFilenamePrefix(id string) string {
-	return hex.EncodeToString(md5helper.Sum([]byte(id)))
+	var buf [md5.Size * 2]byte
+
+	h := md5.New()
+	h.Write(stringhelper.ToBytes[byte, byte](id))
+	h.Sum(buf[md5.Size : md5.Size : md5.Size*2])
+
+	hex.Encode(buf[:], buf[md5.Size:])
+	return stringhelper.Convert[string, byte](buf[:])
 }
 
-func formatLocalCacheFilename(prefix, suffix string, now int64) string {
-	timestamp := strconv.FormatInt(now, 10)
+func formatLocalCacheFilename(prefix, suffix string, timestamp int64) string {
+	var sb strings.Builder
+	sb.Grow(len(prefix) + 1 + 20 + len(suffix))
+	sb.WriteString(prefix)
+	sb.WriteByte('-')
+
+	ts := strconv.FormatInt(timestamp, 10)
 	// int64 can have at most 20 digits
-	timestamp = strings.Repeat("0", 20-len(timestamp)) + timestamp
-	return prefix + "-" + timestamp + suffix
+	for i := 20 - len(ts); i > 0; i-- {
+		sb.WriteByte('0')
+	}
+
+	sb.WriteString(ts)
+	sb.WriteString(suffix)
+	return sb.String()
 }
 
 func storeLocalCache(
@@ -222,14 +249,14 @@ func storeLocalCache(
 	returnContent bool,
 ) (int64, []byte, error) {
 	if ofs.Chmod(dest, 0600) == nil {
-		defer func() { _ = ofs.Chmod(dest, 0400) }()
+		defer ofs.Chmod(dest, 0400)
 	}
 
 	f, err := ofs.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0400)
 	if err != nil {
 		return 0, nil, err
 	}
-	defer func() { _ = f.Close() }()
+	defer f.Close()
 
 	var dst io.Writer = f.(*os.File)
 	var buf bytes.Buffer
@@ -249,14 +276,13 @@ func storeLocalCache(
 	return n, nil, nil
 }
 
-// lookupLocalCache to find latest cache file in cacheDir for object
-// it will also delete all but last expired cache file
+// lookupLocalCache finds all cache files in cacheDir matching prefix, suffix and time limit
 func lookupLocalCache(
 	cacheDir fs.FS,
 	prefix string,
 	// optional suffix to cached file (e.g. ".yaml")
 	suffix string,
-	// notBefore is the unix timestamp, all cache created before this timetamp is marked as expired
+	// notBefore is the unix timestamp, all cache created before this timetamp are considered expired
 	notBefore int64,
 ) (active, expired, invalid []string, err error) {
 	// find from local cache

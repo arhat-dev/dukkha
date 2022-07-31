@@ -12,6 +12,7 @@ import (
 	"testing/fstest"
 
 	"arhat.dev/pkg/fshelper"
+	"arhat.dev/pkg/testhelper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -234,42 +235,6 @@ func TestFormatLocalCacheFilename(t *testing.T) {
 	}
 }
 
-type alwaysErrFS struct {
-	err error
-}
-
-func (fs *alwaysErrFS) Open(name string) (fs.File, error) {
-	return nil, fs.err
-}
-
-// NewAlwaysErrFS creates an fs.FS that always produce err
-// if err is nil, fs.ErrInvalid is returned by default
-func NewAlwaysErrFS(err error) fs.FS {
-	if err == nil {
-		err = fs.ErrInvalid
-	}
-
-	return &alwaysErrFS{err: err}
-}
-
-type alwaysFailReader struct {
-	err error
-}
-
-func (r *alwaysFailReader) Read(p []byte) (int, error) {
-	return 0, r.err
-}
-
-func NewAlwaysFailReader(err error) io.Reader {
-	if err == nil {
-		err = io.ErrUnexpectedEOF
-	}
-
-	return &alwaysFailReader{
-		err: err,
-	}
-}
-
 func TestStoreLocalCache(t *testing.T) {
 
 	t.Run("Invalid Path", func(t *testing.T) {
@@ -296,7 +261,7 @@ func TestStoreLocalCache(t *testing.T) {
 			return tmpdir, nil
 		})
 
-		size, content, err := storeLocalCache(ofs, "test", NewAlwaysFailReader(io.ErrClosedPipe), true)
+		size, content, err := storeLocalCache(ofs, "test", testhelper.NewAlwaysFailReader(io.ErrClosedPipe), true)
 		assert.ErrorIs(t, err, io.ErrClosedPipe)
 		assert.Nil(t, content)
 		assert.Zero(t, size)
@@ -348,8 +313,8 @@ func TestLookupLocalCache_fs(t *testing.T) {
 		fs     fs.FS
 		expErr error
 	}{
-		{"Valid ErrNotExist", NewAlwaysErrFS(fs.ErrNotExist), nil},
-		{"Invalid ErrPerm", NewAlwaysErrFS(fs.ErrPermission), fs.ErrPermission},
+		{"Valid ErrNotExist", testhelper.NewAlwaysErrFS(fs.ErrNotExist), nil},
+		{"Invalid ErrPerm", testhelper.NewAlwaysErrFS(fs.ErrPermission), fs.ErrPermission},
 		{"Valid Empty FS", fstest.MapFS{}, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
