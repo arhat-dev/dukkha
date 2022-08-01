@@ -98,9 +98,9 @@ func ArchByCPUFeatures(data CPU) archconst.ArchValue {
 		default:
 			if t.Features.HasAll(X86Feature_SSE) {
 				return archconst.ARCH_AMD64_V1
-			} else {
-				return archconst.ARCH_X86
 			}
+
+			return archconst.ARCH_X86
 		}
 	default:
 		return ""

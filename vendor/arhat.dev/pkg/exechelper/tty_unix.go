@@ -41,6 +41,7 @@ func startCmdWithTty(cmd *exec.Cmd) (
 
 	doResize = func(cols, rows uint16) error {
 		return pty.Setsize(f, pty.Winsize{
+			// nolint:unconvert
 			Cols: uint16(cols), Rows: uint16(rows),
 		})
 	}

@@ -18,6 +18,9 @@ type ToolImpl interface {
 	Kind() dukkha.ToolKind
 }
 
+// BaseTool is the helper to wrap plain old tool spec as dukkha.Tool
+//
+// NOTE: V MUST be a struct type, T MUST be *V
 type BaseTool[V any, T ToolImpl] struct {
 	rs.BaseField `yaml:"-"`
 

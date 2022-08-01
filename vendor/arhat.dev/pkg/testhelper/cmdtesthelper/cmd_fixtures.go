@@ -8,8 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"arhat.dev/rs"
 	"github.com/stretchr/testify/assert"
+
+	"arhat.dev/rs"
 
 	"arhat.dev/pkg/matrixhelper"
 	"arhat.dev/pkg/testhelper"

@@ -117,7 +117,11 @@ AssumeHardFloat:
 }
 
 // Format arch value with name and variant info
-func Format[R ~string, B ~byte, T stringhelper.String[B]](name T, littleEndian, softfloat bool, microArch string) (_ R, ok bool) {
+func Format[R ~string, B ~byte, T stringhelper.String[B]](
+	name T,
+	littleEndian, softfloat bool,
+	microArch string,
+) (_ R, ok bool) {
 	nameStr := stringhelper.Convert[R, B](name)
 
 	switch nameStr {

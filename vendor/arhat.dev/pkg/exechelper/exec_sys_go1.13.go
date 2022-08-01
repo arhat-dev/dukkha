@@ -1,6 +1,7 @@
 //go:build go1.13
 // +build go1.13
 
+// nolint:revive
 package exechelper
 
 import (

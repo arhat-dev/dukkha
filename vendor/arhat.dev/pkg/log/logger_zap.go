@@ -482,6 +482,8 @@ func Inline(val zapcore.ObjectMarshaler) Field {
 // Since byte/uint8 and rune/int32 are aliases, Any can't differentiate between
 // them. To minimize surprises, []byte values are treated as binary blobs, byte
 // values are treated as uint8, and runes are always treated as integers.
+//
+// nolint:gocyclo
 func Any(key string, value interface{}) Field {
 	switch val := value.(type) {
 	case zapcore.ObjectMarshaler:
@@ -942,7 +944,7 @@ func (errs errArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 		// allocating, pool the wrapper type.
 		elem := _errArrayElemPool.Get().(*errArrayElem)
 		elem.error = errs[i]
-		arr.AppendObject(elem)
+		_ = arr.AppendObject(elem)
 		elem.error = nil
 		_errArrayElemPool.Put(elem)
 	}

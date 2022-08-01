@@ -77,6 +77,7 @@ func RunQuery(
 	return
 }
 
+// nolint:revive
 func CreateResultToTextHandleFuncForJsonOrYaml(
 	output io.StringWriter,
 	marshalFunc func(in any) ([]byte, error),
@@ -90,15 +91,17 @@ func CreateResultToTextHandleFuncForJsonOrYaml(
 		if notWrote {
 			notWrote = false
 		} else {
-			output.WriteString("\n")
+			_, _ = output.WriteString("\n")
 		}
 
-		output.WriteString(MarshalJsonOrYamlQueryResult(result, marshalFunc))
+		_, _ = output.WriteString(MarshalJsonOrYamlQueryResult(result, marshalFunc))
 		return nil
 	}
 }
 
 // MarshalJsonOrYamlQueryResult from RunQuery
+//
+// nolint:revive
 func MarshalJsonOrYamlQueryResult(
 	result []any,
 	marshalFunc func(in any) ([]byte, error),

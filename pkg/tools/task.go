@@ -36,8 +36,9 @@ func NewTask[V any, T BaseTaskType](toolName string) dukkha.Task {
 	return ret
 }
 
-// V is the struct type of TaskImpl
-// T is the pointer type of V
+// BaseTask is the helper to wrap plain old task spec as dukkha.Task
+//
+// NOTE: V MUST be a struct type, T MUST be *V
 type BaseTask[V any, T TaskImpl] struct {
 	rs.BaseField `yaml:"-"`
 

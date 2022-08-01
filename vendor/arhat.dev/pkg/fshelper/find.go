@@ -51,6 +51,7 @@ type FindOptions struct {
 // FindOp is the bitset of find operations
 type FindOp uint32
 
+// nolint:revive
 const (
 	FindOp_CheckDepth FindOp = 1 << iota
 
@@ -228,7 +229,7 @@ func (ofs *OSFS) Find(fopts *FindOptions, startpath string) (ret []string, err e
 		}
 
 		// TODO: handle err?
-		return nil
+		return dirErr
 	})
 
 	return
@@ -237,17 +238,23 @@ func (ofs *OSFS) Find(fopts *FindOptions, startpath string) (ret []string, err e
 // TryMatch checks whether DirEntry d satisfies FindOptions
 //
 // path and d should match fs.WalkFunc definition
+//
+// nolint:gocyclo
 func (ofs *OSFS) TryMatch(opts *FindOptions, path string, d fs.DirEntry) (matched bool, err error) {
 	const (
 		mayNeedReadlink = FindOp_CheckNameFollowSymlink | FindOp_CheckNameIgnoreCaseFollowSymlink
 
-		needType    = FindOp_CheckTypeNotFile | FindOp_CheckTypeIsFile | FindOp_CheckSize /* only check size when it's a regular file */ | mayNeedReadlink
+		needType = FindOp_CheckTypeNotFile | FindOp_CheckTypeIsFile |
+			FindOp_CheckSize /* only check size when it's a regular file */ |
+			mayNeedReadlink
 		needSysinfo = FindOp_CheckUserInvalid | FindOp_CheckUser | FindOp_CheckGroup |
 			FindOp_CheckCreationTime | FindOp_CheckLastMetadataChangeTime |
 			FindOp_CheckLastAccessTime | FindOp_CheckLastContentUpdatedTime
 		needInfo = FindOp_CheckSize | needSysinfo
-		needName = FindOp_CheckName | FindOp_CheckNameIgnoreCase | FindOp_CheckNameFollowSymlink | FindOp_CheckNameIgnoreCaseFollowSymlink
-		needPath = FindOp_CheckPath | FindOp_CheckPathIgnoreCase | FindOp_CheckRegex | FindOp_CheckRegexIgnoreCase
+		needName = FindOp_CheckName | FindOp_CheckNameIgnoreCase |
+			FindOp_CheckNameFollowSymlink | FindOp_CheckNameIgnoreCaseFollowSymlink
+		needPath = FindOp_CheckPath | FindOp_CheckPathIgnoreCase |
+			FindOp_CheckRegex | FindOp_CheckRegexIgnoreCase
 	)
 
 	var (

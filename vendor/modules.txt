@@ -1,4 +1,4 @@
-# arhat.dev/pkg v0.10.2-0.20220730124454-80bcc6fbd51f
+# arhat.dev/pkg v0.10.2-0.20220731090723-4d52b4c806d1
 ## explicit; go 1.18
 arhat.dev/pkg/archconst
 arhat.dev/pkg/byteshelper
@@ -29,7 +29,7 @@ arhat.dev/pkg/yamlhelper
 # arhat.dev/pty v0.1.0
 ## explicit; go 1.13
 arhat.dev/pty
-# arhat.dev/rs v0.10.1-0.20220730165847-4b9ceeed1310
+# arhat.dev/rs v0.11.0
 ## explicit; go 1.18
 arhat.dev/rs
 # arhat.dev/tlang v0.0.0-20220721161405-faac9d553010
@@ -174,6 +174,10 @@ github.com/muesli/termenv
 # github.com/nwaples/rardecode v1.1.3
 ## explicit
 github.com/nwaples/rardecode
+# github.com/onsi/ginkgo v1.16.5
+## explicit; go 1.16
+# github.com/onsi/gomega v1.16.0
+## explicit; go 1.16
 # github.com/open2b/scriggo v0.55.0
 ## explicit; go 1.17
 github.com/open2b/scriggo

@@ -54,8 +54,7 @@ type FindCliOptions struct {
 
 	typ string
 
-	unknownOwner   bool // for -nouser
-	followSymlinks bool
+	unknownOwner bool // for -nouser
 
 	createdAt, createdAfter, createdBefore, createdApprox     string
 	updatedAt, updatedAfter, updatedBefore, updatedApprox     string // mtime
@@ -122,6 +121,7 @@ func (opts *FindCliOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&opts.unknownOwner, "owner-invalid", false, "")
 }
 
+// nolint:gocyclo
 func (opts *FindCliOptions) Resolve(now int64) (ret fshelper.FindOptions, err error) {
 	if len(opts.user) != 0 {
 		ret.Ops |= fshelper.FindOp_CheckUser
@@ -159,6 +159,9 @@ func (opts *FindCliOptions) Resolve(now int64) (ret fshelper.FindOptions, err er
 
 		var g *user.Group
 		g, err = user.LookupGroup(opts.group)
+		if err != nil {
+			return
+		}
 
 		if runtime.GOOS == "windows" {
 			ret.WindowsOrPlan9User = g.Gid
@@ -212,7 +215,11 @@ func (opts *FindCliOptions) Resolve(now int64) (ret fshelper.FindOptions, err er
 
 	if len(opts.regexprIgnoreCase) != 0 {
 		ret.Ops |= fshelper.FindOp_CheckRegexIgnoreCase
-		ret.RegexprIgnoreCase, err = regexp.Compile(regexphelper.Options{CaseInsensitive: true}.Wrap(opts.regexprIgnoreCase))
+		ret.RegexprIgnoreCase, err = regexp.Compile(
+			regexphelper.Options{CaseInsensitive: true}.Wrap(
+				opts.regexprIgnoreCase,
+			),
+		)
 		if err != nil {
 			return
 		}
@@ -460,7 +467,8 @@ func parseFindFileTime(t string, def int64) (stamp int64, err error) {
 
 	// relative: [+-] duration
 	if t[0] == '-' || t[0] == '+' {
-		dur, err := time.ParseDuration(t)
+		var dur time.Duration
+		dur, err = time.ParseDuration(t)
 		if err != nil {
 			return time.Now().Add(dur).Unix(), nil
 		}
@@ -509,6 +517,7 @@ func parseFindFileTime(t string, def int64) (stamp int64, err error) {
 	return
 }
 
+// nolint:unparam
 func resolveFindOptionsMinMax(
 	exact, approx string,
 	defaultExact, defaultApprox int64,

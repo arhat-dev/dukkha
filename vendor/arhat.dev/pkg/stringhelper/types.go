@@ -51,6 +51,7 @@ func SliceStart[B ~byte, S String[B]](s S, i int) S {
 	}
 	ret.Cap = ret.Len
 
+	// nolint:govet
 	return *(*S)(unsafe.Pointer(&ret))
 }
 
@@ -64,6 +65,7 @@ func SliceEnd[B ~byte, S String[B]](s S, i int) S {
 		Cap:  i,
 	}
 
+	// nolint:govet
 	return *(*S)(unsafe.Pointer(&ret))
 }
 
@@ -77,5 +79,6 @@ func SliceStartEnd[B ~byte, S String[B]](s S, i, j int) S {
 		Cap:  j - i,
 	}
 
+	// nolint:govet
 	return *(*S)(unsafe.Pointer(&ret))
 }

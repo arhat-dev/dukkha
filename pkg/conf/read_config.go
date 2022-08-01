@@ -11,6 +11,7 @@ import (
 
 	"arhat.dev/pkg/synchain"
 	"github.com/bmatcuk/doublestar/v4"
+	"go.uber.org/multierr"
 	"gopkg.in/yaml.v3"
 
 	"arhat.dev/dukkha/pkg/dukkha"
@@ -49,11 +50,21 @@ func Read(
 	sg *synchain.Synchain,
 	configPaths []string,
 	ignoreFileNotExist bool,
-) error {
+) (err error) {
+	defer func() {
+		sg.Wait()
+		if err != nil {
+			err = multierr.Append(err, sg.Err())
+		} else {
+			err = sg.Err()
+		}
+	}()
+
 	for i := range configPaths {
 		startPath := configPaths[i]
 
-		info, err := fs.Stat(spec.ConfFS, startPath)
+		var info fs.FileInfo
+		info, err = fs.Stat(spec.ConfFS, startPath)
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
 				if ignoreFileNotExist {
@@ -61,7 +72,7 @@ func Read(
 				}
 			}
 
-			return err
+			return
 		}
 
 		switch {
@@ -76,7 +87,7 @@ func Read(
 		case info.IsDir():
 			dirFS, err := fs.Sub(spec.ConfFS, startPath)
 			if err != nil {
-				return err
+				return fmt.Errorf("Unexpected subfs error: %w", err)
 			}
 
 			err = fs.WalkDir(dirFS, ".", func(pathInDir string, d fs.DirEntry, err error) error {
@@ -109,13 +120,11 @@ func Read(
 				return err
 			}
 		default:
-			return fmt.Errorf("invalid config path %q: not a dir or file", startPath)
+			return fmt.Errorf("invalid config path %q: not a file or dir", startPath)
 		}
 	}
 
-	sg.Wait()
-
-	return sg.Err()
+	return nil
 }
 
 // return true when the file was not visited
@@ -184,7 +193,7 @@ func loadConfig(
 				break
 			}
 
-			err = fmt.Errorf("decode yaml config: %w", err)
+			err = fmt.Errorf("decode yaml config %q: %w", filename, err)
 			break
 		}
 
@@ -244,16 +253,24 @@ func loadConfig(
 
 	sg.Unlock(j)
 
-	handleInclude(rc, spec, filename, includes)
+	handleInclude(rc, spec, sg, filename, includes)
 }
 
 func handleInclude(
 	rc dukkha.ConfigResolvingContext,
 	spec *ReadSpec,
+	parentSG *synchain.Synchain,
 	currentFile string,
 	include []*IncludeEntry,
 ) {
-	var sg synchain.Synchain
+	if len(include) == 0 {
+		return
+	}
+
+	var (
+		sg         synchain.Synchain
+		shouldWait bool
+	)
 	sg.Init()
 
 	for i, inc := range include {
@@ -273,13 +290,15 @@ func handleInclude(
 			err = Read(rc, spec, &sg, matches, false)
 			if err != nil {
 				// TODO: log err?
-				_ = fmt.Errorf("loading included config files: %w", err)
+
+				parentSG.Cancel(fmt.Errorf("loading included config files by pattern %q: %w", toInclude, err))
 				return
 			}
 		case len(inc.Text) != 0:
 			var rd strings.Reader
 			rd.Reset(inc.Text)
 
+			shouldWait = true
 			go loadConfig(
 				rc,
 				spec,
@@ -289,5 +308,13 @@ func handleInclude(
 				sg.NewTicket(),
 			)
 		}
+	}
+
+	if shouldWait {
+		sg.Wait()
+	}
+
+	if err := sg.Err(); err != nil {
+		parentSG.Cancel(err)
 	}
 }

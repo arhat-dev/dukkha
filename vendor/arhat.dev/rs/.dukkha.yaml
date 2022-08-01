@@ -26,12 +26,11 @@ tools:
   golang:
   - name: local
   - name: in-ctr
-    cmd@tmpl#use-spec:
-      template: |-
-        {{- include "golang.cmd.ctr" . -}}
+    cmd@tlang#use-spec:
+      script: include "golang.cmd.ctr" .
       include:
-      - text@presets?str: templates/image/flavored-tag.tmpl
-      - text@presets?str: golang/cmd/ctr.tmpl
+      - text@presets?str: templates/image/flavored-tag.tl
+      - text@presets?str: golang/cmd/ctr.tl
       variables:
         version: "1.18"
 

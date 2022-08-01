@@ -116,6 +116,7 @@ func ParseNumber(i any) (_ uint64, isFloat bool, _ error) {
 	case int64:
 		return uint64(i), false, nil
 	case uint64:
+		// nolint:unconvert
 		return uint64(i), false, nil
 
 	case uintptr:

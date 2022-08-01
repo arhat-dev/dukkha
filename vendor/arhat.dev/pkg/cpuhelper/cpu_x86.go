@@ -35,7 +35,7 @@ func (cpu *X86) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("brand: ")
-	sb.WriteString(string(cpu.Brand))
+	sb.WriteString(cpu.Brand)
 	sb.WriteString("\n")
 
 	sb.WriteString("vendor: ")
@@ -143,7 +143,11 @@ func (cpu *X86) MicroArch() (ret int) {
 	}
 
 	if cpu.ExtendedFeatures1.HasAll(
-		X86FeatureExtendedBC_AVX512_F, X86FeatureExtendedBC_AVX512_BW, X86FeatureExtendedBC_AVX512_CD, X86FeatureExtendedBC_AVX512_DQ, X86FeatureExtendedBC_AVX512_VL,
+		X86FeatureExtendedBC_AVX512_F,
+		X86FeatureExtendedBC_AVX512_BW,
+		X86FeatureExtendedBC_AVX512_CD,
+		X86FeatureExtendedBC_AVX512_DQ,
+		X86FeatureExtendedBC_AVX512_VL,
 	) {
 		ret = 4
 	} else {
@@ -159,8 +163,8 @@ type X86Family uint16
 type X86ProcessType uint8
 
 // Vendor returns predefined Vendor value according to brand name
-func (n X86) Vendor() Vendor {
-	switch n.Brand {
+func (cpu *X86) Vendor() Vendor {
+	switch cpu.Brand {
 	case "AMDisbetter!", "AuthenticAMD":
 		return Vendor_AMD
 	case "CentaurHauls", "VIA VIA VIA ":
@@ -168,7 +172,7 @@ func (n X86) Vendor() Vendor {
 	case "CyrixInstead":
 		return Vendor_Cyrix
 	case "GenuineIntel":
-		if strings.HasPrefix(n.BrandDetail, "VirtualApple ") {
+		if strings.HasPrefix(cpu.BrandDetail, "VirtualApple ") {
 			return Vendor_AppleRosetta2
 		}
 
@@ -196,7 +200,7 @@ func (n X86) Vendor() Vendor {
 	case "E2K MACHINE":
 		return Vendor_MCST
 	default:
-		return HypervisorVendor(n.Brand)
+		return HypervisorVendor(cpu.Brand)
 	}
 }
 
@@ -227,6 +231,7 @@ func (feat X86Feature) HasAll(features ...X86Feature) bool {
 	return true
 }
 
+// nolint:gocyclo
 func (feat X86Feature) String() string {
 	switch feat {
 	case X86Feature_SSE3:
@@ -356,6 +361,7 @@ func (feat X86Feature) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	// leaf1 ecx
 	X86Feature_SSE3 X86Feature = 1 << iota
@@ -454,6 +460,7 @@ func (feat X86FeatureExtendedBC) HasAll(features ...X86FeatureExtendedBC) bool {
 	return true
 }
 
+// nolint:gocyclo
 func (feat X86FeatureExtendedBC) String() string {
 	switch feat {
 	case X86FeatureExtendedBC_FSGSBASE:
@@ -579,6 +586,7 @@ func (feat X86FeatureExtendedBC) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	// leaf7.0 ebx
 	X86FeatureExtendedBC_FSGSBASE X86FeatureExtendedBC = 1 << iota
@@ -734,6 +742,7 @@ func (feat X86FeatureExtendedDA) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	// leaf7.0 edx
 	_ X86FeatureExtendedDA = 1 << iota
@@ -832,6 +841,7 @@ func (feat X86FeatureExtra) HasAll(features ...X86FeatureExtra) bool {
 	return true
 }
 
+// nolint:gocyclo
 func (feat X86FeatureExtra) String() string {
 	switch feat {
 	case X86ExtraFeature_LAHF_LM:
@@ -945,6 +955,7 @@ func (feat X86FeatureExtra) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	// leaf0x8000_0001.0 ecx
 	X86ExtraFeature_LAHF_LM X86FeatureExtra = 1 << iota
@@ -1067,6 +1078,7 @@ func (feat X86ThermalPowerFeature) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	// eax (31:7 reserved)
 	X86ThermalPowerFeature_DigitalThermalSensor X86ThermalPowerFeature = 1 << iota
@@ -1118,6 +1130,7 @@ type X86CacheDescriptor struct {
 
 type X86CacheType uint8
 
+// nolint:revive
 const (
 	X86CacheType_NULL X86CacheType = iota
 	X86CacheType_DATA_CACHE

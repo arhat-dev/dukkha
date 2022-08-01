@@ -79,7 +79,7 @@ func StartNoLookPath(cmd *exec.Cmd) error {
 		go func() {
 			select {
 			case <-c.ctx.Done():
-				c.Process.Kill()
+				_ = c.Process.Kill()
 			case <-c.waitDone:
 			}
 		}()

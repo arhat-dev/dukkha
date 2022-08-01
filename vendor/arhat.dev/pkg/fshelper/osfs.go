@@ -17,6 +17,7 @@ import (
 
 type Op uint32
 
+// nolint:revive
 const (
 	Op_Unknown Op = iota
 
@@ -126,13 +127,13 @@ func (ofs *OSFS) getRealPath(op Op, name string) (cwd, rpath string, err error) 
 		lookupFHS := ofs.LookupFHS
 		if lookupFHS == nil {
 			lookupFHS = func(path string) (string, error) {
-				ret, err := exec.Command("cygpath", "-w", path).CombinedOutput()
-				if err == nil {
+				ret, err2 := exec.Command("cygpath", "-w", path).CombinedOutput()
+				if err2 == nil {
 					return strings.TrimSpace(string(ret)), nil
 				}
 
-				ret, err = exec.Command("winepath", "-w", path).CombinedOutput()
-				if err == nil {
+				ret, err2 = exec.Command("winepath", "-w", path).CombinedOutput()
+				if err2 == nil {
 					return strings.TrimSpace(string(ret)), nil
 				}
 

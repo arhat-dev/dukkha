@@ -82,9 +82,9 @@ func splitPathList(cwd, target, pathListEnv, pathExtEnv string) []string {
 		list[i], err = AbsWindowsPath(cwd, v, func(path string) (string, error) {
 			// find root path of the fhs root using cygpath
 			// but first lookup cygpath itself
-			cygpath, err := lookPathDir(cwd, cygpathBin, pathListEnv, pathExtEnv, findExecutable)
-			if err != nil {
-				return "", err
+			cygpath, err2 := lookPathDir(cwd, cygpathBin, pathListEnv, pathExtEnv, findExecutable)
+			if err2 != nil {
+				return "", err2
 			}
 
 			// NOTE for some environments:
@@ -177,20 +177,22 @@ func findExecutable(dir, file string, exts []string) (string, error) {
 		return checkStat(dir, file, true)
 	}
 	if winHasExt(file) {
-		if file, err := checkStat(dir, file, true); err == nil {
-			return file, nil
+		if file2, err := checkStat(dir, file, true); err == nil {
+			return file2, nil
 		}
 	}
 	for _, e := range exts {
 		f := file + e
-		if f, err := checkStat(dir, f, true); err == nil {
-			return f, nil
+		if f2, err := checkStat(dir, f, true); err == nil {
+			return f2, nil
 		}
 	}
 	return "", fmt.Errorf("not found")
 }
 
 // findFile returns the path to an existing file.
+//
+// nolint:deadcode
 func findFile(dir, file string, _ []string) (string, error) {
 	return checkStat(dir, file, false)
 }

@@ -16,7 +16,7 @@ type ArchValue string
 // - `mipslesf` -> soft float version of `mipsle`
 //
 // example `amd64`
-// - `amd64v3` -> [arch name] = amd64, {micro level} = v3
+// - `amd64v3` -> [arch name] = amd64, {micro arch} = v3
 //
 // example `ppc64`: `ppc64`
 // - `ppc64le` -> little-endian version of ppc64

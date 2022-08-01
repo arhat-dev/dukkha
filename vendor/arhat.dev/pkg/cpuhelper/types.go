@@ -11,6 +11,7 @@ type CPUFeatures interface{}
 
 type Vendor uint32
 
+// nolint:gocyclo
 func (vnd Vendor) String() string {
 	switch vnd {
 	case Vendor_AMD:
@@ -97,6 +98,7 @@ func (vnd Vendor) String() string {
 	}
 }
 
+// nolint:revive
 const (
 	Vendor_Unknown Vendor = iota
 
