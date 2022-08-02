@@ -2299,8 +2299,9 @@
           "x-intellij-html-description": "specific to this action"
         },
         "idle": {
-          "description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like `tlang`\nto do some task execution state related operation (e.g. set global\nvalue with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like <code>tlang</code>\nto do some task execution state related operation (e.g. set global\nvalue with <code>dukkha.SetValue</code>)"
+          "$ref": "#/definitions/any",
+          "description": "does nothing but serves as a placeholder for preparation purpose\n\nUsually it should be applied with rendering suffix to make use of renderers\nthat doesn't fit into any exisiting action",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\n\nUsually it should be applied with rendering suffix to make use of renderers\nthat doesn't fit into any exisiting action"
         },
         "if": {
           "type": "boolean",
@@ -2379,8 +2380,9 @@
           "$ref": "#/definitions/PatchSpec"
         },
         "^idle@.*": {
-          "description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like `tlang`\nto do some task execution state related operation (e.g. set global\nvalue with `dukkha.SetValue`)",
-          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\nrecommended usage of Idle action is to apply renderers like <code>tlang</code>\nto do some task execution state related operation (e.g. set global\nvalue with <code>dukkha.SetValue</code>)"
+          "$ref": "#/definitions/any",
+          "description": "does nothing but serves as a placeholder for preparation purpose\n\nUsually it should be applied with rendering suffix to make use of renderers\nthat doesn't fit into any exisiting action",
+          "x-intellij-html-description": "does nothing but serves as a placeholder for preparation purpose\n\nUsually it should be applied with rendering suffix to make use of renderers\nthat doesn't fit into any exisiting action"
         },
         "^idle@[^\\|]*!": {
           "$ref": "#/definitions/PatchSpec"

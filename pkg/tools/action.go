@@ -39,10 +39,10 @@ type Action struct {
 	Run *bool `yaml:"if"`
 
 	// Idle does nothing but serves as a placeholder for preparation purpose
-	// recommended usage of Idle action is to apply renderers like `tlang`
-	// to do some task execution state related operation (e.g. set global
-	// value with `dukkha.SetValue`)
-	Idle interface{} `yaml:"idle,omitempty"`
+	//
+	// Usually it should be applied with rendering suffix to make use of renderers
+	// that doesn't fit into any exisiting action
+	Idle any `yaml:"idle,omitempty"`
 
 	// Task reference of this action
 	//
@@ -81,8 +81,13 @@ type Action struct {
 	mu sync.Mutex
 }
 
+// DoAfterFieldResolved resolves act for fn exclusively
+//
+// when no tagNames provided, resolve field `if` first to determine whether this actions
+// is expected to run, when evaluted as false, fn is called with arg false and no other
+// fields will be resolved.
 func (act *Action) DoAfterFieldResolved(
-	mCtx dukkha.TaskExecContext, do func(run bool) error, tagNames ...string,
+	mCtx dukkha.TaskExecContext, fn func(run bool) error, tagNames ...string,
 ) error {
 	act.mu.Lock()
 	defer act.mu.Unlock()
@@ -93,8 +98,21 @@ func (act *Action) DoAfterFieldResolved(
 	}
 
 	if len(tagNames) == 0 {
+		err = act.ResolveFields(mCtx, -1, "if")
+		if err != nil {
+			return fmt.Errorf("resolve action run condition `if`: %w", err)
+		}
+
+		if act.Run != nil && !*act.Run {
+			if fn != nil {
+				return fn(false)
+			}
+
+			return nil
+		}
+
 		tagNames = []string{
-			"if", "idle", "task", "shell", "cmd", "chdir",
+			"idle", "task", "shell", "cmd", "chdir",
 			"continue_on_error", "ExternalShell",
 		}
 	}
@@ -104,20 +122,28 @@ func (act *Action) DoAfterFieldResolved(
 		return fmt.Errorf("resolving action fields: %w", err)
 	}
 
-	if do == nil {
+	if fn == nil {
 		return nil
 	}
 
-	return do(act.Run == nil || *act.Run)
+	return fn(act.Run == nil || *act.Run)
 }
 
 func (act *Action) GenSpecs(
 	ctx dukkha.TaskExecContext, index int,
 ) (dukkha.RunTaskOrRunCmd, error) {
-	actionID := "#" + strconv.FormatInt(int64(index), 10)
+	var sb strings.Builder
 	if len(act.Name) != 0 {
-		actionID = fmt.Sprintf("%s (%s)", act.Name, actionID)
+		sb.WriteString(act.Name)
+		sb.WriteString(" (#")
+		sb.WriteString(strconv.FormatInt(int64(index), 10))
+		sb.WriteString(")")
+	} else {
+		sb.WriteString("#")
+		sb.WriteString(strconv.FormatInt(int64(index), 10))
 	}
+
+	actionID := sb.String()
 
 	switch {
 	case act.Idle != nil:

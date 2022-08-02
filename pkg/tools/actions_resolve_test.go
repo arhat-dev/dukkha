@@ -48,31 +48,20 @@ func TestResolveActions_steps(t *testing.T) {
 		func() *TestResolvable { return rs.Init(&TestResolvable{}, nil).(*TestResolvable) },
 		func() *CheckSpec { return rs.Init(&CheckSpec{}, nil).(*CheckSpec) },
 		func(t *testing.T, spec *TestResolvable, exp *CheckSpec) {
+			t.Parallel()
+
 			mCtx := dt.NewTestContext(context.TODO(), t.TempDir())
 			mCtx.AddRenderer("tmpl", tmpl.NewDefault(""))
 			mCtx.AddRenderer("file", file.NewDefault(""))
 			mCtx.AddRenderer("echo", echo.NewDefault(""))
 
-			jobs, err := ResolveActions(
-				mCtx, spec, &spec.Actions, "actions",
-			)
+			jobs, err := ResolveActions(mCtx, spec, &spec.Actions, "actions")
+			if !assert.NoError(t, err) {
+				return
+			}
 
-			assert.NoError(t, err)
-
-			assertActionsVisibleFields := func(t *testing.T, ex, ac []*Action) {
-				for i := range ex {
-					expected, actual := ex[i], ac[i]
-
-					assert.EqualValues(t, expected.Name, actual.Name)
-					assert.EqualValues(t, expected.Env, actual.Env)
-					assert.EqualValues(t, expected.Chdir, actual.Chdir)
-					assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
-					assert.EqualValues(t, expected.Cmd, actual.Cmd)
-					assert.EqualValues(t, expected.Idle, actual.Idle)
-					assert.EqualValues(t, expected.Task, actual.Task)
-					assert.EqualValues(t, expected.EmbeddedShell, actual.EmbeddedShell)
-					assert.EqualValues(t, expected.ExternalShell, actual.ExternalShell)
-				}
+			if jobs == nil {
+				assertActionsVisibleFields(t, exp.Steps[0].Actions, spec.Actions)
 			}
 
 			i := 0
@@ -81,7 +70,7 @@ func TestResolveActions_steps(t *testing.T) {
 					assertActionsVisibleFields(t, exp.Steps[i].Actions, spec.Actions)
 					i++
 
-					// call AlterExecFunc in second spec is like calling
+					// calling AlterExecFunc in second spec is like calling
 					// next() to go to next step
 					var ret any
 					ret, err = jobs[1].AlterExecFunc(nil, nil, nil, nil)
@@ -103,4 +92,21 @@ func TestResolveActions_steps(t *testing.T) {
 			assert.Equal(t, len(exp.Steps), i+1, "missing steps")
 		},
 	)
+}
+
+func assertActionsVisibleFields(t *testing.T, ex, ac []*Action) {
+	for i := range ex {
+		expected, actual := ex[i], ac[i]
+
+		assert.EqualValues(t, expected.Run, actual.Run)
+		assert.EqualValues(t, expected.Name, actual.Name)
+		assert.EqualValues(t, expected.Env, actual.Env)
+		assert.EqualValues(t, expected.Chdir, actual.Chdir)
+		assert.EqualValues(t, expected.ContinueOnError, actual.ContinueOnError)
+		assert.EqualValues(t, expected.Cmd, actual.Cmd)
+		assert.EqualValues(t, expected.Idle, actual.Idle)
+		assert.EqualValues(t, expected.Task, actual.Task)
+		assert.EqualValues(t, expected.EmbeddedShell, actual.EmbeddedShell)
+		assert.EqualValues(t, expected.ExternalShell, actual.ExternalShell)
+	}
 }

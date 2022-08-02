@@ -99,8 +99,7 @@ func next(
 
 	return []dukkha.TaskExecSpec{
 		{
-			// we should respect continune on error settings
-			// when continue_on_error is not set or set to false
+			// respect continue_on_error, when not set or set to false
 			// then we SHOULD not go further
 
 			AlterExecFunc: func(
@@ -121,6 +120,7 @@ func next(
 
 				// we will dead lock self when *next is self and calling
 				// next() directly inside
+				// so DO NOT do it
 				err = thisJob.DoAfterFieldResolved(mCtx, func(run bool) error {
 					if nj := thisJob.Next; nj != nil {
 						var ok bool

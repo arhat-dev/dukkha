@@ -1,12 +1,15 @@
 actions:
-- idle@: step-1
+- idle@: step-2
   if: false
   next: not-found
+  shell@: foo
+  task@: { ref: workflow:run(test) }
 ---
 steps:
 # after initial resolving shoud not error, since we do not look at *next
+# and no fields other than `if` is checked
 - actions:
-  - idle: step-1
+  - if: false
     next: not-found
 
 # there will be no error since the step is skipped
